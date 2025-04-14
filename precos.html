@@ -75,11 +75,12 @@
       font-weight: bold;
     }
 
-    input[type="file"] {
+    input[type="file"], select {
       padding: 8px;
       border-radius: 8px;
       border: 1px solid #ccc;
       background-color: white;
+      font-size: 16px;
     }
 
     #submit-button {
@@ -92,7 +93,7 @@
       font-size: 16px;
       cursor: pointer;
       transition: background-color 0.2s;
-      margin: 0 auto; 
+      margin: 0 auto;
     }
 
     #submit-button:hover {
@@ -139,6 +140,14 @@
     </div>
 
     <div id="upload-section">
+      <label for="banco">Escolha o banco:</label>
+      <select id="banco" required>
+        <option value="">Selecione...</option>
+        <option value="BAI">BAI</option>
+        <option value="BPC">BPC</option>
+        <option value="BNI">BNI</option>
+      </select>
+
       <label for="comprovativo">Enviar comprovativo (PDF):</label>
       <input type="file" id="comprovativo" accept="application/pdf" required>
     </div>
@@ -150,8 +159,15 @@
     const options = document.querySelectorAll('.option');
     const uploadSection = document.getElementById('upload-section');
     const fileInput = document.getElementById('comprovativo');
+    const bancoSelect = document.getElementById('banco');
     const submitButton = document.getElementById('submit-button');
     let selectedOption = null;
+
+    const limitesKB = {
+      BAI: 32,
+      BPC: 31,
+      BNI: 32
+    };
 
     options.forEach(option => {
       option.addEventListener('click', () => {
@@ -159,30 +175,42 @@
         option.classList.add('selected');
         selectedOption = option.getAttribute('data-value');
         uploadSection.style.display = 'flex';
-        checkFileAndOption();
+        checkValidoParaEnvio();
       });
     });
 
-    fileInput.addEventListener('change', checkFileAndOption);
+    fileInput.addEventListener('change', checkValidoParaEnvio);
+    bancoSelect.addEventListener('change', checkValidoParaEnvio);
 
-    function checkFileAndOption() {
-      if (fileInput.files.length > 0 && selectedOption) {
-        submitButton.style.display = 'block';
-      } else {
+    function checkValidoParaEnvio() {
+      const banco = bancoSelect.value;
+      const file = fileInput.files[0];
+
+      if (!file || !banco || !selectedOption) {
         submitButton.style.display = 'none';
+        return;
       }
+
+      const tamanhoKB = file.size / 1024;
+
+      if (tamanhoKB > limitesKB[banco]) {
+        alert(`Comprovativo inválido. O tamanho máximo permitido para ${banco} é ${limitesKB[banco]} KB.\nTamanho atual: ${tamanhoKB.toFixed(2)} KB`);
+        submitButton.style.display = 'none';
+        return;
+      }
+
+      submitButton.style.display = 'block';
     }
 
     document.getElementById('aula-form').addEventListener('submit', function (e) {
-  e.preventDefault();
+      e.preventDefault();
 
-  alert(`Aula de "${selectedOption}" solicitada com comprovativo enviado.`);
+      alert(`Aula de "${selectedOption}" solicitada com comprovativo enviado.`);
 
-  // Redireciona para a página da aula online após o envio
-  setTimeout(() => {
-    window.location.href = 'aulaonline.html';
-  }, 500); // atraso para garantir que o alerta apareça antes do redirecionamento
-});
+      setTimeout(() => {
+        window.location.href = 'aulaonline.html';
+      }, 500);
+    });
   </script>
 </body>
 </html>
