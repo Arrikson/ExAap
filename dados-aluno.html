@@ -52,18 +52,14 @@
     }
 
     .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      margin-top: 10px;
     }
 
     .checkbox-group label {
-      display: inline-block;
-      width: 140px;
-    }
-
-    .checkbox-group input {
-      margin-left: 10px;
+      font-size: 13px;
     }
 
     .location-btn {
@@ -89,6 +85,37 @@
       width: 100%;
     }
 
+    .plus-btn {
+      margin-top: 10px;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #333;
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #eee;
+    }
+
+    #discipline-title {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -112,12 +139,6 @@
     </div>
 
     <div class="input-group">
-      <label for="location">Localização (GPS)</label>
-      <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
-      <p id="location-status"></p>
-    </div>
-
-    <div class="input-group">
       <label for="class">Classe que frequenta</label>
       <input type="text" id="class" name="class" required>
     </div>
@@ -133,40 +154,32 @@
     </div>
 
     <div class="input-group">
-      <label>Disciplinas</label>
-      <div class="checkbox-group">
-        <label for="math">Matemática</label>
-        <input type="checkbox" id="math" name="discipline" value="Matemática">
-        
-        <label for="portuguese">Língua Portuguesa</label>
-        <input type="checkbox" id="portuguese" name="discipline" value="Língua Portuguesa">
-
-        <label for="english">Inglês</label>
-        <input type="checkbox" id="english" name="discipline" value="Inglês">
-        
-        <label for="french">Francês</label>
-        <input type="checkbox" id="french" name="discipline" value="Francês">
-        
-        <label for="chemistry">Química</label>
-        <input type="checkbox" id="chemistry" name="discipline" value="Química">
-        
-        <label for="physics">Física</label>
-        <input type="checkbox" id="physics" name="discipline" value="Física">
-
-        <div class="extra-discipline" id="extra-discipline">
-          <label for="other-discipline">Outra Disciplina</label>
-          <input type="text" id="other-discipline" name="other-discipline">
-        </div>
-        
-        <button type="button" onclick="toggleExtraDiscipline()">Adicionar outra disciplina</button>
-      </div>
+      <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
+      <p id="location-status"></p>
     </div>
 
-    <button type="submit">Enviar Dados</button>
+    <div id="discipline-title">Disciplinas</div>
+    <div class="checkbox-group">
+      <label><input type="checkbox" name="discipline" value="Matemática"> Matemática</label>
+      <label><input type="checkbox" name="discipline" value="Língua Portuguesa"> Língua Portuguesa</label>
+      <label><input type="checkbox" name="discipline" value="Inglês"> Inglês</label>
+      <label><input type="checkbox" name="discipline" value="Francês"> Francês</label>
+      <label><input type="checkbox" name="discipline" value="Química"> Química</label>
+      <label><input type="checkbox" name="discipline" value="Física"> Física</label>
+    </div>
+
+    <button type="button" class="plus-btn" onclick="toggleExtraDiscipline()">+</button>
+
+    <div class="extra-discipline" id="extra-discipline">
+      <label for="other-discipline">Outra Disciplina</label>
+      <input type="text" id="other-discipline" name="other-discipline">
+    </div>
+
+    <button type="submit" class="submit-btn">Enviar Dados</button>
   </div>
 
   <script>
-    // Função para obter a localização via GPS
+    // Geolocalização
     function getLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -198,14 +211,10 @@
       }
     }
 
-    // Função para mostrar/ocultar o campo de "outra disciplina"
+    // Mostrar/ocultar campo de outra disciplina
     function toggleExtraDiscipline() {
       const extraDiscipline = document.getElementById("extra-discipline");
-      if (extraDiscipline.style.display === "none" || extraDiscipline.style.display === "") {
-        extraDiscipline.style.display = "block";
-      } else {
-        extraDiscipline.style.display = "none";
-      }
+      extraDiscipline.style.display = extraDiscipline.style.display === "block" ? "none" : "block";
     }
   </script>
 
