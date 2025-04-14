@@ -72,55 +72,84 @@
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-  <script>
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const status = document.getElementById('status');
-    const botaoChamar = document.getElementById('botao-chamar');
-    const inputID = document.getElementById('peer-id-alvo');
-    const meuIDSpan = document.getElementById('meu-id');
+<script>
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo');
+  const status = document.getElementById('status');
+  const botaoChamar = document.getElementById('botao-chamar');
+  const inputID = document.getElementById('peer-id-alvo');
+  const meuIDSpan = document.getElementById('meu-id');
 
-    let localStream;
-    const peer = new Peer(); // cria Peer com ID aleatório
+  let localStream;
+  let currentFacingMode = 'user'; // 'user' = frontal, 'environment' = traseira
+  let currentCall;
 
-    peer.on('open', (id) => {
-      meuIDSpan.innerText = id;
+  const peer = new Peer();
+
+  peer.on('open', (id) => {
+    meuIDSpan.innerText = id;
+  });
+
+  async function startStream(facingMode = 'user') {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode },
+        audio: true
+      });
+      localStream = stream;
+      localVideo.srcObject = stream;
+      status.innerText = "Pronto para chamada.";
+
+      // se estiver em chamada, troca o stream enviado
+      if (currentCall) {
+        const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+        if (sender) {
+          sender.replaceTrack(stream.getVideoTracks()[0]);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao acessar câmera/microfone.');
+      status.innerText = "Permissão negada.";
+    }
+  }
+
+  // Botão para trocar câmera
+  const trocarBtn = document.createElement('button');
+  trocarBtn.innerText = 'Trocar Câmera';
+  trocarBtn.onclick = () => {
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    startStream(currentFacingMode);
+  };
+  document.getElementById('controles').appendChild(trocarBtn);
+
+  // Iniciar stream inicial
+  startStream(currentFacingMode);
+
+  // Receber chamada
+  peer.on('call', (call) => {
+    currentCall = call;
+    call.answer(localStream);
+    call.on('stream', (remoteStream) => {
+      remoteVideo.srcObject = remoteStream;
+      status.innerText = "Conectado!";
     });
+  });
 
-    // Captura áudio e vídeo local
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        localStream = stream;
-        localVideo.srcObject = stream;
-        status.innerText = "Pronto para chamada.";
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Erro ao acessar câmera/microfone.');
-        status.innerText = "Permissão negada.";
-      });
+  // Fazer chamada
+  botaoChamar.onclick = () => {
+    const idRemoto = inputID.value;
+    if (!idRemoto) return alert("Digite o ID do outro usuário!");
 
-    // Quando receber uma chamada
-    peer.on('call', (call) => {
-      call.answer(localStream);
-      call.on('stream', (remoteStream) => {
-        remoteVideo.srcObject = remoteStream;
-        status.innerText = "Conectado!";
-      });
+    const call = peer.call(idRemoto, localStream);
+    currentCall = call;
+    call.on('stream', (remoteStream) => {
+      remoteVideo.srcObject = remoteStream;
+      status.innerText = "Conectado!";
     });
-
-    // Quando clicar em "Chamar"
-    botaoChamar.onclick = () => {
-      const idRemoto = inputID.value;
-      if (!idRemoto) return alert("Digite o ID do outro usuário!");
-
-      const call = peer.call(idRemoto, localStream);
-      call.on('stream', (remoteStream) => {
-        remoteVideo.srcObject = remoteStream;
-        status.innerText = "Conectado!";
-      });
-    };
-  </script>
-</body>
-</html>
-
+  };
+</script>
