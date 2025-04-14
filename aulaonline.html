@@ -119,10 +119,11 @@
 <body>
 
   <div id="videos">
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video>
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
+  <!-- Ícones -->
   <div id="botao-trocar" class="icone" title="Trocar câmera">🔄</div>
   <div id="copiar-id" class="icone" title="Copiar ID">📋</div>
 
@@ -131,7 +132,7 @@
     <button id="botao-chamar">Chamar</button>
   </div>
 
-  <div id="status" class="oculto"></div>
+  <div id="status">Aguardando conexão...</div>
   <span id="meu-id"></span>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -172,12 +173,10 @@
           video: {
             facingMode,
             width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            frameRate: { ideal: 30, max: 60 }
+            height: { ideal: 1080 }
           },
           audio: true
         });
-
         localStream = stream;
         localVideo.srcObject = stream;
 
@@ -189,9 +188,8 @@
         }
       } catch (err) {
         console.error(err);
-        alert('Erro ao acessar câmera/microfone.');
+        alert('Erro ao acessar câmera/mic.');
         status.innerText = "Permissão negada.";
-        status.classList.remove('oculto');
       }
     }
 
@@ -207,8 +205,8 @@
       call.answer(localStream);
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
+        remoteVideo.play().catch((e) => console.warn("Erro ao dar play:", e));
         status.innerText = "Conectado!";
-        status.classList.remove('oculto');
         botaoChamar.style.display = "none";
         mostrarTerminar();
       });
@@ -222,8 +220,8 @@
       currentCall = call;
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
+        remoteVideo.play().catch((e) => console.warn("Erro ao dar play:", e));
         status.innerText = "Conectado!";
-        status.classList.remove('oculto');
         botaoChamar.style.display = "none";
         mostrarTerminar();
       });
@@ -239,7 +237,6 @@
             currentCall.close();
             remoteVideo.srcObject = null;
             status.innerText = 'Aula encerrada.';
-            status.classList.remove('oculto');
             botaoEncerrar.remove();
             botaoChamar.style.display = "inline-block";
           }
