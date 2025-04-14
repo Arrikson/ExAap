@@ -6,186 +6,227 @@
   <title>Aula Online com PeerJS</title>
   <style>
     body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    video {
-      width: 45%;
-      max-width: 500px;
-      margin: 10px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background-color: #000;
+      touch-action: manipulation;
     }
 
     #videos {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
       display: flex;
-      flex-wrap: wrap;
       justify-content: center;
       align-items: center;
-      gap: 20px;
     }
 
-    #controles {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    #remoteVideo {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background: #000;
+    }
+
+    #localVideo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 10vw;
+      height: 10vh;
+      object-fit: cover;
+      border: 2px solid white;
+      border-radius: 8px;
+      z-index: 2;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #controles, #status {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.85);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 3;
+      transition: opacity 0.5s ease;
+    }
+
+    #controles.oculto, #status.oculto {
+      opacity: 0;
+      pointer-events: none;
     }
 
     input, button {
-      padding: 10px;
-      font-size: 16px;
+      padding: 8px;
       margin: 5px;
+      font-size: 14px;
     }
 
-    #status {
-      margin-top: 20px;
+    #botao-encerrar {
+      background-color: #c62828;
+      color: white;
+      border: none;
+      border-radius: 6px;
       font-weight: bold;
-      color: #333;
+      cursor: pointer;
     }
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    font-family: sans-serif;
-    background-color: #000;
-    touch-action: manipulation;
-  }
 
-  #videos {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #remoteVideo {
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
-
-  #localVideo {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 10vw;
-    height: 10vh;
-    object-fit: cover;
-    border: 2px solid white;
-    border-radius: 8px;
-    z-index: 2;
-    cursor: grab;
-    touch-action: none;
-  }
-
-  #controles, #status {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(255,255,255,0.85);
-    padding: 10px;
-    border-radius: 10px;
-    z-index: 3;
-    transition: opacity 0.5s ease;
-  }
-
-  #controles.oculto, #status.oculto {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  input, button {
-    padding: 8px;
-    margin: 5px;
-    font-size: 14px;
-  }
-
-  #botao-encerrar {
-    background-color: #c62828;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  #botao-encerrar:hover {
-    background-color: #b71c1c;
-  }
-</style>
-
-<script>
-  // DRAG para o localVideo
-  const localVideo = document.getElementById('localVideo');
-  let isDragging = false;
-  let offsetX, offsetY;
-
-  localVideo.addEventListener('pointerdown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - localVideo.offsetLeft;
-    offsetY = e.clientY - localVideo.offsetTop;
-    localVideo.setPointerCapture(e.pointerId);
-  });
-
-  localVideo.addEventListener('pointermove', (e) => {
-    if (isDragging) {
-      localVideo.style.left = (e.clientX - offsetX) + 'px';
-      localVideo.style.top = (e.clientY - offsetY) + 'px';
+    #botao-encerrar:hover {
+      background-color: #b71c1c;
     }
-  });
+  </style>
+</head>
+<body>
 
-  localVideo.addEventListener('pointerup', () => {
-    isDragging = false;
-  });
+  <div id="videos">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
 
-  // ESCONDER CONTROLES APÓS INATIVIDADE
-  let controles = document.getElementById('controles');
-  let status = document.getElementById('status');
-  let timeout;
+  <div id="controles">
+    <p>Seu ID: <span id="meu-id">Carregando...</span></p>
+    <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
+    <button id="botao-chamar">Chamar</button>
+  </div>
 
-  function mostrarControles() {
-    controles.classList.remove('oculto');
-    status.classList.remove('oculto');
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      controles.classList.add('oculto');
-      status.classList.add('oculto');
-    }, 5000); // 5 segundos
-  }
+  <div id="status">Aguardando conexão...</div>
 
-  document.addEventListener('mousemove', mostrarControles);
-  document.addEventListener('touchstart', mostrarControles);
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script>
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const status = document.getElementById('status');
+    const botaoChamar = document.getElementById('botao-chamar');
+    const inputID = document.getElementById('peer-id-alvo');
+    const meuIDSpan = document.getElementById('meu-id');
 
-  mostrarControles(); // inicial
+    let localStream;
+    let currentFacingMode = 'user';
+    let currentCall;
 
-  // BOTÃO ENCERRAR CHAMADA
-  const botaoEncerrar = document.createElement('button');
-  botaoEncerrar.id = 'botao-encerrar';
-  botaoEncerrar.innerText = 'Encerrar Chamada';
-  botaoEncerrar.onclick = () => {
-    if (currentCall) {
-      currentCall.close();
-      remoteVideo.srcObject = null;
-      status.innerText = 'Chamada encerrada.';
+    const peer = new Peer();
+
+    peer.on('open', (id) => {
+      meuIDSpan.innerText = id;
+    });
+
+    async function startStream(facingMode = 'user') {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode },
+          audio: true
+        });
+        localStream = stream;
+        localVideo.srcObject = stream;
+        status.innerText = "Pronto para chamada.";
+
+        if (currentCall) {
+          const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(stream.getVideoTracks()[0]);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao acessar câmera/microfone.');
+        status.innerText = "Permissão negada.";
+      }
     }
-  };
-  controles.appendChild(botaoEncerrar);
-</script>
+
+    const trocarBtn = document.createElement('button');
+    trocarBtn.innerText = 'Trocar Câmera';
+    trocarBtn.onclick = () => {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      startStream(currentFacingMode);
+    };
+    document.getElementById('controles').appendChild(trocarBtn);
+
+    startStream(currentFacingMode);
+
+    peer.on('call', (call) => {
+      currentCall = call;
+      call.answer(localStream);
+      call.on('stream', (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+        status.innerText = "Conectado!";
+      });
+    });
+
+    botaoChamar.onclick = () => {
+      const idRemoto = inputID.value;
+      if (!idRemoto) return alert("Digite o ID do outro usuário!");
+
+      const call = peer.call(idRemoto, localStream);
+      currentCall = call;
+      call.on('stream', (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+        status.innerText = "Conectado!";
+      });
+    };
+
+    // Drag localVideo
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    localVideo.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - localVideo.offsetLeft;
+      offsetY = e.clientY - localVideo.offsetTop;
+      localVideo.setPointerCapture(e.pointerId);
+    });
+
+    localVideo.addEventListener('pointermove', (e) => {
+      if (isDragging) {
+        localVideo.style.left = (e.clientX - offsetX) + 'px';
+        localVideo.style.top = (e.clientY - offsetY) + 'px';
+      }
+    });
+
+    localVideo.addEventListener('pointerup', () => {
+      isDragging = false;
+    });
+
+    // Controles somem
+    let timeout;
+    function mostrarControles() {
+      controles.classList.remove('oculto');
+      status.classList.remove('oculto');
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        controles.classList.add('oculto');
+        status.classList.add('oculto');
+      }, 5000);
+    }
+
+    document.addEventListener('mousemove', mostrarControles);
+    document.addEventListener('touchstart', mostrarControles);
+    mostrarControles();
+
+    // Botão encerrar
+    const botaoEncerrar = document.createElement('button');
+    botaoEncerrar.id = 'botao-encerrar';
+    botaoEncerrar.innerText = 'Encerrar Chamada';
+    botaoEncerrar.onclick = () => {
+      if (currentCall) {
+        currentCall.close();
+        remoteVideo.srcObject = null;
+        status.innerText = 'Chamada encerrada.';
+      }
+    };
+    document.getElementById('controles').appendChild(botaoEncerrar);
+  </script>
+</body>
+</html>
 
