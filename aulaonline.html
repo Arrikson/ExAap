@@ -10,7 +10,7 @@
       padding: 0;
       overflow: hidden;
       font-family: sans-serif;
-      background-color: #000;
+      background-color: #ccc;
       touch-action: manipulation;
     }
 
@@ -40,128 +40,115 @@
       width: 10vw;
       height: 10vh;
       object-fit: cover;
-      border: 2px solid white;
+      border: 2px solid black;
       border-radius: 8px;
       z-index: 2;
       cursor: grab;
       touch-action: none;
     }
 
-    #controles, #status {
+    #controles {
       position: absolute;
       bottom: 10px;
       left: 10px;
-      background: rgba(255,255,255,0.85);
+      background: #ccc;
       padding: 10px;
       border-radius: 10px;
       z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       transition: opacity 0.5s ease;
     }
 
-    #controles.oculto, #status.oculto {
+    #controles.oculto {
       opacity: 0;
       pointer-events: none;
     }
 
     input, button {
       padding: 8px;
-      margin: 5px;
       font-size: 14px;
-    }
-
-    #botao-encerrar {
-      background-color: #ccc;
-      color: black;
+      background: #ccc;
       border: 2px solid black;
+      color: black;
       border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    #botao-encerrar:hover {
-      background-color: #bbb;
-    }
-
-    .icone {
-      background-color: #ccc;
-      border: 2px solid black;
-      border-radius: 50%;
-      padding: 8px;
-      cursor: pointer;
-      color: black;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
     }
 
     #copiar-id {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      z-index: 4;
+      background: #ccc;
+      border: 2px solid black;
+      color: black;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
     }
 
-    #botao-trocar {
+    #icone-trocar-camera {
       position: absolute;
       top: 10px;
       right: 10px;
-      z-index: 4;
+      z-index: 3;
+      background: #ccc;
+      border: 2px solid black;
+      padding: 6px 10px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+      color: black;
     }
 
-    #meu-id {
-      display: none;
+    #pronto-msg {
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      background: #ccc;
+      border: 2px solid black;
+      padding: 5px 10px;
+      border-radius: 8px;
+      z-index: 3;
+      color: black;
     }
   </style>
 </head>
 <body>
-
   <div id="videos">
-    <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
+    <video id="localVideo" autoplay muted playsinline></video>
+
+    <div id="icone-trocar-camera">🔄</div>
+    <div id="pronto-msg">Pronto para a aula</div>
+
+    <div id="controles">
+      <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
+      <button id="botao-chamar">Chamar</button>
+      <button id="botao-encerrar" style="display:none;">Terminar aula</button>
+      <button id="copiar-id">📋</button>
+    </div>
   </div>
-
-  <!-- Ícones -->
-  <div id="botao-trocar" class="icone" title="Trocar câmera">🔄</div>
-  <div id="copiar-id" class="icone" title="Copiar ID">📋</div>
-
-  <div id="controles">
-    <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
-    <button id="botao-chamar">Chamar</button>
-  </div>
-
-  <div id="status">Aguardando conexão...</div>
-  <span id="meu-id"></span>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
-    const status = document.getElementById('status');
     const botaoChamar = document.getElementById('botao-chamar');
+    const botaoEncerrar = document.getElementById('botao-encerrar');
     const inputID = document.getElementById('peer-id-alvo');
-    const meuIDSpan = document.getElementById('meu-id');
     const copiarID = document.getElementById('copiar-id');
-    const trocarBtn = document.getElementById('botao-trocar');
-    const controles = document.getElementById('controles');
+    const trocarCamera = document.getElementById('icone-trocar-camera');
 
     let localStream;
     let currentFacingMode = 'user';
     let currentCall;
-
     const peer = new Peer();
 
     peer.on('open', (id) => {
-      meuIDSpan.innerText = id;
+      copiarID.onclick = () => {
+        navigator.clipboard.writeText(id);
+        copiarID.innerText = "✅";
+        setTimeout(() => copiarID.innerText = "📋", 1500);
+      };
     });
-
-    copiarID.onclick = () => {
-      navigator.clipboard.writeText(meuIDSpan.innerText);
-      copiarID.innerText = "✅";
-      setTimeout(() => copiarID.innerText = "📋", 1500);
-    };
 
     async function startStream(facingMode = 'user') {
       if (localStream) {
@@ -170,12 +157,17 @@
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode },
+          video: {
+            facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30, max: 60 }
+          },
           audio: true
         });
+
         localStream = stream;
         localVideo.srcObject = stream;
-        status.innerText = "Pronto para chamada.";
 
         if (currentCall) {
           const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
@@ -185,12 +177,11 @@
         }
       } catch (err) {
         console.error(err);
-        alert('Erro ao acessar câmera/mic.');
-        status.innerText = "Permissão negada.";
+        alert('Erro ao acessar câmera/microfone.');
       }
     }
 
-    trocarBtn.onclick = () => {
+    trocarCamera.onclick = () => {
       currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
       startStream(currentFacingMode);
     };
@@ -202,74 +193,54 @@
       call.answer(localStream);
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
-        status.innerText = "Conectado!";
-        botaoChamar.style.display = "none";
-        mostrarTerminar();
+        botaoChamar.style.display = 'none';
+        botaoEncerrar.style.display = 'inline-block';
       });
     });
 
     botaoChamar.onclick = () => {
       const idRemoto = inputID.value;
-      if (!idRemoto) return alert("Digite o ID!");
+      if (!idRemoto) return alert("Digite o ID do outro usuário!");
 
       const call = peer.call(idRemoto, localStream);
       currentCall = call;
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
-        status.innerText = "Conectado!";
-        botaoChamar.style.display = "none";
-        mostrarTerminar();
+        botaoChamar.style.display = 'none';
+        botaoEncerrar.style.display = 'inline-block';
       });
     };
 
-    function mostrarTerminar() {
-      if (!document.getElementById('botao-encerrar')) {
-        const botaoEncerrar = document.createElement('button');
-        botaoEncerrar.id = 'botao-encerrar';
-        botaoEncerrar.innerText = 'Terminar aula';
-        botaoEncerrar.onclick = () => {
-          if (currentCall) {
-            currentCall.close();
-            remoteVideo.srcObject = null;
-            status.innerText = 'Aula encerrada.';
-            botaoEncerrar.remove();
-            botaoChamar.style.display = "inline-block";
-          }
-        };
-        controles.appendChild(botaoEncerrar);
+    botaoEncerrar.onclick = () => {
+      if (currentCall) {
+        currentCall.close();
+        remoteVideo.srcObject = null;
+        botaoEncerrar.style.display = 'none';
+        botaoChamar.style.display = 'inline-block';
       }
-    }
+    };
 
-    // Drag do localVideo
-    let isDragging = false, offsetX, offsetY;
+    // Arrastar vídeo local com dedo/mouse
+    let isDragging = false;
+    let offsetX, offsetY;
+
     localVideo.addEventListener('pointerdown', (e) => {
       isDragging = true;
       offsetX = e.clientX - localVideo.offsetLeft;
       offsetY = e.clientY - localVideo.offsetTop;
       localVideo.setPointerCapture(e.pointerId);
     });
+
     localVideo.addEventListener('pointermove', (e) => {
       if (isDragging) {
         localVideo.style.left = (e.clientX - offsetX) + 'px';
         localVideo.style.top = (e.clientY - offsetY) + 'px';
       }
     });
-    localVideo.addEventListener('pointerup', () => isDragging = false);
 
-    // esconder controles após inatividade
-    let timeout;
-    function mostrarControles() {
-      controles.classList.remove('oculto');
-      status.classList.remove('oculto');
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        controles.classList.add('oculto');
-        status.classList.add('oculto');
-      }, 5000);
-    }
-    document.addEventListener('mousemove', mostrarControles);
-    document.addEventListener('touchstart', mostrarControles);
-    mostrarControles();
+    localVideo.addEventListener('pointerup', () => {
+      isDragging = false;
+    });
   </script>
 </body>
 </html>
