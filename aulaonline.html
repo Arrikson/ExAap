@@ -70,36 +70,49 @@
     }
 
     #botao-encerrar {
-      background-color: #c62828;
-      color: white;
-      border: none;
+      background-color: #ccc;
+      color: black;
+      border: 2px solid black;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
     }
 
     #botao-encerrar:hover {
-      background-color: #b71c1c;
+      background-color: #bbb;
+    }
+
+    .icone {
+      background-color: #ccc;
+      border: 2px solid black;
+      border-radius: 50%;
+      padding: 8px;
+      cursor: pointer;
+      color: black;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
     }
 
     #copiar-id {
-      cursor: pointer;
-      font-size: 20px;
-      margin-left: 8px;
-      color: #555;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 4;
     }
 
     #botao-trocar {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: rgba(255,255,255,0.8);
-      border: none;
-      padding: 8px;
-      border-radius: 50%;
       z-index: 4;
-      font-size: 20px;
-      cursor: pointer;
+    }
+
+    #meu-id {
+      display: none;
     }
   </style>
 </head>
@@ -110,17 +123,17 @@
     <video id="remoteVideo" autoplay></video>
   </div>
 
-  <button id="botao-trocar">🔄</button>
+  <!-- Ícones -->
+  <div id="botao-trocar" class="icone" title="Trocar câmera">🔄</div>
+  <div id="copiar-id" class="icone" title="Copiar ID">📋</div>
 
   <div id="controles">
-    <p>ID: <span id="meu-id">...</span>
-      <span id="copiar-id">📋</span>
-    </p>
     <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
     <button id="botao-chamar">Chamar</button>
   </div>
 
   <div id="status">Aguardando conexão...</div>
+  <span id="meu-id"></span>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
@@ -210,19 +223,21 @@
     };
 
     function mostrarTerminar() {
-      const botaoEncerrar = document.createElement('button');
-      botaoEncerrar.id = 'botao-encerrar';
-      botaoEncerrar.innerText = 'Terminar aula';
-      botaoEncerrar.onclick = () => {
-        if (currentCall) {
-          currentCall.close();
-          remoteVideo.srcObject = null;
-          status.innerText = 'Aula encerrada.';
-          botaoEncerrar.remove();
-          botaoChamar.style.display = "inline-block";
-        }
-      };
-      controles.appendChild(botaoEncerrar);
+      if (!document.getElementById('botao-encerrar')) {
+        const botaoEncerrar = document.createElement('button');
+        botaoEncerrar.id = 'botao-encerrar';
+        botaoEncerrar.innerText = 'Terminar aula';
+        botaoEncerrar.onclick = () => {
+          if (currentCall) {
+            currentCall.close();
+            remoteVideo.srcObject = null;
+            status.innerText = 'Aula encerrada.';
+            botaoEncerrar.remove();
+            botaoChamar.style.display = "inline-block";
+          }
+        };
+        controles.appendChild(botaoEncerrar);
+      }
     }
 
     // Drag do localVideo
