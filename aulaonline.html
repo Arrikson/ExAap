@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: sans-serif;
       background-color: #000;
       touch-action: manipulation;
     }
@@ -31,7 +31,6 @@
       top: 0;
       left: 0;
       z-index: 1;
-      background: #000;
     }
 
     #localVideo {
@@ -82,17 +81,41 @@
     #botao-encerrar:hover {
       background-color: #b71c1c;
     }
+
+    #copiar-id {
+      cursor: pointer;
+      font-size: 20px;
+      margin-left: 8px;
+      color: #555;
+    }
+
+    #botao-trocar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.8);
+      border: none;
+      padding: 8px;
+      border-radius: 50%;
+      z-index: 4;
+      font-size: 20px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <div id="videos">
-    <video id="localVideo" autoplay muted playsinline></video>
-    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
   </div>
 
+  <button id="botao-trocar">🔄</button>
+
   <div id="controles">
-    <p>Seu ID: <span id="meu-id">Carregando...</span></p>
+    <p>ID: <span id="meu-id">...</span>
+      <span id="copiar-id">📋</span>
+    </p>
     <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
     <button id="botao-chamar">Chamar</button>
   </div>
@@ -107,6 +130,9 @@
     const botaoChamar = document.getElementById('botao-chamar');
     const inputID = document.getElementById('peer-id-alvo');
     const meuIDSpan = document.getElementById('meu-id');
+    const copiarID = document.getElementById('copiar-id');
+    const trocarBtn = document.getElementById('botao-trocar');
+    const controles = document.getElementById('controles');
 
     let localStream;
     let currentFacingMode = 'user';
@@ -117,6 +143,12 @@
     peer.on('open', (id) => {
       meuIDSpan.innerText = id;
     });
+
+    copiarID.onclick = () => {
+      navigator.clipboard.writeText(meuIDSpan.innerText);
+      copiarID.innerText = "✅";
+      setTimeout(() => copiarID.innerText = "📋", 1500);
+    };
 
     async function startStream(facingMode = 'user') {
       if (localStream) {
@@ -140,18 +172,15 @@
         }
       } catch (err) {
         console.error(err);
-        alert('Erro ao acessar câmera/microfone.');
+        alert('Erro ao acessar câmera/mic.');
         status.innerText = "Permissão negada.";
       }
     }
 
-    const trocarBtn = document.createElement('button');
-    trocarBtn.innerText = 'Trocar Câmera';
     trocarBtn.onclick = () => {
       currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
       startStream(currentFacingMode);
     };
-    document.getElementById('controles').appendChild(trocarBtn);
 
     startStream(currentFacingMode);
 
@@ -161,44 +190,58 @@
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
         status.innerText = "Conectado!";
+        botaoChamar.style.display = "none";
+        mostrarTerminar();
       });
     });
 
     botaoChamar.onclick = () => {
       const idRemoto = inputID.value;
-      if (!idRemoto) return alert("Digite o ID do outro usuário!");
+      if (!idRemoto) return alert("Digite o ID!");
 
       const call = peer.call(idRemoto, localStream);
       currentCall = call;
       call.on('stream', (remoteStream) => {
         remoteVideo.srcObject = remoteStream;
         status.innerText = "Conectado!";
+        botaoChamar.style.display = "none";
+        mostrarTerminar();
       });
     };
 
-    // Drag localVideo
-    let isDragging = false;
-    let offsetX, offsetY;
+    function mostrarTerminar() {
+      const botaoEncerrar = document.createElement('button');
+      botaoEncerrar.id = 'botao-encerrar';
+      botaoEncerrar.innerText = 'Terminar aula';
+      botaoEncerrar.onclick = () => {
+        if (currentCall) {
+          currentCall.close();
+          remoteVideo.srcObject = null;
+          status.innerText = 'Aula encerrada.';
+          botaoEncerrar.remove();
+          botaoChamar.style.display = "inline-block";
+        }
+      };
+      controles.appendChild(botaoEncerrar);
+    }
 
+    // Drag do localVideo
+    let isDragging = false, offsetX, offsetY;
     localVideo.addEventListener('pointerdown', (e) => {
       isDragging = true;
       offsetX = e.clientX - localVideo.offsetLeft;
       offsetY = e.clientY - localVideo.offsetTop;
       localVideo.setPointerCapture(e.pointerId);
     });
-
     localVideo.addEventListener('pointermove', (e) => {
       if (isDragging) {
         localVideo.style.left = (e.clientX - offsetX) + 'px';
         localVideo.style.top = (e.clientY - offsetY) + 'px';
       }
     });
+    localVideo.addEventListener('pointerup', () => isDragging = false);
 
-    localVideo.addEventListener('pointerup', () => {
-      isDragging = false;
-    });
-
-    // Controles somem
+    // esconder controles após inatividade
     let timeout;
     function mostrarControles() {
       controles.classList.remove('oculto');
@@ -209,23 +252,9 @@
         status.classList.add('oculto');
       }, 5000);
     }
-
     document.addEventListener('mousemove', mostrarControles);
     document.addEventListener('touchstart', mostrarControles);
     mostrarControles();
-
-    // Botão encerrar
-    const botaoEncerrar = document.createElement('button');
-    botaoEncerrar.id = 'botao-encerrar';
-    botaoEncerrar.innerText = 'Encerrar Chamada';
-    botaoEncerrar.onclick = () => {
-      if (currentCall) {
-        currentCall.close();
-        remoteVideo.srcObject = null;
-        status.innerText = 'Chamada encerrada.';
-      }
-    };
-    document.getElementById('controles').appendChild(botaoEncerrar);
   </script>
 </body>
 </html>
