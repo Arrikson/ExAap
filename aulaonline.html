@@ -52,28 +52,32 @@
       font-weight: bold;
       color: #333;
     }
- <style>
+<style>
   body {
     margin: 0;
     padding: 0;
     overflow: hidden;
     font-family: sans-serif;
     background-color: #000;
+    touch-action: manipulation;
   }
 
   #videos {
     position: relative;
     width: 100vw;
     height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   #remoteVideo {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100vw;
     height: 100vh;
     object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 1;
   }
 
@@ -81,22 +85,30 @@
     position: absolute;
     top: 10px;
     left: 10px;
-    width: 20vw;
-    height: 20vh;
+    width: 10vw;
+    height: 10vh;
     object-fit: cover;
     border: 2px solid white;
     border-radius: 8px;
     z-index: 2;
+    cursor: grab;
+    touch-action: none;
   }
 
   #controles, #status {
     position: absolute;
     bottom: 10px;
     left: 10px;
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.85);
     padding: 10px;
     border-radius: 10px;
     z-index: 3;
+    transition: opacity 0.5s ease;
+  }
+
+  #controles.oculto, #status.oculto {
+    opacity: 0;
+    pointer-events: none;
   }
 
   input, button {
@@ -104,101 +116,76 @@
     margin: 5px;
     font-size: 14px;
   }
-</style>
 
-<body>
-  <div id="videos">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo" autoplay muted playsinline></video>
-  </div>
-
-  <div id="controles">
-    <p>Seu ID: <span id="meu-id">Carregando...</span></p>
-    <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
-    <button id="botao-chamar">Chamar</button>
-    <button id="trocar-camera">Trocar Câmera</button>
-  </div>
-
-  <div id="status">Aguardando conexão...</div>
-
-  <!-- PeerJS -->
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-<script>
-  const localVideo = document.getElementById('localVideo');
-  const remoteVideo = document.getElementById('remoteVideo');
-  const status = document.getElementById('status');
-  const botaoChamar = document.getElementById('botao-chamar');
-  const botaoTrocar = document.getElementById('trocar-camera');
-  const inputID = document.getElementById('peer-id-alvo');
-  const meuIDSpan = document.getElementById('meu-id');
-
-  let localStream;
-  let currentCall;
-  let currentFacingMode = 'user'; // frontal por padrão
-
-  const peer = new Peer();
-
-  peer.on('open', (id) => {
-    meuIDSpan.innerText = id;
-  });
-
-  async function startStream(facingMode = 'user') {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode },
-        audio: true
-      });
-      localStream = stream;
-      localVideo.srcObject = stream;
-
-      if (currentCall) {
-        const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
-        if (sender) {
-          sender.replaceTrack(stream.getVideoTracks()[0]);
-        }
-      }
-
-      status.innerText = "Pronto para chamada.";
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao acessar câmera/microfone.");
-      status.innerText = "Permissão negada.";
-    }
+  #botao-encerrar {
+    background-color: #c62828;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
   }
 
-  // Inicia stream ao carregar
-  startStream();
+  #botao-encerrar:hover {
+    background-color: #b71c1c;
+  }
+</style>
 
-  // Trocar câmera
-  botaoTrocar.onclick = () => {
-    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-    startStream(currentFacingMode);
-  };
+<script>
+  // DRAG para o localVideo
+  const localVideo = document.getElementById('localVideo');
+  let isDragging = false;
+  let offsetX, offsetY;
 
-  // Receber chamadas
-  peer.on('call', (call) => {
-    currentCall = call;
-    call.answer(localStream);
-    call.on('stream', (remoteStream) => {
-      remoteVideo.srcObject = remoteStream;
-      status.innerText = "Conectado!";
-    });
+  localVideo.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - localVideo.offsetLeft;
+    offsetY = e.clientY - localVideo.offsetTop;
+    localVideo.setPointerCapture(e.pointerId);
   });
 
-  // Fazer chamada
-  botaoChamar.onclick = () => {
-    const idRemoto = inputID.value.trim();
-    if (!idRemoto) return alert("Digite o ID do outro usuário!");
+  localVideo.addEventListener('pointermove', (e) => {
+    if (isDragging) {
+      localVideo.style.left = (e.clientX - offsetX) + 'px';
+      localVideo.style.top = (e.clientY - offsetY) + 'px';
+    }
+  });
 
-    const call = peer.call(idRemoto, localStream);
-    currentCall = call;
-    call.on('stream', (remoteStream) => {
-      remoteVideo.srcObject = remoteStream;
-      status.innerText = "Conectado!";
-    });
+  localVideo.addEventListener('pointerup', () => {
+    isDragging = false;
+  });
+
+  // ESCONDER CONTROLES APÓS INATIVIDADE
+  let controles = document.getElementById('controles');
+  let status = document.getElementById('status');
+  let timeout;
+
+  function mostrarControles() {
+    controles.classList.remove('oculto');
+    status.classList.remove('oculto');
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      controles.classList.add('oculto');
+      status.classList.add('oculto');
+    }, 5000); // 5 segundos
+  }
+
+  document.addEventListener('mousemove', mostrarControles);
+  document.addEventListener('touchstart', mostrarControles);
+
+  mostrarControles(); // inicial
+
+  // BOTÃO ENCERRAR CHAMADA
+  const botaoEncerrar = document.createElement('button');
+  botaoEncerrar.id = 'botao-encerrar';
+  botaoEncerrar.innerText = 'Encerrar Chamada';
+  botaoEncerrar.onclick = () => {
+    if (currentCall) {
+      currentCall.close();
+      remoteVideo.srcObject = null;
+      status.innerText = 'Chamada encerrada.';
+    }
   };
+  controles.appendChild(botaoEncerrar);
 </script>
+
