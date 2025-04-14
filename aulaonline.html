@@ -52,20 +52,71 @@
       font-weight: bold;
       color: #333;
     }
-  </style>
-</head>
-<body>
-  <h1>Aula Online com PeerJS</h1>
+ <style>
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+    background-color: #000;
+  }
 
+  #videos {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #remoteVideo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  #localVideo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 20vw;
+    height: 20vh;
+    object-fit: cover;
+    border: 2px solid white;
+    border-radius: 8px;
+    z-index: 2;
+  }
+
+  #controles, #status {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.8);
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 3;
+  }
+
+  input, button {
+    padding: 8px;
+    margin: 5px;
+    font-size: 14px;
+  }
+</style>
+
+<body>
   <div id="videos">
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay muted playsinline></video>
   </div>
 
   <div id="controles">
     <p>Seu ID: <span id="meu-id">Carregando...</span></p>
     <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
     <button id="botao-chamar">Chamar</button>
+    <button id="trocar-camera">Trocar Câmera</button>
   </div>
 
   <div id="status">Aguardando conexão...</div>
@@ -77,12 +128,13 @@
   const remoteVideo = document.getElementById('remoteVideo');
   const status = document.getElementById('status');
   const botaoChamar = document.getElementById('botao-chamar');
+  const botaoTrocar = document.getElementById('trocar-camera');
   const inputID = document.getElementById('peer-id-alvo');
   const meuIDSpan = document.getElementById('meu-id');
 
   let localStream;
-  let currentFacingMode = 'user'; // 'user' = frontal, 'environment' = traseira
   let currentCall;
+  let currentFacingMode = 'user'; // frontal por padrão
 
   const peer = new Peer();
 
@@ -102,35 +154,32 @@
       });
       localStream = stream;
       localVideo.srcObject = stream;
-      status.innerText = "Pronto para chamada.";
 
-      // se estiver em chamada, troca o stream enviado
       if (currentCall) {
         const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
         if (sender) {
           sender.replaceTrack(stream.getVideoTracks()[0]);
         }
       }
+
+      status.innerText = "Pronto para chamada.";
     } catch (err) {
       console.error(err);
-      alert('Erro ao acessar câmera/microfone.');
+      alert("Erro ao acessar câmera/microfone.");
       status.innerText = "Permissão negada.";
     }
   }
 
-  // Botão para trocar câmera
-  const trocarBtn = document.createElement('button');
-  trocarBtn.innerText = 'Trocar Câmera';
-  trocarBtn.onclick = () => {
+  // Inicia stream ao carregar
+  startStream();
+
+  // Trocar câmera
+  botaoTrocar.onclick = () => {
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
     startStream(currentFacingMode);
   };
-  document.getElementById('controles').appendChild(trocarBtn);
 
-  // Iniciar stream inicial
-  startStream(currentFacingMode);
-
-  // Receber chamada
+  // Receber chamadas
   peer.on('call', (call) => {
     currentCall = call;
     call.answer(localStream);
@@ -142,7 +191,7 @@
 
   // Fazer chamada
   botaoChamar.onclick = () => {
-    const idRemoto = inputID.value;
+    const idRemoto = inputID.value.trim();
     if (!idRemoto) return alert("Digite o ID do outro usuário!");
 
     const call = peer.call(idRemoto, localStream);
