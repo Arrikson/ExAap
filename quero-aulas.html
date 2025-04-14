@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SabApp - Disciplinas</title>
   <style>
     * {
@@ -61,6 +61,52 @@
     .box:hover {
       transform: scale(1.05);
     }
+
+    #options, #upload-section {
+      margin-top: 30px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .time-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .time-button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .time-button:hover {
+      background-color: #0056b3;
+    }
+
+    #upload-section input[type="file"] {
+      padding: 10px;
+    }
+
+    #upload-section button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #upload-section button:hover {
+      background-color: darkgreen;
+    }
   </style>
 </head>
 <body>
@@ -76,5 +122,71 @@
     <a href="#" class="box">Química</a>
     <a href="#" class="box">Física</a>
   </div>
+
+  <div id="options">
+    <h2>Escolha o tempo de aula</h2>
+    <div class="time-option">
+      <button class="time-button" data-time="25">25 minutos</button>
+      <span>500,00Kz</span>
+    </div>
+    <div class="time-option">
+      <button class="time-button" data-time="50">50 minutos</button>
+      <span>1000,00Kz</span>
+    </div>
+    <div class="time-option">
+      <button class="time-button" data-time="60">1 hora</button>
+      <span>1500,00Kz</span>
+    </div>
+    <div class="time-option">
+      <button class="time-button" data-time="120">2 horas</button>
+      <span>3000,00Kz</span>
+    </div>
+  </div>
+
+  <div id="upload-section">
+    <h3>Envie o comprovativo (PDF apenas)</h3>
+    <input type="file" id="comprovativo" accept="application/pdf" />
+    <button onclick="enviarComprovativo()">Enviar</button>
+  </div>
+
+  <script>
+    const disciplinas = document.querySelectorAll('.box');
+    const optionsSection = document.getElementById('options');
+    const uploadSection = document.getElementById('upload-section');
+
+    disciplinas.forEach(disciplina => {
+      disciplina.addEventListener('click', (e) => {
+        e.preventDefault();
+        optionsSection.style.display = 'flex';
+        uploadSection.style.display = 'none';
+      });
+    });
+
+    const timeButtons = document.querySelectorAll('.time-button');
+    timeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        uploadSection.style.display = 'flex';
+      });
+    });
+
+    function enviarComprovativo() {
+      const fileInput = document.getElementById('comprovativo');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Por favor, selecione um arquivo PDF.');
+        return;
+      }
+
+      if (file.type !== 'application/pdf') {
+        alert('Apenas arquivos PDF são permitidos.');
+        return;
+      }
+
+      // Aqui você pode integrar com backend ou Firebase
+      console.log("Comprovativo enviado para o professor online!");
+      alert('Comprovativo enviado com sucesso!');
+    }
+  </script>
 </body>
 </html>
