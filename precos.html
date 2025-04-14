@@ -174,10 +174,15 @@
     }
 
     document.getElementById('aula-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      // Aqui você pode fazer a lógica de envio para o backend no futuro
-      alert(`Aula de "${selectedOption}" solicitada com comprovativo enviado.`);
-    });
+  e.preventDefault();
+
+  alert(`Aula de "${selectedOption}" solicitada com comprovativo enviado.`);
+
+  // Redireciona para a página da aula online após o envio
+  setTimeout(() => {
+    window.location.href = 'aulaonline.html';
+  }, 500); // atraso para garantir que o alerta apareça antes do redirecionamento
+});
   </script>
 </body>
 </html>
