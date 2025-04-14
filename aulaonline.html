@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aula Online</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 45%;
+      max-width: 500px;
+      margin: 10px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    #videos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Aula Online</h1>
+  <div id="videos">
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+  </div>
+  <div id="status">Aguardando conexão...</div>
+
+  <script>
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const status = document.getElementById('status');
+
+    let localStream;
+    let peerConnection;
+
+    const configuration = {
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    };
+
+    // Obter câmera e microfone
+    async function startLocalStream() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
+        initConnection(); // Inicia conexão após capturar mídia
+      } catch (err) {
+        alert('Permissão para acessar câmera e microfone negada!');
+        status.innerText = 'Permissão negada.';
+      }
+    }
+
+    // Simulação de WebRTC peer-to-peer (para fins de demonstração local)
+    function initConnection() {
+      peerConnection = new RTCPeerConnection(configuration);
+
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+
+      peerConnection.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+        status.innerText = 'Aula iniciada!';
+      };
+
+      peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+          // Aqui você trocaria candidatos ICE via backend ou sinalização
+        }
+      };
+
+      // Aqui simula a conexão entre dois peers localmente
+      // (Somente para testes, para dois usuários reais é necessário backend)
+      createOffer();
+    }
+
+    async function createOffer() {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      // Simulando segundo peer (para testes locais apenas)
+      const remotePeer = new RTCPeerConnection(configuration);
+      remotePeer.ontrack = (e) => {
+        remoteVideo.srcObject = e.streams[0];
+        status.innerText = 'Aula iniciada!';
+      };
+
+      remotePeer.onicecandidate = e => {
+        if (e.candidate) {
+          peerConnection.addIceCandidate(e.candidate);
+        }
+      };
+
+      localStream.getTracks().forEach(track => {
+        remotePeer.addTrack(track, localStream);
+      });
+
+      await remotePeer.setRemoteDescription(peerConnection.localDescription);
+      const answer = await remotePeer.createAnswer();
+      await remotePeer.setLocalDescription(answer);
+      await peerConnection.setRemoteDescription(answer);
+    }
+
+    startLocalStream();
+  </script>
+</body>
+</html>
