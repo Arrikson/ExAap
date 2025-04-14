@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SabApp - Dados do Aluno</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f4f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .form-container {
+      background-color: white;
+      border-radius: 16px;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .checkbox-group label {
+      display: inline-block;
+      width: 140px;
+    }
+
+    .checkbox-group input {
+      margin-left: 10px;
+    }
+
+    .location-btn {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .location-btn:hover {
+      background-color: #45a049;
+    }
+
+    .extra-discipline {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .extra-discipline input {
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Dados do Aluno</h2>
+    
+    <div class="input-group">
+      <label for="name">Nome</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+
+    <div class="input-group">
+      <label for="bi">Número do B.I.</label>
+      <input type="number" id="bi" name="bi" required>
+    </div>
+
+    <div class="input-group">
+      <label for="age">Idade</label>
+      <input type="number" id="age" name="age" required>
+    </div>
+
+    <div class="input-group">
+      <label for="location">Localização (GPS)</label>
+      <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
+      <p id="location-status"></p>
+    </div>
+
+    <div class="input-group">
+      <label for="class">Classe que frequenta</label>
+      <input type="text" id="class" name="class" required>
+    </div>
+
+    <div class="input-group">
+      <label for="father-name">Nome do Pai</label>
+      <input type="text" id="father-name" name="father-name" required>
+    </div>
+
+    <div class="input-group">
+      <label for="mother-name">Nome da Mãe</label>
+      <input type="text" id="mother-name" name="mother-name" required>
+    </div>
+
+    <div class="input-group">
+      <label>Disciplinas</label>
+      <div class="checkbox-group">
+        <label for="math">Matemática</label>
+        <input type="checkbox" id="math" name="discipline" value="Matemática">
+        
+        <label for="portuguese">Língua Portuguesa</label>
+        <input type="checkbox" id="portuguese" name="discipline" value="Língua Portuguesa">
+
+        <label for="english">Inglês</label>
+        <input type="checkbox" id="english" name="discipline" value="Inglês">
+        
+        <label for="french">Francês</label>
+        <input type="checkbox" id="french" name="discipline" value="Francês">
+        
+        <label for="chemistry">Química</label>
+        <input type="checkbox" id="chemistry" name="discipline" value="Química">
+        
+        <label for="physics">Física</label>
+        <input type="checkbox" id="physics" name="discipline" value="Física">
+
+        <div class="extra-discipline" id="extra-discipline">
+          <label for="other-discipline">Outra Disciplina</label>
+          <input type="text" id="other-discipline" name="other-discipline">
+        </div>
+        
+        <button type="button" onclick="toggleExtraDiscipline()">Adicionar outra disciplina</button>
+      </div>
+    </div>
+
+    <button type="submit">Enviar Dados</button>
+  </div>
+
+  <script>
+    // Função para obter a localização via GPS
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        document.getElementById("location-status").innerHTML = "Geolocalização não é suportada neste navegador.";
+      }
+    }
+
+    function showPosition(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      document.getElementById("location-status").innerHTML = `Latitude: ${latitude} | Longitude: ${longitude}`;
+    }
+
+    function showError(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          document.getElementById("location-status").innerHTML = "Permissão para acessar a localização negada.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          document.getElementById("location-status").innerHTML = "Informação de localização indisponível.";
+          break;
+        case error.TIMEOUT:
+          document.getElementById("location-status").innerHTML = "A solicitação de geolocalização expirou.";
+          break;
+        case error.UNKNOWN_ERROR:
+          document.getElementById("location-status").innerHTML = "Ocorreu um erro desconhecido.";
+          break;
+      }
+    }
+
+    // Função para mostrar/ocultar o campo de "outra disciplina"
+    function toggleExtraDiscipline() {
+      const extraDiscipline = document.getElementById("extra-discipline");
+      if (extraDiscipline.style.display === "none" || extraDiscipline.style.display === "") {
+        extraDiscipline.style.display = "block";
+      } else {
+        extraDiscipline.style.display = "none";
+      }
+    }
+  </script>
+
+</body>
+</html>
