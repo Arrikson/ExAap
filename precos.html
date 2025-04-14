@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escolha o tempo de aula</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .option-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .option:hover {
+      transform: scale(1.03);
+    }
+
+    .price {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    #upload-section {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #upload-section label {
+      font-weight: bold;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    input[type="file"]:not([accept="application/pdf"]) {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Escolha o tempo de aula</h1>
+
+  <div class="option-container">
+    <div class="option" onclick="showUploadSection('25 minutos')">
+      <span>25 minutos</span>
+      <span class="price">500,00 Kz</span>
+    </div>
+    <div class="option" onclick="showUploadSection('50 minutos')">
+      <span>50 minutos</span>
+      <span class="price">1000,00 Kz</span>
+    </div>
+    <div class="option" onclick="showUploadSection('1 hora')">
+      <span>1 hora</span>
+      <span class="price">1500,00 Kz</span>
+    </div>
+    <div class="option" onclick="showUploadSection('2 horas')">
+      <span>2 horas</span>
+      <span class="price">3000,00 Kz</span>
+    </div>
+  </div>
+
+  <div id="upload-section">
+    <label for="comprovativo">Enviar comprovativo (PDF):</label>
+    <input type="file" id="comprovativo" accept="application/pdf">
+  </div>
+
+  <script>
+    function showUploadSection(duracao) {
+      document.getElementById('upload-section').style.display = 'flex';
+      console.log("Opção selecionada:", duracao);
+    }
+  </script>
+</body>
+</html>
