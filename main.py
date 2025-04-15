@@ -120,7 +120,7 @@ def ler_professores():
     except FileNotFoundError:
         return []
 
-ef carregar_professores():
+def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
         with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
             return json.load(f)
