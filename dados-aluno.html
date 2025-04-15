@@ -142,61 +142,65 @@
   <div class="form-container">
     <h2>Dados do Aluno</h2>
 
-    <div class="input-group">
-      <label for="name">Nome</label>
-      <input type="text" id="name" name="name" required>
-    </div>
-
-    <div class="input-group">
-      <label for="bi">Número do B.I.</label>
-      <input type="number" id="bi" name="bi" required>
-    </div>
-
-    <div class="input-group">
-      <label for="age">Idade</label>
-      <input type="number" id="age" name="age" required>
-    </div>
-
-    <div class="input-group">
-      <label for="class">Classe que frequenta</label>
-      <input type="text" id="class" name="class" required>
-    </div>
-
-    <div class="input-group">
-      <label for="father-name">Nome do Pai</label>
-      <input type="text" id="father-name" name="father-name" required>
-    </div>
-
-    <div class="input-group">
-      <label for="mother-name">Nome da Mãe</label>
-      <input type="text" id="mother-name" name="mother-name" required>
-    </div>
-
-    <div class="input-group">
-      <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
-      <p id="location-status"></p>
-    </div>
-
-    <div class="checkbox-group-wrapper">
-      <div class="checkbox-title">Disciplinas</div>
-      <div class="checkbox-group">
-        <label for="math">Matemática<input type="checkbox" id="math" name="discipline" value="Matemática"></label>
-        <label for="portuguese">Português<input type="checkbox" id="portuguese" name="discipline" value="Português"></label>
-        <label for="english">Inglês<input type="checkbox" id="english" name="discipline" value="Inglês"></label>
-        <label for="french">Francês<input type="checkbox" id="french" name="discipline" value="Francês"></label>
-        <label for="chemistry">Química<input type="checkbox" id="chemistry" name="discipline" value="Química"></label>
-        <label for="physics">Física<input type="checkbox" id="physics" name="discipline" value="Física"></label>
+    <form method="post" action="/enviar-dados">
+      <div class="input-group">
+        <label for="name">Nome</label>
+        <input type="text" id="name" name="name" required>
       </div>
 
-      <div class="extra-discipline" id="extra-discipline">
-        <label for="other-discipline">Outra Disciplina</label>
-        <input type="text" id="other-discipline" name="other-discipline">
+      <div class="input-group">
+        <label for="bi">Número do B.I.</label>
+        <input type="number" id="bi" name="bi" required>
       </div>
 
-      <button class="add-discipline-btn" type="button" onclick="toggleExtraDiscipline()">➕</button>
-    </div>
+      <div class="input-group">
+        <label for="age">Idade</label>
+        <input type="number" id="age" name="age" required>
+      </div>
 
-    <button type="submit" class="submit-btn">Enviar Dados</button>
+      <div class="input-group">
+        <label for="class">Classe que frequenta</label>
+        <input type="text" id="class" name="class" required>
+      </div>
+
+      <div class="input-group">
+        <label for="father-name">Nome do Pai</label>
+        <input type="text" id="father-name" name="father-name" required>
+      </div>
+
+      <div class="input-group">
+        <label for="mother-name">Nome da Mãe</label>
+        <input type="text" id="mother-name" name="mother-name" required>
+      </div>
+
+      <div class="input-group">
+        <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
+        <p id="location-status"></p>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+      </div>
+
+      <div class="checkbox-group-wrapper">
+        <div class="checkbox-title">Disciplinas</div>
+        <div class="checkbox-group">
+          <label for="math">Matemática<input type="checkbox" id="math" name="discipline" value="Matemática"></label>
+          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="discipline" value="Português"></label>
+          <label for="english">Inglês<input type="checkbox" id="english" name="discipline" value="Inglês"></label>
+          <label for="french">Francês<input type="checkbox" id="french" name="discipline" value="Francês"></label>
+          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="discipline" value="Química"></label>
+          <label for="physics">Física<input type="checkbox" id="physics" name="discipline" value="Física"></label>
+        </div>
+
+        <div class="extra-discipline" id="extra-discipline">
+          <label for="other-discipline">Outra Disciplina</label>
+          <input type="text" id="other-discipline" name="other-discipline">
+        </div>
+
+        <button class="add-discipline-btn" type="button" onclick="toggleExtraDiscipline()">➕</button>
+      </div>
+
+      <button type="submit" class="submit-btn">Enviar Dados</button>
+    </form>
   </div>
 
   <script>
@@ -211,6 +215,11 @@
     function showPosition(position) {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
+
+      // Preencher os campos ocultos
+      document.getElementById("latitude").value = latitude;
+      document.getElementById("longitude").value = longitude;
+
       document.getElementById("location-status").innerHTML = `Latitude: ${latitude} | Longitude: ${longitude}`;
     }
 
