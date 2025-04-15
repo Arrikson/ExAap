@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi import Request
 
 app = FastAPI()
 
@@ -9,12 +10,15 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Página inicial com o template "index.html"
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # Página com o formulário
 @app.get("/dados-aluno", response_class=HTMLResponse)
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
-
 
 # Quando o formulário for enviado (POST)
 @app.post("/registrar-aluno", response_class=HTMLResponse)
