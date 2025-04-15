@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-
 app = FastAPI()
 
 # Conecta a pasta "static" e "templates"
@@ -15,14 +14,10 @@ templates = Jinja2Templates(directory="templates")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# Página com o formulário
+# Página com o formulário de dados do aluno
 @app.get("/dados-aluno", response_class=HTMLResponse)
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
-
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
 
 # Rota para criar conta
 @app.get("/criar-conta", response_class=HTMLResponse)
@@ -34,7 +29,7 @@ async def criar_conta(request: Request):
 async def quero_aulas(request: Request):
     return templates.TemplateResponse("quero-aulas.html", {"request": request})
 
-# Quando o formulário for enviado (POST)
+# Quando o formulário for enviado (POST) e processado
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -49,10 +44,12 @@ async def registrar_aluno(
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
+    # Processa as disciplinas
     disciplinas = discipline
     if other_discipline:
         disciplinas.append(other_discipline)
 
+    # Monta os dados para exibição
     dados = {
         "name": name,
         "bi": bi,
@@ -65,3 +62,4 @@ async def registrar_aluno(
     }
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
+
