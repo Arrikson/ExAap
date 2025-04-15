@@ -93,6 +93,25 @@ async def get_form_professor(request: Request):
 async def mostrar_professores(request: Request):
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
+@app.post("/excluir-professor/{bi}")
+async def excluir_professor(bi: str):
+    # Aqui você removeria o professor da sua base de dados ou lista
+    # Exemplo básico:
+    global professores
+    professores = [p for p in professores if p["bi"] != bi]
+    return RedirectResponse(url="/info-p", status_code=303)
+
+@app.get("/editar-professor/{bi}", response_class=HTMLResponse)
+async def editar_professor_form(bi: str, request: Request):
+    professor = next((p for p in professores if p["bi"] == bi), None)
+    if not professor:
+        return HTMLResponse("Professor não encontrado", status_code=404)
+    
+    return templates.TemplateResponse("editar-professor.html", {
+        "request": request,
+        "professor": professor
+    })
+
 # Processamento dos dados do professor
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
