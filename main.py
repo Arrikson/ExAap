@@ -29,6 +29,10 @@ async def quero_aulas(request: Request):
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
 
+@app.get("/precos", response_class=HTMLResponse)
+async def ver_precos(request: Request):
+    return templates.TemplateResponse("precos.html", {"request": request})
+
 # Processamento dos dados do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
