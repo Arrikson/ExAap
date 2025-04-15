@@ -131,6 +131,19 @@ async def mostrar_professores(request: Request):
     # Renderiza a página pro-info.html com os dados dos professores
     return templates.TemplateResponse("pro-info.html", {"request": request, "professores": professores})
 
+@app.get("/dados-professor.html", response_class=HTMLResponse)
+async def dados_professor(request: Request):
+    # Aqui você pode carregar os dados ou fazer qualquer lógica necessária
+    return templates.TemplateResponse("dados-professor.html", {"request": request})
+
+@app.get("/api/professores", response_class=HTMLResponse)
+async def api_professores():
+    # Carrega os dados dos professores a partir do arquivo JSON
+    professores = carregar_professores()
+
+    # Retorna os dados no formato JSON
+    return JSONResponse(content=professores)
+
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
