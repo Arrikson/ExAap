@@ -133,7 +133,6 @@ async def mostrar_professores(request: Request):
 
 @app.get("/dados-professor.html", response_class=HTMLResponse)
 async def dados_professor(request: Request):
-    # Aqui você pode carregar os dados ou fazer qualquer lógica necessária
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
 @app.get("/api/professores", response_class=HTMLResponse)
