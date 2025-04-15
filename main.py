@@ -80,10 +80,18 @@ async def visualizar_info_p(request: Request):
     dados = {"request": request}
     return templates.TemplateResponse("info-p.html", dados)
 
+# Lista em memória para armazenar os professores
+professores = []
+
 # Página com formulário de dados do professor
 @app.get("/dados-professor", response_class=HTMLResponse)
 async def get_form_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
+
+# Página que lista todos os professores registrados
+@app.get("/info-professores", response_class=HTMLResponse)
+async def mostrar_professores(request: Request):
+    return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
 # Processamento dos dados do professor
 @app.post("/registrar-professor", response_class=HTMLResponse)
@@ -102,21 +110,17 @@ async def registrar_professor(
     doc_foto: UploadFile = File(...),
     doc_pdf: UploadFile = File(...)
 ):
-    # Salvando os arquivos enviados
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
-
     os.makedirs("static/docs", exist_ok=True)
 
     with open(foto_path, "wb") as buffer:
         shutil.copyfileobj(doc_foto.file, buffer)
-
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    # Preparar os dados para exibição na página info-p.html
-    dados = {
-        "request": request,
+    # Dados do novo professor
+    novo_professor = {
         "nome": nome,
         "bi": bi,
         "habilitacao": habilitacao,
@@ -130,10 +134,7 @@ async def registrar_professor(
         "doc_pdf": "/" + pdf_path
     }
 
-    # Renderizar info-p.html com os dados
-    response = templates.TemplateResponse("info-p.html", dados)
+    professores.append(novo_professor)
 
-    # Redirecionar para a página principal após um tempo de espera
-    response.set_cookie("redirect", "true", max_age=5)  # Define um cookie para indicar redirecionamento
-
-    return response
+    # Redireciona para a página com todos os professores
+    return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
