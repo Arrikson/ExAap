@@ -6,29 +6,45 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 import shutil
 import os
+import json
 
 app = FastAPI()
 
-# Conecta as pastas de arquivos estáticos e templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Página inicial com os links corrigidos
+# Caminho do arquivo JSON
+PROFESSORES_JSON = "professores.json"
+
+# Função para carregar os dados do arquivo JSON
+def carregar_professores():
+    if os.path.exists(PROFESSORES_JSON):
+        with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+# Função para salvar os dados no arquivo JSON
+def salvar_professores():
+    with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
+        json.dump(professores, f, ensure_ascii=False, indent=4)
+
+# Lista em memória inicial
+professores = carregar_professores()
+
+# ROTAS:
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# Página de criar conta
 @app.get("/criar-conta", response_class=HTMLResponse)
 async def criar_conta(request: Request):
     return templates.TemplateResponse("criar-conta.html", {"request": request})
 
-# Página de solicitação de aulas
 @app.get("/quero-aulas", response_class=HTMLResponse)
 async def quero_aulas(request: Request):
     return templates.TemplateResponse("quero-aulas.html", {"request": request})
 
-# Página com formulário de dados do aluno
 @app.get("/dados-aluno", response_class=HTMLResponse)
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
@@ -41,7 +57,6 @@ async def ver_precos(request: Request):
 async def aula_online(request: Request):
     return templates.TemplateResponse("aulaonline.html", {"request": request})
 
-# Processamento dos dados do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -73,32 +88,19 @@ async def registrar_aluno(
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
-# Rota para visualizar a página info-p.html
 @app.get("/info-p", response_class=HTMLResponse)
 async def visualizar_info_p(request: Request):
-    # Aqui, você pode passar algum dado se necessário, por exemplo, dados que precisam ser exibidos na página
-    dados = {"request": request}
-    return templates.TemplateResponse("info-p.html", dados)
+    return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
-# Lista em memória para armazenar os professores
-professores = []
-
-# Página com formulário de dados do professor
-@app.get("/dados-professor", response_class=HTMLResponse)
-async def get_form_professor(request: Request):
-    return templates.TemplateResponse("dados-professor.html", {"request": request})
-
-# Página que lista todos os professores registrados
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
 @app.post("/excluir-professor/{bi}")
 async def excluir_professor(bi: str):
-    # Aqui você removeria o professor da sua base de dados ou lista
-    # Exemplo básico:
     global professores
     professores = [p for p in professores if p["bi"] != bi]
+    salvar_professores()
     return RedirectResponse(url="/info-p", status_code=303)
 
 @app.get("/editar-professor/{bi}", response_class=HTMLResponse)
@@ -112,7 +114,6 @@ async def editar_professor_form(bi: str, request: Request):
         "professor": professor
     })
 
-# Processamento dos dados do professor
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
@@ -138,7 +139,6 @@ async def registrar_professor(
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    # Dados do novo professor
     novo_professor = {
         "nome": nome,
         "bi": bi,
@@ -154,6 +154,7 @@ async def registrar_professor(
     }
 
     professores.append(novo_professor)
+    salvar_professores()
 
-    # Redireciona para info-p.html com todos os professores
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
+
