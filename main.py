@@ -33,6 +33,10 @@ async def get_form(request: Request):
 async def ver_precos(request: Request):
     return templates.TemplateResponse("precos.html", {"request": request})
 
+@app.get("/aulaonline", response_class=HTMLResponse)
+async def aula_online(request: Request):
+    return templates.TemplateResponse("aulaonline.html", {"request": request})
+
 # Processamento dos dados do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
