@@ -1,5 +1,4 @@
-from fastapi.responses import JSONResponse
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -91,7 +90,7 @@ async def registrar_aluno(
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
-    professores = ler_professores()  # Aqui carrega os dados do JSON
+    professores = carregar_professores()  # Aqui carrega os dados do JSON
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
 @app.post("/excluir-professor/{bi}")
@@ -112,25 +111,6 @@ async def editar_professor_form(bi: str, request: Request):
         "professor": professor
     })
 
-# Função para ler os dados de professores do arquivo JSON
-def ler_professores():
-    try:
-        with open(PROFESSORES_JSON, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
-
-def carregar_professores():
-    if os.path.exists(PROFESSORES_JSON):
-        with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-# Função para salvar os dados no arquivo JSON
-def salvar_professores(professores):
-    with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
-        json.dump(professores, f, ensure_ascii=False, indent=4)
-
 @app.get("/pro-info.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
     # Carrega os dados dos professores a partir do arquivo JSON
@@ -145,11 +125,8 @@ async def dados_professor(request: Request):
 
 @app.get("/api/professores", response_class=JSONResponse)
 async def api_professores():
-    professores = ler_professores()
+    professores = carregar_professores()
     return professores
-
-    # Retorna os dados no formato JSON
-    return JSONResponse(content=professores)
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
@@ -168,7 +145,7 @@ async def registrar_professor(
     doc_pdf: UploadFile = File(...)
 ):
     # Lê a lista de professores existentes
-    professores = ler_professores()
+    professores = carregar_professores()
 
     # Define os caminhos para os documentos
     foto_path = f"static/docs/{doc_foto.filename}"
@@ -201,3 +178,4 @@ async def registrar_professor(
     salvar_professores(professores)
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
+
