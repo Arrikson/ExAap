@@ -90,6 +90,7 @@ async def registrar_aluno(
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
+    professores = ler_professores()  # Aqui carrega os dados do JSON
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
 @app.post("/excluir-professor/{bi}")
