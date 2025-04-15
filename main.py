@@ -24,7 +24,7 @@ def carregar_professores():
     return []
 
 # Função para salvar os dados no arquivo JSON
-def salvar_professores():
+def salvar_professores(professores):
     with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
         json.dump(professores, f, ensure_ascii=False, indent=4)
 
@@ -100,7 +100,7 @@ async def mostrar_professores(request: Request):
 async def excluir_professor(bi: str):
     global professores
     professores = [p for p in professores if p["bi"] != bi]
-    salvar_professores()
+    salvar_professores(professores)
     return RedirectResponse(url="/info-p", status_code=303)
 
 @app.get("/editar-professor/{bi}", response_class=HTMLResponse)
@@ -113,6 +113,19 @@ async def editar_professor_form(bi: str, request: Request):
         "request": request,
         "professor": professor
     })
+
+# Função para ler os dados de professores do arquivo JSON
+def ler_professores():
+    try:
+        with open(PROFESSORES_JSON, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+# Função para salvar os dados de professores no arquivo JSON
+def salvar_professores(professores):
+    with open(PROFESSORES_JSON, "w") as f:
+        json.dump(professores, f, indent=4)
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
@@ -130,6 +143,10 @@ async def registrar_professor(
     doc_foto: UploadFile = File(...),
     doc_pdf: UploadFile = File(...)
 ):
+    # Lê a lista de professores existentes
+    professores = ler_professores()
+
+    # Define os caminhos para os documentos
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
     os.makedirs("static/docs", exist_ok=True)
@@ -139,6 +156,7 @@ async def registrar_professor(
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
+    # Adiciona o novo professor à lista
     novo_professor = {
         "nome": nome,
         "bi": bi,
@@ -154,7 +172,8 @@ async def registrar_professor(
     }
 
     professores.append(novo_professor)
-    salvar_professores()
 
-    return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
+    # Salva os dados no arquivo JSON
+    salvar_professores(professores)
 
+    return RedirectResponse(url="/pro-info.html", status_code=303)
