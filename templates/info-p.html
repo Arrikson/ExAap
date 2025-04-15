@@ -80,17 +80,19 @@
       <div class="info-value">{{ habilitacao }}</div>
     </div>
 
-    <div class="info-item" {% raw %}{% if licenciatura_area %}{% endraw %}>
+    {% if licenciatura_area %}
+    <div class="info-item">
       <span class="info-label">Área da Licenciatura:</span>
       <div class="info-value">{{ licenciatura_area }}</div>
     </div>
+    {% endif %}
 
     <div class="info-item">
       <span class="info-label">Disciplinas:</span>
       <ul class="disciplinas-list">
-        {% raw %}{% for disciplina in disciplinas %}{% endraw %}
+        {% for disciplina in disciplinas %}
           <li>{{ disciplina }}</li>
-        {% raw %}{% endfor %}{% endraw %}
+        {% endfor %}
       </ul>
     </div>
 
@@ -113,15 +115,17 @@
       <span class="info-label">Localização (GPS):</span>
       <div class="info-value">{{ localizacao }}</div>
     </div>
-{% raw %}
-{% if licenciatura_area %}
-  <div class="info-item">
-    <span class="info-label">Área da Licenciatura:</span>
-    <div class="info-value">{{ licenciatura_area }}</div>
-  </div>
-{% endif %}
-{% endraw %
+
+    <div class="info-item">
+      <span class="info-label">Documento de Identificação (Imagem):</span>
+      <img src="{{ doc_foto }}" alt="Foto do Documento" class="doc-image">
+    </div>
+
+    <div class="info-item">
+      <span class="info-label">Documento em PDF:</span>
+      <div class="info-value"><a href="{{ doc_pdf }}" target="_blank">Ver documento</a></div>
     </div>
   </div>
 </body>
 </html>
+
