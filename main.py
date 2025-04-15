@@ -88,10 +88,6 @@ async def registrar_aluno(
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
-@app.get("/info-p", response_class=HTMLResponse)
-async def visualizar_info_p(request: Request):
-    return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
-
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
@@ -126,6 +122,14 @@ def ler_professores():
 def salvar_professores(professores):
     with open(PROFESSORES_JSON, "w") as f:
         json.dump(professores, f, indent=4)
+
+@app.get("/pro-info.html", response_class=HTMLResponse)
+async def mostrar_professores(request: Request):
+    # Carrega os dados dos professores a partir do arquivo JSON
+    professores = carregar_professores()
+
+    # Renderiza a página pro-info.html com os dados dos professores
+    return templates.TemplateResponse("pro-info.html", {"request": request, "professores": professores})
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
