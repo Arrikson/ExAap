@@ -132,6 +132,11 @@ async def receber_professor_api(professor: dict = Body(...)):
     salvar_professores(professores)
     return {"message": "Professor registrado com sucesso"}
 
+@app.get("/api/professores")
+def listar_professores():
+    professores = carregar_professores()
+    return JSONResponse(content=professores)
+
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
