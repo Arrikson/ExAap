@@ -89,7 +89,7 @@ async def get_form_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
 # Página que lista todos os professores registrados
-@app.get("/info-professores", response_class=HTMLResponse)
+@app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
@@ -136,5 +136,5 @@ async def registrar_professor(
 
     professores.append(novo_professor)
 
-    # Redireciona para a página com todos os professores
+    # Redireciona para info-p.html com todos os professores
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
