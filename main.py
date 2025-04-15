@@ -4,6 +4,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
+from pydantic import BaseModel
+from fastapi import Body
 import shutil
 import os
 import json
@@ -123,10 +125,12 @@ async def mostrar_professores(request: Request):
 async def dados_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
-@app.get("/api/professores", response_class=JSONResponse)
-async def api_professores():
+@app.post("/api/professores", response_class=JSONResponse)
+async def receber_professor_api(professor: dict = Body(...)):
     professores = carregar_professores()
-    return professores
+    professores.append(professor)
+    salvar_professores(professores)
+    return {"message": "Professor registrado com sucesso"}
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
@@ -178,4 +182,16 @@ async def registrar_professor(
     salvar_professores(professores)
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
+
+class Professor(BaseModel):
+    nome: str
+    bi: str
+    habilitacoes: str
+    licenciatura: Optional[str]
+    disciplinas: List[str]
+    outras_disciplinas: List[str]
+    telefone: str
+    email: str
+    localizacao: str
+
 
