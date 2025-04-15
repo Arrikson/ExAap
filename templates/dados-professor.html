@@ -112,10 +112,10 @@
 <body>
   <form id="professor-form">
     <label>Nome completo:</label>
-    <input type="text" required />
+    <input type="text" id="nome" required />
 
     <label>Nº do B.I:</label>
-    <input type="text" required />
+    <input type="text" id="bi" required />
 
     <label>Habilitações literárias:</label>
     <div class="radio-group" id="habilitacoes">
@@ -143,10 +143,10 @@
     <div class="add-outra" onclick="adicionarOutra()">+ Outra...</div>
 
     <label>Nº de telefone:</label>
-    <input type="tel" required />
+    <input type="tel" id="telefone" required />
 
     <label>Email:</label>
-    <input type="email" required />
+    <input type="email" id="email" required />
 
     <label>Localização:</label>
     <input type="text" id="localizacao" readonly />
@@ -159,18 +159,20 @@
   </form>
 
   <script>
-    // Habilitações - selecionar apenas uma
+    // Selecionar habilitações
     const habilitacoes = document.querySelectorAll('#habilitacoes .option');
     const campoLic = document.getElementById('campo-licenciatura');
+    let habilitacaoSelecionada = '';
     habilitacoes.forEach(op => {
       op.addEventListener('click', () => {
         habilitacoes.forEach(o => o.classList.remove('selected'));
         op.classList.add('selected');
-        campoLic.style.display = op.dataset.value === "Licenciatura" ? 'block' : 'none';
+        habilitacaoSelecionada = op.dataset.value;
+        campoLic.style.display = habilitacaoSelecionada === "Licenciatura" ? 'block' : 'none';
       });
     });
 
-    // Disciplinas - múltiplas opções
+    // Selecionar disciplinas
     const disciplinas = document.querySelectorAll('#disciplinas .option');
     disciplinas.forEach(op => {
       op.addEventListener('click', () => {
@@ -178,7 +180,7 @@
       });
     });
 
-    // Adicionar outra disciplina
+    // Adicionar outras disciplinas
     function adicionarOutra() {
       const container = document.getElementById('outras-disciplinas');
       const input = document.createElement('input');
@@ -188,7 +190,7 @@
       container.appendChild(input);
     }
 
-    // Localização
+    // Geolocalização
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
         const lat = position.coords.latitude;
@@ -201,14 +203,45 @@
       document.getElementById('localizacao').value = "Geolocalização não suportada";
     }
 
-    // Envio com redirecionamento
-    document.getElementById('professor-form').addEventListener('submit', e => {
+    // Enviar dados para API
+    document.getElementById('professor-form').addEventListener('submit', async e => {
       e.preventDefault();
-      alert("Envio feito com Sucesso, aguarde a sua aprovação, muito obrigado");
 
-      // Redireciona para a página principal
-      window.location.href = "/";
+      const data = {
+        nome: document.getElementById('nome').value,
+        bi: document.getElementById('bi').value,
+        habilitacoes: habilitacaoSelecionada,
+        licenciatura: campoLic.style.display === 'block' ? campoLic.value : '',
+        disciplinas: [...document.querySelectorAll('#disciplinas .selected')].map(el => el.dataset.value),
+        outras_disciplinas: [...document.querySelectorAll('#outras-disciplinas input')].map(el => el.value),
+        telefone: document.getElementById('telefone').value,
+        email: document.getElementById('email').value,
+        localizacao: document.getElementById('localizacao').value
+      };
+
+      try {
+        const response = await fetch('https://beckend-exaap.onrender.com/api/professores', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert("Envio feito com sucesso! Aguarde a sua aprovação. Muito obrigado.");
+          window.location.href = "/";
+        } else {
+          alert("Erro: " + (result.detail || "Falha ao enviar os dados."));
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+      }
     });
   </script>
 </body>
 </html>
+
