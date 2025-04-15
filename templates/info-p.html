@@ -113,17 +113,14 @@
       <span class="info-label">Localização (GPS):</span>
       <div class="info-value">{{ localizacao }}</div>
     </div>
-
-    <div class="info-item">
-      <span class="info-label">Documentos Enviados:</span>
-      {% raw %}
-      {% if doc_foto %}
-        <img src="{{ doc_foto }}" alt="Documento" class="doc-image" />
-      {% endif %}
-      {% if doc_pdf %}
-        <a href="{{ doc_pdf }}" target="_blank">Ver PDF</a>
-      {% endif %}
-      {% endraw %}
+{% raw %}
+{% if licenciatura_area %}
+  <div class="info-item">
+    <span class="info-label">Área da Licenciatura:</span>
+    <div class="info-value">{{ licenciatura_area }}</div>
+  </div>
+{% endif %}
+{% endraw %
     </div>
   </div>
 </body>
