@@ -201,10 +201,13 @@
       document.getElementById('localizacao').value = "Geolocalização não suportada";
     }
 
-    // Envio
+    // Envio com redirecionamento
     document.getElementById('professor-form').addEventListener('submit', e => {
       e.preventDefault();
       alert("Envio feito com Sucesso, aguarde a sua aprovação, muito obrigado");
+
+      // Redireciona para a página principal
+      window.location.href = "index.html";
     });
   </script>
 </body>
