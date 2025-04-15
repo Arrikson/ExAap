@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Informações do Professor</title>
+  <title>Informações dos Professores</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
 
     .container {
       max-width: 800px;
-      margin: auto;
+      margin: 30px auto;
       background: white;
       border-radius: 12px;
       padding: 30px;
@@ -59,73 +59,83 @@
       padding: 8px 12px;
       border-radius: 8px;
     }
+
+    hr {
+      margin: 40px 0;
+      border: none;
+      border-top: 2px dashed #ccc;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Informações do Professor</h2>
+  {% for professor in professores %}
+    <div class="container">
+      <h2>Informações do Professor</h2>
 
-    <div class="info-item">
-      <span class="info-label">Nome:</span>
-      <div class="info-value">{{ nome }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Nome:</span>
+        <div class="info-value">{{ professor.nome }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Nº do B.I:</span>
-      <div class="info-value">{{ bi }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Nº do B.I:</span>
+        <div class="info-value">{{ professor.bi }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Habilitações Literárias:</span>
-      <div class="info-value">{{ habilitacao }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Habilitações Literárias:</span>
+        <div class="info-value">{{ professor.habilitacao }}</div>
+      </div>
 
-    {% if licenciatura_area %}
-    <div class="info-item">
-      <span class="info-label">Área da Licenciatura:</span>
-      <div class="info-value">{{ licenciatura_area }}</div>
-    </div>
-    {% endif %}
+      {% if professor.licenciatura_area %}
+      <div class="info-item">
+        <span class="info-label">Área da Licenciatura:</span>
+        <div class="info-value">{{ professor.licenciatura_area }}</div>
+      </div>
+      {% endif %}
 
-    <div class="info-item">
-      <span class="info-label">Disciplinas:</span>
-      <ul class="disciplinas-list">
-        {% for disciplina in disciplinas %}
-          <li>{{ disciplina }}</li>
-        {% endfor %}
-      </ul>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Disciplinas:</span>
+        <ul class="disciplinas-list">
+          {% for disciplina in professor.disciplinas %}
+            <li>{{ disciplina }}</li>
+          {% endfor %}
+        </ul>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Outras Disciplinas:</span>
-      <div class="info-value">{{ outras_disciplinas }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Outras Disciplinas:</span>
+        <div class="info-value">{{ professor.outras_disciplinas }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Telefone:</span>
-      <div class="info-value">{{ telefone }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Telefone:</span>
+        <div class="info-value">{{ professor.telefone }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">E-mail:</span>
-      <div class="info-value">{{ email }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">E-mail:</span>
+        <div class="info-value">{{ professor.email }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Localização (GPS):</span>
-      <div class="info-value">{{ localizacao }}</div>
-    </div>
+      <div class="info-item">
+        <span class="info-label">Localização (GPS):</span>
+        <div class="info-value">{{ professor.localizacao }}</div>
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Documento de Identificação (Imagem):</span>
-      <img src="{{ doc_foto }}" alt="Foto do Documento" class="doc-image">
-    </div>
+      <div class="info-item">
+        <span class="info-label">Documento de Identificação (Imagem):</span>
+        <img src="{{ professor.doc_foto }}" alt="Foto do Documento" class="doc-image">
+      </div>
 
-    <div class="info-item">
-      <span class="info-label">Documento em PDF:</span>
-      <div class="info-value"><a href="{{ doc_pdf }}" target="_blank">Ver documento</a></div>
+      <div class="info-item">
+        <span class="info-label">Documento em PDF:</span>
+        <div class="info-value"><a href="{{ professor.doc_pdf }}" target="_blank">Ver documento</a></div>
+      </div>
     </div>
-  </div>
+    <hr>
+  {% endfor %}
 </body>
 </html>
+
 
