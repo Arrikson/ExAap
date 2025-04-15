@@ -1,3 +1,4 @@
+from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
@@ -119,10 +120,16 @@ def ler_professores():
     except FileNotFoundError:
         return []
 
-# Função para salvar os dados de professores no arquivo JSON
+ef carregar_professores():
+    if os.path.exists(PROFESSORES_JSON):
+        with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+# Função para salvar os dados no arquivo JSON
 def salvar_professores(professores):
-    with open(PROFESSORES_JSON, "w") as f:
-        json.dump(professores, f, indent=4)
+    with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
+        json.dump(professores, f, ensure_ascii=False, indent=4)
 
 @app.get("/pro-info.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
@@ -136,10 +143,10 @@ async def mostrar_professores(request: Request):
 async def dados_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
-@app.get("/api/professores", response_class=HTMLResponse)
+@app.get("/api/professores", response_class=JSONResponse)
 async def api_professores():
-    # Carrega os dados dos professores a partir do arquivo JSON
-    professores = carregar_professores()
+    professores = ler_professores()
+    return professores
 
     # Retorna os dados no formato JSON
     return JSONResponse(content=professores)
