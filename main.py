@@ -73,13 +73,20 @@ async def registrar_aluno(
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
+# Rota para visualizar a página info-p.html
+@app.get("/info-p", response_class=HTMLResponse)
+async def visualizar_info_p(request: Request):
+    # Aqui, você pode passar algum dado se necessário, por exemplo, dados que precisam ser exibidos na página
+    dados = {"request": request}
+    return templates.TemplateResponse("info-p.html", dados)
+
 # Página com formulário de dados do professor
 @app.get("/dados-professor", response_class=HTMLResponse)
 async def get_form_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
 # Processamento dos dados do professor
-@app.post("/registrar-professor")
+@app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
     nome: str = Form(...),
@@ -107,7 +114,26 @@ async def registrar_professor(
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    # Você pode salvar os dados no banco de dados aqui se desejar
+    # Preparar os dados para exibição na página info-p.html
+    dados = {
+        "request": request,
+        "nome": nome,
+        "bi": bi,
+        "habilitacao": habilitacao,
+        "licenciatura_area": licenciatura_area,
+        "disciplinas": disciplinas,
+        "outras_disciplinas": outras_disciplinas,
+        "telefone": telefone,
+        "email": email,
+        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
+        "doc_foto": "/" + foto_path,
+        "doc_pdf": "/" + pdf_path
+    }
 
-    # Redirecionar para a página inicial
-    return RedirectResponse(url="/", status_code=303)
+    # Renderizar info-p.html com os dados
+    response = templates.TemplateResponse("info-p.html", dados)
+
+    # Redirecionar para a página principal após um tempo de espera
+    response.set_cookie("redirect", "true", max_age=5)  # Define um cookie para indicar redirecionamento
+
+    return response
