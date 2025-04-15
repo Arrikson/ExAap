@@ -1,7 +1,10 @@
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from typing import List, Optional
+import shutil
+import os
 
 app = FastAPI()
 
@@ -47,12 +50,11 @@ async def registrar_aluno(
     class_: str = Form(..., alias="class"),
     father_name: str = Form(..., alias="father-name"),
     mother_name: str = Form(..., alias="mother-name"),
-    discipline: list[str] = Form([]),
+    discipline: List[str] = Form([]),
     other_discipline: str = Form(""),
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
-    # Junta todas as disciplinas
     disciplinas = discipline
     if other_discipline:
         disciplinas.append(other_discipline)
@@ -70,4 +72,53 @@ async def registrar_aluno(
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
+# Página com formulário de dados do professor
+@app.get("/dados-professor", response_class=HTMLResponse)
+async def get_form_professor(request: Request):
+    return templates.TemplateResponse("dados-professor.html", {"request": request})
+
+# Processamento dos dados do professor
+@app.post("/registrar-professor", response_class=HTMLResponse)
+async def registrar_professor(
+    request: Request,
+    nome: str = Form(...),
+    bi: str = Form(...),
+    habilitacao: str = Form(...),
+    licenciatura_area: Optional[str] = Form(""),
+    disciplinas: List[str] = Form([]),
+    outras_disciplinas: Optional[str] = Form(""),
+    telefone: str = Form(...),
+    email: str = Form(...),
+    latitude: str = Form(...),
+    longitude: str = Form(...),
+    doc_foto: UploadFile = File(...),
+    doc_pdf: UploadFile = File(...)
+):
+    # Salvando os arquivos enviados
+    foto_path = f"static/docs/{doc_foto.filename}"
+    pdf_path = f"static/docs/{doc_pdf.filename}"
+
+    os.makedirs("static/docs", exist_ok=True)
+
+    with open(foto_path, "wb") as buffer:
+        shutil.copyfileobj(doc_foto.file, buffer)
+
+    with open(pdf_path, "wb") as buffer:
+        shutil.copyfileobj(doc_pdf.file, buffer)
+
+    dados = {
+        "nome": nome,
+        "bi": bi,
+        "habilitacao": habilitacao,
+        "licenciatura_area": licenciatura_area,
+        "disciplinas": disciplinas,
+        "outras_disciplinas": outras_disciplinas,
+        "telefone": telefone,
+        "email": email,
+        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
+        "doc_foto": f"/{foto_path}",
+        "doc_pdf": f"/{pdf_path}"
+    }
+
+    return templates.TemplateResponse("info-p.html", {"request": request, **dados})
 
