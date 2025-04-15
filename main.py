@@ -1,3 +1,4 @@
+from fastapi.responses import RedirectResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -78,7 +79,7 @@ async def get_form_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
 # Processamento dos dados do professor
-@app.post("/registrar-professor", response_class=HTMLResponse)
+@app.post("/registrar-professor")
 async def registrar_professor(
     request: Request,
     nome: str = Form(...),
@@ -106,19 +107,7 @@ async def registrar_professor(
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    dados = {
-        "nome": nome,
-        "bi": bi,
-        "habilitacao": habilitacao,
-        "licenciatura_area": licenciatura_area,
-        "disciplinas": disciplinas,
-        "outras_disciplinas": outras_disciplinas,
-        "telefone": telefone,
-        "email": email,
-        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
-        "doc_foto": f"/{foto_path}",
-        "doc_pdf": f"/{pdf_path}"
-    }
+    # Você pode salvar os dados no banco de dados aqui se desejar
 
-    return templates.TemplateResponse("info-p.html", {"request": request, **dados})
-
+    # Redirecionar para a página inicial
+    return RedirectResponse(url="/", status_code=303)
