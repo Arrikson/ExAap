@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SabApp - Dados do Professor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f4f4f8;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    form {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"] {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+    }
+
+    .circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid black;
+      background-color: #f4f4f8;
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .selected .circle {
+      background-color: black;
+    }
+
+    .disciplinas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .add-outra {
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #outras-disciplinas input {
+      margin-top: 10px;
+    }
+
+    input[type="file"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      background-color: white;
+    }
+
+    button {
+      padding: 14px;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #222;
+    }
+  </style>
+</head>
+<body>
+  <form id="professor-form">
+    <label>Nome completo:</label>
+    <input type="text" required />
+
+    <label>Nº do B.I:</label>
+    <input type="text" required />
+
+    <label>Habilitações literárias:</label>
+    <div class="radio-group" id="habilitacoes">
+      <div class="option" data-value="Licenciatura">
+        <span class="circle"></span> Licenciatura
+      </div>
+      <div class="option" data-value="Ensino médio">
+        <span class="circle"></span> Ensino médio
+      </div>
+    </div>
+
+    <input type="text" id="campo-licenciatura" placeholder="Licenciatura em..." style="display: none;" />
+
+    <label>Professor de:</label>
+    <div class="disciplinas" id="disciplinas">
+      <div class="option" data-value="Matemática"><span class="circle"></span> Matemática</div>
+      <div class="option" data-value="Língua Portuguesa"><span class="circle"></span> Língua Portuguesa</div>
+      <div class="option" data-value="Inglês"><span class="circle"></span> Inglês</div>
+      <div class="option" data-value="Francês"><span class="circle"></span> Francês</div>
+      <div class="option" data-value="Química"><span class="circle"></span> Química</div>
+      <div class="option" data-value="Física"><span class="circle"></span> Física</div>
+    </div>
+
+    <div id="outras-disciplinas"></div>
+    <div class="add-outra" onclick="adicionarOutra()">+ Outra...</div>
+
+    <label>Nº de telefone:</label>
+    <input type="tel" required />
+
+    <label>Email:</label>
+    <input type="email" required />
+
+    <label>Localização:</label>
+    <input type="text" id="localizacao" readonly />
+
+    <label>Enviar fotos do B.I e Documentos:</label>
+    <input type="file" accept="image/*,application/pdf" required />
+    <input type="file" accept="image/*,application/pdf" required />
+
+    <button type="submit">Enviar Documentos</button>
+  </form>
+
+  <script>
+    // Habilitações - selecionar apenas uma
+    const habilitacoes = document.querySelectorAll('#habilitacoes .option');
+    const campoLic = document.getElementById('campo-licenciatura');
+    habilitacoes.forEach(op => {
+      op.addEventListener('click', () => {
+        habilitacoes.forEach(o => o.classList.remove('selected'));
+        op.classList.add('selected');
+        campoLic.style.display = op.dataset.value === "Licenciatura" ? 'block' : 'none';
+      });
+    });
+
+    // Disciplinas - múltiplas opções
+    const disciplinas = document.querySelectorAll('#disciplinas .option');
+    disciplinas.forEach(op => {
+      op.addEventListener('click', () => {
+        op.classList.toggle('selected');
+      });
+    });
+
+    // Adicionar outra disciplina
+    function adicionarOutra() {
+      const container = document.getElementById('outras-disciplinas');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Outra...';
+      input.style.marginTop = '5px';
+      container.appendChild(input);
+    }
+
+    // Localização
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        document.getElementById('localizacao').value = `Latitude: ${lat}, Longitude: ${lng}`;
+      }, () => {
+        document.getElementById('localizacao').value = "Permissão negada ou indisponível";
+      });
+    } else {
+      document.getElementById('localizacao').value = "Geolocalização não suportada";
+    }
+
+    // Envio
+    document.getElementById('professor-form').addEventListener('submit', e => {
+      e.preventDefault();
+      alert("Envio feito com Sucesso, aguarde a sua aprovação, muito obrigado");
+    });
+  </script>
+</body>
+</html>
