@@ -11,9 +11,9 @@ import os
 import json
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm
 from reportlab.lib import colors
-
+from datetime import datetime
+from reportlab.platypus import Image as RLImage
 
 app = FastAPI()
 
