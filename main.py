@@ -20,6 +20,11 @@ templates = Jinja2Templates(directory="templates")
 PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
+# Verifica e cria alunos.json se não existir
+if not os.path.exists(ALUNOS_JSON):
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+        json.dump([], f)
+
 # ----------------- FUNÇÕES AUXILIARES -----------------
 
 def carregar_professores():
