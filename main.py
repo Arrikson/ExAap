@@ -266,21 +266,12 @@ async def registrar_professor(
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from datetime import datetime
-import os
-import json
-
-app = FastAPI()
-
 # Função para carregar os dados do JSON
 def carregar_professores():
     with open("professores.json", "r", encoding="utf-8") as f:
         return json.load(f)
+        
+from datetime import datetime
 
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
