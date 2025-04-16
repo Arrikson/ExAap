@@ -261,26 +261,75 @@ async def registrar_professor(
 
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
+    from reportlab.lib.units import cm
+    from reportlab.platypus import Image as RLImage
+    from datetime import datetime
+    from reportlab.lib import colors
+
     professores = carregar_professores()
     os.makedirs("static/docs", exist_ok=True)
     pdf_path = "static/docs/lista_professores.pdf"
     c = canvas.Canvas(pdf_path, pagesize=A4)
 
     width, height = A4
-    y = height - 50
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, "Lista de Professores")
-    y -= 30
+    y = height - 80
 
-    c.setFont("Helvetica", 12)
-    for i, professor in enumerate(professores):
-        texto = f"{i + 1}. Nome: {professor['nome']}, BI: {professor['bi']}, Email: {professor['email']}, Tel: {professor['telefone']}"
-        c.drawString(50, y, texto)
+    # Título
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
+
+    # Data no canto superior direito
+    data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
+    c.setFont("Helvetica", 10)
+    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+
+    for i, p in enumerate(professores):
+        c.setFont("Helvetica-Bold", 14)
+        c.setFillColor(colors.darkblue)
+        c.drawString(50, y, f"{i + 1}. {p.get('nome', 'Sem nome')}")
         y -= 20
-        if y < 50:
+
+        c.setFont("Helvetica", 11)
+        c.setFillColor(colors.black)
+
+        campos = [
+            ("BI", p.get("bi", "")),
+            ("Habilitações", p.get("habilitacao", "")),
+            ("Área da Licenciatura", p.get("licenciatura_area", "")),
+            ("Disciplinas", ", ".join(p.get("disciplinas", []))),
+            ("Outras Disciplinas", p.get("outras_disciplinas", "")),
+            ("Telefone", p.get("telefone", "")),
+            ("Email", p.get("email", "")),
+            ("Localização", p.get("localizacao", "")),
+        ]
+
+        for label, valor in campos:
+            if valor:
+                c.drawString(60, y, f"{label}: {valor}")
+                y -= 15
+
+        # Adicionar imagem, se disponível
+        foto_path = p.get("doc_foto", "").lstrip("/")
+        if foto_path and os.path.exists(foto_path):
+            try:
+                c.drawImage(foto_path, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
+            except:
+                c.drawString(60, y, "Erro ao carregar imagem.")
+        y -= 100
+
+        # Linha separadora
+        c.setStrokeColor(colors.grey)
+        c.setLineWidth(0.5)
+        c.line(50, y, width - 50, y)
+        y -= 30
+
+        if y < 150:
             c.showPage()
-            y = height - 50
-            c.setFont("Helvetica", 12)
+            y = height - 80
+            c.setFont("Helvetica-Bold", 18)
+            c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
+            c.setFont("Helvetica", 10)
+            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
