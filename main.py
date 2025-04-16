@@ -111,6 +111,18 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
+ALUNOS_JSON = "alunos.json"
+
+def carregar_alunos():
+    if os.path.exists(ALUNOS_JSON):
+        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def salvar_alunos(alunos):
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(alunos, f, ensure_ascii=False, indent=4)
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -163,6 +175,10 @@ async def registrar_aluno(
         "disciplinas": disciplinas,
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
+
+    alunos = carregar_alunos()  # Carregar os alunos registrados
+    alunos.append(dados)  # Adicionar o novo aluno
+    salvar_alunos(alunos)  # Salvar os dados atualizados
 
     return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
