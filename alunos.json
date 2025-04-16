@@ -1,0 +1,33 @@
+[
+    {
+        "name": "João Silva",
+        "bi": 123456789,
+        "age": 16,
+        "class": "10A",
+        "father_name": "Carlos Silva",
+        "mother_name": "Ana Silva",
+        "disciplinas": ["Matemática", "Física", "Química"],
+        "localizacao": "Latitude: 10.12345, Longitude: 20.54321"
+    },
+    {
+        "name": "Maria Santos",
+        "bi": 987654321,
+        "age": 17,
+        "class": "12B",
+        "father_name": "José Santos",
+        "mother_name": "Fernanda Santos",
+        "disciplinas": ["Português", "História", "Geografia"],
+        "localizacao": "Latitude: 15.67890, Longitude: 25.98765"
+    },
+    {
+        "name": "Pedro Oliveira",
+        "bi": 112233445,
+        "age": 15,
+        "class": "9C",
+        "father_name": "Manuel Oliveira",
+        "mother_name": "Laura Oliveira",
+        "disciplinas": ["Inglês", "Matemática", "Biologia"],
+        "localizacao": "Latitude: 12.34567, Longitude: 22.76543"
+    }
+]
+
