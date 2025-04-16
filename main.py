@@ -17,22 +17,98 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Caminho do arquivo JSON
 PROFESSORES_JSON = "professores.json"
 
-# Função para carregar os dados do arquivo JSON
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
         with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
 
-# Função para salvar os dados no arquivo JSON
 def salvar_professores(professores):
     with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
         json.dump(professores, f, ensure_ascii=False, indent=4)
 
-# Lista em memória inicial
+def gerar_html_professores():
+    professores = carregar_professores()
+    conteudo_html = """
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Professores Registrados</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                padding: 20px;
+            }
+            h1 {
+                text-align: center;
+                color: #343a40;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                margin-top: 20px;
+            }
+            th, td {
+                padding: 12px;
+                border: 1px solid #dee2e6;
+                text-align: left;
+            }
+            th {
+                background-color: #343a40;
+                color: #fff;
+            }
+            tr:nth-child(even) {
+                background-color: #f1f1f1;
+            }
+            img {
+                max-width: 80px;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Professores Registrados</h1>
+        <table>
+            <tr>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>BI</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Localização</th>
+            </tr>
+    """
+
+    for p in professores:
+        foto_html = f'<img src="{p["doc_foto"]}" alt="Foto">' if "doc_foto" in p else "N/A"
+        conteudo_html += f"""
+            <tr>
+                <td>{foto_html}</td>
+                <td>{p.get("nome", "")}</td>
+                <td>{p.get("bi", "")}</td>
+                <td>{p.get("email", "")}</td>
+                <td>{p.get("telefone", "")}</td>
+                <td>{p.get("localizacao", "")}</td>
+            </tr>
+        """
+
+    conteudo_html += """
+        </table>
+    </body>
+    </html>
+    """
+
+    with open("templates/pro-info.html", "w", encoding="utf-8") as f:
+        f.write(conteudo_html)
+
+# Carregamento inicial
 professores = carregar_professores()
 
 @app.get("/", response_class=HTMLResponse)
@@ -100,6 +176,7 @@ async def excluir_professor(bi: str):
     global professores
     professores = [p for p in professores if p["bi"] != bi]
     salvar_professores(professores)
+    gerar_html_professores()
     return RedirectResponse(url="/info-p", status_code=303)
 
 @app.get("/editar-professor/{bi}", response_class=HTMLResponse)
@@ -114,9 +191,8 @@ async def editar_professor_form(bi: str, request: Request):
     })
 
 @app.get("/pro-info.html", response_class=HTMLResponse)
-async def mostrar_professores(request: Request):
-    professores = carregar_professores()
-    return templates.TemplateResponse("pro-info.html", {"request": request, "professores": professores})
+async def mostrar_professores_estatico(request: Request):
+    return templates.TemplateResponse("pro-info.html", {"request": request})
 
 @app.get("/dados-professor.html", response_class=HTMLResponse)
 async def dados_professor(request: Request):
@@ -127,6 +203,7 @@ async def receber_professor_api(professor: dict = Body(...)):
     professores = carregar_professores()
     professores.append(professor)
     salvar_professores(professores)
+    gerar_html_professores()
     return {"message": "Professor registrado com sucesso"}
 
 @app.get("/api/professores")
@@ -152,9 +229,10 @@ async def registrar_professor(
 ):
     professores = carregar_professores()
 
+    os.makedirs("static/docs", exist_ok=True)
+
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
-    os.makedirs("static/docs", exist_ok=True)
 
     with open(foto_path, "wb") as buffer:
         shutil.copyfileobj(doc_foto.file, buffer)
@@ -177,6 +255,7 @@ async def registrar_professor(
 
     professores.append(novo_professor)
     salvar_professores(professores)
+    gerar_html_professores()
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
 
@@ -205,4 +284,3 @@ async def gerar_pdf():
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
-
