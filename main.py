@@ -229,16 +229,20 @@ async def registrar_professor(
 ):
     professores = carregar_professores()
 
+    # Diretório para armazenar os arquivos
     os.makedirs("static/docs", exist_ok=True)
 
+    # Caminhos para salvar as fotos e PDFs
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
 
+    # Salvar as fotos e PDFs no diretório
     with open(foto_path, "wb") as buffer:
         shutil.copyfileobj(doc_foto.file, buffer)
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
+    # Registrar as informações do professor
     novo_professor = {
         "nome": nome,
         "bi": bi,
@@ -249,8 +253,8 @@ async def registrar_professor(
         "telefone": telefone,
         "email": email,
         "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
-        "doc_foto": "/" + foto_path,
-        "doc_pdf": "/" + pdf_path
+        "doc_foto": "/" + foto_path,  # Caminho relativo para a foto
+        "doc_pdf": "/" + pdf_path     # Caminho relativo para o PDF
     }
 
     professores.append(novo_professor)
@@ -262,9 +266,9 @@ async def registrar_professor(
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
     from reportlab.lib.units import cm
-    from reportlab.platypus import Image as RLImage
     from datetime import datetime
     from reportlab.lib import colors
+    from reportlab.platypus import Image as RLImage
 
     professores = carregar_professores()
     os.makedirs("static/docs", exist_ok=True)
@@ -313,7 +317,8 @@ async def gerar_pdf():
         if foto_path and os.path.exists(foto_path):
             try:
                 c.drawImage(foto_path, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
-            except:
+            except Exception as e:
+                print(f"Erro ao adicionar foto: {e}")
                 c.drawString(60, y, "Erro ao carregar imagem.")
         y -= 100
 
