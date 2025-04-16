@@ -1,4 +1,4 @@
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,6 +9,8 @@ from fastapi import Body
 import shutil
 import os
 import json
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 
 app = FastAPI()
 
@@ -32,8 +34,6 @@ def salvar_professores(professores):
 
 # Lista em memória inicial
 professores = carregar_professores()
-
-# ROTAS:
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -92,7 +92,7 @@ async def registrar_aluno(
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
-    professores = carregar_professores()  # Aqui carrega os dados do JSON
+    professores = carregar_professores()
     return templates.TemplateResponse("info-p.html", {"request": request, "professores": professores})
 
 @app.post("/excluir-professor/{bi}")
@@ -115,10 +115,7 @@ async def editar_professor_form(bi: str, request: Request):
 
 @app.get("/pro-info.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
-    # Carrega os dados dos professores a partir do arquivo JSON
     professores = carregar_professores()
-
-    # Renderiza a página pro-info.html com os dados dos professores
     return templates.TemplateResponse("pro-info.html", {"request": request, "professores": professores})
 
 @app.get("/dados-professor.html", response_class=HTMLResponse)
@@ -153,10 +150,8 @@ async def registrar_professor(
     doc_foto: UploadFile = File(...),
     doc_pdf: UploadFile = File(...)
 ):
-    # Lê a lista de professores existentes
     professores = carregar_professores()
 
-    # Define os caminhos para os documentos
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
     os.makedirs("static/docs", exist_ok=True)
@@ -166,7 +161,6 @@ async def registrar_professor(
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    # Adiciona o novo professor à lista
     novo_professor = {
         "nome": nome,
         "bi": bi,
@@ -182,21 +176,33 @@ async def registrar_professor(
     }
 
     professores.append(novo_professor)
-
-    # Salva os dados no arquivo JSON
     salvar_professores(professores)
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
 
-class Professor(BaseModel):
-    nome: str
-    bi: str
-    habilitacoes: str
-    licenciatura: Optional[str]
-    disciplinas: List[str]
-    outras_disciplinas: List[str]
-    telefone: str
-    email: str
-    localizacao: str
+@app.get("/gerar-pdf", response_class=FileResponse)
+async def gerar_pdf():
+    professores = carregar_professores()
+    os.makedirs("static/docs", exist_ok=True)
+    pdf_path = "static/docs/lista_professores.pdf"
+    c = canvas.Canvas(pdf_path, pagesize=A4)
 
+    width, height = A4
+    y = height - 50
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, y, "Lista de Professores")
+    y -= 30
+
+    c.setFont("Helvetica", 12)
+    for i, professor in enumerate(professores):
+        texto = f"{i + 1}. Nome: {professor['nome']}, BI: {professor['bi']}, Email: {professor['email']}, Tel: {professor['telefone']}"
+        c.drawString(50, y, texto)
+        y -= 20
+        if y < 50:
+            c.showPage()
+            y = height - 50
+            c.setFont("Helvetica", 12)
+
+    c.save()
+    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
 
