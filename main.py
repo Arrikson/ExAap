@@ -180,7 +180,7 @@ async def registrar_aluno(
     alunos.append(dados)  # Adicionar o novo aluno
     salvar_alunos(alunos)  # Salvar os dados atualizados
 
-    return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
+    return templates.TemplateResponse("aluno-info.html", {"request": request, "dados": dados})
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
