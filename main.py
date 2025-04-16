@@ -18,14 +18,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
-ALUNOS_JSON = "alunos.json"
-
-# Verifica e cria alunos.json se não existir
-if not os.path.exists(ALUNOS_JSON):
-    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
-        json.dump([], f)
-
-# ----------------- FUNÇÕES AUXILIARES -----------------
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
@@ -93,6 +85,7 @@ def gerar_html_professores():
                 <th>Localização</th>
             </tr>
     """
+
     for p in professores:
         foto_html = f'<img src="{p["doc_foto"]}" alt="Foto">' if "doc_foto" in p else "N/A"
         conteudo_html += f"""
@@ -105,92 +98,18 @@ def gerar_html_professores():
                 <td>{p.get("localizacao", "")}</td>
             </tr>
         """
-    conteudo_html += "</table></body></html>"
+
+    conteudo_html += """
+        </table>
+    </body>
+    </html>
+    """
+
     with open("templates/pro-info.html", "w", encoding="utf-8") as f:
         f.write(conteudo_html)
 
-def carregar_alunos():
-    if os.path.exists(ALUNOS_JSON):
-        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def salvar_alunos(alunos):
-    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
-        json.dump(alunos, f, ensure_ascii=False, indent=4)
-
-def gerar_html_alunos():
-    alunos = carregar_alunos()
-    conteudo_html = """
-    <!DOCTYPE html>
-    <html lang="pt">
-    <head>
-        <meta charset="UTF-8">
-        <title>Alunos Registrados</title>
-        <link rel="stylesheet" href="/static/style.css">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f8f9fa;
-                padding: 20px;
-            }
-            h1 {
-                text-align: center;
-                color: #343a40;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background-color: #fff;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                margin-top: 20px;
-            }
-            th, td {
-                padding: 12px;
-                border: 1px solid #dee2e6;
-                text-align: left;
-            }
-            th {
-                background-color: #343a40;
-                color: #fff;
-            }
-            tr:nth-child(even) {
-                background-color: #f1f1f1;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Lista de Alunos Registrados</h1>
-        <table>
-            <tr>
-                <th>Nome</th>
-                <th>BI</th>
-                <th>Idade</th>
-                <th>Classe</th>
-                <th>Nome do Pai</th>
-                <th>Nome da Mãe</th>
-                <th>Disciplinas</th>
-                <th>Localização</th>
-            </tr>
-    """
-    for a in alunos:
-        conteudo_html += f"""
-            <tr>
-                <td>{a.get("name", "")}</td>
-                <td>{a.get("bi", "")}</td>
-                <td>{a.get("age", "")}</td>
-                <td>{a.get("class", "")}</td>
-                <td>{a.get("father_name", "")}</td>
-                <td>{a.get("mother_name", "")}</td>
-                <td>{", ".join(a.get("disciplinas", []))}</td>
-                <td>{a.get("localizacao", "")}</td>
-            </tr>
-        """
-    conteudo_html += "</table></body></html>"
-    with open("templates/aluno-info.html", "w", encoding="utf-8") as f:
-        f.write(conteudo_html)
-
-# ----------------- ROTAS -----------------
+# Carregamento inicial
+professores = carregar_professores()
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -216,10 +135,6 @@ async def ver_precos(request: Request):
 async def aula_online(request: Request):
     return templates.TemplateResponse("aulaonline.html", {"request": request})
 
-@app.get("/aluno-info.html", response_class=HTMLResponse)
-async def mostrar_alunos_estatico(request: Request):
-    return templates.TemplateResponse("aluno-info.html", {"request": request})
-
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -238,7 +153,7 @@ async def registrar_aluno(
     if other_discipline:
         disciplinas.append(other_discipline)
 
-    novo_aluno = {
+    dados = {
         "name": name,
         "bi": bi,
         "age": age,
@@ -249,25 +164,7 @@ async def registrar_aluno(
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
 
-    alunos = carregar_alunos()
-    alunos.append(novo_aluno)
-    salvar_alunos(alunos)
-    gerar_html_alunos()
-
-    return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": novo_aluno})
-
-@app.post("/api/alunos", response_class=JSONResponse)
-async def receber_aluno_api(aluno: dict):
-    alunos = carregar_alunos()
-    alunos.append(aluno)
-    salvar_alunos(alunos)
-    gerar_html_alunos()
-    return {"message": "Aluno registrado com sucesso"}
-
-@app.get("/api/alunos")
-async def listar_alunos():
-    alunos = carregar_alunos()
-    return JSONResponse(content=alunos)
+    return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
@@ -318,30 +215,126 @@ def listar_professores():
 async def registrar_professor(
     request: Request,
     nome: str = Form(...),
-    bi: int = Form(...),
-    email: str = Form(...),
+    bi: str = Form(...),
+    habilitacao: str = Form(...),
+    licenciatura_area: Optional[str] = Form(""),
+    disciplinas: List[str] = Form([]),
+    outras_disciplinas: Optional[str] = Form(""),
     telefone: str = Form(...),
+    email: str = Form(...),
+    latitude: str = Form(...),
+    longitude: str = Form(...),
     doc_foto: UploadFile = File(...),
-    latitude: str = Form(""),
-    longitude: str = Form("")
+    doc_pdf: UploadFile = File(...)
 ):
-    foto_path = f"static/{doc_foto.filename}"
+    professores = carregar_professores()
+
+    # Diretório para armazenar os arquivos
+    os.makedirs("static/docs", exist_ok=True)
+
+    # Caminhos para salvar as fotos e PDFs
+    foto_path = f"static/docs/{doc_foto.filename}"
+    pdf_path = f"static/docs/{doc_pdf.filename}"
+
+    # Salvar as fotos e PDFs no diretório
     with open(foto_path, "wb") as buffer:
         shutil.copyfileobj(doc_foto.file, buffer)
+    with open(pdf_path, "wb") as buffer:
+        shutil.copyfileobj(doc_pdf.file, buffer)
 
+    # Registrar as informações do professor
     novo_professor = {
         "nome": nome,
         "bi": bi,
-        "email": email,
+        "habilitacao": habilitacao,
+        "licenciatura_area": licenciatura_area,
+        "disciplinas": disciplinas,
+        "outras_disciplinas": outras_disciplinas,
         "telefone": telefone,
-        "doc_foto": foto_path,
-        "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+        "email": email,
+        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
+        "doc_foto": "/" + foto_path,  # Caminho relativo para a foto
+        "doc_pdf": "/" + pdf_path     # Caminho relativo para o PDF
     }
 
-    professores = carregar_professores()
     professores.append(novo_professor)
     salvar_professores(professores)
     gerar_html_professores()
 
-    return templates.TemplateResponse("registro.professor.html", {"request": request, "dados": novo_professor})
+    return RedirectResponse(url="/pro-info.html", status_code=303)
 
+@app.get("/gerar-pdf", response_class=FileResponse)
+async def gerar_pdf():
+    from reportlab.lib.units import cm
+    from datetime import datetime
+    from reportlab.lib import colors
+    from reportlab.platypus import Image as RLImage
+
+    professores = carregar_professores()
+    os.makedirs("static/docs", exist_ok=True)
+    pdf_path = "static/docs/lista_professores.pdf"
+    c = canvas.Canvas(pdf_path, pagesize=A4)
+
+    width, height = A4
+    y = height - 80
+
+    # Título
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
+
+    # Data no canto superior direito
+    data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
+    c.setFont("Helvetica", 10)
+    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+
+    for i, p in enumerate(professores):
+        c.setFont("Helvetica-Bold", 14)
+        c.setFillColor(colors.darkblue)
+        c.drawString(50, y, f"{i + 1}. {p.get('nome', 'Sem nome')}")
+        y -= 20
+
+        c.setFont("Helvetica", 11)
+        c.setFillColor(colors.black)
+
+        campos = [
+            ("BI", p.get("bi", "")),
+            ("Habilitações", p.get("habilitacao", "")),
+            ("Área da Licenciatura", p.get("licenciatura_area", "")),
+            ("Disciplinas", ", ".join(p.get("disciplinas", []))),
+            ("Outras Disciplinas", p.get("outras_disciplinas", "")),
+            ("Telefone", p.get("telefone", "")),
+            ("Email", p.get("email", "")),
+            ("Localização", p.get("localizacao", "")),
+        ]
+
+        for label, valor in campos:
+            if valor:
+                c.drawString(60, y, f"{label}: {valor}")
+                y -= 15
+
+        # Adicionar imagem, se disponível
+        foto_path = p.get("doc_foto", "").lstrip("/")
+        if foto_path and os.path.exists(foto_path):
+            try:
+                c.drawImage(foto_path, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
+            except Exception as e:
+                print(f"Erro ao adicionar foto: {e}")
+                c.drawString(60, y, "Erro ao carregar imagem.")
+        y -= 100
+
+        # Linha separadora
+        c.setStrokeColor(colors.grey)
+        c.setLineWidth(0.5)
+        c.line(50, y, width - 50, y)
+        y -= 30
+
+        if y < 150:
+            c.showPage()
+            y = height - 80
+            c.setFont("Helvetica-Bold", 18)
+            c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
+            c.setFont("Helvetica", 10)
+            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+
+    c.save()
+    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
