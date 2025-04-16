@@ -11,6 +11,9 @@ import os
 import json
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib import colors
+
 
 app = FastAPI()
 
@@ -263,12 +266,25 @@ async def registrar_professor(
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
 
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from datetime import datetime
+import os
+import json
+
+app = FastAPI()
+
+# Função para carregar os dados do JSON
+def carregar_professores():
+    with open("professores.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
     from reportlab.lib.units import cm
-    from datetime import datetime
-    from reportlab.lib import colors
-    from reportlab.platypus import Image as RLImage
 
     professores = carregar_professores()
     os.makedirs("static/docs", exist_ok=True)
@@ -278,7 +294,7 @@ async def gerar_pdf():
     width, height = A4
     y = height - 80
 
-    # Título
+    # Título principal
     c.setFont("Helvetica-Bold", 18)
     c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
 
@@ -312,14 +328,19 @@ async def gerar_pdf():
                 c.drawString(60, y, f"{label}: {valor}")
                 y -= 15
 
-        # Adicionar imagem, se disponível
-        foto_path = p.get("doc_foto", "").lstrip("/")
-        if foto_path and os.path.exists(foto_path):
+        # Inserção da imagem se existir
+        imagem_nome = os.path.basename(p.get("doc_foto", ""))
+        imagem_caminho = os.path.join("static", "uploads", imagem_nome)
+
+        if os.path.exists(imagem_caminho):
             try:
-                c.drawImage(foto_path, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
+                c.drawImage(imagem_caminho, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
             except Exception as e:
-                print(f"Erro ao adicionar foto: {e}")
+                print(f"Erro ao adicionar imagem: {e}")
                 c.drawString(60, y, "Erro ao carregar imagem.")
+        else:
+            c.drawString(60, y, "Imagem não encontrada.")
+
         y -= 100
 
         # Linha separadora
@@ -328,6 +349,7 @@ async def gerar_pdf():
         c.line(50, y, width - 50, y)
         y -= 30
 
+        # Se chegar ao fim da página, criar uma nova
         if y < 150:
             c.showPage()
             y = height - 80
