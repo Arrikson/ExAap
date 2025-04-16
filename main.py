@@ -1,11 +1,8 @@
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, HTMLResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
-from pydantic import BaseModel
-from fastapi import Body
 import shutil
 import os
 import json
@@ -18,6 +15,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
+ALUNOS_JSON = "alunos.json"
+
+# ----------------- FUNÇÕES AUXILIARES -----------------
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
@@ -85,7 +85,6 @@ def gerar_html_professores():
                 <th>Localização</th>
             </tr>
     """
-
     for p in professores:
         foto_html = f'<img src="{p["doc_foto"]}" alt="Foto">' if "doc_foto" in p else "N/A"
         conteudo_html += f"""
@@ -98,18 +97,92 @@ def gerar_html_professores():
                 <td>{p.get("localizacao", "")}</td>
             </tr>
         """
-
-    conteudo_html += """
-        </table>
-    </body>
-    </html>
-    """
-
+    conteudo_html += "</table></body></html>"
     with open("templates/pro-info.html", "w", encoding="utf-8") as f:
         f.write(conteudo_html)
 
-# Carregamento inicial
-professores = carregar_professores()
+def carregar_alunos():
+    if os.path.exists(ALUNOS_JSON):
+        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def salvar_alunos(alunos):
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(alunos, f, ensure_ascii=False, indent=4)
+
+def gerar_html_alunos():
+    alunos = carregar_alunos()
+    conteudo_html = """
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Alunos Registrados</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                padding: 20px;
+            }
+            h1 {
+                text-align: center;
+                color: #343a40;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                margin-top: 20px;
+            }
+            th, td {
+                padding: 12px;
+                border: 1px solid #dee2e6;
+                text-align: left;
+            }
+            th {
+                background-color: #343a40;
+                color: #fff;
+            }
+            tr:nth-child(even) {
+                background-color: #f1f1f1;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Alunos Registrados</h1>
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>BI</th>
+                <th>Idade</th>
+                <th>Classe</th>
+                <th>Nome do Pai</th>
+                <th>Nome da Mãe</th>
+                <th>Disciplinas</th>
+                <th>Localização</th>
+            </tr>
+    """
+    for a in alunos:
+        conteudo_html += f"""
+            <tr>
+                <td>{a.get("name", "")}</td>
+                <td>{a.get("bi", "")}</td>
+                <td>{a.get("age", "")}</td>
+                <td>{a.get("class", "")}</td>
+                <td>{a.get("father_name", "")}</td>
+                <td>{a.get("mother_name", "")}</td>
+                <td>{", ".join(a.get("disciplinas", []))}</td>
+                <td>{a.get("localizacao", "")}</td>
+            </tr>
+        """
+    conteudo_html += "</table></body></html>"
+    with open("templates/aluno-info.html", "w", encoding="utf-8") as f:
+        f.write(conteudo_html)
+
+# ----------------- ROTAS -----------------
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -135,6 +208,10 @@ async def ver_precos(request: Request):
 async def aula_online(request: Request):
     return templates.TemplateResponse("aulaonline.html", {"request": request})
 
+@app.get("/aluno-info.html", response_class=HTMLResponse)
+async def mostrar_alunos_estatico(request: Request):
+    return templates.TemplateResponse("aluno-info.html", {"request": request})
+
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -153,7 +230,7 @@ async def registrar_aluno(
     if other_discipline:
         disciplinas.append(other_discipline)
 
-    dados = {
+    novo_aluno = {
         "name": name,
         "bi": bi,
         "age": age,
@@ -164,7 +241,25 @@ async def registrar_aluno(
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
 
-    return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": dados})
+    alunos = carregar_alunos()
+    alunos.append(novo_aluno)
+    salvar_alunos(alunos)
+    gerar_html_alunos()
+
+    return templates.TemplateResponse("registro.aluno.html", {"request": request, "dados": novo_aluno})
+
+@app.post("/api/alunos", response_class=JSONResponse)
+async def receber_aluno_api(aluno: dict):
+    alunos = carregar_alunos()
+    alunos.append(aluno)
+    salvar_alunos(alunos)
+    gerar_html_alunos()
+    return {"message": "Aluno registrado com sucesso"}
+
+@app.get("/api/alunos")
+async def listar_alunos():
+    alunos = carregar_alunos()
+    return JSONResponse(content=alunos)
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
