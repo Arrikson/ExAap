@@ -145,7 +145,7 @@
     <form method="post" action="/registrar-aluno">
       <div class="input-group">
         <label for="name">Nome</label>
-        <input type="text" id="name" name="name" required>
+        <input type="text" id="name" name="nome" required>
       </div>
 
       <div class="input-group">
@@ -155,22 +155,22 @@
 
       <div class="input-group">
         <label for="age">Idade</label>
-        <input type="number" id="age" name="age" required>
+        <input type="number" id="age" name="idade" required>
       </div>
 
       <div class="input-group">
         <label for="class">Classe que frequenta</label>
-        <input type="text" id="class" name="class" required>
+        <input type="text" id="class" name="classe" required>
       </div>
 
       <div class="input-group">
         <label for="father-name">Nome do Pai</label>
-        <input type="text" id="father-name" name="father-name" required>
+        <input type="text" id="father-name" name="pai" required>
       </div>
 
       <div class="input-group">
         <label for="mother-name">Nome da Mãe</label>
-        <input type="text" id="mother-name" name="mother-name" required>
+        <input type="text" id="mother-name" name="mae" required>
       </div>
 
       <div class="input-group">
@@ -183,17 +183,17 @@
       <div class="checkbox-group-wrapper">
         <div class="checkbox-title">Disciplinas</div>
         <div class="checkbox-group">
-          <label for="math">Matemática<input type="checkbox" id="math" name="discipline" value="Matemática"></label>
-          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="discipline" value="Português"></label>
-          <label for="english">Inglês<input type="checkbox" id="english" name="discipline" value="Inglês"></label>
-          <label for="french">Francês<input type="checkbox" id="french" name="discipline" value="Francês"></label>
-          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="discipline" value="Química"></label>
-          <label for="physics">Física<input type="checkbox" id="physics" name="discipline" value="Física"></label>
+          <label for="math">Matemática<input type="checkbox" id="math" name="disciplinas" value="Matemática"></label>
+          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="disciplinas" value="Português"></label>
+          <label for="english">Inglês<input type="checkbox" id="english" name="disciplinas" value="Inglês"></label>
+          <label for="french">Francês<input type="checkbox" id="french" name="disciplinas" value="Francês"></label>
+          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="disciplinas" value="Química"></label>
+          <label for="physics">Física<input type="checkbox" id="physics" name="disciplinas" value="Física"></label>
         </div>
 
         <div class="extra-discipline" id="extra-discipline">
           <label for="other-discipline">Outra Disciplina</label>
-          <input type="text" id="other-discipline" name="other-discipline">
+          <input type="text" id="other-discipline" name="outra_disciplina">
         </div>
 
         <button class="add-discipline-btn" type="button" onclick="toggleExtraDiscipline()">➕</button>
@@ -215,29 +215,19 @@
     function showPosition(position) {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
-
-      // Preencher os campos ocultos
       document.getElementById("latitude").value = latitude;
       document.getElementById("longitude").value = longitude;
-
       document.getElementById("location-status").innerHTML = `Latitude: ${latitude} | Longitude: ${longitude}`;
     }
 
     function showError(error) {
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          document.getElementById("location-status").innerHTML = "Permissão para acessar a localização negada.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          document.getElementById("location-status").innerHTML = "Informação de localização indisponível.";
-          break;
-        case error.TIMEOUT:
-          document.getElementById("location-status").innerHTML = "A solicitação de geolocalização expirou.";
-          break;
-        case error.UNKNOWN_ERROR:
-          document.getElementById("location-status").innerHTML = "Ocorreu um erro desconhecido.";
-          break;
-      }
+      const msg = {
+        1: "Permissão para acessar a localização negada.",
+        2: "Informação de localização indisponível.",
+        3: "A solicitação de geolocalização expirou.",
+        0: "Ocorreu um erro desconhecido."
+      };
+      document.getElementById("location-status").innerHTML = msg[error.code] || msg[0];
     }
 
     function toggleExtraDiscipline() {
@@ -245,7 +235,5 @@
       extraDiscipline.style.display = (extraDiscipline.style.display === "block") ? "none" : "block";
     }
   </script>
-
 </body>
 </html>
-
