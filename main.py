@@ -197,6 +197,10 @@ async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
 
+def carregar_alunos():
+    with open("alunos.json", "r", encoding="utf-8") as file:
+        return json.load(file)
+
 # Gerar lista de alunos em PDF
 @app.get("/gerar-pdf-alunos/download", response_class=FileResponse)
 async def baixar_pdf_alunos():
@@ -219,7 +223,7 @@ async def baixar_pdf_alunos():
         c.setFont("Helvetica", 10)
         c.setFillColor(colors.grey)
         c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
-        y = height - 80
+        y = height - 90
 
     desenhar_cabecalho()
 
@@ -235,15 +239,19 @@ async def baixar_pdf_alunos():
 
         c.setFont("Helvetica", 11)
         c.setFillColor(colors.black)
+
         campos = [
-            ("BI", a.get("bi", "")),
-            ("Idade", a.get("idade", "")),
+            ("Número do B.I", a.get("bi", "")),
+            ("Idade", str(a.get("idade", ""))),
             ("Classe", a.get("classe", "")),
             ("Nome do Pai", a.get("pai", "")),
             ("Nome da Mãe", a.get("mae", "")),
             ("Disciplinas", ", ".join(a.get("disciplinas", []))),
             ("Localização", a.get("localizacao", "")),
+            ("Telefone", a.get("telefone", "")),
+            ("Horário", a.get("horario", "")),
         ]
+
         for label, valor in campos:
             if valor:
                 c.drawString(60, y, f"{label}: {valor}")
@@ -256,7 +264,7 @@ async def baixar_pdf_alunos():
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
-
+    
  # Cadastro do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
