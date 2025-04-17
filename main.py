@@ -324,6 +324,45 @@ async def quero_aulas(request: Request):
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
 
+from fastapi import FastAPI, RenderedTemplateResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import List
+from pathlib import Path
+import json
+
+# Configuração do FastAPI
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+# Definição do modelo para os dados dos alunos
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+# Função para carregar os dados dos alunos de um arquivo JSON
+def carregar_dados_alunos():
+    arquivo_alunos = Path("dados-alunos.json")
+    if arquivo_alunos.exists():
+        with open(arquivo_alunos, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        return [Aluno(**aluno) for aluno in dados]  # Retorna uma lista de objetos Aluno
+    return []
+
+# Rota para exibir a lista de alunos na página info-alunos.html
+@app.get("/info-alunos", response_class=HTMLResponse)
+async def info_alunos(request: Request):
+    alunos = carregar_dados_alunos()  # Carrega os dados dos alunos
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos, "now": datetime.datetime.now()})
+
+
 @app.get("/precos", response_class=HTMLResponse)
 async def ver_precos(request: Request):
     return templates.TemplateResponse("precos.html", {"request": request})
