@@ -13,6 +13,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from typing import List, Optional, Annotated
+from fastapi.responses import Response, FileResponse
+
 
 app = FastAPI()
 
