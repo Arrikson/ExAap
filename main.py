@@ -1,4 +1,4 @@
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse     
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -323,18 +323,6 @@ async def quero_aulas(request: Request):
 @app.get("/dados-aluno", response_class=HTMLResponse)
 async def get_form(request: Request):
     return templates.TemplateResponse("dados-aluno.html", {"request": request})
-
-from fastapi import FastAPI, RenderedTemplateResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-from typing import List
-from pathlib import Path
-import json
-
-# Configuração do FastAPI
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
 # Definição do modelo para os dados dos alunos
 class Aluno(BaseModel):
