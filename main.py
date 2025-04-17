@@ -19,6 +19,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
+ALUNOS_JSON = "alunos.json"
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
@@ -304,7 +305,7 @@ async def registrar_aluno(
     classe: str = Form(...),
     pai: str = Form(...),
     mae: str = Form(...),
-    disciplinas: List[str] = Form([]),
+    disciplinas: Annotated[List[str], Form()] = [],
     outra_disciplina: str = Form(""),
     latitude: str = Form(""),
     longitude: str = Form("")
@@ -334,7 +335,7 @@ async def registrar_aluno(
         "dados": dados,
         "now": datetime.now()
     })
-    
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
