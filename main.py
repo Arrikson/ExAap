@@ -113,6 +113,7 @@ professores = carregar_professores()
 
 ALUNOS_JSON = "alunos.json"
 
+# Funções de leitura e gravação de dados de alunos
 def carregar_alunos():
     try:
         with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
@@ -124,6 +125,7 @@ def salvar_alunos(alunos):
     with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
 
+# Função para gerar HTML com os alunos
 def gerar_html_alunos():
     alunos = carregar_alunos()
     conteudo_html = """
@@ -181,12 +183,12 @@ def gerar_html_alunos():
     for a in alunos:
         conteudo_html += f"""
             <tr>
-                <td>{a.get("name", "")}</td>
+                <td>{a.get("nome", "")}</td>
                 <td>{a.get("bi", "")}</td>
-                <td>{a.get("age", "")}</td>
-                <td>{a.get("class", "")}</td>
-                <td>{a.get("father_name", "")}</td>
-                <td>{a.get("mother_name", "")}</td>
+                <td>{a.get("idade", "")}</td>
+                <td>{a.get("classe", "")}</td>
+                <td>{a.get("pai", "")}</td>
+                <td>{a.get("mae", "")}</td>
                 <td>{", ".join(a.get("disciplinas", []))}</td>
                 <td>{a.get("localizacao", "")}</td>
             </tr>
@@ -199,11 +201,13 @@ def gerar_html_alunos():
     with open("templates/info-alunos.html", "w", encoding="utf-8") as f:
         f.write(conteudo_html)
 
+# Rota para exibir os alunos em HTML
 @app.get("/info-a.html", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
 
+# Rota para gerar o PDF dos alunos
 @app.get("/gerar-pdf-alunos", response_class=FileResponse)
 async def gerar_pdf_alunos():
     alunos = carregar_alunos()
@@ -223,7 +227,7 @@ async def gerar_pdf_alunos():
     for i, a in enumerate(alunos):
         c.setFont("Helvetica-Bold", 14)
         c.setFillColor(colors.darkgreen)
-        c.drawString(50, y, f"{i + 1}. {a.get('name', 'Sem nome')}")
+        c.drawString(50, y, f"{i + 1}. {a.get('nome', 'Sem nome')}")
         y -= 20
 
         c.setFont("Helvetica", 11)
@@ -231,10 +235,10 @@ async def gerar_pdf_alunos():
 
         campos = [
             ("BI", a.get("bi", "")),
-            ("Idade", a.get("age", "")),
-            ("Classe", a.get("class", "")),
-            ("Nome do Pai", a.get("father_name", "")),
-            ("Nome da Mãe", a.get("mother_name", "")),
+            ("Idade", a.get("idade", "")),
+            ("Classe", a.get("classe", "")),
+            ("Nome do Pai", a.get("pai", "")),
+            ("Nome da Mãe", a.get("mae", "")),
             ("Disciplinas", ", ".join(a.get("disciplinas", []))),
             ("Localização", a.get("localizacao", "")),
         ]
@@ -259,6 +263,7 @@ async def gerar_pdf_alunos():
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
 
+# Rota para registrar o aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -278,12 +283,12 @@ async def registrar_aluno(
         todas_disciplinas.append(outra_disciplina)
 
     dados = {
-        "name": nome,
+        "nome": nome,
         "bi": bi,
-        "age": idade,
-        "class": classe,
-        "father_name": pai,
-        "mother_name": mae,
+        "idade": idade,
+        "classe": classe,
+        "pai": pai,
+        "mae": mae,
         "disciplinas": todas_disciplinas,
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
@@ -294,7 +299,7 @@ async def registrar_aluno(
     gerar_html_alunos()
 
     return templates.TemplateResponse("aluno-info.html", {"request": request, "dados": dados})
-
+    
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
