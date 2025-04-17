@@ -114,38 +114,150 @@ professores = carregar_professores()
 ALUNOS_JSON = "alunos.json"
 
 def carregar_alunos():
-    if os.path.exists(ALUNOS_JSON):
-        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
+    try:
+        with open("alunos.json", "r", encoding="utf-8") as f:
             return json.load(f)
-    return []
+    except FileNotFoundError:
+        return []
 
 def salvar_alunos(alunos):
-    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+    with open("alunos.json", "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+def gerar_html_alunos():
+    alunos = carregar_alunos()
+    conteudo_html = """
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Alunos Registrados</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                padding: 20px;
+            }
+            h1 {
+                text-align: center;
+                color: #343a40;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                margin-top: 20px;
+            }
+            th, td {
+                padding: 12px;
+                border: 1px solid #dee2e6;
+                text-align: left;
+            }
+            th {
+                background-color: #343a40;
+                color: #fff;
+            }
+            tr:nth-child(even) {
+                background-color: #f1f1f1;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Alunos Registrados</h1>
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>BI</th>
+                <th>Idade</th>
+                <th>Classe</th>
+                <th>Nome do Pai</th>
+                <th>Nome da Mãe</th>
+                <th>Disciplinas</th>
+                <th>Localização</th>
+            </tr>
+    """
+    for a in alunos:
+        conteudo_html += f"""
+            <tr>
+                <td>{a.get("name", "")}</td>
+                <td>{a.get("bi", "")}</td>
+                <td>{a.get("age", "")}</td>
+                <td>{a.get("class", "")}</td>
+                <td>{a.get("father_name", "")}</td>
+                <td>{a.get("mother_name", "")}</td>
+                <td>{", ".join(a.get("disciplinas", []))}</td>
+                <td>{a.get("localizacao", "")}</td>
+            </tr>
+        """
+    conteudo_html += """
+        </table>
+    </body>
+    </html>
+    """
+    with open("templates/info-alunos.html", "w", encoding="utf-8") as f:
+        f.write(conteudo_html)
 
-@app.get("/criar-conta", response_class=HTMLResponse)
-async def criar_conta(request: Request):
-    return templates.TemplateResponse("criar-conta.html", {"request": request})
+@app.get("/info-a.html", response_class=HTMLResponse)
+async def mostrar_alunos(request: Request):
+    alunos = carregar_alunos()
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
 
-@app.get("/quero-aulas", response_class=HTMLResponse)
-async def quero_aulas(request: Request):
-    return templates.TemplateResponse("quero-aulas.html", {"request": request})
+@app.get("/gerar-pdf-alunos", response_class=FileResponse)
+async def gerar_pdf_alunos():
+    alunos = carregar_alunos()
+    os.makedirs("static/docs", exist_ok=True)
+    pdf_path = "static/docs/lista_alunos.pdf"
+    c = canvas.Canvas(pdf_path, pagesize=A4)
+    width, height = A4
+    y = height - 80
 
-@app.get("/dados-aluno", response_class=HTMLResponse)
-async def get_form(request: Request):
-    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width / 2, height - 50, "Novos Alunos Cadastrados")
 
-@app.get("/precos", response_class=HTMLResponse)
-async def ver_precos(request: Request):
-    return templates.TemplateResponse("precos.html", {"request": request})
+    data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
+    c.setFont("Helvetica", 10)
+    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
 
-@app.get("/aulaonline", response_class=HTMLResponse)
-async def aula_online(request: Request):
-    return templates.TemplateResponse("aulaonline.html", {"request": request})
+    for i, a in enumerate(alunos):
+        c.setFont("Helvetica-Bold", 14)
+        c.setFillColor(colors.darkgreen)
+        c.drawString(50, y, f"{i + 1}. {a.get('name', 'Sem nome')}")
+        y -= 20
+
+        c.setFont("Helvetica", 11)
+        c.setFillColor(colors.black)
+
+        campos = [
+            ("BI", a.get("bi", "")),
+            ("Idade", a.get("age", "")),
+            ("Classe", a.get("class", "")),
+            ("Nome do Pai", a.get("father_name", "")),
+            ("Nome da Mãe", a.get("mother_name", "")),
+            ("Disciplinas", ", ".join(a.get("disciplinas", []))),
+            ("Localização", a.get("localizacao", "")),
+        ]
+        for label, valor in campos:
+            if valor:
+                c.drawString(60, y, f"{label}: {valor}")
+                y -= 15
+
+        c.setStrokeColor(colors.grey)
+        c.setLineWidth(0.5)
+        c.line(50, y, width - 50, y)
+        y -= 30
+
+        if y < 150:
+            c.showPage()
+            y = height - 80
+            c.setFont("Helvetica-Bold", 18)
+            c.drawCentredString(width / 2, height - 50, "Novos Alunos Cadastrados")
+            c.setFont("Helvetica", 10)
+            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+
+    c.save()
+    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
 
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
@@ -176,11 +288,36 @@ async def registrar_aluno(
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
 
-    alunos = carregar_alunos()  # Carregar os alunos registrados
-    alunos.append(dados)  # Adicionar o novo aluno
-    salvar_alunos(alunos)  # Salvar os dados atualizados
+    alunos = carregar_alunos()
+    alunos.append(dados)
+    salvar_alunos(alunos)
+    gerar_html_alunos()
 
     return templates.TemplateResponse("aluno-info.html", {"request": request, "dados": dados})
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/criar-conta", response_class=HTMLResponse)
+async def criar_conta(request: Request):
+    return templates.TemplateResponse("criar-conta.html", {"request": request})
+
+@app.get("/quero-aulas", response_class=HTMLResponse)
+async def quero_aulas(request: Request):
+    return templates.TemplateResponse("quero-aulas.html", {"request": request})
+
+@app.get("/dados-aluno", response_class=HTMLResponse)
+async def get_form(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
+@app.get("/precos", response_class=HTMLResponse)
+async def ver_precos(request: Request):
+    return templates.TemplateResponse("precos.html", {"request": request})
+
+@app.get("/aulaonline", response_class=HTMLResponse)
+async def aula_online(request: Request):
+    return templates.TemplateResponse("aulaonline.html", {"request": request})
 
 @app.get("/info-p.html", response_class=HTMLResponse)
 async def mostrar_professores(request: Request):
