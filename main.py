@@ -114,6 +114,8 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
+ALUNOS_JSON = "alunos.json"
+
 # Função para carregar os alunos
 def carregar_alunos():
     try:
@@ -127,53 +129,58 @@ def salvar_alunos(alunos):
     with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
 
-# Função para gerar o HTML do contrato
-def gerar_html_contrato():
-    html = """
+# Placeholder para uso futuro
+def gerar_html_alunos():
+    pass
+
+# Função que gera o HTML do contrato
+def gerar_html_contrato(nome="Aluno(a)", nome_pai="Pai", nome_mae="Mãe"):
+    html = f"""
     <!DOCTYPE html>
     <html lang="pt">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Contrato de Prestação de Serviços</title>
         <style>
-            body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; margin: 0; color: #333; }
-            .container { background: #fff; padding: 20px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); }
-            .logo { width: 60px; position: absolute; top: 20px; left: 20px; }
-            h2 { text-align: center; margin-bottom: 15px; font-size: 18px; color: #2e86de; }
-            p, li { font-size: 14px; line-height: 1.6; margin: 10px 0; }
-            ol { padding-left: 20px; }
+            body {{ font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }}
+            .container {{ background: #fff; padding: 20px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); }}
+            h2 {{ text-align: center; color: #2e86de; }}
+            p, li {{ font-size: 14px; line-height: 1.6; }}
+            ol {{ padding-left: 20px; }}
         </style>
     </head>
     <body>
-        <img src="static/logo.png" alt="Logo" class="logo">
-        <h2>Contrato de Prestação de Serviços</h2>
-        <div class="clausulas">
+        <div class="container">
+            <h2>Contrato de Prestação de Serviços</h2>
+            <p><strong>Aluno(a):</strong> {nome}</p>
+            <p><strong>Responsável (Pai):</strong> {nome_pai}</p>
+            <p><strong>Responsável (Mãe):</strong> {nome_mae}</p>
             <ol>
-                <li><strong>Objeto do contrato:</strong><br>
-                Prestação de serviços de aulas de explicação domiciliar ao aluno mencionado.</li>
-                <li><strong>Duração:</strong><br>
-                3 meses, com renovação automática.</li>
-                <li><strong>Valor e Pagamento:</strong><br>
-                24.900,00 Kz mensais. Pagamento até o fim do mês. Multa de 10% após 10 dias de atraso.</li>
-                <li><strong>Responsabilidade do Centro:</strong><br>
-                Designar professor adequado. Substituição gratuita caso necessário.</li>
-                <li><strong>Conduta do Professor:</strong><br>
-                Atos indevidos acarretam penalizações legais.</li>
-                <li><strong>Outras disposições:</strong><br>
-                Sujeito à legislação angolana vigente.</li>
+                <li><strong>Objeto do contrato:</strong><br> Prestação de serviços de auxílio escolar ao(a) aluno(a) acima mencionado(a), com aulas de explicação domiciliar.</li>
+                <li><strong>Duração:</strong><br> Inicial de 3 meses, renovável automaticamente.</li>
+                <li><strong>Valor:</strong><br> 24.900,00 Kz/mês. Pagamento até o último dia do mês. Após 10 dias de atraso: juros de 10% na conta BAI nº 282309786 10 001.</li>
+                <li><strong>Professor:</strong><br> Substituível sem custo caso não atenda às expectativas.</li>
+                <li><strong>Má conduta:</strong><br> O professor será responsabilizado legalmente.</li>
+                <li><strong>Leis:</strong><br> Regido pelas leis da República de Angola.</li>
             </ol>
         </div>
     </body>
     </html>
     """
     return html
-
-# Rota para gerar o PDF
-@app.get("/gerar-pdf")
+    
+# Geração do PDF do contrato
+@app.get("/gerar-pdf", response_class=Response)
 async def gerar_pdf():
-    html = gerar_html_contrato()
+    # Dados fictícios ou últimos dados cadastrados (melhorar depois)
+    alunos = carregar_alunos()
+    if not alunos:
+        return Response(content="Nenhum aluno cadastrado.", status_code=404)
+
+    ultimo = alunos[-1]
+    html = gerar_html_contrato(ultimo.get("nome", ""), ultimo.get("pai", ""), ultimo.get("mae", ""))
     pdf = HTML(string=html).write_pdf()
+
     response = Response(content=pdf, media_type="application/pdf")
     response.headers["Content-Disposition"] = "attachment; filename=contrato.pdf"
     return response
@@ -183,13 +190,12 @@ async def gerar_pdf():
 async def form_aluno(request: Request):
     return templates.TemplateResponse("registrar-aluno.html", {"request": request})
 
-# Rota para exibir os alunos em HTML
 @app.get("/info-a.html", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
 
-# Rota para gerar o PDF dos alunos
+# Gerar lista de alunos em PDF
 @app.get("/gerar-pdf-alunos/download", response_class=FileResponse)
 async def baixar_pdf_alunos():
     alunos = carregar_alunos()
@@ -248,7 +254,8 @@ async def baixar_pdf_alunos():
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
-    
+
+ Cadastro do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
@@ -281,11 +288,14 @@ async def registrar_aluno(
     alunos = carregar_alunos()
     alunos.append(dados)
     salvar_alunos(alunos)
-    gerar_html_alunos()
+
+    # Gera o contrato HTML para exibição
+    contrato_html = gerar_html_contrato(nome, pai, mae)
 
     return templates.TemplateResponse("aluno-info.html", {
         "request": request,
         "dados": dados,
+        "contrato": contrato_html,
         "now": datetime.now()
     })
 
