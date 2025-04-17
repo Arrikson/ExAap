@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Alunos Registrados</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            padding: 40px;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .data-registro {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .btn-download {
+            padding: 10px 20px;
+            background-color: #2e86de;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .btn-download:hover {
+            background-color: #1b4f72;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 14px;
+            border: 1px solid #dcdcdc;
+            text-align: left;
+        }
+        th {
+            background-color: #2e86de;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Lista de Alunos Registrados</h1>
+        <div class="data-registro">
+            Data: {{ now.strftime('%d/%m/%Y %H:%M') if now else '' }}
+        </div>
+    </div>
+
+    <a href="/gerar-pdf-alunos" class="btn-download" target="_blank">📄 Baixar PDF</a>
+
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>BI</th>
+                <th>Idade</th>
+                <th>Classe</th>
+                <th>Pai</th>
+                <th>Mãe</th>
+                <th>Disciplinas</th>
+                <th>Localização</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in alunos %}
+            <tr>
+                <td>{{ a.nome }}</td>
+                <td>{{ a.bi }}</td>
+                <td>{{ a.idade }}</td>
+                <td>{{ a.classe }}</td>
+                <td>{{ a.pai }}</td>
+                <td>{{ a.mae }}</td>
+                <td>{{ ", ".join(a.disciplinas) }}</td>
+                <td>{{ a.localizacao }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
