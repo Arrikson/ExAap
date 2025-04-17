@@ -11,6 +11,7 @@ import os
 import json
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from datetime import datetime
 
 app = FastAPI()
 
@@ -298,7 +299,11 @@ async def registrar_aluno(
     salvar_alunos(alunos)
     gerar_html_alunos()
 
-    return templates.TemplateResponse("aluno-info.html", {"request": request, "dados": dados})
+    return templates.TemplateResponse("aluno-info.html", {
+        "request": request,
+        "dados": dados,
+        "now": datetime.now()
+    })
     
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
