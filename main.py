@@ -115,13 +115,13 @@ ALUNOS_JSON = "alunos.json"
 
 def carregar_alunos():
     try:
-        with open("alunos.json", "r", encoding="utf-8") as f:
+        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         return []
 
 def salvar_alunos(alunos):
-    with open("alunos.json", "w", encoding="utf-8") as f:
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
 
 def gerar_html_alunos():
@@ -262,29 +262,29 @@ async def gerar_pdf_alunos():
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
-    name: str = Form(...),
-    bi: int = Form(...),
-    age: int = Form(...),
-    class_: str = Form(..., alias="class"),
-    father_name: str = Form(..., alias="father-name"),
-    mother_name: str = Form(..., alias="mother-name"),
-    discipline: List[str] = Form([]),
-    other_discipline: str = Form(""),
+    nome: str = Form(...),
+    bi: str = Form(...),
+    idade: int = Form(...),
+    classe: str = Form(...),
+    pai: str = Form(...),
+    mae: str = Form(...),
+    disciplinas: List[str] = Form([]),
+    outra_disciplina: str = Form(""),
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
-    disciplinas = discipline
-    if other_discipline:
-        disciplinas.append(other_discipline)
+    todas_disciplinas = disciplinas
+    if outra_disciplina:
+        todas_disciplinas.append(outra_disciplina)
 
     dados = {
-        "name": name,
+        "name": nome,
         "bi": bi,
-        "age": age,
-        "class": class_,
-        "father_name": father_name,
-        "mother_name": mother_name,
-        "disciplinas": disciplinas,
+        "age": idade,
+        "class": classe,
+        "father_name": pai,
+        "mother_name": mae,
+        "disciplinas": todas_disciplinas,
         "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     }
 
