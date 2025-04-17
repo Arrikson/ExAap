@@ -218,22 +218,36 @@ async def gerar_pdf_alunos():
     width, height = A4
     y = height - 80
 
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 50, "Novos Alunos Cadastrados")
-
+    titulo = "Novos Alunos Cadastrados"
     data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
-    c.setFont("Helvetica", 10)
-    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+
+    def desenhar_cabecalho():
+        nonlocal y
+        c.setFont("Helvetica-Bold", 20)
+        c.setFillColor(colors.HexColor("#2e86de"))
+        c.drawCentredString(width / 2, height - 50, titulo)
+
+        c.setFont("Helvetica", 10)
+        c.setFillColor(colors.grey)
+        c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+        y = height - 80
+
+    desenhar_cabecalho()
 
     for i, a in enumerate(alunos):
+        if y < 150:
+            c.showPage()
+            desenhar_cabecalho()
+
+        # Nome do aluno
         c.setFont("Helvetica-Bold", 14)
         c.setFillColor(colors.darkgreen)
         c.drawString(50, y, f"{i + 1}. {a.get('nome', 'Sem nome')}")
         y -= 20
 
+        # Campos detalhados
         c.setFont("Helvetica", 11)
         c.setFillColor(colors.black)
-
         campos = [
             ("BI", a.get("bi", "")),
             ("Idade", a.get("idade", "")),
@@ -248,18 +262,11 @@ async def gerar_pdf_alunos():
                 c.drawString(60, y, f"{label}: {valor}")
                 y -= 15
 
-        c.setStrokeColor(colors.grey)
+        # Linha divisória
+        c.setStrokeColor(colors.lightgrey)
         c.setLineWidth(0.5)
         c.line(50, y, width - 50, y)
         y -= 30
-
-        if y < 150:
-            c.showPage()
-            y = height - 80
-            c.setFont("Helvetica-Bold", 18)
-            c.drawCentredString(width / 2, height - 50, "Novos Alunos Cadastrados")
-            c.setFont("Helvetica", 10)
-            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
