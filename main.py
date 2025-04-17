@@ -119,6 +119,16 @@ def carregar_alunos():
     except FileNotFoundError:
         return []
 
+# Função para salvar os alunos em JSON
+def salvar_alunos(alunos):
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(alunos, f, ensure_ascii=False, indent=4)
+
+# Função para gerar HTML com os alunos cadastrados (placeholder)
+def gerar_html_alunos():
+    # Esta função pode ser usada futuramente para gerar um HTML com os dados de alunos
+    pass
+
 # Função para gerar o HTML do contrato
 def gerar_html_contrato():
     html = """
@@ -228,45 +238,39 @@ async def mostrar_alunos(request: Request):
 # Rota para gerar o PDF dos alunos
 @app.get("/gerar-pdf-alunos/download", response_class=FileResponse)
 async def baixar_pdf_alunos():
-    alunos = carregar_alunos()  # Carregar dados dos alunos
-    os.makedirs("static/docs", exist_ok=True)  # Garantir que o diretório exista
-    pdf_path = "static/docs/lista_alunos.pdf"  # Caminho para o arquivo PDF gerado
+    alunos = carregar_alunos()
+    os.makedirs("static/docs", exist_ok=True)
+    pdf_path = "static/docs/lista_alunos.pdf"
 
-    # Criação do PDF
     c = canvas.Canvas(pdf_path, pagesize=A4)
     width, height = A4
-    y = height - 80  # Posição inicial no eixo y
+    y = height - 80
 
     titulo = "Novos Alunos Cadastrados"
     data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    # Função para desenhar o cabeçalho
     def desenhar_cabecalho():
         nonlocal y
         c.setFont("Helvetica-Bold", 20)
         c.setFillColor(colors.HexColor("#2e86de"))
-        c.drawCentredString(width / 2, height - 50, titulo)  # Título centralizado
-
+        c.drawCentredString(width / 2, height - 50, titulo)
         c.setFont("Helvetica", 10)
         c.setFillColor(colors.grey)
-        c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")  # Data no canto superior direito
-        y = height - 80  # Resetando a posição de y após desenhar o cabeçalho
+        c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+        y = height - 80
 
-    desenhar_cabecalho()  # Chamando a função para desenhar o cabeçalho
+    desenhar_cabecalho()
 
-    # Iterando sobre os alunos e criando os campos detalhados
     for i, a in enumerate(alunos):
         if y < 150:
-            c.showPage()  # Criar uma nova página se o conteúdo estiver muito próximo da borda
-            desenhar_cabecalho()  # Desenhar o cabeçalho na nova página
+            c.showPage()
+            desenhar_cabecalho()
 
-        # Nome do aluno
         c.setFont("Helvetica-Bold", 14)
         c.setFillColor(colors.darkgreen)
         c.drawString(50, y, f"{i + 1}. {a.get('nome', 'Sem nome')}")
-        y -= 20  # Ajuste de posição para o próximo conteúdo
+        y -= 20
 
-        # Campos detalhados do aluno
         c.setFont("Helvetica", 11)
         c.setFillColor(colors.black)
         campos = [
@@ -279,19 +283,18 @@ async def baixar_pdf_alunos():
             ("Localização", a.get("localizacao", "")),
         ]
         for label, valor in campos:
-            if valor:  # Se o valor existir, desenha o campo no PDF
+            if valor:
                 c.drawString(60, y, f"{label}: {valor}")
-                y -= 15  # Ajustando a posição para o próximo campo
+                y -= 15
 
-        # Linha divisória após os campos
         c.setStrokeColor(colors.lightgrey)
         c.setLineWidth(0.5)
         c.line(50, y, width - 50, y)
-        y -= 30  # Ajustando a posição para o próximo bloco
+        y -= 30
 
-    c.save()  # Salvando o arquivo PDF gerado
-    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf") 
-
+    c.save()
+    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
+    
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
