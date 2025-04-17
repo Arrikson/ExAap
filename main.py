@@ -255,7 +255,7 @@ async def baixar_pdf_alunos():
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
 
- Cadastro do aluno
+ # Cadastro do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
     request: Request,
