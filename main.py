@@ -301,12 +301,13 @@ async def registrar_aluno(
         "now": datetime.now()
     })
 
-@app.get("/dados-alunos", response_class=HTMLResponse)
-async def get_alunos(request: Request):
-    with open("alunos.json", "r", encoding="utf-8") as file:
+@app.get("/dados-alunos") 
+async def get_alunos():
+    # Caminho para o arquivo JSON dos alunos
+    with open("alunos.json", "r") as file:
         alunos_data = json.load(file)
-    return templates.TemplateResponse("dados-alunos.html", {"request": request, "alunos": alunos_data})
-
+    return alunos_data;       
+    
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
