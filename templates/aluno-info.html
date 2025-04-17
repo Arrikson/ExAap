@@ -1,70 +1,20 @@
-from fastapi.responses import FileResponse
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from fastapi import Request
-from fastapi.templating import Jinja2Templates
-from datetime import datetime
-import os
-import json
+<!-- templates/aluno-info.html -->
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Aluno Registrado</title>
+</head>
+<body>
+  <h1>Aluno Registrado com Sucesso!</h1>
+  <p><strong>Nome:</strong> {{ dados.nome }}</p>
+  <p><strong>BI:</strong> {{ dados.bi }}</p>
+  <p><strong>Idade:</strong> {{ dados.idade }}</p>
+  <p><strong>Classe:</strong> {{ dados.classe }}</p>
+  <p><strong>Pai:</strong> {{ dados.pai }}</p>
+  <p><strong>Mãe:</strong> {{ dados.mae }}</p>
+  <p><strong>Localização:</strong> {{ dados.localizacao }}</p>
+  <p><strong>Disciplinas:</strong> {{ dados.disciplinas | join(", ") }}</p>
+</body>
+</html>
 
-templates = Jinja2Templates(directory="templates")
-
-def carregar_alunos():
-    if os.path.exists("alunos.json"):
-        with open("alunos.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-@app.get("/aluno-info", response_class=FileResponse)
-async def aluno_info(request: Request):
-    alunos = carregar_alunos()
-
-    os.makedirs("static/docs", exist_ok=True)
-    pdf_path = "static/docs/lista_alunos.pdf"
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
-    y = height - 80
-
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 50, "Lista de Alunos Cadastrados")
-
-    data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
-    c.setFont("Helvetica", 10)
-    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
-
-    for i, a in enumerate(alunos):
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y, f"{i + 1}. {a.get('nome', 'Sem nome')}")
-        y -= 20
-
-        c.setFont("Helvetica", 11)
-
-        campos = [
-            ("BI", a.get("bi", "")),
-            ("Curso", a.get("curso", "")),
-            ("Telefone", a.get("telefone", "")),
-            ("Email", a.get("email", "")),
-            ("Localização", a.get("localizacao", "")),
-        ]
-
-        for label, valor in campos:
-            if valor:
-                c.drawString(60, y, f"{label}: {valor}")
-                y -= 15
-
-        y -= 30
-        c.setLineWidth(0.5)
-        c.line(50, y, width - 50, y)
-        y -= 30
-
-        if y < 150:
-            c.showPage()
-            y = height - 80
-            c.setFont("Helvetica-Bold", 18)
-            c.drawCentredString(width / 2, height - 50, "Lista de Alunos Cadastrados")
-            c.setFont("Helvetica", 10)
-            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
-
-    c.save()
-
-    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
