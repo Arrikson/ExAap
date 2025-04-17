@@ -112,9 +112,6 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
-ALUNOS_JSON = "alunos.json"
-
-# Funções de leitura e gravação de dados de alunos
 def carregar_alunos():
     try:
         with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
@@ -122,85 +119,105 @@ def carregar_alunos():
     except FileNotFoundError:
         return []
 
-def salvar_alunos(alunos):
-    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
-        json.dump(alunos, f, ensure_ascii=False, indent=4)
-
-# Função para gerar HTML com os alunos
-def gerar_html_alunos():
-    alunos = carregar_alunos()
-    conteudo_html = """
+# Função para gerar o HTML do contrato
+def gerar_html_contrato():
+    html = """
     <!DOCTYPE html>
     <html lang="pt">
     <head>
         <meta charset="UTF-8">
-        <title>Alunos Registrados</title>
-        <link rel="stylesheet" href="/static/style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Contrato de Prestação de Serviços</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
                 background-color: #f8f9fa;
                 padding: 20px;
+                margin: 0;
+                color: #333;
             }
-            h1 {
+            .container {
+                background: #fff;
+                padding: 20px;
+                border-radius: 12px;
+                max-width: 600px;
+                margin: 0 auto;
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            }
+            .logo {
+                width: 60px;
+                position: absolute;
+                top: 20px;
+                left: 20px;
+            }
+            h2 {
                 text-align: center;
-                color: #343a40;
+                margin-bottom: 15px;
+                font-size: 18px;
+                color: #2e86de;
             }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background-color: #fff;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            p {
+                font-size: 14px;
+                line-height: 1.6;
+                margin: 10px 0;
+            }
+            .clausulas {
                 margin-top: 20px;
+                font-size: 13px;
+                line-height: 1.5;
             }
-            th, td {
-                padding: 12px;
-                border: 1px solid #dee2e6;
-                text-align: left;
+            .clausulas ul {
+                margin-left: 20px;
             }
-            th {
-                background-color: #343a40;
-                color: #fff;
+            .clausulas li {
+                margin: 5px 0;
             }
-            tr:nth-child(even) {
-                background-color: #f1f1f1;
+            .copy-btn {
+                background-color: #2e86de;
+                color: white;
+                padding: 5px 10px;
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+            .copy-btn:focus {
+                outline: none;
             }
         </style>
     </head>
     <body>
-        <h1>Lista de Alunos Registrados</h1>
-        <table>
-            <tr>
-                <th>Nome</th>
-                <th>BI</th>
-                <th>Idade</th>
-                <th>Classe</th>
-                <th>Nome do Pai</th>
-                <th>Nome da Mãe</th>
-                <th>Disciplinas</th>
-                <th>Localização</th>
-            </tr>
-    """
-    for a in alunos:
-        conteudo_html += f"""
-            <tr>
-                <td>{a.get("nome", "")}</td>
-                <td>{a.get("bi", "")}</td>
-                <td>{a.get("idade", "")}</td>
-                <td>{a.get("classe", "")}</td>
-                <td>{a.get("pai", "")}</td>
-                <td>{a.get("mae", "")}</td>
-                <td>{", ".join(a.get("disciplinas", []))}</td>
-                <td>{a.get("localizacao", "")}</td>
-            </tr>
-        """
-    conteudo_html += """
-        </table>
+        <img src="static/logo.png" alt="Logo" class="logo">
+        <h2>Contrato de Prestação de Serviços</h2>
+        <div class="clausulas">
+            <ol>
+                <li><strong>Objeto do contrato:</strong><br>
+                O presente contrato tem como objeto a prestação de serviços de auxílio escolar ao(a) aluno(a) acima mencionado(a), através de aulas de explicação domiciliar, com foco nas necessidades educacionais do(a) aluno(a), conforme a avaliação prévia do Centro.</li>
+                <li><strong>Duração do contrato:</strong><br>
+                Este contrato tem uma duração inicial de 3 meses, com renovação automática ao final de cada período, caso nenhuma das partes se manifeste contrária à renovação.</li>
+                <li><strong>Valor e pagamento:</strong><br>
+                O valor mensal para a prestação dos serviços de auxílio escolar é de 24.900,00 Kz, com pagamento a ser efetuado até o último dia de cada mês. Caso o pagamento seja efetuado com atraso superior a 10 dias, será acrescido uma taxa de juros de 10% sobre o valor total na conta do banco BAI nº 282309786 10 001, IBAN nº 0040.0000.8230.9786.1016.6.</li>
+                <li><strong>Responsabilidade pela prestação dos serviços:</strong><br>
+                O Centro compromete-se a designar o melhor professor domiciliar disponível, adequado às necessidades do(a) aluno(a). Caso o(a) responsável pelo aluno(a) considere que o professor designado não atende às expectativas, poderá solicitar a substituição do profissional, sendo esta substituição realizada sem custos adicionais para o cliente.</li>
+                <li><strong>Responsabilidade do professor:</strong><br>
+                Caso o professor seja responsável por qualquer ato de má conduta dentro da residência do cliente, ele será responsabilizado, sendo passível de penalização legal e/ou extrajudicial, conforme a gravidade do ato.</li>
+                <li><strong>Outras disposições:</strong><br>
+                Este contrato é regido pelas leis da República de Angola e qualquer questão não prevista nas cláusulas acima será resolvida de acordo com a legislação vigente.</li>
+            </ol>
+        </div>
     </body>
     </html>
     """
-    with open("templates/info-alunos.html", "w", encoding="utf-8") as f:
-        f.write(conteudo_html)
+    return html
+
+# Rota para gerar e enviar o PDF
+@app.get("/gerar-pdf")
+async def gerar_pdf():
+    html = gerar_html_contrato()
+    pdf = HTML(string=html).write_pdf()
+
+    response = Response(content=pdf, media_type="application/pdf")
+    response.headers["Content-Disposition"] = "attachment; filename=contrato.pdf"
+    return response
 
 # Rota para exibir os alunos em HTML
 @app.get("/info-a.html", response_class=HTMLResponse)
