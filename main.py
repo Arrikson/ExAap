@@ -173,6 +173,45 @@ def gerar_pdf_individual(aluno):
 async def get_alunos():
     return carregar_alunos()
 
+# Rota POST para enviar os dados do formulário
+@app.post("/enviar-dados")
+async def enviar_dados(
+    name: str = Form(...),
+    bi: int = Form(...),
+    age: int = Form(...),
+    class_: str = Form(...),
+    father_name: str = Form(...),
+    mother_name: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    discipline: List[str] = Form(...),
+    other_discipline: str = Form(None)
+):
+    # Criar um objeto Aluno com os dados recebidos
+    aluno = Aluno(
+        name=name,
+        bi=bi,
+        age=age,
+        class_=class_,
+        father_name=father_name,
+        mother_name=mother_name,
+        latitude=latitude,
+        longitude=longitude,
+        discipline=discipline,
+        other_discipline=other_discipline
+    )
+
+    # Carregar os alunos atuais
+    alunos = carregar_alunos()
+
+    # Adicionar o novo aluno à lista
+    alunos.append(aluno.dict())
+
+    # Salvar a lista de alunos no arquivo JSON
+    salvar_alunos(alunos)
+
+    return {"message": "Dados enviados com sucesso!"}
+
 @app.get("/info-alunos", response_class=HTMLResponse)
 async def info_alunos(request: Request):
     dados = carregar_alunos()
