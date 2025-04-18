@@ -197,7 +197,7 @@ def carregar_dados_alunos():
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/registrar-aluno", response_class=HTMLResponse)
+@app.post("/registrar-aluno")
 async def registrar_aluno(
     request: Request,
     nome: str = Form(...),
@@ -207,7 +207,6 @@ async def registrar_aluno(
     pai: str = Form(...),
     mae: str = Form(...),
     disciplinas: List[str] = Form([]),
-    outra_disciplina: str = Form(""),
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
