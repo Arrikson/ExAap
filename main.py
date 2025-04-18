@@ -169,13 +169,33 @@ def gerar_pdf_individual(aluno):
     c.save()
     return nome_arquivo
 
+@app.get("/dados-aluno", response_class=HTMLResponse)
+async def get_form(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
+# Definição do modelo para os dados dos alunos
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+# Função para carregar os dados dos alunos de um arquivo JSON
+def carregar_dados_alunos():
+    arquivo_alunos = Path("dados-alunos.json")
+    if arquivo_alunos.exists():
+        with open(arquivo_alunos, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        return [Aluno(**aluno) for aluno in dados]  # Retorna uma lista de objetos Aluno
+    return []
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/registrar-aluno", response_class=HTMLResponse)
-async def form_aluno(request: Request):
-    return templates.TemplateResponse("registrar-aluno.html", {"request": request})
 
 @app.post("/registrar-aluno", response_class=HTMLResponse)
 async def registrar_aluno(
@@ -222,6 +242,13 @@ async def mostrar_alunos(request: Request):
 @app.get("/dados-alunos")
 async def get_alunos():
     return carregar_alunos()
+
+@app.get("/dados-alunos") 
+async def get_alunos():
+    # Caminho para o arquivo JSON dos alunos
+    with open("alunos.json", "r") as file:
+        alunos_data = json.load(file)
+    return alunos_data;      
 
 @app.get("/gerar-pdf-alunos")
 async def gerar_pdf_alunos():
