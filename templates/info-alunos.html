@@ -24,19 +24,6 @@
             font-size: 14px;
             color: #7f8c8d;
         }
-        .btn-download {
-            padding: 10px 20px;
-            background-color: #2e86de;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .btn-download:hover {
-            background-color: #1b4f72;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -55,7 +42,6 @@
         tr:nth-child(even) {
             background-color: #f8f9fa;
         }
-
         .logo-container {
             position: absolute;
             top: 20px;
@@ -104,10 +90,6 @@
             <p>N.I.F: 5001555260</p>
         </div>
     </div>
-
-    <a href="/gerar-pdf-alunos" class="btn-download" target="_blank">📄 Baixar PDF</a>
-
-    <br><br>
 
     <!-- Tabela com os Alunos -->
     <table>
@@ -175,6 +157,12 @@
                 alert("IBAN copiado!");
             });
         }
+
+        // Gera o PDF automaticamente ao carregar a página
+        window.addEventListener('load', () => {
+            window.open('/gerar-pdf-alunos', '_blank');
+        });
     </script>
 </body>
 </html>
+
