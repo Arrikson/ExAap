@@ -225,13 +225,21 @@ async def cadastrar_aluno(
     alunos.append(novo_aluno)
     salvar_alunos(alunos)
     gerar_html_alunos()
-    return RedirectResponse(url="/info-alunos.html", status_code=303)
+    # Redireciona para a página inicial com a mensagem de sucesso
+    return templates.TemplateResponse("dados-aluno.html", {
+        "request": request, 
+        "mensagem_sucesso": "Inscrição feita com sucesso!"
+    })
 
 @app.get("/info-alunos.html", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
 
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+    
 @app.post("/excluir-aluno/{nome_completo}")
 async def excluir_aluno(nome_completo: str):
     alunos = carregar_alunos()
