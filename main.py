@@ -29,8 +29,9 @@ PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
 @app.get("/dados-aluno", response_class=HTMLResponse)
-async def form_aluno(request: Request):
-    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+async def form_aluno(request: Request, sucesso: int = 0):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request, "sucesso": sucesso})
+
 
 @app.post("/cadastrar-aluno", response_class=HTMLResponse)
 async def cadastrar_aluno(
@@ -76,7 +77,7 @@ async def cadastrar_aluno(
 
     gerar_pdf_aluno(aluno)
 
-    return templates.TemplateResponse("info-alunos.html", {"request": request, "aluno": aluno})
+    return RedirectResponse(url="/dados-aluno?sucesso=1", status_code=303)
 
 @app.get("/baixar-pdf", response_class=FileResponse)
 async def baixar_pdf():
