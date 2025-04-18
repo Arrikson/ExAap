@@ -28,6 +28,76 @@ templates = Jinja2Templates(directory="templates")
 PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
+@app.get("/dados-alunos", response_class=HTMLResponse)
+async def form_aluno(request: Request):
+    return templates.TemplateResponse("dados-alunos.html", {"request": request})
+
+@app.post("/cadastrar-aluno", response_class=HTMLResponse)
+async def cadastrar_aluno(
+    request: Request,
+    nome_completo: str = Form(...),
+    data_nascimento: str = Form(...),
+    idade: int = Form(...),
+    nome_pai: str = Form(...),
+    nome_mae: str = Form(...),
+    morada: str = Form(...),
+    referencia: str = Form(...),
+    disciplinas: str = Form(...),
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
+):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    aluno = {
+        "nome_completo": nome_completo,
+        "data_nascimento": data_nascimento,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada": morada,
+        "referencia": referencia,
+        "disciplinas": disciplinas + (", " + outra_disciplina if outra_disciplina else ""),
+        "latitude": latitude,
+        "longitude": longitude,
+        "registro": timestamp
+    }
+
+    if Path(ARQUIVO_JSON).exists():
+        with open(ARQUIVO_JSON, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+    else:
+        dados = []
+
+    dados.append(aluno)
+
+    with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
+        json.dump(dados, f, ensure_ascii=False, indent=4)
+
+    gerar_pdf_aluno(aluno)
+
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "aluno": aluno})
+
+@app.get("/baixar-pdf", response_class=FileResponse)
+async def baixar_pdf():
+    return FileResponse("aluno_registro.pdf", media_type="application/pdf", filename="aluno_registro.pdf")
+
+
+def gerar_pdf_aluno(aluno):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.set_xy(10, 10)
+    pdf.cell(200, 10, f"Data de registro: {aluno['registro']}", ln=True)
+
+    pdf.ln(10)
+    for chave, valor in aluno.items():
+        if chave != "registro":
+            pdf.cell(200, 10, f"{chave.replace('_', ' ').capitalize()}: {valor}", ln=True)
+
+    pdf.output("aluno_registro.pdf")
+
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
         with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
