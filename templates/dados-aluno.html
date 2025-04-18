@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SabApp - Dados do Aluno</title>
+  <title>ExApp - Dados do Aluno</title>
   <style>
     * {
       margin: 0;
@@ -142,7 +142,7 @@
   <div class="form-container">
     <h2>Dados do Aluno</h2>
 
-    <form method="post" action="/enviar-dados">
+   <form method="post" action="/registrar-aluno">
       <div class="input-group">
         <label for="name">Nome</label>
         <input type="text" id="name" name="name" required>
@@ -183,20 +183,20 @@
       <div class="checkbox-group-wrapper">
         <div class="checkbox-title">Disciplinas</div>
         <div class="checkbox-group">
-          <label for="math">Matemática<input type="checkbox" id="math" name="discipline" value="Matemática"></label>
-          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="discipline" value="Português"></label>
-          <label for="english">Inglês<input type="checkbox" id="english" name="discipline" value="Inglês"></label>
-          <label for="french">Francês<input type="checkbox" id="french" name="discipline" value="Francês"></label>
-          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="discipline" value="Química"></label>
-          <label for="physics">Física<input type="checkbox" id="physics" name="discipline" value="Física"></label>
+          <label for="math">Matemática<input type="checkbox" id="math" name="disciplinas" value="Matemática"></label>
+          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="disciplinas" value="Português"></label>
+          <label for="english">Inglês<input type="checkbox" id="english" name="disciplinas" value="Inglês"></label>
+          <label for="french">Francês<input type="checkbox" id="french" name="disciplinas" value="Francês"></label>
+          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="disciplinas" value="Química"></label>
+          <label for="physics">Física<input type="checkbox" id="physics" name="disciplinas" value="Física"></label>
         </div>
 
-        <div class="extra-discipline" id="extra-discipline">
-          <label for="other_discipline">Outra Disciplina</label>
-          <input type="text" id="other_discipline" name="other_discipline">
+        <div class="extra-disciplinas" id="extra-disciplinas">
+          <label for="other_disciplinas">Outra Disciplina</label>
+          <input type="text" id="other_disciplinas" name="other_disciplinas">
         </div>
 
-        <button class="add-discipline-btn" type="button" onclick="toggleExtraDiscipline()">➕</button>
+        <button class="add-disciplinas-btn" type="button" onclick="toggleExtraDisciplinas()">➕</button>
       </div>
 
       <button type="submit" class="submit-btn">Enviar Dados</button>
