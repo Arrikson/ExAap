@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory="templates")
 PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
-@app.get("/dados-alunos", response_class=HTMLResponse)
+@app.get("/dados-aluno", response_class=HTMLResponse)
 async def form_aluno(request: Request):
     return templates.TemplateResponse("dados-alunos.html", {"request": request})
 
