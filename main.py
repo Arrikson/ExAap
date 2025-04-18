@@ -27,6 +27,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
+
 # Rota para processar o cadastro e salvar no JSON
 @app.post("/cadastrar-aluno", response_class=HTMLResponse)
 async def cadastrar_aluno(
@@ -59,25 +60,11 @@ async def cadastrar_aluno(
         "registro": timestamp
     }
 
-    # Carrega os dados existentes ou cria nova lista
-    if Path(ARQUIVO_JSON).exists():
-        with open(ARQUIVO_JSON, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-    else:
-        dados = []
+    # Gera PDF
+    caminho_pdf = gerar_pdf_aluno(aluno)
 
-    # Adiciona novo aluno
-    dados.append(aluno)
-
-    # Salva de volta no JSON
-    with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=4)
-
-    # Gera PDF (opcional, mas você mencionou que quer)
-    gerar_pdf_aluno(aluno)
-
-    # Redireciona com sucesso=1
-    return RedirectResponse(url="/dados-aluno?sucesso=1", status_code=303)
+    # Redireciona para rota de download
+    return RedirectResponse(url=f"/baixar-pdf?arquivo={os.path.basename(caminho_pdf)}", status_code=303)
 
 @app.get("/baixar-pdf", response_class=FileResponse)
 async def baixar_pdf():
@@ -85,11 +72,14 @@ async def baixar_pdf():
 
 
 def gerar_pdf_aluno(aluno):
+    os.makedirs("static/docs", exist_ok=True)
+    nome_arquivo = f"aluno_{aluno['nome_completo'].replace(' ', '_')}.pdf"
+    caminho_pdf = os.path.join("static", "docs", nome_arquivo)
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
-    pdf.set_xy(10, 10)
     pdf.cell(200, 10, f"Data de registro: {aluno['registro']}", ln=True)
 
     pdf.ln(10)
@@ -97,17 +87,15 @@ def gerar_pdf_aluno(aluno):
         if chave != "registro":
             pdf.cell(200, 10, f"{chave.replace('_', ' ').capitalize()}: {valor}", ln=True)
 
-    pdf.output("aluno_registro.pdf")
+    pdf.output(caminho_pdf)
+    return caminho_pdf
 
-def carregar_professores():
-    if os.path.exists(PROFESSORES_JSON):
-        with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def salvar_professores(professores):
-    with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
-        json.dump(professores, f, ensure_ascii=False, indent=4)
+@app.get("/baixar-pdf", response_class=FileResponse)
+async def baixar_pdf(arquivo: str):
+    caminho_pdf = os.path.join("static", "docs", arquivo)
+    if os.path.exists(caminho_pdf):
+        return FileResponse(caminho_pdf, media_type="application/pdf", filename=arquivo)
+    return HTMLResponse("Arquivo PDF não encontrado.", status_code=404)
 
 def gerar_html_professores():
     professores = carregar_professores()
