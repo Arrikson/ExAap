@@ -2,90 +2,154 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Lista de Alunos</title>
+  <title>Registrar Aluno</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #eef2f7;
+      background: #f4f6f9;
       padding: 20px;
-      margin: 0;
-      color: #333;
     }
 
     .container {
+      max-width: 600px;
       background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 800px;
+      padding: 25px;
       margin: 0 auto;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 20px;
-      font-size: 22px;
       color: #2e86de;
+      margin-bottom: 20px;
     }
 
-    table {
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
       width: 100%;
-      border-collapse: collapse;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       font-size: 14px;
     }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    th {
+    .checkbox-group label {
+      font-weight: normal;
+    }
+
+    button {
       background-color: #2e86de;
       color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      width: 100%;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+    button:hover {
+      background-color: #1c65b7;
     }
 
-    .logo {
-      width: 60px;
-      position: absolute;
-      top: 20px;
-      left: 20px;
+    .extra {
+      font-style: italic;
+      color: #888;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="/static/logo.png" alt="Logo" class="logo">
-    <h2>Lista de Alunos Registrados</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Idade</th>
-          <th>Disciplina</th>
-          <th>Responsável</th>
-          <th>Telefone</th>
-          <th>Horário</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for aluno in alunos %}
-        <tr>
-          <td>{{ aluno.nome }}</td>
-          <td>{{ aluno.idade }}</td>
-          <td>{{ aluno.disciplina }}</td>
-          <td>{{ aluno.nome_pais }}</td>
-          <td>{{ aluno.telefone }}</td>
-          <td>{{ aluno.horario }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <h2>Registrar Aluno</h2>
+    <form action="/registrar-aluno" method="post">
+      <div class="form-group">
+        <label for="nome">Nome do Aluno:</label>
+        <input type="text" id="nome" name="nome" required>
+      </div>
+
+      <div class="form-group">
+        <label for="bi">Número do B.I.:</label>
+        <input type="text" id="bi" name="bi" required>
+      </div>
+
+      <div class="form-group">
+        <label for="idade">Idade:</label>
+        <input type="number" id="idade" name="idade" required>
+      </div>
+
+      <div class="form-group">
+        <label for="classe">Classe:</label>
+        <input type="text" id="classe" name="classe" required>
+      </div>
+
+      <div class="form-group">
+        <label for="pai">Nome do Pai:</label>
+        <input type="text" id="pai" name="pai" required>
+      </div>
+
+      <div class="form-group">
+        <label for="mae">Nome da Mãe:</label>
+        <input type="text" id="mae" name="mae" required>
+      </div>
+
+      <div class="form-group">
+        <label>Disciplinas:</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
+          <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
+          <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
+          <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="outra_disciplina">Outra Disciplina (se houver):</label>
+        <input type="text" id="outra_disciplina" name="outra_disciplina" placeholder="Ex: Inglês" class="extra">
+      </div>
+
+      <!-- Campos de localização ocultos -->
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+
+      <button type="submit">Cadastrar Aluno</button>
+    </form>
   </div>
+
+  <script>
+    // Captura localização do navegador
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          document.getElementById("latitude").value = position.coords.latitude;
+          document.getElementById("longitude").value = position.coords.longitude;
+        },
+        function(error) {
+          console.warn("Localização não autorizada ou indisponível.");
+        }
+      );
+    } else {
+      console.warn("Geolocalização não suportada.");
+    }
+  </script>
 </body>
 </html>
+
 
