@@ -119,81 +119,130 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
-ALUNOS_JSON = "alunos.json"
-
 # Função para carregar os alunos
-def carregar_alunos():
-    try:
-        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Response
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from typing import List, Annotated
+from pydantic import BaseModel
+from pathlib import Path
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from datetime import datetime
+import shutil
+import os
+import json
 
-# Função para salvar os alunos
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
+CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+def carregar_alunos():
+    if os.path.exists(CAMINHO_JSON):
+        with open(CAMINHO_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
 def salvar_alunos(alunos):
-    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+    with open(CAMINHO_JSON, "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
 
-# Placeholder para uso futuro
-def gerar_html_alunos():
-    pass
+def gerar_pdf_individual(aluno):
+    nome_arquivo = f"static/docs/{aluno['nome'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    c = canvas.Canvas(nome_arquivo, pagesize=A4)
+    width, height = A4
+    y = height - 50
 
-# Função que gera o HTML do contrato
-def gerar_html_contrato(nome="Aluno(a)", nome_pai="Pai", nome_mae="Mãe"):
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="pt">
-    <head>
-        <meta charset="UTF-8">
-        <title>Contrato de Prestação de Serviços</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }}
-            .container {{ background: #fff; padding: 20px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); }}
-            h2 {{ text-align: center; color: #2e86de; }}
-            p, li {{ font-size: 14px; line-height: 1.6; }}
-            ol {{ padding-left: 20px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>Contrato de Prestação de Serviços</h2>
-            <p><strong>Aluno(a):</strong> {nome}</p>
-            <p><strong>Responsável (Pai):</strong> {nome_pai}</p>
-            <p><strong>Responsável (Mãe):</strong> {nome_mae}</p>
-            <ol>
-                <li><strong>Objeto do contrato:</strong><br> Prestação de serviços de auxílio escolar ao(a) aluno(a) acima mencionado(a), com aulas de explicação domiciliar.</li>
-                <li><strong>Duração:</strong><br> Inicial de 3 meses, renovável automaticamente.</li>
-                <li><strong>Valor:</strong><br> 24.900,00 Kz/mês. Pagamento até o último dia do mês. Após 10 dias de atraso: juros de 10% na conta BAI nº 282309786 10 001.</li>
-                <li><strong>Professor:</strong><br> Substituível sem custo caso não atenda às expectativas.</li>
-                <li><strong>Má conduta:</strong><br> O professor será responsabilizado legalmente.</li>
-                <li><strong>Leis:</strong><br> Regido pelas leis da República de Angola.</li>
-            </ol>
-        </div>
-    </body>
-    </html>
-    """
-    return html
-    
-# Geração do PDF do contrato
-@app.get("/gerar-pdf", response_class=Response)
-async def gerar_pdf():
-    # Dados fictícios ou últimos dados cadastrados (melhorar depois)
-    alunos = carregar_alunos()
-    if not alunos:
-        return Response(content="Nenhum aluno cadastrado.", status_code=404)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2, y, "Ficha de Inscrição de Aluno")
+    y -= 40
 
-    ultimo = alunos[-1]
-    html = gerar_html_contrato(ultimo.get("nome", ""), ultimo.get("pai", ""), ultimo.get("mae", ""))
-    pdf = HTML(string=html).write_pdf()
+    c.setFont("Helvetica", 12)
+    campos = [
+        ("Nome", aluno["nome"]),
+        ("B.I.", aluno["bi"]),
+        ("Idade", str(aluno["idade"])),
+        ("Classe", aluno["classe"]),
+        ("Pai", aluno["pai"]),
+        ("Mãe", aluno["mae"]),
+        ("Disciplinas", ", ".join(aluno["disciplinas"])),
+        ("Localização", aluno["localizacao"]),
+    ]
 
-    response = Response(content=pdf, media_type="application/pdf")
-    response.headers["Content-Disposition"] = "attachment; filename=contrato.pdf"
-    return response
+    for label, valor in campos:
+        c.drawString(50, y, f"{label}: {valor}")
+        y -= 20
 
-# Rota da página de registro
+    c.save()
+    return nome_arquivo
+
+@app.get("/dados-alunos")
+async def get_alunos():
+    return carregar_alunos()
+
+@app.get("/info-alunos", response_class=HTMLResponse)
+async def info_alunos(request: Request):
+    dados = carregar_alunos()
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": dados})
+
 @app.get("/registrar-aluno", response_class=HTMLResponse)
 async def form_aluno(request: Request):
     return templates.TemplateResponse("registrar-aluno.html", {"request": request})
+
+@app.post("/registrar-aluno", response_class=HTMLResponse)
+async def registrar_aluno(
+    request: Request,
+    nome: str = Form(...),
+    bi: str = Form(...),
+    idade: int = Form(...),
+    classe: str = Form(...),
+    pai: str = Form(...),
+    mae: str = Form(...),
+    disciplinas: Annotated[List[str], Form()] = [],
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
+):
+    if outra_disciplina:
+        disciplinas.append(outra_disciplina)
+
+    localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+
+    novo_aluno = {
+        "nome": nome,
+        "bi": bi,
+        "idade": idade,
+        "classe": classe,
+        "pai": pai,
+        "mae": mae,
+        "disciplinas": disciplinas,
+        "localizacao": localizacao
+    }
+
+    alunos = carregar_alunos()
+    alunos.append(novo_aluno)
+    salvar_alunos(alunos)
+
+    caminho_pdf = gerar_pdf_individual(novo_aluno)
+
+    return FileResponse(caminho_pdf, media_type="application/pdf", filename=os.path.basename(caminho_pdf))
 
 @app.get("/info-a.html", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
