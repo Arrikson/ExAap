@@ -1,252 +1,68 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ExApp - Dados do Aluno</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background: #f4f4f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .form-container {
-      background-color: white;
-      border-radius: 16px;
-      padding: 30px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-container h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .input-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    input[type="text"], input[type="number"], select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-
-    .checkbox-group-wrapper {
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .checkbox-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    .checkbox-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      justify-items: start;
-    }
-
-    .checkbox-group label {
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-    }
-
-    .checkbox-group input {
-      margin-left: 8px;
-    }
-
-    .location-btn {
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .location-btn:hover {
-      background-color: #45a049;
-    }
-
-    .extra-discipline {
-      display: none;
-      margin-top: 10px;
-    }
-
-    .extra-discipline input {
-      width: 100%;
-    }
-
-    .add-discipline-btn {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #4CAF50;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .submit-btn {
-      display: block;
-      margin: 30px auto 0 auto;
-      width: 100%;
-      padding: 15px;
-      font-size: 16px;
-      color: black;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .submit-btn:hover {
-      background-color: #e6e6e6;
-    }
-
-    #location-status {
-      font-size: 12px;
-      color: #555;
-      margin-top: 5px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="form-container">
-    <h2>Dados do Aluno</h2>
-
-   <form method="post" action="/registrar-aluno">
-      <div class="input-group">
-        <label for="nome">Nome</label>
-        <input type="text" id="name" name="name" required>
-      </div>
-
-      <div class="input-group">
-        <label for="bi">Número do B.I.</label>
-        <input type="number" id="bi" name="bi" required>
-      </div>
-
-      <div class="input-group">
-        <label for="idade">Idade</label>
-        <input type="number" id="idade" name="age" required>
-      </div>
-
-      <div class="input-group">
-        <label for="class_">Classe que frequenta</label>
-        <input type="text" id="class_" name="class_" required>
-      </div>
-
-      <div class="input-group">
-        <label for="pai">Nome do Pai</label>
-        <input type="text" id="father_name" name="father_name" required>
-      </div>
-
-      <div class="input-group">
-        <label for="mãe">Nome da Mãe</label>
-        <input type="text" id="mother_name" name="mother_name" required>
-      </div>
-
-      <div class="input-group">
-        <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
-        <p id="location-status"></p>
-        <input type="hidden" id="latitude" name="latitude">
-        <input type="hidden" id="longitude" name="longitude">
-      </div>
-
-      <div class="checkbox-group-wrapper">
-        <div class="checkbox-title">Disciplinas</div>
-        <div class="checkbox-group">
-          <label for="math">Matemática<input type="checkbox" id="math" name="disciplinas" value="Matemática"></label>
-          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="disciplinas" value="Português"></label>
-          <label for="english">Inglês<input type="checkbox" id="english" name="disciplinas" value="Inglês"></label>
-          <label for="french">Francês<input type="checkbox" id="french" name="disciplinas" value="Francês"></label>
-          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="disciplinas" value="Química"></label>
-          <label for="physics">Física<input type="checkbox" id="physics" name="disciplinas" value="Física"></label>
-        </div>
-
-        <div class="extra-disciplinas" id="extra-disciplinas">
-          <label for="other_disciplinas">Outra Disciplina</label>
-          <input type="text" id="other_disciplinas" name="other_disciplinas">
-        </div>
-
-        <button class="add-disciplinas-btn" type="button" onclick="toggleExtraDisciplinas()">➕</button>
-      </div>
-
-      <button type="submit" class="submit-btn">Enviar Dados</button>
-    </form>
-  </div>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Aluno</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script>
+    function toggleDiscipline(btn) {
+      btn.classList.toggle('bg-blue-500');
+      btn.classList.toggle('text-white');
+      btn.classList.toggle('bg-gray-200');
+      btn.classList.toggle('text-gray-800');
+    }
+
     function getLocation() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
+        navigator.geolocation.getCurrentPosition((position) => {
+          document.getElementById('latitude').value = position.coords.latitude;
+          document.getElementById('longitude').value = position.coords.longitude;
+        });
       } else {
-        document.getElementById("location-status").innerHTML = "Geolocalização não é suportada neste navegador.";
+        alert("Geolocalização não é suportada por este navegador.");
       }
     }
 
-    function showPosition(position) {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-
-      // Preencher os campos ocultos
-      document.getElementById("latitude").value = latitude;
-      document.getElementById("longitude").value = longitude;
-
-      document.getElementById("location-status").innerHTML = `Latitude: ${latitude} | Longitude: ${longitude}`;
-    }
-
-    function showError(error) {
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          document.getElementById("location-status").innerHTML = "Permissão para acessar a localização negada.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          document.getElementById("location-status").innerHTML = "Informação de localização indisponível.";
-          break;
-        case error.TIMEOUT:
-          document.getElementById("location-status").innerHTML = "A solicitação de geolocalização expirou.";
-          break;
-        case error.UNKNOWN_ERROR:
-          document.getElementById("location-status").innerHTML = "Ocorreu um erro desconhecido.";
-          break;
-      }
-    }
-
-    function toggleExtraDiscipline() {
-      const extraDiscipline = document.getElementById("extra-discipline");
-      extraDiscipline.style.display = (extraDiscipline.style.display === "block") ? "none" : "block";
+    function handleSubmit(event) {
+      const selected = Array.from(document.querySelectorAll('.discipline-btn.bg-blue-500')).map(btn => btn.dataset.value);
+      document.getElementById('disciplinas').value = selected.join(', ');
     }
   </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <form action="/cadastrar-aluno" method="post" onsubmit="handleSubmit(event)" class="bg-white p-8 rounded shadow-md w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Cadastro de Aluno</h2>
+    <div class="grid grid-cols-1 gap-4">
+      <input type="text" name="nome_completo" placeholder="Nome completo" class="p-2 border rounded">
+      <input type="date" name="data_nascimento" placeholder="Data de nascimento" class="p-2 border rounded">
+      <input type="number" name="idade" placeholder="Idade" class="p-2 border rounded">
+      <input type="text" name="nome_pai" placeholder="Nome do pai" class="p-2 border rounded">
+      <input type="text" name="nome_mae" placeholder="Nome da mãe" class="p-2 border rounded">
+      <input type="text" name="morada" placeholder="Morada atual" class="p-2 border rounded">
+      <input type="text" name="referencia" placeholder="Ponto de referência da morada" class="p-2 border rounded">
+    </div>
 
+    <h3 class="text-lg font-semibold mt-6 mb-2">Disciplinas para explicações:</h3>
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" onclick="toggleDiscipline(this)" data-value="Matemática" class="discipline-btn bg-gray-200 text-gray-800 p-2 rounded">Matemática</button>
+      <button type="button" onclick="toggleDiscipline(this)" data-value="L. Portuguesa" class="discipline-btn bg-gray-200 text-gray-800 p-2 rounded">L. Portuguesa</button>
+      <button type="button" onclick="toggleDiscipline(this)" data-value="L. Inglesa" class="discipline-btn bg-gray-200 text-gray-800 p-2 rounded">L. Inglesa</button>
+      <button type="button" onclick="toggleDiscipline(this)" data-value="Física" class="discipline-btn bg-gray-200 text-gray-800 p-2 rounded">Física</button>
+      <button type="button" onclick="toggleDiscipline(this)" data-value="Química" class="discipline-btn bg-gray-200 text-gray-800 p-2 rounded">Química</button>
+      <input type="text" name="outra_disciplina" placeholder="Outra disciplina (se houver)" class="p-2 border rounded col-span-2">
+    </div>
+    <input type="hidden" id="disciplinas" name="disciplinas">
+
+    <div class="mt-6">
+      <button type="button" onclick="getLocation()" class="bg-green-500 text-white px-4 py-2 rounded">Obter Localização</button>
+      <input type="hidden" name="latitude" id="latitude">
+      <input type="hidden" name="longitude" id="longitude">
+    </div>
+
+    <div class="mt-6 text-center">
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Cadastrar Aluno</button>
+    </div>
+  </form>
 </body>
 </html>
-
-
