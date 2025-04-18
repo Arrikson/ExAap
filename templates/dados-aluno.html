@@ -1,155 +1,250 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Registrar Aluno</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SabApp - Dados do Aluno</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
+      background: #f4f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 20px;
     }
 
-    .container {
-      max-width: 600px;
-      background: #fff;
-      padding: 25px;
-      margin: 0 auto;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    .form-container {
+      background-color: white;
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-    h2 {
+    .form-container h2 {
       text-align: center;
-      color: #2e86de;
       margin-bottom: 20px;
     }
 
-    .form-group {
+    .input-group {
       margin-bottom: 15px;
     }
 
     label {
+      font-weight: bold;
       display: block;
       margin-bottom: 5px;
-      font-weight: bold;
     }
 
-    input[type="text"],
-    input[type="number"],
-    select {
+    input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 8px;
-      border-radius: 6px;
+      margin-top: 5px;
+      border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 14px;
+    }
+
+    .checkbox-group-wrapper {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .checkbox-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 18px;
     }
 
     .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
+      justify-items: start;
     }
 
     .checkbox-group label {
-      font-weight: normal;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
     }
 
-    button {
-      background-color: #2e86de;
+    .checkbox-group input {
+      margin-left: 8px;
+    }
+
+    .location-btn {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
       color: white;
-      padding: 10px 15px;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 15px;
       width: 100%;
     }
 
-    button:hover {
-      background-color: #1c65b7;
+    .location-btn:hover {
+      background-color: #45a049;
     }
 
-    .extra {
-      font-style: italic;
-      color: #888;
+    .extra-discipline {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .extra-discipline input {
+      width: 100%;
+    }
+
+    .add-discipline-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #4CAF50;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .submit-btn {
+      display: block;
+      margin: 30px auto 0 auto;
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      color: black;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #e6e6e6;
+    }
+
+    #location-status {
+      font-size: 12px;
+      color: #555;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Registrar Aluno</h2>
-    <form action="/registrar-aluno" method="post">
-      <div class="form-group">
-        <label for="nome">Nome do Aluno:</label>
-        <input type="text" id="nome" name="nome" required>
+
+  <div class="form-container">
+    <h2>Dados do Aluno</h2>
+
+    <form method="post" action="/enviar-dados">
+      <div class="input-group">
+        <label for="name">Nome</label>
+        <input type="text" id="name" name="name" required>
       </div>
 
-      <div class="form-group">
-        <label for="bi">Número do B.I.:</label>
-        <input type="text" id="bi" name="bi" required>
+      <div class="input-group">
+        <label for="bi">Número do B.I.</label>
+        <input type="number" id="bi" name="bi" required>
       </div>
 
-      <div class="form-group">
-        <label for="idade">Idade:</label>
-        <input type="number" id="idade" name="idade" required>
+      <div class="input-group">
+        <label for="age">Idade</label>
+        <input type="number" id="age" name="age" required>
       </div>
 
-      <div class="form-group">
-        <label for="classe">Classe:</label>
-        <input type="text" id="classe" name="classe" required>
+      <div class="input-group">
+        <label for="class">Classe que frequenta</label>
+        <input type="text" id="class" name="class" required>
       </div>
 
-      <div class="form-group">
-        <label for="pai">Nome do Pai:</label>
-        <input type="text" id="pai" name="pai" required>
+      <div class="input-group">
+        <label for="father-name">Nome do Pai</label>
+        <input type="text" id="father-name" name="father-name" required>
       </div>
 
-      <div class="form-group">
-        <label for="mae">Nome da Mãe:</label>
-        <input type="text" id="mae" name="mae" required>
+      <div class="input-group">
+        <label for="mother-name">Nome da Mãe</label>
+        <input type="text" id="mother-name" name="mother-name" required>
       </div>
 
-      <div class="form-group">
-        <label>Disciplinas:</label>
+      <div class="input-group">
+        <button type="button" class="location-btn" onclick="getLocation()">Obter Localização</button>
+        <p id="location-status"></p>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+      </div>
+
+      <div class="checkbox-group-wrapper">
+        <div class="checkbox-title">Disciplinas</div>
         <div class="checkbox-group">
-          <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-          <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-          <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-          <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+          <label for="math">Matemática<input type="checkbox" id="math" name="discipline" value="Matemática"></label>
+          <label for="portuguese">Português<input type="checkbox" id="portuguese" name="discipline" value="Português"></label>
+          <label for="english">Inglês<input type="checkbox" id="english" name="discipline" value="Inglês"></label>
+          <label for="french">Francês<input type="checkbox" id="french" name="discipline" value="Francês"></label>
+          <label for="chemistry">Química<input type="checkbox" id="chemistry" name="discipline" value="Química"></label>
+          <label for="physics">Física<input type="checkbox" id="physics" name="discipline" value="Física"></label>
         </div>
+
+        <div class="extra-discipline" id="extra-discipline">
+          <label for="other-discipline">Outra Disciplina</label>
+          <input type="text" id="other-discipline" name="other-discipline">
+        </div>
+
+        <button class="add-discipline-btn" type="button" onclick="toggleExtraDiscipline()">➕</button>
       </div>
 
-      <div class="form-group">
-        <label for="outra_disciplina">Outra Disciplina (se houver):</label>
-        <input type="text" id="outra_disciplina" name="outra_disciplina" placeholder="Ex: Inglês" class="extra">
-      </div>
-
-      <!-- Campos de localização ocultos -->
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
-
-      <button type="submit">Cadastrar Aluno</button>
+      <button type="submit" class="submit-btn">Enviar Dados</button>
     </form>
   </div>
 
   <script>
-    // Captura localização do navegador
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function(position) {
-          document.getElementById("latitude").value = position.coords.latitude;
-          document.getElementById("longitude").value = position.coords.longitude;
-        },
-        function(error) {
-          console.warn("Localização não autorizada ou indisponível.");
-        }
-      );
-    } else {
-      console.warn("Geolocalização não suportada.");
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        document.getElementById("location-status").innerHTML = "Geolocalização não é suportada neste navegador.";
+      }
+    }
+
+    function showPosition(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      // Preencher os campos ocultos
+      document.getElementById("latitude").value = latitude;
+      document.getElementById("longitude").value = longitude;
+
+      document.getElementById("location-status").innerHTML = Latitude: ${latitude} | Longitude: ${longitude};
+    }
+
+    function showError(error) {
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          document.getElementById("location-status").innerHTML = "Permissão para acessar a localização negada.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          document.getElementById("location-status").innerHTML = "Informação de localização indisponível.";
+          break;
+        case error.TIMEOUT:
+          document.getElementById("location-status").innerHTML = "A solicitação de geolocalização expirou.";
+          break;
+        case error.UNKNOWN_ERROR:
+          document.getElementById("location-status").innerHTML = "Ocorreu um erro desconhecido.";
+          break;
+      }
+    }
+
+    function toggleExtraDiscipline() {
+      const extraDiscipline = document.getElementById("extra-discipline");
+      extraDiscipline.style.display = (extraDiscipline.style.display === "block") ? "none" : "block";
     }
   </script>
+
 </body>
 </html>
-
-
