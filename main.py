@@ -310,6 +310,22 @@ def gerar_html_alunos():
     with open("templates/info-alunos.html", "w", encoding="utf-8") as f:
         f.write(conteudo_html)
 
+@app.get("/gerar-pdf-aluno")
+async def gerar_pdf_aluno():
+    aluno = {"nome_completo": "João Silva", "idade": 20, "morada": "Rua 123", "disciplinas": "Matemática"}
+    file_path = "aluno.pdf"
+    c = canvas.Canvas(file_path, pagesize=letter)
+    
+    # Adicionando conteúdo ao PDF
+    c.drawString(100, 750, f"Nome: {aluno['nome_completo']}")
+    c.drawString(100, 730, f"Idade: {aluno['idade']}")
+    c.drawString(100, 710, f"Morada: {aluno['morada']}")
+    c.drawString(100, 690, f"Disciplinas: {aluno['disciplinas']}")
+    
+    c.save()
+    
+    return FileResponse(file_path, filename="aluno.pdf", media_type="application/pdf")
+
 # Rotas dos Alunos
 
 @app.get("/cadastro-aluno", response_class=HTMLResponse)
