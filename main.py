@@ -14,6 +14,7 @@ from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from typing import List, Optional, Annotated
 from fastapi.responses import Response, FileResponse
+from fpdf import FPDF
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
@@ -118,31 +119,6 @@ def gerar_html_professores():
 
 # Carregamento inicial
 professores = carregar_professores()
-
-# Função para carregar os alunos
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Response
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from typing import List, Annotated
-from pydantic import BaseModel
-from pathlib import Path
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from datetime import datetime
-import shutil
-import os
-import json
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
-CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
 class Aluno(BaseModel):
     nome: str
@@ -253,69 +229,33 @@ def carregar_alunos():
     with open("alunos.json", "r", encoding="utf-8") as file:
         return json.load(file)
 
-# Gerar lista de alunos em PDF
-@app.get("/gerar-pdf-alunos/download", response_class=FileResponse)
-async def baixar_pdf_alunos():
-    alunos = carregar_alunos()
-    os.makedirs("static/docs", exist_ok=True)
-    pdf_path = "static/docs/lista_alunos.pdf"
+@app.get("/gerar-pdf-alunos")
+async def gerar_pdf_alunos():
+    alunos = carregar_alunos()  # função que lê do alunos.json
 
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
-    y = height - 80
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
 
-    titulo = "Novos Alunos Cadastrados"
-    data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
+    pdf.cell(200, 10, txt="Lista de Alunos Registrados", ln=True, align="C")
+    pdf.ln(10)
 
-    def desenhar_cabecalho():
-        nonlocal y
-        c.setFont("Helvetica-Bold", 20)
-        c.setFillColor(colors.HexColor("#2e86de"))
-        c.drawCentredString(width / 2, height - 50, titulo)
-        c.setFont("Helvetica", 10)
-        c.setFillColor(colors.grey)
-        c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
-        y = height - 90
+    for aluno in alunos:
+        pdf.cell(200, 10, txt=f"Nome: {aluno['nome']}", ln=True)
+        pdf.cell(200, 10, txt=f"BI: {aluno['bi']}", ln=True)
+        pdf.cell(200, 10, txt=f"Idade: {aluno['idade']}", ln=True)
+        pdf.cell(200, 10, txt=f"Classe: {aluno['classe']}", ln=True)
+        pdf.cell(200, 10, txt=f"Pai: {aluno['pai']}", ln=True)
+        pdf.cell(200, 10, txt=f"Mãe: {aluno['mae']}", ln=True)
+        pdf.cell(200, 10, txt=f"Disciplinas: {', '.join(aluno['disciplinas'])}", ln=True)
+        pdf.cell(200, 10, txt=f"Localização: {aluno['localizacao']}", ln=True)
+        pdf.ln(10)
 
-    desenhar_cabecalho()
+    nome_arquivo = "alunos_registrados.pdf"
+    caminho_arquivo = os.path.join("static", nome_arquivo)
+    pdf.output(caminho_arquivo)
 
-    for i, a in enumerate(alunos):
-        if y < 150:
-            c.showPage()
-            desenhar_cabecalho()
-
-        c.setFont("Helvetica-Bold", 14)
-        c.setFillColor(colors.darkgreen)
-        c.drawString(50, y, f"{i + 1}. {a.get('nome', 'Sem nome')}")
-        y -= 20
-
-        c.setFont("Helvetica", 11)
-        c.setFillColor(colors.black)
-
-        campos = [
-            ("Número do B.I", a.get("bi", "")),
-            ("Idade", str(a.get("idade", ""))),
-            ("Classe", a.get("classe", "")),
-            ("Nome do Pai", a.get("pai", "")),
-            ("Nome da Mãe", a.get("mae", "")),
-            ("Disciplinas", ", ".join(a.get("disciplinas", []))),
-            ("Localização", a.get("localizacao", "")),
-            ("Telefone", a.get("telefone", "")),
-            ("Horário", a.get("horario", "")),
-        ]
-
-        for label, valor in campos:
-            if valor:
-                c.drawString(60, y, f"{label}: {valor}")
-                y -= 15
-
-        c.setStrokeColor(colors.lightgrey)
-        c.setLineWidth(0.5)
-        c.line(50, y, width - 50, y)
-        y -= 30
-
-    c.save()
-    return FileResponse(pdf_path, media_type="application/pdf", filename="lista_alunos.pdf")
+    return FileResponse(path=caminho_arquivo, filename=nome_arquivo, media_type="application/pdf")
     
  # Cadastro do aluno
 @app.post("/registrar-aluno", response_class=HTMLResponse)
