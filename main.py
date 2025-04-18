@@ -234,21 +234,16 @@ async def registrar_aluno(
     caminho_pdf = gerar_pdf_individual(novo_aluno)
     return FileResponse(caminho_pdf, media_type="application/pdf", filename=os.path.basename(caminho_pdf))
 
+@app.get("/dados-alunos")  # Rota 2
+async def get_alunos():
+    with open("alunos.json", "r") as file:
+        alunos_data = json.load(file)
+    return alunos_data
+
 @app.get("/info-alunos", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
-
-@app.get("/dados-alunos")
-async def get_alunos():
-    return carregar_alunos()
-
-@app.get("/dados-alunos") 
-async def get_alunos():
-    # Caminho para o arquivo JSON dos alunos
-    with open("alunos.json", "r") as file:
-        alunos_data = json.load(file)
-    return alunos_data;      
 
 @app.get("/gerar-pdf-alunos")
 async def gerar_pdf_alunos():
