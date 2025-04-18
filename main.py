@@ -30,7 +30,7 @@ ALUNOS_JSON = "alunos.json"
 
 @app.get("/dados-aluno", response_class=HTMLResponse)
 async def form_aluno(request: Request):
-    return templates.TemplateResponse("dados-alunos.html", {"request": request})
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
 
 @app.post("/cadastrar-aluno", response_class=HTMLResponse)
 async def cadastrar_aluno(
