@@ -13,7 +13,7 @@ from typing import List, Optional, Annotated
 from fastapi.responses import Response, FileResponse
 from fpdf import FPDF
 from pathlib import Path
-from utils import carregar_professores
+from helpers.utils import carregar_professores
 import shutil
 import os
 import json
