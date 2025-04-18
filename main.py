@@ -26,15 +26,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
-ARQUIVO_JSON = "alunos.json"  # Caminho para salvar os dados
+ARQUIVO_JSON = "alunos.json"
 
-# Rota para exibir o formulário
-@app.get("/dados-aluno", response_class=HTMLResponse)
-async def form_aluno(request: Request, sucesso: int = 0):
-    return templates.TemplateResponse("dados-aluno.html", {"request": request, "sucesso": sucesso})
+def gerar_pdf_aluno(aluno):
+    print("PDF gerado (simulado para:", aluno["nome_completo"], ")")
 
-
-# Rota para processar o cadastro e salvar no JSON
 @app.post("/cadastrar-aluno", response_class=HTMLResponse)
 async def cadastrar_aluno(
     request: Request,
@@ -66,24 +62,23 @@ async def cadastrar_aluno(
         "registro": timestamp
     }
 
-    # Carrega os dados existentes ou cria nova lista
-    if Path(ARQUIVO_JSON).exists():
-        with open(ARQUIVO_JSON, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-    else:
+    # Tenta carregar os dados
+    try:
+        if Path(ARQUIVO_JSON).exists():
+            with open(ARQUIVO_JSON, "r", encoding="utf-8") as f:
+                dados = json.load(f)
+        else:
+            dados = []
+    except:
         dados = []
 
-    # Adiciona novo aluno
     dados.append(aluno)
 
-    # Salva de volta no JSON
     with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=4)
 
-    # Gera PDF (opcional, mas você mencionou que quer)
     gerar_pdf_aluno(aluno)
 
-    # Redireciona com sucesso=1
     return RedirectResponse(url="/dados-aluno?sucesso=1", status_code=303)
 
 @app.get("/baixar-pdf", response_class=FileResponse)
