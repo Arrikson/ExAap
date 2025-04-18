@@ -6,9 +6,6 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import Body
-import shutil
-import os
-import json
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
@@ -16,6 +13,9 @@ from typing import List, Optional, Annotated
 from fastapi.responses import Response, FileResponse
 from fpdf import FPDF
 from pathlib import Path
+import shutil
+import os
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
