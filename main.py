@@ -6,18 +6,15 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import Body
+import shutil
+import os
+import json
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from typing import List, Optional, Annotated
 from fastapi.responses import Response, FileResponse
 from fpdf import FPDF
-from pathlib import Path
-from helpers.utils import carregar_professores
-import shutil
-import os
-import json
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
@@ -29,76 +26,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
+ALUNOS_JSON = "alunos.json"
 
-# Rota para processar o cadastro e salvar no JSON
-@app.post("/cadastrar-aluno", response_class=HTMLResponse)
-async def cadastrar_aluno(
-    request: Request,
-    nome_completo: str = Form(...),
-    data_nascimento: str = Form(...),
-    idade: int = Form(...),
-    nome_pai: str = Form(...),
-    nome_mae: str = Form(...),
-    morada: str = Form(...),
-    referencia: str = Form(...),
-    disciplinas: str = Form(...),
-    outra_disciplina: str = Form(""),
-    latitude: str = Form(""),
-    longitude: str = Form("")
-):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def carregar_professores():
+    if os.path.exists(PROFESSORES_JSON):
+        with open(PROFESSORES_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
 
-    aluno = {
-        "nome_completo": nome_completo,
-        "data_nascimento": data_nascimento,
-        "idade": idade,
-        "nome_pai": nome_pai,
-        "nome_mae": nome_mae,
-        "morada": morada,
-        "referencia": referencia,
-        "disciplinas": disciplinas + (", " + outra_disciplina if outra_disciplina else ""),
-        "latitude": latitude,
-        "longitude": longitude,
-        "registro": timestamp
-    }
+def salvar_professores(professores):
+    with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
+        json.dump(professores, f, ensure_ascii=False, indent=4)
 
-    # Gera PDF
-    caminho_pdf = gerar_pdf_aluno(aluno)
-
-    # Redireciona para rota de download
-    return RedirectResponse(url=f"/baixar-pdf?arquivo={os.path.basename(caminho_pdf)}", status_code=303)
-
-@app.get("/baixar-pdf", response_class=FileResponse)
-async def baixar_pdf():
-    return FileResponse("aluno_registro.pdf", media_type="application/pdf", filename="aluno_registro.pdf")
-
-
-def gerar_pdf_aluno(aluno):
-    os.makedirs("static/docs", exist_ok=True)
-    nome_arquivo = f"aluno_{aluno['nome_completo'].replace(' ', '_')}.pdf"
-    caminho_pdf = os.path.join("static", "docs", nome_arquivo)
-
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    pdf.cell(200, 10, f"Data de registro: {aluno['registro']}", ln=True)
-
-    pdf.ln(10)
-    for chave, valor in aluno.items():
-        if chave != "registro":
-            pdf.cell(200, 10, f"{chave.replace('_', ' ').capitalize()}: {valor}", ln=True)
-
-    pdf.output(caminho_pdf)
-    return caminho_pdf
-
-@app.get("/baixar-pdf", response_class=FileResponse)
-async def baixar_pdf(arquivo: str):
-    caminho_pdf = os.path.join("static", "docs", arquivo)
-    if os.path.exists(caminho_pdf):
-        return FileResponse(caminho_pdf, media_type="application/pdf", filename=arquivo)
-    return HTMLResponse("Arquivo PDF não encontrado.", status_code=404)
-    
 def gerar_html_professores():
     professores = carregar_professores()
     conteudo_html = """
@@ -180,6 +119,233 @@ def gerar_html_professores():
 
 # Carregamento inicial
 professores = carregar_professores()
+
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+def carregar_alunos():
+    if os.path.exists(CAMINHO_JSON):
+        with open(CAMINHO_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def salvar_alunos(alunos):
+    with open(CAMINHO_JSON, "w", encoding="utf-8") as f:
+        json.dump(alunos, f, ensure_ascii=False, indent=4)
+
+def gerar_pdf_individual(aluno):
+    nome_arquivo = f"static/docs/{aluno['nome'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    c = canvas.Canvas(nome_arquivo, pagesize=A4)
+    width, height = A4
+    y = height - 50
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2, y, "Ficha de Inscrição de Aluno")
+    y -= 40
+
+    c.setFont("Helvetica", 12)
+    campos = [
+        ("Nome", aluno["nome"]),
+        ("B.I.", aluno["bi"]),
+        ("Idade", str(aluno["idade"])),
+        ("Classe", aluno["classe"]),
+        ("Pai", aluno["pai"]),
+        ("Mãe", aluno["mae"]),
+        ("Disciplinas", ", ".join(aluno["disciplinas"])),
+        ("Localização", aluno["localizacao"]),
+    ]
+
+    for label, valor in campos:
+        c.drawString(50, y, f"{label}: {valor}")
+        y -= 20
+
+    c.save()
+    return nome_arquivo
+
+@app.get("/dados-alunos")
+async def get_alunos():
+    return carregar_alunos()
+
+# Rota POST para enviar os dados do formulário
+@app.post("/enviar-dados")
+async def enviar_dados(
+    name: str = Form(...),
+    bi: int = Form(...),
+    age: int = Form(...),
+    class_: str = Form(...),
+    father_name: str = Form(...),
+    mother_name: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    discipline: List[str] = Form(...),
+    other_discipline: str = Form(None)
+):
+    # Criar um objeto Aluno com os dados recebidos
+    aluno = Aluno(
+        name=name,
+        bi=bi,
+        age=age,
+        class_=class_,
+        father_name=father_name,
+        mother_name=mother_name,
+        latitude=latitude,
+        longitude=longitude,
+        discipline=discipline,
+        other_discipline=other_discipline
+    )
+
+    # Carregar os alunos atuais
+    alunos = carregar_alunos()
+
+    # Adicionar o novo aluno à lista
+    alunos.append(aluno.dict())
+
+    # Salvar a lista de alunos no arquivo JSON
+    salvar_alunos(alunos)
+
+    return {"message": "Dados enviados com sucesso!"}
+
+@app.get("/info-alunos", response_class=HTMLResponse)
+async def info_alunos(request: Request):
+    dados = carregar_alunos()
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": dados})
+
+@app.get("/registrar-aluno", response_class=HTMLResponse)
+async def form_aluno(request: Request):
+    return templates.TemplateResponse("registrar-aluno.html", {"request": request})
+
+@app.post("/registrar-aluno", response_class=HTMLResponse)
+async def registrar_aluno(
+    request: Request,
+    nome: str = Form(...),
+    bi: str = Form(...),
+    idade: int = Form(...),
+    classe: str = Form(...),
+    pai: str = Form(...),
+    mae: str = Form(...),
+    disciplinas: Annotated[List[str], Form()] = [],
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
+):
+    if outra_disciplina:
+        disciplinas.append(outra_disciplina)
+
+    localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+
+    novo_aluno = {
+        "nome": nome,
+        "bi": bi,
+        "idade": idade,
+        "classe": classe,
+        "pai": pai,
+        "mae": mae,
+        "disciplinas": disciplinas,
+        "localizacao": localizacao
+    }
+
+    alunos = carregar_alunos()
+    alunos.append(novo_aluno)
+    salvar_alunos(alunos)
+
+    caminho_pdf = gerar_pdf_individual(novo_aluno)
+
+    return FileResponse(caminho_pdf, media_type="application/pdf", filename=os.path.basename(caminho_pdf))
+
+@app.get("/info-a.html", response_class=HTMLResponse)
+async def mostrar_alunos(request: Request):
+    alunos = carregar_alunos()
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
+
+def carregar_alunos():
+    with open("alunos.json", "r", encoding="utf-8") as file:
+        return json.load(file)
+
+@app.get("/gerar-pdf-alunos")
+async def gerar_pdf_alunos():
+    alunos = carregar_alunos()  # função que lê do alunos.json
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Lista de Alunos Registrados", ln=True, align="C")
+    pdf.ln(10)
+
+    for aluno in alunos:
+        pdf.cell(200, 10, txt=f"Nome: {aluno['nome']}", ln=True)
+        pdf.cell(200, 10, txt=f"BI: {aluno['bi']}", ln=True)
+        pdf.cell(200, 10, txt=f"Idade: {aluno['idade']}", ln=True)
+        pdf.cell(200, 10, txt=f"Classe: {aluno['classe']}", ln=True)
+        pdf.cell(200, 10, txt=f"Pai: {aluno['pai']}", ln=True)
+        pdf.cell(200, 10, txt=f"Mãe: {aluno['mae']}", ln=True)
+        pdf.cell(200, 10, txt=f"Disciplinas: {', '.join(aluno['disciplinas'])}", ln=True)
+        pdf.cell(200, 10, txt=f"Localização: {aluno['localizacao']}", ln=True)
+        pdf.ln(10)
+
+    nome_arquivo = "alunos_registrados.pdf"
+    caminho_arquivo = os.path.join("static", nome_arquivo)
+    pdf.output(caminho_arquivo)
+
+    return FileResponse(path=caminho_arquivo, filename=nome_arquivo, media_type="application/pdf")
+    
+ # Cadastro do aluno
+@app.post("/registrar-aluno", response_class=HTMLResponse)
+async def registrar_aluno(
+    request: Request,
+    nome: str = Form(...),
+    bi: str = Form(...),
+    idade: int = Form(...),
+    classe: str = Form(...),
+    pai: str = Form(...),
+    mae: str = Form(...),
+    disciplinas: Annotated[List[str], Form()] = [],
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
+):
+    todas_disciplinas = disciplinas
+    if outra_disciplina:
+        todas_disciplinas.append(outra_disciplina)
+
+    dados = {
+        "nome": nome,
+        "bi": bi,
+        "idade": idade,
+        "classe": classe,
+        "pai": pai,
+        "mae": mae,
+        "disciplinas": todas_disciplinas,
+        "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+    }
+
+    alunos = carregar_alunos()
+    alunos.append(dados)
+    salvar_alunos(alunos)
+
+    # Gera o contrato HTML para exibição
+    contrato_html = gerar_html_contrato(nome, pai, mae)
+
+    return templates.TemplateResponse("aluno-info.html", {
+        "request": request,
+        "dados": dados,
+        "contrato": contrato_html,
+        "now": datetime.now()
+    })
+
+@app.get("/dados-alunos") 
+async def get_alunos():
+    # Caminho para o arquivo JSON dos alunos
+    with open("alunos.json", "r") as file:
+        alunos_data = json.load(file)
+    return alunos_data;       
     
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -192,6 +358,37 @@ async def criar_conta(request: Request):
 @app.get("/quero-aulas", response_class=HTMLResponse)
 async def quero_aulas(request: Request):
     return templates.TemplateResponse("quero-aulas.html", {"request": request})
+
+@app.get("/dados-aluno", response_class=HTMLResponse)
+async def get_form(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
+# Definição do modelo para os dados dos alunos
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+# Função para carregar os dados dos alunos de um arquivo JSON
+def carregar_dados_alunos():
+    arquivo_alunos = Path("dados-alunos.json")
+    if arquivo_alunos.exists():
+        with open(arquivo_alunos, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        return [Aluno(**aluno) for aluno in dados]  # Retorna uma lista de objetos Aluno
+    return []
+
+# Rota para exibir a lista de alunos na página info-alunos.html
+@app.get("/info-alunos", response_class=HTMLResponse)
+async def info_alunos(request: Request):
+    alunos = carregar_dados_alunos()  # Carrega os dados dos alunos
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos, "now": datetime.datetime.now()})
+
 
 @app.get("/precos", response_class=HTMLResponse)
 async def ver_precos(request: Request):
