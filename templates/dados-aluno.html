@@ -33,10 +33,9 @@
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
   <div class="w-full max-w-2xl px-4">
-    {% if sucesso %}
-      <div class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4 text-center font-semibold">
-        ✅ Inscrição feita com sucesso!
-      </div>
+  
+    {% if mensagem_sucesso %}
+        <p style="color: green;">{{ mensagem_sucesso }}</p>
     {% endif %}
 
     <form action="/cadastrar-aluno" method="post" onsubmit="handleSubmit(event)" class="bg-white p-8 rounded shadow-md w-full">
