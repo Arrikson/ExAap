@@ -346,6 +346,60 @@ async def get_alunos():
     with open("alunos.json", "r") as file:
         alunos_data = json.load(file)
     return alunos_data;       
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
+@app.post("/enviar-dados")
+async def enviar_dados(
+    name: str = Form(...),
+    bi: int = Form(...),
+    age: int = Form(...),
+    class_: str = Form(...),
+    father_name: str = Form(...),
+    mother_name: str = Form(...),
+    latitude: str = Form(""),
+    longitude: str = Form(""),
+    discipline: list[str] = Form([]),
+    other_discipline: str = Form("")
+):
+    try:
+        disciplinas = discipline.copy()
+        if other_discipline:
+            disciplinas.append(other_discipline)
+
+        novo_aluno = {
+            "name": name,
+            "bi": bi,
+            "age": age,
+            "class": class_,
+            "father_name": father_name,
+            "mother_name": mother_name,
+            "latitude": latitude,
+            "longitude": longitude,
+            "disciplines": disciplinas,
+            "created_at": datetime.now().isoformat()
+        }
+
+        # Lê os dados existentes
+        if os.path.exists(ALUNOS_JSON_PATH):
+            with open(ALUNOS_JSON_PATH, "r", encoding="utf-8") as f:
+                dados_existentes = json.load(f)
+        else:
+            dados_existentes = []
+
+        # Adiciona o novo aluno
+        dados_existentes.append(novo_aluno)
+
+        # Salva novamente o arquivo
+        with open(ALUNOS_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(dados_existentes, f, ensure_ascii=False, indent=4)
+
+        return templates.TemplateResponse("aluno-info.html", {"request": Request, "aluno": novo_aluno})
+
+    except Exception as e:
+        return HTMLResponse(content=f"Erro ao salvar dados: {str(e)}", status_code=500)
     
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
