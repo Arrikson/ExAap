@@ -227,7 +227,7 @@ async def cadastrar_aluno(
     gerar_html_alunos()
     # Redireciona para a página inicial com a mensagem de sucesso
     return templates.TemplateResponse("dados-aluno.html", {
-        "request": request, 
+        "request": request,
         "mensagem_sucesso": "Inscrição feita com sucesso!"
     })
 
