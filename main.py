@@ -15,7 +15,11 @@ from datetime import datetime
 from typing import List, Optional, Annotated
 from fpdf import FPDF
 from pathlib import Path
-from weasyprint import HTML
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
+CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
 
 app = FastAPI()
 
@@ -23,10 +27,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 PROFESSORES_JSON = "professores.json"
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
-CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
+ALUNOS_JSON = "alunos.json"
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
@@ -45,7 +46,7 @@ def gerar_html_professores():
     <html lang="pt">
     <head>
         <meta charset="UTF-8">
-        <title>Alunos Registrados</title>
+        <title>Professores Registrados</title>
         <link rel="stylesheet" href="/static/style.css">
         <style>
             body {
@@ -76,39 +77,35 @@ def gerar_html_professores():
             tr:nth-child(even) {
                 background-color: #f1f1f1;
             }
+            img {
+                max-width: 80px;
+                border-radius: 8px;
+            }
         </style>
     </head>
     <body>
-        <h1>Lista de Alunos Registrados</h1>
+        <h1>Lista de Professores Registrados</h1>
         <table>
             <tr>
+                <th>Foto</th>
                 <th>Nome</th>
-                <th>Data de Nascimento</th>
-                <th>Idade</th>
-                <th>Nome do Pai</th>
-                <th>Nome da Mãe</th>
-                <th>Morada</th>
-                <th>Referência</th>
-                <th>Disciplinas</th>
-                <th>Outra Disciplina</th>
+                <th>BI</th>
+                <th>Email</th>
+                <th>Telefone</th>
                 <th>Localização</th>
             </tr>
     """
 
     for p in professores:
-        localizacao = f"{p.get('latitude', '')}, {p.get('longitude', '')}"
+        foto_html = f'<img src="{p["doc_foto"]}" alt="Foto">' if "doc_foto" in p else "N/A"
         conteudo_html += f"""
-           <tr>
-                <td>{p.get("nome_completo", "")}</td>
-                <td>{p.get("data_nascimento", "")}</td>
-                <td>{p.get("idade", "")}</td>
-                <td>{p.get("nome_pai", "")}</td>
-                <td>{p.get("nome_mae", "")}</td>
-                <td>{p.get("morada", "")}</td>
-                <td>{p.get("referencia", "")}</td>
-                <td>{p.get("disciplinas", "")}</td>
-                <td>{p.get("outra_disciplina", "")}</td>
-                <td>{localizacao}</td>
+            <tr>
+                <td>{foto_html}</td>
+                <td>{p.get("nome", "")}</td>
+                <td>{p.get("bi", "")}</td>
+                <td>{p.get("email", "")}</td>
+                <td>{p.get("telefone", "")}</td>
+                <td>{p.get("localizacao", "")}</td>
             </tr>
         """
 
@@ -124,6 +121,79 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
+# Utilitários
+def carregar_alunos():
+    if os.path.exists(ALUNOS_JSON):
+        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def salvar_alunos(alunos):
+    with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(alunos, f, ensure_ascii=False, indent=4)
+
+def gerar_html_alunos():
+    alunos = carregar_alunos()
+    conteudo_html = """
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Alunos Registrados</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background: #f8f9fa; }
+            h1 { text-align: center; color: #333; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+            th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+            th { background: #343a40; color: #fff; }
+            tr:nth-child(even) { background: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Alunos Registrados</h1>
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Data de Nascimento</th>
+                <th>Morada</th>
+                <th>Ponto de Referência</th>
+                <th>Disciplinas</th>
+                <th>Localização</th>
+                <th>Ações</th>
+            </tr>
+    """
+    for a in alunos:
+        conteudo_html += f"""
+            <tr>
+                <td>{a.get("nome_completo", "")}</td>
+                <td>{a.get("idade", "")}</td>
+                <td>{a.get("data_nascimento", "")}</td>
+                <td>{a.get("morada", "")}</td>
+                <td>{a.get("referencia", "")}</td>
+                <td>{a.get("disciplinas", "")} {f"({a['outra_disciplina']})" if a.get("outra_disciplina") else ""}</td>
+                <td>{a.get("localizacao", "")}</td>
+                <td>
+                    <a href="/editar-aluno/{a['nome_completo']}">Editar</a> |
+                    <a href="/excluir-aluno/{a['nome_completo']}">Excluir</a>
+                </td>
+            </tr>
+        """
+    conteudo_html += """
+        </table>
+    </body>
+    </html>
+    """
+    with open("templates/info-alunos.html", "w", encoding="utf-8") as f:
+        f.write(conteudo_html)
+        
+# Rotas dos Alunos
+
+@app.get("/cadastro-aluno", response_class=HTMLResponse)
+async def form_aluno(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
 @app.post("/cadastrar-aluno", response_class=HTMLResponse)
 async def cadastrar_aluno(
     request: Request,
@@ -134,13 +204,12 @@ async def cadastrar_aluno(
     nome_mae: str = Form(...),
     morada: str = Form(...),
     referencia: str = Form(...),
-    disciplinas: str = Form(...),
-    outra_disciplina: Optional[str] = Form(""),
-    latitude: str = Form(...),
-    longitude: str = Form(...)
+    disciplinas: str = Form(""),
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
 ):
-    professores = carregar_professores()
-
+    localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     novo_aluno = {
         "nome_completo": nome_completo,
         "data_nascimento": data_nascimento,
@@ -151,16 +220,74 @@ async def cadastrar_aluno(
         "referencia": referencia,
         "disciplinas": disciplinas,
         "outra_disciplina": outra_disciplina,
-        "latitude": latitude,
-        "longitude": longitude
+        "localizacao": localizacao
     }
+    alunos = carregar_alunos()
+    alunos.append(novo_aluno)
+    salvar_alunos(alunos)
+    gerar_html_alunos()
+    # Redireciona para a página inicial com a mensagem de sucesso
+    return templates.TemplateResponse("dados-aluno.html", {
+        "request": request,
+        "mensagem_sucesso": "Inscrição feita com sucesso!"
+    })
 
-    professores.append(novo_aluno)
-    salvar_professores(professores)
+@app.get("/info-alunos.html", response_class=HTMLResponse)
+async def mostrar_alunos(request: Request):
+    alunos = carregar_alunos()
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
+    
+@app.post("/excluir-aluno/{nome_completo}")
+async def excluir_aluno(nome_completo: str):
+    alunos = carregar_alunos()
+    alunos = [a for a in alunos if a["nome_completo"] != nome_completo]
+    salvar_alunos(alunos)
+    gerar_html_alunos()
+    return RedirectResponse(url="/info-alunos.html", status_code=303)
 
-    return RedirectResponse(url="/pro-info.html", status_code=303)
+@app.get("/editar-aluno/{nome_completo}", response_class=HTMLResponse)
+async def editar_aluno_form(nome_completo: str, request: Request):
+    alunos = carregar_alunos()
+    aluno = next((a for a in alunos if a["nome_completo"] == nome_completo), None)
+    if not aluno:
+        return HTMLResponse("Aluno não encontrado", status_code=404)
+    return templates.TemplateResponse("editar-aluno.html", {"request": request, "aluno": aluno})
 
-
+@app.post("/editar-aluno/{nome_completo}")
+async def editar_aluno(
+    request: Request,
+    nome_completo: str,
+    data_nascimento: str = Form(...),
+    idade: int = Form(...),
+    nome_pai: str = Form(...),
+    nome_mae: str = Form(...),
+    morada: str = Form(...),
+    referencia: str = Form(...),
+    disciplinas: str = Form(""),
+    outra_disciplina: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form("")
+):
+    alunos = carregar_alunos()
+    for i, a in enumerate(alunos):
+        if a["nome_completo"] == nome_completo:
+            alunos[i] = {
+                "nome_completo": nome_completo,
+                "data_nascimento": data_nascimento,
+                "idade": idade,
+                "nome_pai": nome_pai,
+                "nome_mae": nome_mae,
+                "morada": morada,
+                "referencia": referencia,
+                "disciplinas": disciplinas,
+                "outra_disciplina": outra_disciplina,
+                "localizacao": f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+            }
+            break
+    salvar_alunos(alunos)
+    gerar_html_alunos()
+    return RedirectResponse(url="/info-alunos.html", status_code=303)  
+    
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -172,6 +299,37 @@ async def criar_conta(request: Request):
 @app.get("/quero-aulas", response_class=HTMLResponse)
 async def quero_aulas(request: Request):
     return templates.TemplateResponse("quero-aulas.html", {"request": request})
+
+@app.get("/dados-aluno", response_class=HTMLResponse)
+async def get_form(request: Request):
+    return templates.TemplateResponse("dados-aluno.html", {"request": request})
+
+# Definição do modelo para os dados dos alunos
+class Aluno(BaseModel):
+    nome: str
+    bi: str
+    idade: int
+    classe: str
+    pai: str
+    mae: str
+    disciplinas: List[str]
+    localizacao: str
+
+# Função para carregar os dados dos alunos de um arquivo JSON
+def carregar_dados_alunos():
+    arquivo_alunos = Path("dados-alunos.json")
+    if arquivo_alunos.exists():
+        with open(arquivo_alunos, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        return [Aluno(**aluno) for aluno in dados]  # Retorna uma lista de objetos Aluno
+    return []
+
+# Rota para exibir a lista de alunos na página info-alunos.html
+@app.get("/info-alunos", response_class=HTMLResponse)
+async def info_alunos(request: Request):
+    alunos = carregar_dados_alunos()  # Carrega os dados dos alunos
+    return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos, "now": datetime.datetime.now()})
+
 
 @app.get("/precos", response_class=HTMLResponse)
 async def ver_precos(request: Request):
@@ -198,20 +356,20 @@ async def excluir_professor(bi: str):
 async def editar_professor_form(bi: str, request: Request):
     professor = next((p for p in professores if p["bi"] == bi), None)
     if not professor:
-        return HTMLResponse("Aluno não encontrado", status_code=404)
+        return HTMLResponse("Professor não encontrado", status_code=404)
     
     return templates.TemplateResponse("editar-professor.html", {
         "request": request,
         "professor": professor
     })
 
-@app.get("/dados-professor.html", response_class=HTMLResponse)
-async def dados_professor(request: Request):
-    return templates.TemplateResponse("dados-professor.html", {"request": request})
-
 @app.get("/pro-info.html", response_class=HTMLResponse)
 async def mostrar_professores_estatico(request: Request):
     return templates.TemplateResponse("pro-info.html", {"request": request})
+
+@app.get("/dados-professor.html", response_class=HTMLResponse)
+async def dados_professor(request: Request):
+    return templates.TemplateResponse("dados-professor.html", {"request": request})
 
 @app.post("/api/professores", response_class=JSONResponse)
 async def receber_professor_api(professor: dict = Body(...)):
@@ -229,53 +387,47 @@ def listar_professores():
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
-    nome_completo: str = Form(...),
-    data_nascimento: str = Form(...),
-    idade: int = Form(...),
-    nome_pai: str = Form(...),
-    nome_mae: str = Form(...),
-    morada: str = Form(...),
-    referencia: str = Form(...),
-    disciplinas: str = Form(...),  # string separada por vírgula
-    outra_disciplina: Optional[str] = Form(""),
+    nome: str = Form(...),
+    bi: str = Form(...),
+    habilitacao: str = Form(...),
+    licenciatura_area: Optional[str] = Form(""),
+    disciplinas: List[str] = Form([]),
+    outras_disciplinas: Optional[str] = Form(""),
+    telefone: str = Form(...),
+    email: str = Form(...),
     latitude: str = Form(...),
-    longitude: str = Form(...)
+    longitude: str = Form(...),
+    doc_foto: UploadFile = File(...),
+    doc_pdf: UploadFile = File(...)
 ):
     professores = carregar_professores()
 
-    novo_professor = {
-        "nome_completo": nome_completo,
-        "data_nascimento": data_nascimento,
-        "idade": idade,
-        "nome_pai": nome_pai,
-        "nome_mae": nome_mae,
-        "morada": morada,
-        "referencia": referencia,
-        "disciplinas": disciplinas,
-        "outra_disciplina": outra_disciplina,
-        "latitude": latitude,
-        "longitude": longitude
-    }
+    # Diretório para armazenar os arquivos
+    os.makedirs("static/docs", exist_ok=True)
 
-    professores.append(novo_professor)
-    salvar_professores(professores)
-    gerar_html_professores()
+    # Caminhos para salvar as fotos e PDFs
+    foto_path = f"static/docs/{doc_foto.filename}"
+    pdf_path = f"static/docs/{doc_pdf.filename}"
 
-    return RedirectResponse(url="/pro-info.html", status_code=303)
+    # Salvar as fotos e PDFs no diretório
+    with open(foto_path, "wb") as buffer:
+        shutil.copyfileobj(doc_foto.file, buffer)
+    with open(pdf_path, "wb") as buffer:
+        shutil.copyfileobj(doc_pdf.file, buffer)
 
     # Registrar as informações do professor
     novo_professor = {
-        "nome_completo": nome_completo,
-        "data_nascimento": data_nascimento,
-        "idade": idade,
-        "nome_pai": nome_pai,
-        "nome_mae": nome_mae,
-        "morada": morada,
-        "referencia": referencia,
+        "nome": nome,
+        "bi": bi,
+        "habilitacao": habilitacao,
+        "licenciatura_area": licenciatura_area,
         "disciplinas": disciplinas,
-        "outra_disciplina": outra_disciplina,
-        "latitude": latitude,
-        "longitude": longitude
+        "outras_disciplinas": outras_disciplinas,
+        "telefone": telefone,
+        "email": email,
+        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
+        "doc_foto": "/" + foto_path,  # Caminho relativo para a foto
+        "doc_pdf": "/" + pdf_path     # Caminho relativo para o PDF
     }
 
     professores.append(novo_professor)
@@ -318,16 +470,14 @@ async def gerar_pdf():
         c.setFillColor(colors.black)
 
         campos = [
-            ("Data de Nascimento", aluno.get("data_nascimento", "")),
-            ("Idade", str(aluno.get("idade", ""))),
-            ("Nome do Pai", aluno.get("nome_pai", "")),
-            ("Nome da Mãe", aluno.get("nome_mae", "")),
-            ("Morada", aluno.get("morada", "")),
-            ("Referência", aluno.get("referencia", "")),
-            ("Disciplinas", aluno.get("disciplinas", "")),
-            ("Outra Disciplina", aluno.get("outra_disciplina", "")),
-            ("Latitude", aluno.get("latitude", "")),
-            ("Longitude", aluno.get("longitude", ""))
+            ("BI", p.get("bi", "")),
+            ("Habilitações", p.get("habilitacao", "")),
+            ("Área da Licenciatura", p.get("licenciatura_area", "")),
+            ("Disciplinas", ", ".join(p.get("disciplinas", []))),
+            ("Outras Disciplinas", p.get("outras_disciplinas", "")),
+            ("Telefone", p.get("telefone", "")),
+            ("Email", p.get("email", "")),
+            ("Localização", p.get("localizacao", "")),
         ]
 
         for label, valor in campos:
