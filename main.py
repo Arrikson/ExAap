@@ -89,6 +89,11 @@ def gerar_html_professores():
             <tr>
                 <th>Foto</th>
                 <th>Nome</th>
+                <th>Idade</th>
+                <th>Nome do Pai</th>
+                <th>Nome da Mãe</th>
+                <th>Morada Atual</th>
+                <th>Ponto de Referência</th>
                 <th>BI</th>
                 <th>Email</th>
                 <th>Telefone</th>
@@ -102,6 +107,11 @@ def gerar_html_professores():
             <tr>
                 <td>{foto_html}</td>
                 <td>{p.get("nome", "")}</td>
+                <td>{p.get("idade", "")}</td>
+                <td>{p.get("nome_pai", "")}</td>
+                <td>{p.get("nome_mae", "")}</td>
+                <td>{p.get("morada_atual", "")}</td>
+                <td>{p.get("ponto_referencia", "")}</td>
                 <td>{p.get("bi", "")}</td>
                 <td>{p.get("email", "")}</td>
                 <td>{p.get("telefone", "")}</td>
@@ -190,9 +200,12 @@ def listar_professores():
 async def registrar_professor(
     request: Request,
     nome: str = Form(...),
+    idade: str = Form(...),
+    nome_pai: str = Form(...),
+    nome_mae: str = Form(...),
+    morada_atual: str = Form(...),
+    ponto_referencia: str = Form(...),
     bi: str = Form(...),
-    habilitacao: str = Form(...),
-    licenciatura_area: Optional[str] = Form(""),
     disciplinas: List[str] = Form([]),
     outras_disciplinas: Optional[str] = Form(""),
     telefone: str = Form(...),
@@ -204,32 +217,31 @@ async def registrar_professor(
 ):
     professores = carregar_professores()
 
-    # Diretório para armazenar os arquivos
     os.makedirs("static/docs", exist_ok=True)
 
-    # Caminhos para salvar as fotos e PDFs
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
 
-    # Salvar as fotos e PDFs no diretório
     with open(foto_path, "wb") as buffer:
         shutil.copyfileobj(doc_foto.file, buffer)
     with open(pdf_path, "wb") as buffer:
         shutil.copyfileobj(doc_pdf.file, buffer)
 
-    # Registrar as informações do professor
     novo_professor = {
         "nome": nome,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada_atual": morada_atual,
+        "ponto_referencia": ponto_referencia,
         "bi": bi,
-        "habilitacao": habilitacao,
-        "licenciatura_area": licenciatura_area,
         "disciplinas": disciplinas,
         "outras_disciplinas": outras_disciplinas,
         "telefone": telefone,
         "email": email,
         "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
-        "doc_foto": "/" + foto_path,  # Caminho relativo para a foto
-        "doc_pdf": "/" + pdf_path     # Caminho relativo para o PDF
+        "doc_foto": "/" + foto_path,
+        "doc_pdf": "/" + pdf_path
     }
 
     professores.append(novo_professor)
@@ -237,6 +249,7 @@ async def registrar_professor(
     gerar_html_professores()
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
+
 
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
@@ -272,9 +285,12 @@ async def gerar_pdf():
         c.setFillColor(colors.black)
 
         campos = [
+            ("Idade", p.get("idade", "")),
+            ("Nome do Pai", p.get("nome_pai", "")),
+            ("Nome da Mãe", p.get("nome_mae", "")),
+            ("Morada Atual", p.get("morada_atual", "")),
+            ("Ponto de Referência", p.get("ponto_referencia", "")),
             ("BI", p.get("bi", "")),
-            ("Habilitações", p.get("habilitacao", "")),
-            ("Área da Licenciatura", p.get("licenciatura_area", "")),
             ("Disciplinas", ", ".join(p.get("disciplinas", []))),
             ("Outras Disciplinas", p.get("outras_disciplinas", "")),
             ("Telefone", p.get("telefone", "")),
@@ -313,3 +329,4 @@ async def gerar_pdf():
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
+
