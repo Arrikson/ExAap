@@ -298,6 +298,8 @@ novo_aluno = {
     "registro": registro_data
 }
     alunos = carregar_alunos()
+
+
     alunos.append(novo_aluno)
     salvar_alunos(alunos)
     gerar_html_alunos()
