@@ -45,7 +45,7 @@ def gerar_html_professores():
     <html lang="pt">
     <head>
         <meta charset="UTF-8">
-        <title>Professores Registrados</title>
+        <title>Alunos Registrados</title>
         <link rel="stylesheet" href="/static/style.css">
         <style>
             body {
@@ -76,35 +76,39 @@ def gerar_html_professores():
             tr:nth-child(even) {
                 background-color: #f1f1f1;
             }
-            img {
-                max-width: 80px;
-                border-radius: 8px;
-            }
         </style>
     </head>
     <body>
-        <h1>Lista de Professores Registrados</h1>
+        <h1>Lista de Alunos Registrados</h1>
         <table>
             <tr>
-                <th>Foto</th>
                 <th>Nome</th>
-                <th>BI</th>
-                <th>Email</th>
-                <th>Telefone</th>
+                <th>Data de Nascimento</th>
+                <th>Idade</th>
+                <th>Nome do Pai</th>
+                <th>Nome da Mãe</th>
+                <th>Morada</th>
+                <th>Referência</th>
+                <th>Disciplinas</th>
+                <th>Outra Disciplina</th>
                 <th>Localização</th>
             </tr>
     """
 
     for p in professores:
-        foto_html = f'<img src="{p["doc_foto"]}" alt="Foto">' if "doc_foto" in p else "N/A"
+        localizacao = f"{p.get('latitude', '')}, {p.get('longitude', '')}"
         conteudo_html += f"""
-            <tr>
-                <td>{foto_html}</td>
-                <td>{p.get("nome", "")}</td>
-                <td>{p.get("bi", "")}</td>
-                <td>{p.get("email", "")}</td>
-                <td>{p.get("telefone", "")}</td>
-                <td>{p.get("localizacao", "")}</td>
+           <tr>
+                <td>{p.get("nome_completo", "")}</td>
+                <td>{p.get("data_nascimento", "")}</td>
+                <td>{p.get("idade", "")}</td>
+                <td>{p.get("nome_pai", "")}</td>
+                <td>{p.get("nome_mae", "")}</td>
+                <td>{p.get("morada", "")}</td>
+                <td>{p.get("referencia", "")}</td>
+                <td>{p.get("disciplinas", "")}</td>
+                <td>{p.get("outra_disciplina", "")}</td>
+                <td>{localizacao}</td>
             </tr>
         """
 
@@ -119,6 +123,7 @@ def gerar_html_professores():
 
 # Carregamento inicial
 professores = carregar_professores()
+
       
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -131,30 +136,6 @@ async def criar_conta(request: Request):
 @app.get("/quero-aulas", response_class=HTMLResponse)
 async def quero_aulas(request: Request):
     return templates.TemplateResponse("quero-aulas.html", {"request": request})
-
-@app.get("/dados-aluno", response_class=HTMLResponse)
-async def get_form(request: Request):
-    return templates.TemplateResponse("dados-aluno.html", {"request": request})
-
-# Definição do modelo para os dados dos alunos
-class Aluno(BaseModel):
-    nome: str
-    bi: str
-    idade: int
-    classe: str
-    pai: str
-    mae: str
-    disciplinas: List[str]
-    localizacao: str
-
-# Função para carregar os dados dos alunos de um arquivo JSON
-def carregar_dados_alunos():
-    arquivo_alunos = Path("dados-alunos.json")
-    if arquivo_alunos.exists():
-        with open(arquivo_alunos, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        return [Aluno(**aluno) for aluno in dados]  # Retorna uma lista de objetos Aluno
-    return []
 
 @app.get("/precos", response_class=HTMLResponse)
 async def ver_precos(request: Request):
@@ -211,19 +192,18 @@ def listar_professores():
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
-    request: Request,
-    nome: str = Form(...),
-    bi: str = Form(...),
-    habilitacao: str = Form(...),
-    licenciatura_area: Optional[str] = Form(""),
-    disciplinas: List[str] = Form([]),
-    outras_disciplinas: Optional[str] = Form(""),
-    telefone: str = Form(...),
-    email: str = Form(...),
+     request: Request,
+    nome_completo: str = Form(...),
+    data_nascimento: str = Form(...),
+    idade: int = Form(...),
+    nome_pai: str = Form(...),
+    nome_mae: str = Form(...),
+    morada: str = Form(...),
+    referencia: str = Form(...),
+    disciplinas: str = Form(...),  # string separada por vírgula
+    outra_disciplina: Optional[str] = Form(""),
     latitude: str = Form(...),
-    longitude: str = Form(...),
-    doc_foto: UploadFile = File(...),
-    doc_pdf: UploadFile = File(...)
+    longitude: str = Form(...)
 ):
     professores = carregar_professores()
 
@@ -242,17 +222,17 @@ async def registrar_professor(
 
     # Registrar as informações do professor
     novo_professor = {
-        "nome": nome,
-        "bi": bi,
-        "habilitacao": habilitacao,
-        "licenciatura_area": licenciatura_area,
+        "nome_completo": nome_completo,
+        "data_nascimento": data_nascimento,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada": morada,
+        "referencia": referencia,
         "disciplinas": disciplinas,
-        "outras_disciplinas": outras_disciplinas,
-        "telefone": telefone,
-        "email": email,
-        "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
-        "doc_foto": "/" + foto_path,  # Caminho relativo para a foto
-        "doc_pdf": "/" + pdf_path     # Caminho relativo para o PDF
+        "outra_disciplina": outra_disciplina,
+        "latitude": latitude,
+        "longitude": longitude
     }
 
     professores.append(novo_professor)
@@ -295,14 +275,16 @@ async def gerar_pdf():
         c.setFillColor(colors.black)
 
         campos = [
-            ("BI", p.get("bi", "")),
-            ("Habilitações", p.get("habilitacao", "")),
-            ("Área da Licenciatura", p.get("licenciatura_area", "")),
-            ("Disciplinas", ", ".join(p.get("disciplinas", []))),
-            ("Outras Disciplinas", p.get("outras_disciplinas", "")),
-            ("Telefone", p.get("telefone", "")),
-            ("Email", p.get("email", "")),
-            ("Localização", p.get("localizacao", "")),
+            ("Data de Nascimento", aluno.get("data_nascimento", "")),
+            ("Idade", str(aluno.get("idade", ""))),
+            ("Nome do Pai", aluno.get("nome_pai", "")),
+            ("Nome da Mãe", aluno.get("nome_mae", "")),
+            ("Morada", aluno.get("morada", "")),
+            ("Referência", aluno.get("referencia", "")),
+            ("Disciplinas", aluno.get("disciplinas", "")),
+            ("Outra Disciplina", aluno.get("outra_disciplina", "")),
+            ("Latitude", aluno.get("latitude", "")),
+            ("Longitude", aluno.get("longitude", ""))
         ]
 
         for label, valor in campos:
