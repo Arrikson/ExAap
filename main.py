@@ -134,7 +134,9 @@ def salvar_alunos(alunos):
 
 def gerar_html_alunos():
     alunos = carregar_alunos()
-    conteudo_html = """
+    data_hoje = datetime.now().strftime("%d/%m/%Y")
+
+    conteudo_html = f"""
     <!DOCTYPE html>
     <html lang="pt">
     <head>
@@ -142,16 +144,78 @@ def gerar_html_alunos():
         <title>Alunos Registrados</title>
         <link rel="stylesheet" href="/static/style.css">
         <style>
-            body { font-family: Arial, sans-serif; padding: 20px; background: #f8f9fa; }
-            h1 { text-align: center; color: #333; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-            th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-            th { background: #343a40; color: #fff; }
-            tr:nth-child(even) { background: #f2f2f2; }
+            body {{
+                font-family: 'Segoe UI', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #ffffff;
+            }}
+            header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 20px;
+                background: #ffffff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }}
+            .data-atual {{
+                font-weight: bold;
+                color: #555;
+            }}
+            .logo {{
+                height: 40px;
+            }}
+            h1 {{
+                text-align: center;
+                margin-top: 30px;
+                color: #2c3e50;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                background: #fff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }}
+            th, td {{
+                padding: 12px 15px;
+                border-bottom: 1px solid #eee;
+                text-align: left;
+            }}
+            th {{
+                background: #2d3436;
+                color: #fff;
+            }}
+            tr:hover {{
+                background: #f1f2f6;
+            }}
+            .acoes a {{
+                padding: 6px 12px;
+                margin: 0 4px;
+                border-radius: 4px;
+                text-decoration: none;
+                font-size: 14px;
+            }}
+            .editar {{
+                background-color: #0984e3;
+                color: white;
+            }}
+            .excluir {{
+                background-color: #d63031;
+                color: white;
+            }}
         </style>
     </head>
     <body>
+        <header>
+            <div class="data-atual">Data: {data_hoje}</div>
+            <img src="/static/logo.png" class="logo" alt="Logo">
+        </header>
+
         <h1>Lista de Alunos Registrados</h1>
+
         <table>
             <tr>
                 <th>Nome</th>
@@ -161,10 +225,15 @@ def gerar_html_alunos():
                 <th>Ponto de Referência</th>
                 <th>Disciplinas</th>
                 <th>Localização</th>
+                <th>Registrado em</th>
                 <th>Ações</th>
             </tr>
     """
+
     for a in alunos:
+        registro = a.get("registro", "N/A")
+        disciplinas = a.get("disciplinas", "")
+        outra = f" ({a['outra_disciplina']})" if a.get("outra_disciplina") else ""
         conteudo_html += f"""
             <tr>
                 <td>{a.get("nome_completo", "")}</td>
@@ -172,14 +241,16 @@ def gerar_html_alunos():
                 <td>{a.get("data_nascimento", "")}</td>
                 <td>{a.get("morada", "")}</td>
                 <td>{a.get("referencia", "")}</td>
-                <td>{a.get("disciplinas", "")} {f"({a['outra_disciplina']})" if a.get("outra_disciplina") else ""}</td>
+                <td>{disciplinas}{outra}</td>
                 <td>{a.get("localizacao", "")}</td>
-                <td>
-                    <a href="/editar-aluno/{a['nome_completo']}">Editar</a> |
-                    <a href="/excluir-aluno/{a['nome_completo']}">Excluir</a>
+                <td>{registro}</td>
+                <td class="acoes">
+                    <a href="/editar-aluno/{a['nome_completo']}" class="editar">Editar</a>
+                    <a href="/excluir-aluno/{a['nome_completo']}" class="excluir">Excluir</a>
                 </td>
             </tr>
         """
+
     conteudo_html += """
         </table>
     </body>
@@ -209,6 +280,8 @@ async def cadastrar_aluno(
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
+    registro_data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    
     localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
     novo_aluno = {
         "nome_completo": nome_completo,
@@ -221,6 +294,7 @@ async def cadastrar_aluno(
         "disciplinas": disciplinas,
         "outra_disciplina": outra_disciplina,
         "localizacao": localizacao
+        "registro": registro_data
     }
     alunos = carregar_alunos()
     alunos.append(novo_aluno)
