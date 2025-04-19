@@ -205,10 +205,6 @@ async def editar_professor_form(bi: str, request: Request):
         "professor": professor
     })
 
-@app.get("/pro-info.html", response_class=HTMLResponse)
-async def mostrar_professores_estatico(request: Request):
-    return templates.TemplateResponse("pro-info.html", {"request": request})
-
 @app.get("/dados-professor.html", response_class=HTMLResponse)
 async def dados_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
