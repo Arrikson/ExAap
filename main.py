@@ -280,34 +280,34 @@ async def cadastrar_aluno(
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
-  registro_data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    registro_data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+    localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
 
-novo_aluno = {
-    "nome_completo": nome_completo,
-    "data_nascimento": data_nascimento,
-    "idade": idade,
-    "nome_pai": nome_pai,
-    "nome_mae": nome_mae,
-    "morada": morada,
-    "referencia": referencia,
-    "disciplinas": disciplinas,
-    "outra_disciplina": outra_disciplina,
-    "localizacao": localizacao,
-    "registro": registro_data
-}
+    novo_aluno = {
+        "nome_completo": nome_completo,
+        "data_nascimento": data_nascimento,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada": morada,
+        "referencia": referencia,
+        "disciplinas": disciplinas,
+        "outra_disciplina": outra_disciplina,
+        "localizacao": localizacao,
+        "registro": registro_data
+    }
+
     alunos = carregar_alunos()
-
-
     alunos.append(novo_aluno)
     salvar_alunos(alunos)
     gerar_html_alunos()
-    # Redireciona para a página inicial com a mensagem de sucesso
+
     return templates.TemplateResponse("dados-aluno.html", {
         "request": request,
         "mensagem_sucesso": "Inscrição feita com sucesso!"
     })
+
 
 @app.get("/info-alunos.html", response_class=HTMLResponse)
 async def mostrar_alunos(request: Request):
