@@ -24,7 +24,7 @@
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -36,7 +36,7 @@
       margin-bottom: 5px;
     }
 
-    input[type="text"], input[type="email"], input[type="tel"] {
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"] {
       padding: 12px;
       border: 1px solid #ccc;
       border-radius: 10px;
@@ -114,20 +114,23 @@
     <label>Nome completo:</label>
     <input type="text" id="nome" name="nome" required />
 
+    <label>Idade:</label>
+    <input type="number" id="idade" name="idade" min="18" max="100" required />
+
+    <label>Nome do Pai:</label>
+    <input type="text" id="pai" name="pai" required />
+
+    <label>Nome da Mãe:</label>
+    <input type="text" id="mae" name="mae" required />
+
+    <label>Morada Atual:</label>
+    <input type="text" id="morada" name="morada" required />
+
+    <label>Ponto de Referência:</label>
+    <input type="text" id="referencia" name="referencia" />
+
     <label>Nº do B.I:</label>
-    <input type="text" id="bi" name="bi" required />
-
-    <label>Habilitações literárias:</label>
-    <div class="radio-group" id="habilitacoes">
-      <div class="option" data-value="Licenciatura">
-        <span class="circle"></span> Licenciatura
-      </div>
-      <div class="option" data-value="Ensino médio">
-        <span class="circle"></span> Ensino médio
-      </div>
-    </div>
-
-    <input type="text" id="campo-licenciatura" name="licenciatura" placeholder="Licenciatura em..." style="display: none;" />
+    <input type="text" id="bi" name="bi" pattern="[A-Za-z0-9]+" required />
 
     <label>Professor de:</label>
     <div class="disciplinas" id="disciplinas">
@@ -159,19 +162,6 @@
   </form>
 
   <script>
-    const habilitacoes = document.querySelectorAll('#habilitacoes .option');
-    const campoLic = document.getElementById('campo-licenciatura');
-    let habilitacaoSelecionada = '';
-
-    habilitacoes.forEach(op => {
-      op.addEventListener('click', () => {
-        habilitacoes.forEach(o => o.classList.remove('selected'));
-        op.classList.add('selected');
-        habilitacaoSelecionada = op.dataset.value;
-        campoLic.style.display = habilitacaoSelecionada === "Licenciatura" ? 'block' : 'none';
-      });
-    });
-
     const disciplinas = document.querySelectorAll('#disciplinas .option');
     disciplinas.forEach(op => {
       op.addEventListener('click', () => {
@@ -206,9 +196,12 @@
 
       const data = {
         nome: document.getElementById('nome').value,
+        idade: document.getElementById('idade').value,
+        pai: document.getElementById('pai').value,
+        mae: document.getElementById('mae').value,
+        morada: document.getElementById('morada').value,
+        referencia: document.getElementById('referencia').value,
         bi: document.getElementById('bi').value,
-        habilitacoes: habilitacaoSelecionada,
-        licenciatura: campoLic.style.display === 'block' ? campoLic.value : '',
         disciplinas: [...document.querySelectorAll('#disciplinas .selected')].map(el => el.dataset.value),
         outras_disciplinas: [...document.querySelectorAll('#outras-disciplinas input')].map(el => el.value),
         telefone: document.getElementById('telefone').value,
