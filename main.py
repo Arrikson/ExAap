@@ -209,6 +209,10 @@ async def editar_professor_form(bi: str, request: Request):
 async def dados_professor(request: Request):
     return templates.TemplateResponse("dados-professor.html", {"request": request})
 
+@app.get("/pro-info.html", response_class=HTMLResponse)
+async def mostrar_professores_estatico(request: Request):
+    return templates.TemplateResponse("pro-info.html", {"request": request})
+
 @app.post("/api/professores", response_class=JSONResponse)
 async def receber_professor_api(professor: dict = Body(...)):
     professores = carregar_professores()
