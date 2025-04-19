@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import List, Optional, Annotated
 from fpdf import FPDF
 from pathlib import Path
+from weasyprint import HTML
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -429,7 +430,7 @@ async def gerar_pdf_aluno(nome: str):
     </html>
     """
 
-    # Gerar PDF temporário
+   # Gerar o PDF a partir do conteúdo HTML
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
         HTML(string=html_content).write_pdf(tmpfile.name)
         pdf_path = tmpfile.name
@@ -437,8 +438,8 @@ async def gerar_pdf_aluno(nome: str):
     # Nome do arquivo
     filename = f"{nome.replace(' ', '_')}_aluno.pdf"
 
+    # Retorna o PDF gerado
     return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
-
     
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
