@@ -364,6 +364,81 @@ async def editar_aluno(
     salvar_alunos(alunos)
     gerar_html_alunos()
     return RedirectResponse(url="/info-alunos.html", status_code=303)  
+
+@app.get("/info-aluno/{nome}", response_class=HTMLResponse)
+async def exibir_info_aluno(request: Request, nome: str):
+    with open("alunos.json", "r", encoding="utf-8") as f:
+        alunos = json.load(f)
+    
+    for aluno in alunos:
+        if aluno["nome_completo"] == nome:
+            return templates.TemplateResponse("info-aluno.html", {
+                "request": request,
+                "aluno": aluno
+            })
+    
+    return HTMLResponse(content="Aluno não encontrado", status_code=404)
+
+
+@app.get("/gerar-pdf-aluno/{nome}")
+async def gerar_pdf_aluno(nome: str):
+    with open("alunos.json", "r", encoding="utf-8") as f:
+        alunos = json.load(f)
+
+    aluno = next((a for a in alunos if a["nome_completo"] == nome), None)
+
+    if not aluno:
+        return HTMLResponse(content="Aluno não encontrado", status_code=404)
+
+    # HTML personalizado do aluno
+    html_content = f"""
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; padding: 30px; }}
+            h1 {{ color: #2c3e50; }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }}
+            th, td {{
+                padding: 10px;
+                border: 1px solid #ccc;
+                text-align: left;
+            }}
+            th {{ background: #2e86de; color: white; }}
+        </style>
+    </head>
+    <body>
+        <h1>Informações do Aluno</h1>
+        <table>
+            <tr><th>Nome</th><td>{aluno["nome_completo"]}</td></tr>
+            <tr><th>Data de Nascimento</th><td>{aluno["data_nascimento"]}</td></tr>
+            <tr><th>Idade</th><td>{aluno["idade"]}</td></tr>
+            <tr><th>Nome do Pai</th><td>{aluno["nome_pai"]}</td></tr>
+            <tr><th>Nome da Mãe</th><td>{aluno["nome_mae"]}</td></tr>
+            <tr><th>Morada</th><td>{aluno["morada"]}</td></tr>
+            <tr><th>Referência</th><td>{aluno["referencia"]}</td></tr>
+            <tr><th>Disciplinas</th><td>{aluno["disciplinas"]}</td></tr>
+            <tr><th>Latitude</th><td>{aluno["latitude"]}</td></tr>
+            <tr><th>Longitude</th><td>{aluno["longitude"]}</td></tr>
+        </table>
+    </body>
+    </html>
+    """
+
+    # Gerar PDF temporário
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+        HTML(string=html_content).write_pdf(tmpfile.name)
+        pdf_path = tmpfile.name
+
+    # Nome do arquivo
+    filename = f"{nome.replace(' ', '_')}_aluno.pdf"
+
+    return FileResponse(path=pdf_path, filename=filename, media_type="application/pdf")
+
     
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
