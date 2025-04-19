@@ -32,6 +32,20 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
 CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
 
+from weasyprint import HTML
+
+def gerar_pdf_lista_alunos():
+    # ...
+    HTML(string=html_conteudo).write_pdf(CAMINHO_PDF)
+    print("✅ PDF criado com sucesso!")
+
+def gerar_pdf_teste():
+    os.makedirs("static", exist_ok=True)
+    caminho = os.path.join("static", "teste.pdf")
+    html = "<h1>Olá, PDF!</h1><p>Isso é um teste.</p>"
+    HTML(string=html).write_pdf(caminho)
+    print("✅ PDF de teste gerado.")
+
 
 def carregar_alunos():
     if os.path.exists(ALUNOS_JSON):
