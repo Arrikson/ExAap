@@ -25,6 +25,9 @@ templates = Jinja2Templates(directory="templates")
 PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
+# Criar a pasta static se não existir
+os.makedirs("static", exist_ok=True)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
 CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
@@ -35,12 +38,14 @@ def carregar_alunos():
         with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
-
 def gerar_pdf_lista_alunos():
     alunos = carregar_alunos()
 
     # Garante que a pasta static existe
     os.makedirs("static", exist_ok=True)
+
+    # Define o caminho completo onde o PDF será salvo dentro da pasta static
+    CAMINHO_PDF = os.path.join("static", "lista_alunos.pdf")
 
     html_conteudo = """
     <html>
@@ -97,6 +102,7 @@ def gerar_pdf_lista_alunos():
     # Gera o PDF e salva no local certo
     HTML(string=html_conteudo).write_pdf(CAMINHO_PDF)
     print(f"✅ PDF gerado em: {CAMINHO_PDF}")
+
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
