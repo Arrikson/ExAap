@@ -124,7 +124,43 @@ def gerar_html_professores():
 # Carregamento inicial
 professores = carregar_professores()
 
-      
+@app.post("/cadastrar-aluno", response_class=HTMLResponse)
+async def cadastrar_aluno(
+    request: Request,
+    nome_completo: str = Form(...),
+    data_nascimento: str = Form(...),
+    idade: int = Form(...),
+    nome_pai: str = Form(...),
+    nome_mae: str = Form(...),
+    morada: str = Form(...),
+    referencia: str = Form(...),
+    disciplinas: str = Form(...),
+    outra_disciplina: Optional[str] = Form(""),
+    latitude: str = Form(...),
+    longitude: str = Form(...)
+):
+    professores = carregar_professores()
+
+    novo_aluno = {
+        "nome_completo": nome_completo,
+        "data_nascimento": data_nascimento,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada": morada,
+        "referencia": referencia,
+        "disciplinas": disciplinas,
+        "outra_disciplina": outra_disciplina,
+        "latitude": latitude,
+        "longitude": longitude
+    }
+
+    professores.append(novo_aluno)
+    salvar_professores(professores)
+
+    return RedirectResponse(url="/pro-info.html", status_code=303)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
