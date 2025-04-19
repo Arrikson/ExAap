@@ -22,6 +22,10 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
+CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
+
 PROFESSORES_JSON = "professores.json"
 ALUNOS_JSON = "alunos.json"
 
@@ -127,6 +131,78 @@ def carregar_alunos():
 def salvar_alunos(alunos):
     with open(ALUNOS_JSON, "w", encoding="utf-8") as f:
         json.dump(alunos, f, ensure_ascii=False, indent=4)
+        
+
+ALUNOS_JSON = "alunos.json"
+CAMINHO_PDF = os.path.join("static", "lista_alunos.pdf")
+
+# Carregar alunos do JSON
+def carregar_alunos():
+    if os.path.exists(ALUNOS_JSON):
+        with open(ALUNOS_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+# Gerar o PDF
+def gerar_pdf_lista_alunos():
+    alunos = carregar_alunos()
+
+    html_conteudo = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #2c3e50; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+            th { background-color: #3498db; color: white; }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Alunos</h1>
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Data de Nascimento</th>
+                <th>Morada</th>
+                <th>Referência</th>
+                <th>Disciplinas</th>
+                <th>Localização</th>
+                <th>Registro</th>
+            </tr>
+    """
+
+    for a in alunos:
+        disciplinas = a.get("disciplinas", "")
+        outra = a.get("outras_disciplinas", "")
+        localizacao = f"{a.get('latitude', '')}, {a.get('longitude', '')}"
+        registro = a.get("registro", "")
+
+        html_conteudo += f"""
+        <tr>
+            <td>{a.get("nome_completo", "")}</td>
+            <td>{a.get("idade", "")}</td>
+            <td>{a.get("data_nascimento", "")}</td>
+            <td>{a.get("morada", "")}</td>
+            <td>{a.get("referencia", "")}</td>
+            <td>{disciplinas} {outra}</td>
+            <td>{localizacao}</td>
+            <td>{registro}</td>
+        </tr>
+        """
+
+    html_conteudo += """
+        </table>
+    </body>
+    </html>
+    """
+
+    # Gera o PDF dentro da pasta static
+    HTML(string=html_conteudo).write_pdf(CAMINHO_PDF)
+    print(f"✅ PDF gerado em: {CAMINHO_PDF}")
+
 
 def gerar_html_alunos():
     alunos = carregar_alunos()
