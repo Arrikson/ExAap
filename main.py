@@ -13,8 +13,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from typing import List, Optional, Annotated
-from fastapi.responses import Response, FileResponse
 from fpdf import FPDF
+from pathlib import Path
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
@@ -235,10 +236,6 @@ async def cadastrar_aluno(
 async def mostrar_alunos(request: Request):
     alunos = carregar_alunos()
     return templates.TemplateResponse("info-alunos.html", {"request": request, "alunos": alunos})
-
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
     
 @app.post("/excluir-aluno/{nome_completo}")
 async def excluir_aluno(nome_completo: str):
