@@ -280,22 +280,23 @@ async def cadastrar_aluno(
     latitude: str = Form(""),
     longitude: str = Form("")
 ):
-    registro_data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    
-    localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
-    novo_aluno = {
-        "nome_completo": nome_completo,
-        "data_nascimento": data_nascimento,
-        "idade": idade,
-        "nome_pai": nome_pai,
-        "nome_mae": nome_mae,
-        "morada": morada,
-        "referencia": referencia,
-        "disciplinas": disciplinas,
-        "outra_disciplina": outra_disciplina,
-        "localizacao": localizacao
-        "registro": registro_data
-    }
+  registro_data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+localizacao = f"{latitude}, {longitude}" if latitude and longitude else "Não fornecida"
+
+novo_aluno = {
+    "nome_completo": nome_completo,
+    "data_nascimento": data_nascimento,
+    "idade": idade,
+    "nome_pai": nome_pai,
+    "nome_mae": nome_mae,
+    "morada": morada,
+    "referencia": referencia,
+    "disciplinas": disciplinas,
+    "outra_disciplina": outra_disciplina,
+    "localizacao": localizacao,
+    "registro": registro_data
+}
     alunos = carregar_alunos()
     alunos.append(novo_aluno)
     salvar_alunos(alunos)
