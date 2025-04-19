@@ -72,6 +72,19 @@
             cursor: pointer;
             color: #2e86de;
         }
+        /* Estilo para o botão */
+        .generate-pdf-btn {
+            background-color: #2e86de;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+            display: inline-block;
+        }
+        .generate-pdf-btn:hover {
+            background-color: #1a66b5;
+        }
     </style>
 </head>
 <body>
@@ -123,6 +136,9 @@
         </tbody>
     </table>
 
+    <!-- Botão para gerar o PDF -->
+    <a href="/gerar-pdf-aluno/{{ aluno.nome_completo }}" target="_blank" class="generate-pdf-btn">📄 Gerar PDF</a>
+
     <!-- Cláusulas Contratuais -->
     <div class="contract-clause">
         <p><strong>Cláusulas:</strong></p>
@@ -167,4 +183,3 @@
     </script>
 </body>
 </html>
-
