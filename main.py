@@ -117,6 +117,12 @@ def gerar_pdf_lista_alunos():
     HTML(string=html_conteudo).write_pdf(CAMINHO_PDF)
     print(f"✅ PDF gerado em: {CAMINHO_PDF}")
 
+@app.get("/baixar-pdf")
+def baixar_pdf():
+    caminho_pdf = os.path.join("static", "lista_alunos.pdf")
+    if os.path.exists(caminho_pdf):
+        return FileResponse(path=caminho_pdf, filename="lista_alunos.pdf", media_type='application/pdf')
+    return {"erro": "PDF ainda não foi gerado."}
 
 def carregar_professores():
     if os.path.exists(PROFESSORES_JSON):
