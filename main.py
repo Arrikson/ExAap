@@ -192,7 +192,7 @@ def listar_professores():
 
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
-     request: Request,
+    request: Request,
     nome_completo: str = Form(...),
     data_nascimento: str = Form(...),
     idade: int = Form(...),
@@ -207,18 +207,25 @@ async def registrar_professor(
 ):
     professores = carregar_professores()
 
-    # Diretório para armazenar os arquivos
-    os.makedirs("static/docs", exist_ok=True)
+    novo_professor = {
+        "nome_completo": nome_completo,
+        "data_nascimento": data_nascimento,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada": morada,
+        "referencia": referencia,
+        "disciplinas": disciplinas,
+        "outra_disciplina": outra_disciplina,
+        "latitude": latitude,
+        "longitude": longitude
+    }
 
-    # Caminhos para salvar as fotos e PDFs
-    foto_path = f"static/docs/{doc_foto.filename}"
-    pdf_path = f"static/docs/{doc_pdf.filename}"
+    professores.append(novo_professor)
+    salvar_professores(professores)
+    gerar_html_professores()
 
-    # Salvar as fotos e PDFs no diretório
-    with open(foto_path, "wb") as buffer:
-        shutil.copyfileobj(doc_foto.file, buffer)
-    with open(pdf_path, "wb") as buffer:
-        shutil.copyfileobj(doc_pdf.file, buffer)
+    return RedirectResponse(url="/pro-info.html", status_code=303)
 
     # Registrar as informações do professor
     novo_professor = {
