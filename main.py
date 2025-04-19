@@ -17,11 +17,6 @@ from fpdf import FPDF
 from pathlib import Path
 from weasyprint import HTML
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CAMINHO_PDF = os.path.join(BASE_DIR, "static", "docs", "lista_alunos.pdf")
-CAMINHO_JSON = os.path.join(BASE_DIR, "alunos.json")
-
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
