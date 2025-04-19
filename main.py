@@ -250,83 +250,92 @@ async def registrar_professor(
 
     return RedirectResponse(url="/pro-info.html", status_code=303)
 
-
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
-    from reportlab.lib.units import cm
-    from datetime import datetime
-    from reportlab.lib import colors
-    from reportlab.platypus import Image as RLImage
-
     professores = carregar_professores()
     os.makedirs("static/docs", exist_ok=True)
     pdf_path = "static/docs/lista_professores.pdf"
     c = canvas.Canvas(pdf_path, pagesize=A4)
-
     width, height = A4
     y = height - 80
 
+    # Logo no canto superior esquerdo
+    try:
+        logo_path = "static/logo.png"
+        if os.path.exists(logo_path):
+            c.drawImage(logo_path, 40, height - 70, width=60, preserveAspectRatio=True, mask='auto')
+    except Exception as e:
+        print(f"Erro ao carregar logotipo: {e}")
+
     # Título
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(colors.darkblue)
+    c.drawCentredString(width / 2, height - 50, "Professores Cadastrados")
 
     # Data no canto superior direito
     data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
     c.setFont("Helvetica", 10)
-    c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+    c.setFillColor(colors.black)
+    c.drawRightString(width - 40, height - 30, f"Data: {data_hoje}")
 
     for i, p in enumerate(professores):
-        c.setFont("Helvetica-Bold", 14)
-        c.setFillColor(colors.darkblue)
-        c.drawString(50, y, f"{i + 1}. {p.get('nome', 'Sem nome')}")
-        y -= 20
+        if y < 200:
+            c.showPage()
+            y = height - 80
+            # Logo e título em nova página
+            if os.path.exists(logo_path):
+                c.drawImage(logo_path, 40, height - 70, width=60, preserveAspectRatio=True, mask='auto')
+            c.setFont("Helvetica-Bold", 20)
+            c.setFillColor(colors.darkblue)
+            c.drawCentredString(width / 2, height - 50, "Professores Cadastrados")
+            c.setFont("Helvetica", 10)
+            c.setFillColor(colors.black)
+            c.drawRightString(width - 40, height - 30, f"Data: {data_hoje}")
+
+        # Bloco com fundo cinza claro
+        c.setFillColor(colors.whitesmoke)
+        c.roundRect(40, y - 120, width - 80, 110, 10, fill=1)
+
+        # Conteúdo
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(50, y - 25, f"{i + 1}. {p.get('nome', 'Sem nome')}")
 
         c.setFont("Helvetica", 11)
-        c.setFillColor(colors.black)
 
         campos = [
             ("Idade", p.get("idade", "")),
-            ("Nome do Pai", p.get("nome_pai", "")),
-            ("Nome da Mãe", p.get("nome_mae", "")),
-            ("Morada Atual", p.get("morada_atual", "")),
-            ("Ponto de Referência", p.get("ponto_referencia", "")),
+            ("Nome do Pai", p.get("pai", "")),
+            ("Nome da Mãe", p.get("mae", "")),
+            ("Morada Atual", p.get("morada", "")),
+            ("Ponto de Referência", p.get("referencia", "")),
             ("BI", p.get("bi", "")),
             ("Disciplinas", ", ".join(p.get("disciplinas", []))),
-            ("Outras Disciplinas", p.get("outras_disciplinas", "")),
+            ("Outras Disciplinas", ", ".join(p.get("outras_disciplinas", [])) if isinstance(p.get("outras_disciplinas", ""), list) else p.get("outras_disciplinas", "")),
             ("Telefone", p.get("telefone", "")),
             ("Email", p.get("email", "")),
             ("Localização", p.get("localizacao", "")),
         ]
 
+        info_y = y - 40
         for label, valor in campos:
             if valor:
-                c.drawString(60, y, f"{label}: {valor}")
-                y -= 15
+                c.drawString(60, info_y, f"{label}: {valor}")
+                info_y -= 13
 
-        # Adicionar imagem, se disponível
+        # Foto, se existir
         foto_path = p.get("doc_foto", "").lstrip("/")
         if foto_path and os.path.exists(foto_path):
             try:
-                c.drawImage(foto_path, width - 6.5*cm, y - 5*cm, width=5.5*cm, height=5.5*cm, preserveAspectRatio=True, mask='auto')
+                c.drawImage(foto_path, width - 5.5*cm, y - 5*cm, width=4.5*cm, height=4.5*cm, preserveAspectRatio=True, mask='auto')
             except Exception as e:
-                print(f"Erro ao adicionar foto: {e}")
-                c.drawString(60, y, "Erro ao carregar imagem.")
-        y -= 100
+                print(f"Erro ao adicionar imagem: {e}")
+                c.setFillColor(colors.red)
+                c.drawString(60, info_y, "Erro ao carregar imagem.")
 
-        # Linha separadora
-        c.setStrokeColor(colors.grey)
-        c.setLineWidth(0.5)
-        c.line(50, y, width - 50, y)
-        y -= 30
-
-        if y < 150:
-            c.showPage()
-            y = height - 80
-            c.setFont("Helvetica-Bold", 18)
-            c.drawCentredString(width / 2, height - 50, "Novos Professores Cadastrados")
-            c.setFont("Helvetica", 10)
-            c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
+        y = info_y - 30
 
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
+
 
