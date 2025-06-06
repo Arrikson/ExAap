@@ -12,6 +12,7 @@ from datetime import datetime
 from fpdf import FPDF
 
 
+
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -90,6 +91,23 @@ async def read_root(request: Request):
 @app.get("/criar-conta", response_class=HTMLResponse)
 async def criar_conta(request: Request):
     return templates.TemplateResponse("criar-conta.html", {"request": request})
+
+
+@app.post("/criar-conta")
+async def criar_conta_post(
+    nome: str = Form(...),
+    email: str = Form(...),
+    senha: str = Form(...)
+):
+    # Coleção: alunos_sabilider
+    dados = {
+        "nome": nome,
+        "email": email,
+        "senha": senha,
+        "data_criacao": datetime.utcnow().isoformat()
+    }
+    db.collection("alunos_sabilider").add(dados)
+    return RedirectResponse(url="/criar-conta", status_code=303)
 
 @app.get("/quero-aulas", response_class=HTMLResponse)
 async def quero_aulas(request: Request):
