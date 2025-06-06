@@ -11,7 +11,7 @@ from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from fpdf import FPDF
 
-# Firebase Admin SDK
+
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -22,8 +22,10 @@ ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
 # Inicialização do Firebase com variável de ambiente
 firebase_json = os.environ.get("FIREBASE_KEY")
 if firebase_json and not firebase_admin._apps:
-    cred_dict = json.loads(firebase_json)
-    cred = credentials.Certificate(cred_dict)
+    firebase_info = json.loads(firebase_json)
+    firebase_info["private_key"] = firebase_info["private_key"].replace("\\n", "\n")
+
+    cred = credentials.Certificate(firebase_info)
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
