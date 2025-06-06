@@ -259,7 +259,7 @@ async def gerar_pdf():
 
 @app.get("/cadastro-aluno", response_class=HTMLResponse)
 async def exibir_formulario(request: Request):
-    return templates.TemplateResponse("cadastro-aluno.html", {"request": request})
+    return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
 
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
@@ -277,6 +277,15 @@ async def cadastrar_aluno(
     disciplina: str = Form(...),
     outra_disciplina: str = Form(None)
 ):
+    alunos_ref = db.collection("alunos")
+    existente = alunos_ref.where("nome", "==", nome).get()
+
+    if existente:
+        return templates.TemplateResponse("cadastro-aluno.html", {
+            "request": request,
+            "erro": "Este nome já está cadastrado. Tente outro."
+        })
+
     aluno_id = str(uuid.uuid4())
     dados = {
         "nome": nome,
@@ -292,7 +301,26 @@ async def cadastrar_aluno(
         "outra_disciplina": outra_disciplina
     }
     db.collection("alunos").document(aluno_id).set(dados)
-    return RedirectResponse(url="/cadastro-aluno", status_code=303)
+    return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/login", response_class=HTMLResponse)
+async def exibir_login(request: Request, sucesso: int = 0):
+    return templates.TemplateResponse("login.html", {"request": request, "sucesso": sucesso, "erro": None})
+
+@app.post("/login")
+async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
+    alunos = db.collection("alunos").where("nome", "==", nome).where("senha", "==", senha).get()
+    if alunos:
+        return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse("login.html", {"request": request, "erro": "Nome de usuário ou senha inválidos", "sucesso": 0})
+
+@app.get("/perfil/{nome}", response_class=HTMLResponse)
+async def perfil(request: Request, nome: str):
+    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
+    if not aluno_ref:
+        return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+    aluno = aluno_ref[0].to_dict()
+    return templates.TemplateResponse("perfil.html", {"request": request, "aluno": aluno})
 
 
 
