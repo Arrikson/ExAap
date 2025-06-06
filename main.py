@@ -19,11 +19,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROFESSORES_JSON = os.path.join(BASE_DIR, "professores.json")
 ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
 
-# Inicialização do Firebase
-cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
-if not firebase_admin._apps:
-    cred = credentials.Certificate(cred_path)
+# Inicialização do Firebase com variável de ambiente
+firebase_json = os.environ.get("FIREBASE_KEY")
+if firebase_json and not firebase_admin._apps:
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
+
 db = firestore.client()
 
 app = FastAPI()
