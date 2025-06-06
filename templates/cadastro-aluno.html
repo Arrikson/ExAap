@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Aluno</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #2196F3, #21CBF3);
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    .container {
+      max-width: 600px;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 50px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      background: #fff;
+      color: #2196F3;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 150px;
+    }
+  </style>
+  <script>
+    function capturarLocalizacao() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          document.getElementById("latitude").value = position.coords.latitude;
+          document.getElementById("longitude").value = position.coords.longitude;
+        }, function(error) {
+          alert("Erro ao capturar localização. Permita o acesso.");
+        });
+      } else {
+        alert("Geolocalização não suportada.");
+      }
+    }
+  </script>
+</head>
+<body onload="capturarLocalizacao()">
+  <div class="container">
+    <img src="/static/logo.png" alt="Logo" class="logo">
+    <h2>Cadastro de Aluno</h2>
+    <form method="post" action="/cadastro-aluno">
+      <label for="nome">Nome Completo</label>
+      <input type="text" name="nome" required>
+
+      <label for="nome_mae">Nome da Mãe</label>
+      <input type="text" name="nome_mae" required>
+
+      <label for="nome_pai">Nome do Pai</label>
+      <input type="text" name="nome_pai" required>
+
+      <label for="senha">Senha</label>
+      <input type="password" name="senha" required>
+
+      <label for="provincia">Província</label>
+      <input type="text" name="provincia" required>
+
+      <label for="municipio">Município</label>
+      <input type="text" name="municipio" required>
+
+      <label for="bairro">Bairro</label>
+      <input type="text" name="bairro" required>
+
+      <input type="hidden" name="latitude" id="latitude">
+      <input type="hidden" name="longitude" id="longitude">
+
+      <label for="telefone">Telefone</label>
+      <input type="tel" name="telefone" required>
+
+      <label for="disciplina">Disciplina</label>
+      <select name="disciplina" required>
+        <option value="">Selecione</option>
+        <option>Inglês</option>
+        <option>Língua Portuguesa</option>
+        <option>Língua Francesa</option>
+        <option>Matemática</option>
+        <option>Química</option>
+        <option>Física</option>
+      </select>
+
+      <label for="outra_disciplina">Outra Disciplina (opcional)</label>
+      <input type="text" name="outra_disciplina">
+
+      <button type="submit">Cadastrar</button>
+    </form>
+  </div>
+</body>
+</html>
