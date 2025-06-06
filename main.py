@@ -256,5 +256,42 @@ async def gerar_pdf():
     c.save()
     return FileResponse(pdf_path, media_type="application/pdf", filename="lista_professores.pdf")
 
+@app.get("/cadastro-aluno", response_class=HTMLResponse)
+async def exibir_formulario(request: Request):
+    return templates.TemplateResponse("cadastro-aluno.html", {"request": request})
+
+@app.post("/cadastro-aluno")
+async def cadastrar_aluno(
+    request: Request,
+    nome: str = Form(...),
+    nome_mae: str = Form(...),
+    nome_pai: str = Form(...),
+    senha: str = Form(...),
+    provincia: str = Form(...),
+    municipio: str = Form(...),
+    bairro: str = Form(...),
+    latitude: str = Form(...),
+    longitude: str = Form(...),
+    telefone: str = Form(...),
+    disciplina: str = Form(...),
+    outra_disciplina: str = Form(None)
+):
+    aluno_id = str(uuid.uuid4())
+    dados = {
+        "nome": nome,
+        "nome_mae": nome_mae,
+        "nome_pai": nome_pai,
+        "senha": senha,
+        "provincia": provincia,
+        "municipio": municipio,
+        "bairro": bairro,
+        "localizacao": {"latitude": latitude, "longitude": longitude},
+        "telefone": telefone,
+        "disciplina": disciplina,
+        "outra_disciplina": outra_disciplina
+    }
+    db.collection("alunos").document(aluno_id).set(dados)
+    return RedirectResponse(url="/cadastro-aluno", status_code=303)
+
 
 
