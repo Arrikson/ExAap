@@ -205,7 +205,7 @@ async def gerar_pdf():
     y = height - 80
 
     c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 50, "Novos Professores Registrados")
+    c.drawCentredString(width / 2, height - 50, "Novos alunos Registrados")
     data_hoje = datetime.now().strftime("%d/%m/%Y %H:%M")
     c.setFont("Helvetica", 10)
     c.drawRightString(width - 50, height - 30, f"Data: {data_hoje}")
