@@ -6,6 +6,7 @@ from typing import List, Optional
 import shutil
 import os
 import json
+import uuid
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
