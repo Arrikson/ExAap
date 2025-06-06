@@ -5,6 +5,4 @@ python-multipart
 reportlab
 fpdf==1.7.2
 WeasyPrint
-
-
-
+firebase-admin
