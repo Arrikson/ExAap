@@ -41,20 +41,20 @@ def carregar_professores_local():
             return json.load(f)
     return []
 
-def salvar_professores_local(professores):
+def salvar_professores_local(alunos_sabelider):
     with open(PROFESSORES_JSON, "w", encoding="utf-8") as f:
         json.dump(professores, f, ensure_ascii=False, indent=4)
 
 def carregar_professores_firebase():
-    return [doc.to_dict() for doc in db.collection("professores").stream()]
+    return [doc.to_dict() for doc in db.collection("alunos_sabelider").stream()]
 
 def salvar_professor_firebase(professor: dict):
     bi = professor.get("bi")
     if bi:
-        db.collection("professores").document(bi).set(professor)
+        db.collection("alunos_sabelider").document(bi).set(professor)
 
 def excluir_professor_firebase(bi: str):
-    db.collection("professores").document(bi).delete()
+    db.collection("alunos_sabelider").document(bi).delete()
 
 def gerar_html_professores():
     professores = carregar_professores_local()
