@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página do Perfil</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #00C6FF, #007BFF);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .profile-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .logout-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #ff4b5c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #cc3b4a;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 22px;
+            }
+
+            p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>Bem-vindo(a), {{ nome }}</h1>
+        <p>Este é o seu painel de perfil.</p>
+        <p><strong>Telefone:</strong> {{ telefone }}</p>
+        <p><strong>Disciplina:</strong> {{ disciplina }}</p>
+        <!-- Você pode adicionar mais campos aqui -->
+
+        <form method="post" action="/logout">
+            <button class="logout-btn" type="submit">Sair</button>
+        </form>
+    </div>
+</body>
+</html>
