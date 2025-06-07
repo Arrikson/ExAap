@@ -323,5 +323,42 @@ async def perfil(request: Request, nome: str):
     aluno = aluno_ref[0].to_dict()
     return templates.TemplateResponse("perfil.html", {"request": request, "aluno": aluno})
 
+@app.post("/alterar-senha/{nome}")
+async def alterar_senha(
+    request: Request,
+    nome: str,
+    senha_antiga: str = Form(...),
+    nova_senha: str = Form(...),
+    confirmar_senha: str = Form(...)
+):
+    aluno_docs = db.collection("alunos").where("nome", "==", nome).get()
+    if not aluno_docs:
+        return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+
+    aluno_ref = aluno_docs[0].reference
+    aluno_data = aluno_docs[0].to_dict()
+
+    if senha_antiga != aluno_data.get("senha"):
+        return templates.TemplateResponse("perfil.html", {
+            "request": request,
+            "aluno": aluno_data,
+            "erro_senha": "Senha antiga incorreta!"
+        })
+
+    if nova_senha != confirmar_senha:
+        return templates.TemplateResponse("perfil.html", {
+            "request": request,
+            "aluno": aluno_data,
+            "erro_senha": "As novas senhas não coincidem!"
+        })
+
+    aluno_ref.update({"senha": nova_senha})
+    aluno_data["senha"] = nova_senha  # para manter os dados atualizados na recarga
+
+    return templates.TemplateResponse("perfil.html", {
+        "request": request,
+        "aluno": aluno_data,
+        "sucesso_senha": "Senha alterada com sucesso!"
+    })
 
 
