@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-yI1D+/s0IV8I+0+Vgqgk19MrbEbQnZQkAIK5w1rZsU3u4XhG8yT1A4rFZ5cOa2kxkG7rA3+3kd4xQ5aK0d1ckA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     body {
       margin: 0;
@@ -15,22 +16,81 @@
       padding: 40px 20px;
     }
 
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .top-bar img {
+      height: 45px;
+    }
+
     .profile-container {
       background-color: rgba(255, 255, 255, 0.1);
-      padding: 30px;
+      padding: 100px 30px 30px;
       border-radius: 20px;
       width: 100%;
       max-width: 700px;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
     }
 
-    h1, h2 {
+    h1 {
       text-align: center;
       margin-bottom: 20px;
     }
 
-    .section {
-      margin-bottom: 25px;
+    .accordion {
+      background-color: #ffffff22;
+      color: #fff;
+      cursor: pointer;
+      padding: 15px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 18px;
+      transition: 0.3s;
+      border-radius: 10px;
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .accordion:hover {
+      background-color: #ffffff33;
+    }
+
+    .accordion:after {
+      content: "\f0da"; /* Font Awesome fa-chevron-down */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      float: right;
+    }
+
+    .accordion.active:after {
+      content: "\f0d7"; /* Font Awesome fa-chevron-up */
+    }
+
+    .panel {
+      padding: 0 10px;
+      display: none;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .panel form,
+    .panel > div {
+      margin-top: 10px;
     }
 
     label {
@@ -84,26 +144,20 @@
     .btn-enter:hover {
       background-color: #e0a800;
     }
-
-    .flex-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .flex-row > div {
-      flex: 1;
-    }
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <img src="/static/logo.png" alt="Logo">
+  </div>
+
   <div class="profile-container">
     <h1>Olá, {{ aluno.nome }}</h1>
 
-    <!-- Dados pessoais -->
-    <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
-      <div class="section">
-        <h2>Informações Pessoais</h2>
-
+    <!-- Dados Pessoais -->
+    <button class="accordion"> <i class="fas fa-user"></i> Dados Pessoais</button>
+    <div class="panel">
+      <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
         <label>Nome</label>
         <input type="text" value="{{ aluno.nome }}" readonly />
 
@@ -130,15 +184,15 @@
 
         <label>Outra Disciplina (opcional)</label>
         <input type="text" name="outra_disciplina" placeholder="Adicionar outra disciplina" />
-      </div>
 
-      <button class="button" type="submit">Salvar Alterações</button>
-    </form>
+        <button class="button" type="submit">Salvar Alterações</button>
+      </form>
+    </div>
 
-    <!-- Alterar senha -->
-    <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
-      <div class="section">
-        <h2>Alterar Senha</h2>
+    <!-- Alterar Senha -->
+    <button class="accordion"><i class="fas fa-key"></i> Editar Senha</button>
+    <div class="panel">
+      <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
         <label>Senha Antiga</label>
         <input type="password" name="senha_antiga" required />
 
@@ -147,26 +201,29 @@
 
         <label>Confirmar Nova Senha</label>
         <input type="password" name="confirmar_senha" required />
-      </div>
-      <button class="button" type="submit">Confirmar Alteração de Senha</button>
-    </form>
 
-    <!-- Aulas e mensalidade -->
-    <div class="section">
-      <h2>Aulas e Mensalidade</h2>
-      <label>Aulas Recebidas</label>
-      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
-
-      <label>Custo por Aula</label>
-      <input type="text" id="custo" value="2075" readonly />
-
-      <label>Mensalidade (kz)</label>
-      <input type="text" id="mensalidade" readonly />
+        <button class="button" type="submit">Confirmar Alteração de Senha</button>
+      </form>
     </div>
 
-    <!-- Professor e Notas -->
-    <div class="section">
-      <h2>Informações Acadêmicas</h2>
+    <!-- Mensalidade -->
+    <button class="accordion"><i class="fas fa-wallet"></i> Mensalidade</button>
+    <div class="panel">
+      <div>
+        <label>Aulas Recebidas</label>
+        <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
+
+        <label>Custo por Aula</label>
+        <input type="text" id="custo" value="2075" readonly />
+
+        <label>Mensalidade (kz)</label>
+        <input type="text" id="mensalidade" readonly />
+      </div>
+    </div>
+
+    <!-- Informações Acadêmicas -->
+    <button class="accordion"><i class="fas fa-graduation-cap"></i> Informações Acadêmicas</button>
+    <div class="panel">
       <label>Professor Responsável</label>
       <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
 
@@ -174,7 +231,6 @@
       <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
     </div>
 
-    <!-- Botões -->
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
     <form method="post" action="/logout">
@@ -190,11 +246,24 @@
     }
 
     function entrarNaAula() {
-      // Redirecionamento para sala virtual (substituir com rota real)
       window.location.href = "/sala-virtual/{{ aluno.nome }}";
     }
 
     window.onload = calcularMensalidade;
+
+    // Accordion
+    const accordions = document.querySelectorAll(".accordion");
+    accordions.forEach(acc => {
+      acc.addEventListener("click", function () {
+        this.classList.toggle("active");
+        const panel = this.nextElementSibling;
+        if (panel.style.display === "block") {
+          panel.style.display = "none";
+        } else {
+          panel.style.display = "block";
+        }
+      });
+    });
   </script>
 </body>
 </html>
