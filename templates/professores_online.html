@@ -53,6 +53,14 @@
         button:hover {
             background-color: #1e3a8a;
         }
+        .success {
+            background-color: #4ade80;
+            color: #064e3b;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -60,11 +68,18 @@
         <img src="/static/logo.png" alt="Logo">
     </div>
 
+    {% if success %}
+    <div class="success">Cadastro enviado com sucesso!</div>
+    {% endif %}
+
     <form class="form-container" id="cadastroForm" method="post">
         <input type="text" name="nome_completo" placeholder="Nome completo" required>
         <input type="text" name="nome_mae" placeholder="Nome da mãe" required>
         <input type="text" name="nome_pai" placeholder="Nome do pai" required>
         <input type="text" name="bilhete" placeholder="Nº do bilhete de identidade" required>
+        <input type="text" name="provincia" placeholder="Província" required>
+        <input type="text" name="municipio" placeholder="Município" required>
+        <input type="text" name="bairro" placeholder="Bairro" required>
         <input type="text" name="residencia" placeholder="Local de residência" required>
         <input type="text" name="ponto_referencia" placeholder="Ponto de referência" required>
         <input type="text" name="localizacao" id="localizacao" placeholder="Captando localização..." readonly required>
@@ -112,3 +127,4 @@
     </script>
 </body>
 </html>
+
