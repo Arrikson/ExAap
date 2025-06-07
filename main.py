@@ -361,4 +361,36 @@ async def alterar_senha(
         "sucesso_senha": "Senha alterada com sucesso!"
     })
 
+@app.post("/atualizar-perfil/{nome}")
+async def atualizar_perfil(
+    request: Request,
+    nome: str,
+    telefone: str = Form(...),
+    bairro: str = Form(...),
+    municipio: str = Form(...),
+    provincia: str = Form(...),
+    disciplina: str = Form(...),
+    outra_disciplina: str = Form(None)
+):
+    aluno_docs = db.collection("alunos").where("nome", "==", nome).get()
+    if not aluno_docs:
+        return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
 
+    aluno_ref = aluno_docs[0].reference
+    dados_atuais = aluno_docs[0].to_dict()
+
+    atualizacoes = {
+        "telefone": telefone,
+        "bairro": bairro,
+        "municipio": municipio,
+        "provincia": provincia,
+        "disciplina": disciplina,
+    }
+
+    if outra_disciplina:
+        disciplinas_existentes = dados_atuais.get("outras_disciplinas", [])
+        disciplinas_existentes.append(outra_disciplina)
+        atualizacoes["outras_disciplinas"] = disciplinas_existentes
+
+    aluno_ref.update(atualizacoes)
+    return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
