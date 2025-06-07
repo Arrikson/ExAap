@@ -1,81 +1,200 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página do Perfil</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #00C6FF, #007BFF);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 20px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil do Aluno</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #00C6FF, #007BFF);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
 
-        .profile-container {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
+    .profile-container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-        p {
-            font-size: 18px;
-            margin: 10px 0;
-        }
+    .section {
+      margin-bottom: 25px;
+    }
 
-        .logout-btn {
-            margin-top: 20px;
-            padding: 12px 20px;
-            background-color: #ff4b5c;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
 
-        .logout-btn:hover {
-            background-color: #cc3b4a;
-        }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
 
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 22px;
-            }
+    input[readonly] {
+      background-color: #ddd;
+    }
 
-            p {
-                font-size: 16px;
-            }
-        }
-    </style>
+    .button {
+      padding: 12px 20px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .button:hover {
+      background-color: #218838;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+    }
+
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+
+    .btn-enter {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .btn-enter:hover {
+      background-color: #e0a800;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .flex-row > div {
+      flex: 1;
+    }
+  </style>
 </head>
 <body>
-    <div class="profile-container">
-        <h1>Bem-vindo(a), {{ nome }}</h1>
-        <p>Este é o seu painel de perfil.</p>
-        <p><strong>Telefone:</strong> {{ telefone }}</p>
-        <p><strong>Disciplina:</strong> {{ disciplina }}</p>
-        <!-- Você pode adicionar mais campos aqui -->
+  <div class="profile-container">
+    <h1>Olá, {{ aluno.nome }}</h1>
 
-        <form method="post" action="/logout">
-            <button class="logout-btn" type="submit">Sair</button>
-        </form>
+    <!-- Dados pessoais -->
+    <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
+      <div class="section">
+        <h2>Informações Pessoais</h2>
+
+        <label>Nome</label>
+        <input type="text" value="{{ aluno.nome }}" readonly />
+
+        <label>Nome do Pai</label>
+        <input type="text" value="{{ aluno.nome_pai }}" readonly />
+
+        <label>Nome da Mãe</label>
+        <input type="text" value="{{ aluno.nome_mae }}" readonly />
+
+        <label>Telefone</label>
+        <input type="text" name="telefone" value="{{ aluno.telefone }}" />
+
+        <label>Bairro</label>
+        <input type="text" name="bairro" value="{{ aluno.bairro }}" />
+
+        <label>Município</label>
+        <input type="text" name="municipio" value="{{ aluno.municipio }}" />
+
+        <label>Província</label>
+        <input type="text" name="provincia" value="{{ aluno.provincia }}" />
+
+        <label>Disciplina</label>
+        <input type="text" name="disciplina" value="{{ aluno.disciplina }}" />
+
+        <label>Outra Disciplina (opcional)</label>
+        <input type="text" name="outra_disciplina" placeholder="Adicionar outra disciplina" />
+      </div>
+
+      <button class="button" type="submit">Salvar Alterações</button>
+    </form>
+
+    <!-- Alterar senha -->
+    <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
+      <div class="section">
+        <h2>Alterar Senha</h2>
+        <label>Senha Antiga</label>
+        <input type="password" name="senha_antiga" required />
+
+        <label>Nova Senha</label>
+        <input type="password" name="nova_senha" required />
+
+        <label>Confirmar Nova Senha</label>
+        <input type="password" name="confirmar_senha" required />
+      </div>
+      <button class="button" type="submit">Confirmar Alteração de Senha</button>
+    </form>
+
+    <!-- Aulas e mensalidade -->
+    <div class="section">
+      <h2>Aulas e Mensalidade</h2>
+      <label>Aulas Recebidas</label>
+      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
+
+      <label>Custo por Aula</label>
+      <input type="text" id="custo" value="2075" readonly />
+
+      <label>Mensalidade (kz)</label>
+      <input type="text" id="mensalidade" readonly />
     </div>
+
+    <!-- Professor e Notas -->
+    <div class="section">
+      <h2>Informações Acadêmicas</h2>
+      <label>Professor Responsável</label>
+      <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
+
+      <label>Notas</label>
+      <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
+    </div>
+
+    <!-- Botões -->
+    <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
+
+    <form method="post" action="/logout">
+      <button class="button logout-btn" type="submit">Sair</button>
+    </form>
+  </div>
+
+  <script>
+    function calcularMensalidade() {
+      const aulas = parseInt(document.getElementById('aulas').value) || 0;
+      const custo = parseFloat(document.getElementById('custo').value) || 0;
+      document.getElementById('mensalidade').value = (aulas * custo).toLocaleString('pt-PT') + ',00 kz';
+    }
+
+    function entrarNaAula() {
+      // Redirecionamento para sala virtual (substituir com rota real)
+      window.location.href = "/sala-virtual/{{ aluno.nome }}";
+    }
+
+    window.onload = calcularMensalidade;
+  </script>
 </body>
 </html>
