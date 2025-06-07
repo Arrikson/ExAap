@@ -454,7 +454,7 @@ async def verificar_aluno(
 
 @app.get("/onlineaula", response_class=HTMLResponse)
 async def get_online_aula(request: Request):
-    return templates.TemplateResponse("online_aula.html", {"request": request})
+    return templates.TemplateResponse("onlineaula.html", {"request": request})
 
 @app.get("/onlineaula/{nome_aluno}", response_class=HTMLResponse)
 async def exibir_online_aula(request: Request, nome_aluno: str):
