@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aulas Estilo TikTok</title>
   <style>
     body {
@@ -77,9 +77,16 @@
       padding: 20px;
       border-radius: 10px;
       z-index: 30;
+      width: 300px;
+      text-align: center;
     }
     #login-modal input {
       margin: 5px 0;
+      padding: 8px;
+      width: 90%;
+    }
+    #login-modal button {
+      margin-top: 10px;
       padding: 8px;
       width: 100%;
     }
@@ -89,6 +96,10 @@
       padding: 8px;
       border-radius: 5px;
       cursor: pointer;
+    }
+    #mensagem-erro {
+      color: red;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -114,7 +125,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
   <script>
-    // Configuração Firebase
+    // 🔧 Configuração Firebase
     const firebaseConfig = {
       apiKey: "SUA_API_KEY",
       authDomain: "SEU_DOMINIO.firebaseapp.com",
@@ -127,6 +138,7 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // 🎥 Dados de vídeos simulados
     const videoData = [
       { id: 'vid1', src: 'video1.mp4', professor: 'Carlos', disciplina: 'Matemática' },
       { id: 'vid2', src: 'video2.mp4', professor: 'Joana', disciplina: 'Física' },
@@ -138,6 +150,9 @@
     videoData.forEach(data => {
       const div = document.createElement('div');
       div.className = 'video-container';
+      div.dataset.professor = data.professor.toLowerCase();
+      div.dataset.disciplina = data.disciplina.toLowerCase();
+
       div.innerHTML = `
         <video src="${data.src}" autoplay muted loop></video>
         <div class="sidebar">
@@ -152,6 +167,7 @@
     function curtir(btn) {
       btn.classList.toggle('liked');
     }
+
     function descurtir(btn) {
       btn.classList.toggle('disliked');
     }
@@ -161,41 +177,64 @@
     function abrirLogin(professor) {
       professorSelecionado = professor;
       document.getElementById('login-modal').style.display = 'block';
+      document.getElementById('mensagem-erro').innerText = '';
     }
 
     async function verificarAcesso() {
-      const nome = document.getElementById('username').value;
-      const senha = document.getElementById('password').value;
+      const nome = document.getElementById('username').value.trim();
+      const senha = document.getElementById('password').value.trim();
 
-      const docRef = db.collection("professores").doc(professorSelecionado);
-      const alunoListaRef = docRef.collection("alunos");
-      const snapshot = await alunoListaRef.where("nome", "==", nome).get();
+      if (!nome || !senha) {
+        document.getElementById('mensagem-erro').innerText = 'Preencha todos os campos.';
+        return;
+      }
 
-      if (!snapshot.empty) {
-        alert("Acesso liberado para aula!");
-        document.getElementById('login-modal').style.display = 'none';
-      } else {
-        document.getElementById('mensagem-erro').innerText = 'Faça a sua solicitação ao professor';
+      try {
+        const docRef = db.collection("professores").doc(professorSelecionado);
+        const alunoListaRef = docRef.collection("alunos");
+
+        const snapshot = await alunoListaRef.where("nome", "==", nome).get();
+
+        if (!snapshot.empty) {
+          alert("✅ Acesso liberado para aula!");
+          document.getElementById('login-modal').style.display = 'none';
+        } else {
+          document.getElementById('mensagem-erro').innerText = '⚠️ Faça a sua solicitação ao professor';
+        }
+      } catch (error) {
+        console.error("Erro na verificação:", error);
+        document.getElementById('mensagem-erro').innerText = 'Erro ao verificar acesso.';
       }
     }
 
     async function solicitarExplicacao() {
-      const nome = document.getElementById('username').value;
-      const docRef = db.collection("solicitacoes").doc();
-      await docRef.set({
-        aluno: nome,
-        professor: professorSelecionado,
-        data: new Date()
-      });
-      alert("Solicitação enviada ao professor.");
+      const nome = document.getElementById('username').value.trim();
+
+      if (!nome) {
+        alert("Digite seu nome para solicitar.");
+        return;
+      }
+
+      try {
+        await db.collection("solicitacoes").add({
+          aluno: nome,
+          professor: professorSelecionado,
+          data: new Date()
+        });
+        alert("📩 Solicitação enviada ao professor.");
+      } catch (error) {
+        console.error("Erro ao solicitar:", error);
+        alert("Erro ao enviar solicitação.");
+      }
     }
 
-    // Filtro de pesquisa
+    // 🔍 Filtro de pesquisa
     document.getElementById('pesquisa').addEventListener('input', function() {
       const termo = this.value.toLowerCase();
       document.querySelectorAll('.video-container').forEach(container => {
-        const texto = container.innerText.toLowerCase();
-        container.style.display = texto.includes(termo) ? 'block' : 'none';
+        const prof = container.dataset.professor;
+        const disc = container.dataset.disciplina;
+        container.style.display = (prof.includes(termo) || disc.includes(termo)) ? 'block' : 'none';
       });
     });
   </script>
