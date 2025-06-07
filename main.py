@@ -394,3 +394,67 @@ async def atualizar_perfil(
 
     aluno_ref.update(atualizacoes)
     return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/aulaonline", response_class=HTMLResponse)
+async def aula_online(request: Request):
+    return templates.TemplateResponse("onlineaula.html", {"request": request})
+
+@app.post("/verificar-aluno")
+async def verificar_aluno(
+    nome_aluno: str = Form(...),
+    senha: str = Form(...),
+    professor_id: str = Form(...)
+):
+    try:
+        # Simula verificação de senha – você pode melhorar isso futuramente
+        # Aqui consideramos apenas o nome e a presença dele na lista
+        ref = db.collection("lista_de_alunos").document(professor_id)
+        doc = ref.get()
+
+        if doc.exists and nome_aluno in doc.to_dict().get("alunos", []):
+            return JSONResponse({"status": "autorizado", "mensagem": "Acesso liberado para aula."})
+        else:
+            return JSONResponse({"status": "nao_autorizado", "mensagem": "Faça a sua solicitação ao professor."})
+
+    except Exception as e:
+        return JSONResponse({"status": "erro", "mensagem": str(e)})
+
+@app.post("/verificar-aluno")
+async def verificar_aluno(
+    nome_aluno: str = Form(...),
+    senha: str = Form(...),
+    professor_id: str = Form(...)
+):
+    try:
+        # Pega o documento da lista de alunos do professor
+        ref_lista = db.collection("lista_de_alunos").document(professor_id)
+        doc_lista = ref_lista.get()
+
+        # Verifica se o aluno está na lista do professor
+        if doc_lista.exists and nome_aluno in doc_lista.to_dict().get("alunos", []):
+            # Pega os dados do aluno na coleção 'alunos'
+            ref_aluno = db.collection("alunos").document(nome_aluno)
+            doc_aluno = ref_aluno.get()
+
+            if doc_aluno.exists:
+                dados_aluno = doc_aluno.to_dict()
+                senha_registrada = dados_aluno.get("senha")
+
+                if senha == senha_registrada:
+                    return JSONResponse({"status": "autorizado", "mensagem": "Acesso liberado para aula."})
+                else:
+                    return JSONResponse({"status": "erro", "mensagem": "Senha incorreta."})
+            else:
+                return JSONResponse({"status": "erro", "mensagem": "Aluno não encontrado no sistema."})
+        else:
+            return JSONResponse({"status": "nao_autorizado", "mensagem": "Você ainda não foi autorizado para essa aula."})
+
+    except Exception as e:
+        return JSONResponse({"status": "erro", "mensagem": str(e)})
+
+
+
+
+
+
+
