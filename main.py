@@ -452,14 +452,16 @@ async def verificar_aluno(
     except Exception as e:
         return JSONResponse({"status": "erro", "mensagem": str(e)})
 
+@app.get("/onlineaula", response_class=HTMLResponse)
+async def get_online_aula(request: Request):
+    return templates.TemplateResponse("online_aula.html", {"request": request})
+
 @app.get("/onlineaula/{nome_aluno}", response_class=HTMLResponse)
 async def exibir_online_aula(request: Request, nome_aluno: str):
     return templates.TemplateResponse("onlineaula.html", {
         "request": request,
         "nome_aluno": nome_aluno
     })
-
-
 
 
 
