@@ -464,6 +464,51 @@ async def exibir_online_aula(request: Request, nome_aluno: str):
     })
 
 
+@app.get("/professores_online")
+def get_formulario_professor(request: Request):
+    return templates.TemplateResponse("professores_online.html", {"request": request})
+
+@app.post("/professores_online")
+async def post_formulario_professor(
+    request: Request,
+    nome_completo: str = Form(...),
+    nome_mae: str = Form(...),
+    nome_pai: str = Form(...),
+    bilhete: str = Form(...),
+    residencia: str = Form(...),
+    ponto_referencia: str = Form(...),
+    localizacao: str = Form(...),
+    telefone: str = Form(...),
+    telefone_alternativo: str = Form(None),
+    email: str = Form(...),
+    nivel_ensino: str = Form(...),
+    ano_faculdade: str = Form(None),
+    area_formacao: str = Form(...),
+    senha: str = Form(...)
+):
+    # Criar documento na coleção 'professores_online'
+    data = {
+        "nome_completo": nome_completo,
+        "nome_mae": nome_mae,
+        "nome_pai": nome_pai,
+        "bilhete": bilhete,
+        "residencia": residencia,
+        "ponto_referencia": ponto_referencia,
+        "localizacao": localizacao,
+        "telefone": telefone,
+        "telefone_alternativo": telefone_alternativo,
+        "email": email,
+        "nivel_ensino": nivel_ensino,
+        "ano_faculdade": ano_faculdade if nivel_ensino == "faculdade" else None,
+        "area_formacao": area_formacao,
+        "senha": senha
+    }
+
+    db.collection("professores_online").add(data)
+
+    return RedirectResponse(url="/login_professor", status_code=303)
+
+
 
 
 
