@@ -464,34 +464,39 @@ async def exibir_online_aula(request: Request, nome_aluno: str):
     })
 
 
-@app.get("/professores_online")
-def get_formulario_professor(request: Request):
-    return templates.TemplateResponse("professores_online.html", {"request": request})
+@app.get("/professores_online", response_class=HTMLResponse)
+async def get_cadastro(request: Request):
+    return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
 
-@app.post("/professores_online")
-async def post_formulario_professor(
+@app.post("/professores_online", response_class=HTMLResponse)
+async def post_cadastro(
     request: Request,
     nome_completo: str = Form(...),
     nome_mae: str = Form(...),
     nome_pai: str = Form(...),
     bilhete: str = Form(...),
+    provincia: str = Form(...),
+    municipio: str = Form(...),
+    bairro: str = Form(...),
     residencia: str = Form(...),
     ponto_referencia: str = Form(...),
     localizacao: str = Form(...),
     telefone: str = Form(...),
-    telefone_alternativo: str = Form(None),
+    telefone_alternativo: str = Form(""),
     email: str = Form(...),
     nivel_ensino: str = Form(...),
-    ano_faculdade: str = Form(None),
+    ano_faculdade: str = Form(""),
     area_formacao: str = Form(...),
     senha: str = Form(...)
 ):
-    # Criar documento na coleção 'professores_online'
-    data = {
+    dados = {
         "nome_completo": nome_completo,
         "nome_mae": nome_mae,
         "nome_pai": nome_pai,
         "bilhete": bilhete,
+        "provincia": provincia,
+        "municipio": municipio,
+        "bairro": bairro,
         "residencia": residencia,
         "ponto_referencia": ponto_referencia,
         "localizacao": localizacao,
@@ -499,14 +504,26 @@ async def post_formulario_professor(
         "telefone_alternativo": telefone_alternativo,
         "email": email,
         "nivel_ensino": nivel_ensino,
-        "ano_faculdade": ano_faculdade if nivel_ensino == "faculdade" else None,
+        "ano_faculdade": ano_faculdade,
         "area_formacao": area_formacao,
         "senha": senha
     }
 
-    db.collection("professores_online").add(data)
+    db.collection("professores_online").add(dados)
+    return templates.TemplateResponse("professores_online.html", {"request": request, "success": True})
 
-    return RedirectResponse(url="/login_professor", status_code=303)
+@app.get("/login_professor", response_class=HTMLResponse)
+async def login_get(request: Request):
+    return templates.TemplateResponse("login_professor.html", {"request": request, "erro": None})
+
+@app.post("/login_professor", response_class=HTMLResponse)
+async def login_post(request: Request, nome_completo: str = Form(...), senha: str = Form(...)):
+    professores = db.collection("professores_online").where("nome_completo", "==", nome_completo).stream()
+    for prof in professores:
+        dados = prof.to_dict()
+        if dados.get("senha") == senha:
+            return HTMLResponse(f"<h2>Bem-vindo, {nome_completo}!</h2>")
+    return templates.TemplateResponse("login_professor.html", {"request": request, "erro": "Credenciais inválidas."})
 
 
 
