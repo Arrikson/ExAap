@@ -1,3 +1,4 @@
+from starlette.status import HTTP_303_SEE_OTHER
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, HTMLResponse
 from fastapi import FastAPI, Form, Request, UploadFile, File, Body
 from fastapi.staticfiles import StaticFiles
