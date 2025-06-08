@@ -468,6 +468,10 @@ async def exibir_online_aula(request: Request, nome_aluno: str):
 async def get_cadastro(request: Request):
     return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
 
+@app.get("/professores_online", response_class=HTMLResponse)
+async def get_cadastro(request: Request):
+    return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
+
 @app.post("/professores_online", response_class=HTMLResponse)
 async def post_cadastro(
     request: Request,
@@ -510,8 +514,8 @@ async def post_cadastro(
     }
 
     db.collection("professores_online").add(dados)
-    return RedirectResponse(url="/login_prof", {"request": request, "success": True}) 
-    
+    return RedirectResponse(url="/login_prof", status_code=303)
+
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
     return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
