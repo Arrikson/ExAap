@@ -730,6 +730,33 @@ async def verificar_aluno(request: Request):
     return JSONResponse(status_code=403, content={"erro": "Nome ou senha incorretos."})
 
 
+@app.get("/sala_aluno", response_class=HTMLResponse)
+async def exibir_sala_virtual_aluno(request: Request):
+    return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
+
+
+@app.post("/solicitar_entrada")
+async def solicitar_entrada(
+    email_aluno: str = Form(...),
+    nome_aluno: str = Form(...),
+    peer_id_aluno: str = Form(...),
+    id_professor: str = Form(...)
+):
+    # Aqui você pode registrar a solicitação em memória, JSON ou banco
+    solicitacoes.append({
+        "email": email_aluno,
+        "nome": nome_aluno,
+        "peer_id": peer_id_aluno,
+        "id_professor": id_professor
+    })
+    
+    print(f"Solicitação recebida de {nome_aluno} ({email_aluno}) para aula {id_professor}")
+    
+    # Simulação de aprovação imediata (em produção, o professor aprovaria manualmente)
+    return JSONResponse(content={"autorizado": True})
+
+
+
 
 
 
