@@ -212,10 +212,11 @@
     }
 
     function comecarAula() {
-      alert('Você está prestes a iniciar uma aula online.');
-      window.location.href = "/sala_virtual";
+      const email = "{{ professor.email }}";
+      window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
     }
   </script>
 </body>
 </html>
+
 
