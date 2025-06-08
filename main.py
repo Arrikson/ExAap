@@ -514,6 +514,7 @@ async def post_cadastro(
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
     return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
+    
 
 @app.post("/login_prof", response_class=HTMLResponse)
 async def login_prof_post(
@@ -526,10 +527,11 @@ async def login_prof_post(
     for prof in professores_ref:
         dados = prof.to_dict()
         if dados.get("senha") == senha:
-            # Login bem-sucedido
-            return HTMLResponse(f"<h2>Bem-vindo, {nome_completo}!</h2>")
+            email = dados.get("email")
+            # ✅ Redirecionar para o perfil usando o e-mail na query string
+            return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
 
-    # Se não encontrou ou senha incorreta
+    # ❌ Se não encontrou ou senha incorreta
     return templates.TemplateResponse("login_prof.html", {
         "request": request,
         "erro": "Nome completo ou senha incorretos."
