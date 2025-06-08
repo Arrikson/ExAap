@@ -70,13 +70,13 @@
       margin-bottom: 30px;
     }
 
-    label {
+    .info label {
       display: block;
       font-weight: bold;
       margin-top: 10px;
     }
 
-    input {
+    .info input {
       width: 100%;
       padding: 10px;
       border-radius: 8px;
@@ -110,15 +110,6 @@
       background-color: #002752;
     }
 
-    .save-button {
-      background-color: #28a745;
-      margin-top: 10px;
-    }
-
-    .save-button:hover {
-      background-color: #218838;
-    }
-
     .dados-secretos {
       display: none;
       background: rgba(255,255,255,0.2);
@@ -126,10 +117,19 @@
       border-radius: 10px;
     }
 
+    .dados-secretos p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
     .toggle-btn {
       background-color: #ffc107;
       color: #000;
       margin-top: 20px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     .toggle-btn:hover {
@@ -175,53 +175,34 @@
 
   <div class="profile-container">
     <h1>Meu Perfil</h1>
-    <form method="post">
-      <div class="info">
-        <label>Nome completo</label>
-        <input type="text" name="nome_completo" value="{{professor.nome_completo}}" readonly>
+    <div class="info">
+      <label>Nome completo</label>
+      <input type="text" name="nome_completo" value="{{professor.nome_completo}}" readonly>
 
-        <label>Nível de Ensino</label>
-        <input type="text" name="nivel_ensino" value="{{professor.nivel_ensino}}" readonly>
-      </div>
+      <label>Nível de Ensino</label>
+      <input type="text" name="nivel_ensino" value="{{professor.nivel_ensino}}" readonly>
+    </div>
 
-      <button type="button" class="toggle-btn" onclick="toggleDados()">Meus Dados</button>
+    <button type="button" class="toggle-btn" onclick="toggleDados()">Meus Dados</button>
 
-      <div class="dados-secretos" id="dadosSecretos">
-        <label>Email</label>
-        <input type="email" value="{{professor.email}}" readonly>
+    <div class="dados-secretos" id="dadosSecretos">
+      <p><strong>Email:</strong> {{professor.email}}</p>
+      <p><strong>Formado em:</strong> {{professor.area_formacao}}</p>
+      <p><strong>Telefone:</strong> {{professor.telefone}}</p>
+      <p><strong>Nome da mãe:</strong> {{professor.nome_mae}}</p>
+      <p><strong>Nome do pai:</strong> {{professor.nome_pai}}</p>
+      <p><strong>Bilhete:</strong> {{professor.bilhete}}</p>
+      <p><strong>Localização:</strong> {{professor.localizacao}}</p>
+      <p><strong>Senha:</strong> •••••••••••</p>
+    </div>
 
-        <label>Área de formação</label>
-        <input type="text" value="{{professor.area_formacao}}" readonly>
-
-        <label>Telefone</label>
-        <input type="text" value="{{professor.telefone}}" readonly>
-
-        <label>Nome da mãe</label>
-        <input type="text" readonly value="{{professor.nome_mae}}">
-
-        <label>Nome do pai</label>
-        <input type="text" readonly value="{{professor.nome_pai}}">
-
-        <label>Bilhete</label>
-        <input type="text" readonly value="{{professor.bilhete}}">
-
-        <label>Localização</label>
-        <input type="text" readonly value="{{professor.localizacao}}">
-
-        <label>Senha (oculta)</label>
-        <input type="password" readonly value="{{professor.senha}}">
-      </div>
-
-      <button class="save-button" type="submit">Salvar alterações</button>
-
-      <div class="action-buttons">
-        <button type="button" onclick="alert('Listar alunos em breve')">Meus Alunos</button>
-        <button type="button" onclick="alert('Aulas de hoje')">Aulas do Dia</button>
-        <button type="button" onclick="alert('Aulas da semana')">Aulas da Semana</button>
-        <button type="button" onclick="alert('Aulas do mês')">Aulas do Mês</button>
-        <button type="button" style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
-      </div>
-    </form>
+    <div class="action-buttons">
+      <button type="button" onclick="alert('Listar alunos em breve')">Meus Alunos</button>
+      <button type="button" onclick="alert('Aulas de hoje')">Aulas do Dia</button>
+      <button type="button" onclick="alert('Aulas da semana')">Aulas da Semana</button>
+      <button type="button" onclick="alert('Aulas do mês')">Aulas do Mês</button>
+      <button type="button" style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
+    </div>
   </div>
 
   <script>
@@ -232,8 +213,9 @@
 
     function comecarAula() {
       alert('Você está prestes a iniciar uma aula online.');
-      window.location.href = "/sala_virtual"; // Exemplo de rota
+      window.location.href = "/sala_virtual";
     }
   </script>
 </body>
 </html>
+
