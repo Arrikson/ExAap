@@ -463,11 +463,6 @@ async def exibir_online_aula(request: Request, nome_aluno: str):
         "nome_aluno": nome_aluno
     })
 
-
-@app.get("/professores_online", response_class=HTMLResponse)
-async def get_cadastro(request: Request):
-    return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
-
 @app.get("/professores_online", response_class=HTMLResponse)
 async def get_cadastro(request: Request):
     return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
@@ -539,6 +534,101 @@ async def login_prof_post(
         "request": request,
         "erro": "Nome completo ou senha incorretos."
     })
+
+
+@app.get("/perfil_prof", response_class=HTMLResponse)
+async def get_perfil_prof(request: Request, email: str):
+    """
+    Exibe o perfil do professor com base no email fornecido.
+    Esse email normalmente virá da sessão de login ou como query param após login.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
+
+    prof_data = prof_doc.to_dict()
+    prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
+    return templates.TemplateResponse("perfil_prof.html", {"request": request, "professor": prof_data})
+
+
+@app.post("/perfil_prof", response_class=HTMLResponse)
+async def post_perfil_prof(
+    request: Request,
+    email: str = Form(...),
+    descricao: str = Form(...)
+):
+    """
+    Atualiza apenas o campo "descricao" do professor logado.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
+
+    # Atualizar o campo descrição
+    db.collection("professores_online").document(prof_doc.id).update({
+        "descricao": descricao
+    })
+
+    # Redireciona de volta ao perfil com confirmação
+    return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
+
+
+@app.get("/meus-dados")
+async def meus_dados(email: str = Query(...)):
+    prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+    prof_doc = next(prof_ref, None)
+
+    if not prof_doc:
+        return {"erro": "Professor não encontrado"}
+
+    return prof_doc.to_dict()
+
+
+@app.get("/meus-alunos")
+async def meus_alunos(email: str = Query(...)):
+    # Aqui será feita consulta real no futuro
+    return {
+        "professor": email,
+        "alunos": [
+            {"nome": "João Pedro", "disciplina": "Matemática"},
+            {"nome": "Ana Carla", "disciplina": "Física"},
+            {"nome": "Luís Miguel", "disciplina": "Química"}
+        ]
+    }
+
+@app.get("/aulas-dia")
+async def aulas_dadas_no_dia(email: str = Query(...)):
+    # Em produção, puxar do Firebase a agenda desse professor
+    return {
+        "professor": email,
+        "data": "2025-06-08",
+        "aulas": ["Matemática 10º Ano", "Física 11º Ano"],
+        "quantidade": 2
+    }
+
+@app.get("/aulas-semana")
+async def aulas_dadas_na_semana(email: str = Query(...)):
+    return {
+        "professor": email,
+        "semana": "03 a 08 de Junho",
+        "aulas": ["Matemática", "Física", "Química", "Inglês"],
+        "quantidade": 7
+    }
+
+@app.get("/aulas-mes")
+async def aulas_dadas_no_mes(email: str = Query(...)):
+    return {
+        "professor": email,
+        "mes": "Junho",
+        "quantidade": 28,
+        "resumo": "Aulas ministradas com regularidade nas 4 semanas."
+    }
 
 
 
