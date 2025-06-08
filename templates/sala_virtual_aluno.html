@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aula do Professor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: black;
+      color: white;
+      overflow: hidden;
+    }
+
+    #topo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background: white;
+      color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #topo img {
+      height: 30px;
+      margin-right: 10px;
+      position: absolute;
+      left: 15px;
+    }
+
+    #container-video {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding-top: 50px;
+      box-sizing: border-box;
+    }
+
+    #remoteVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: black;
+    }
+
+    #botoes {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .entrar {
+      background: #28a745;
+      color: white;
+    }
+
+    .camera {
+      background: #007bff;
+      color: white;
+    }
+
+    .sair {
+      background: red;
+      color: white;
+    }
+
+    #meuVideo {
+      position: absolute;
+      width: 120px;
+      height: 90px;
+      right: 15px;
+      bottom: 80px;
+      border: 2px solid white;
+      border-radius: 10px;
+      object-fit: cover;
+      background: black;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="topo">
+  <img src="/static/logo.png" alt="Logo">
+  <span>Aula de <strong id="nome-disciplina">Disciplina</strong></span>
+</div>
+
+<div id="container-video">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="meuVideo" autoplay muted playsinline></video>
+</div>
+
+<div id="botoes">
+  <button class="entrar" onclick="entrarNaAula()">Entrar na aula</button>
+  <button class="camera" onclick="ativarMinhaCamera()">Ativar câmera</button>
+  <button class="sair" onclick="sairDaAula()">Sair</button>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script>
+  const peer = new Peer();
+  let callAtivo = null;
+  let localStream = null;
+  let remoteVideo = document.getElementById("remoteVideo");
+  let meuVideo = document.getElementById("meuVideo");
+
+  function entrarNaAula() {
+    const professorId = prompt("Cole o código da aula:");
+    const nome = prompt("Seu nome:");
+    if (!professorId || !nome) {
+      alert("Código e nome são obrigatórios.");
+      return;
+    }
+
+    callAtivo = peer.call(professorId, localStream || undefined);
+
+    callAtivo.on("stream", (stream) => {
+      remoteVideo.srcObject = stream;
+    });
+
+    callAtivo.on("close", () => {
+      alert("A conexão foi encerrada pelo professor.");
+      remoteVideo.srcObject = null;
+    });
+
+    // Opcional: pode-se registrar nome e email do aluno aqui se necessário
+  }
+
+  async function ativarMinhaCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStream = stream;
+      meuVideo.srcObject = stream;
+      meuVideo.style.display = "block";
+      alert("Sua câmera está ativa. Agora você pode entrar na aula.");
+    } catch (err) {
+      alert("Erro ao acessar a câmera: " + err.message);
+    }
+  }
+
+  function sairDaAula() {
+    if (callAtivo) {
+      callAtivo.close();
+    }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    remoteVideo.srcObject = null;
+    meuVideo.srcObject = null;
+    alert("Você saiu da aula.");
+  }
+</script>
+
+</body>
+</html>
