@@ -715,6 +715,21 @@ async def aceitar_aluno(
 
     return JSONResponse({"mensagem": "Aluno aprovado com sucesso."})
 
+@app.post("/verificar_aluno")
+async def verificar_aluno(request: Request):
+    dados = await request.json()
+    nome = dados.get("nome")
+    senha = dados.get("senha")
+
+    with open("alunos.json", "r") as f:
+        alunos = json.load(f)
+
+    for aluno in alunos:
+        if aluno["nome"] == nome and aluno["senha"] == senha:
+            return {"ok": True}
+    return JSONResponse(status_code=403, content={"erro": "Nome ou senha incorretos."})
+
+
 
 
 
