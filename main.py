@@ -634,6 +634,32 @@ async def aulas_dadas_no_mes(email: str = Query(...)):
     }
 
 
+@app.get("/aula_online", response_class=HTMLResponse)
+async def get_aula_online(request: Request, email: str):
+    """
+    Renderiza a página da aula online (inonline.html) com o nome da disciplina.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado."})
+
+    prof_data = prof_doc.to_dict()
+
+    nome_disciplina = prof_data.get("formado_em", "Aula")
+    professor_nome = prof_data.get("nome", "Professor")
+
+    return templates.TemplateResponse("inonline.html", {
+        "request": request,
+        "nome_disciplina": nome_disciplina,
+        "professor_nome": professor_nome,
+        "email": email
+    })
+
+
+
 
 
 
