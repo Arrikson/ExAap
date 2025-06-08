@@ -512,18 +512,31 @@ async def post_cadastro(
     db.collection("professores_online").add(dados)
     return templates.TemplateResponse("professores_online.html", {"request": request, "success": True})
 
-@app.get("/login_professor", response_class=HTMLResponse)
-async def login_get(request: Request):
-    return templates.TemplateResponse("login_professor.html", {"request": request, "erro": None})
+@app.get("/login_prof", response_class=HTMLResponse)
+async def login_prof_get(request: Request):
+    return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
 
-@app.post("/login_professor", response_class=HTMLResponse)
-async def login_post(request: Request, nome_completo: str = Form(...), senha: str = Form(...)):
-    professores = db.collection("professores_online").where("nome_completo", "==", nome_completo).stream()
-    for prof in professores:
+@app.post("/login_prof", response_class=HTMLResponse)
+async def login_prof_post(
+    request: Request,
+    nome_completo: str = Form(...),
+    senha: str = Form(...)
+):
+    professores_ref = db.collection("professores_online").where("nome_completo", "==", nome_completo).stream()
+
+    for prof in professores_ref:
         dados = prof.to_dict()
         if dados.get("senha") == senha:
+            # Login bem-sucedido
             return HTMLResponse(f"<h2>Bem-vindo, {nome_completo}!</h2>")
-    return templates.TemplateResponse("login_professor.html", {"request": request, "erro": "Credenciais inválidas."})
+
+    # Se não encontrou ou senha incorreta
+    return templates.TemplateResponse("login_prof.html", {
+        "request": request,
+        "erro": "Nome completo ou senha incorretos."
+    })
+
+
 
 
 
