@@ -3,177 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aula do Professor</title>
+  <title>Entrar na Aula</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      font-family: sans-serif;
-      background-color: black;
+      background-color: #000;
       color: white;
-      overflow: hidden;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    #topo {
-      position: fixed;
-      top: 0;
-      left: 0;
+    header {
       width: 100%;
-      height: 50px;
       background: white;
       color: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
+      text-align: center;
+      padding: 15px 0;
       font-size: 20px;
       font-weight: bold;
     }
 
-    #topo img {
-      height: 30px;
-      margin-right: 10px;
-      position: absolute;
-      left: 15px;
-    }
-
-    #container-video {
-      width: 100vw;
-      height: 100vh;
+    form {
+      margin-top: 50px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding-top: 50px;
-      box-sizing: border-box;
+      gap: 15px;
+      width: 80%;
+      max-width: 400px;
     }
 
-    #remoteVideo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: black;
-    }
-
-    #botoes {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      z-index: 10;
+    input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
     }
 
     button {
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 12px;
+      background: #007bff;
+      color: white;
       border: none;
-      border-radius: 6px;
+      font-size: 16px;
+      border-radius: 8px;
       cursor: pointer;
     }
 
-    .entrar {
-      background: #28a745;
-      color: white;
-    }
-
-    .camera {
-      background: #007bff;
-      color: white;
-    }
-
-    .sair {
-      background: red;
-      color: white;
-    }
-
-    #meuVideo {
-      position: absolute;
-      width: 120px;
-      height: 90px;
-      right: 15px;
-      bottom: 80px;
-      border: 2px solid white;
+    video {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 800px;
       border-radius: 10px;
-      object-fit: cover;
-      background: black;
-      display: none;
     }
   </style>
 </head>
 <body>
 
-<div id="topo">
-  <img src="/static/logo.png" alt="Logo">
-  <span>Aula de <strong id="nome-disciplina">Disciplina</strong></span>
-</div>
+<header>Entrar na Aula</header>
 
-<div id="container-video">
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="meuVideo" autoplay muted playsinline></video>
-</div>
+<form id="formulario">
+  <input type="text" id="nome" placeholder="Seu nome" required />
+  <input type="email" id="email" placeholder="Seu email" required />
+  <input type="text" id="id_professor" placeholder="Código da aula" required />
+  <button type="submit">Solicitar entrada</button>
+</form>
 
-<div id="botoes">
-  <button class="entrar" onclick="entrarNaAula()">Entrar na aula</button>
-  <button class="camera" onclick="ativarMinhaCamera()">Ativar câmera</button>
-  <button class="sair" onclick="sairDaAula()">Sair</button>
-</div>
+<video id="videoAula" autoplay playsinline controls muted style="display:none;"></video>
 
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script>
+  const form = document.getElementById("formulario");
+  const videoAula = document.getElementById("videoAula");
   const peer = new Peer();
-  let callAtivo = null;
-  let localStream = null;
-  let remoteVideo = document.getElementById("remoteVideo");
-  let meuVideo = document.getElementById("meuVideo");
 
-  function entrarNaAula() {
-    const professorId = prompt("Cole o código da aula:");
-    const nome = prompt("Seu nome:");
-    if (!professorId || !nome) {
-      alert("Código e nome são obrigatórios.");
-      return;
-    }
+  let stream;
 
-    callAtivo = peer.call(professorId, localStream || undefined);
+  peer.on("open", id => {
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
 
-    callAtivo.on("stream", (stream) => {
-      remoteVideo.srcObject = stream;
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const id_professor = document.getElementById("id_professor").value;
+
+      const formData = new FormData();
+      formData.append("email_aluno", email);
+      formData.append("nome_aluno", nome);
+      formData.append("peer_id_aluno", id);
+      formData.append("id_professor", id_professor);
+
+      const resp = await fetch("/solicitar_entrada", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await resp.json();
+      if (resp.ok && result.autorizado) {
+        iniciarChamada(id_professor);
+      } else {
+        alert("Aguardando aprovação do professor...");
+      }
+    });
+  });
+
+  function iniciarChamada(id_professor) {
+    const call = peer.call(id_professor, null); // aluno não envia stream, apenas recebe
+    call.on("stream", remoteStream => {
+      videoAula.srcObject = remoteStream;
+      videoAula.style.display = "block";
     });
 
-    callAtivo.on("close", () => {
-      alert("A conexão foi encerrada pelo professor.");
-      remoteVideo.srcObject = null;
+    call.on("close", () => {
+      alert("A aula foi encerrada.");
+      location.reload();
     });
-
-    // Opcional: pode-se registrar nome e email do aluno aqui se necessário
-  }
-
-  async function ativarMinhaCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localStream = stream;
-      meuVideo.srcObject = stream;
-      meuVideo.style.display = "block";
-      alert("Sua câmera está ativa. Agora você pode entrar na aula.");
-    } catch (err) {
-      alert("Erro ao acessar a câmera: " + err.message);
-    }
-  }
-
-  function sairDaAula() {
-    if (callAtivo) {
-      callAtivo.close();
-    }
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
-    remoteVideo.srcObject = null;
-    meuVideo.srcObject = null;
-    alert("Você saiu da aula.");
   }
 </script>
 
 </body>
 </html>
+
