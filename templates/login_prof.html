@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login de Professores</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-yI1D+/s0IV8I+0+Vgqgk19MrbEbQnZQkAIK5w1rZsU3u4XhG8yT1A4rFZ5cOa2kxkG7rA3+3kd4xQ5aK0d1ckA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #00C6FF, #007BFF);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .top-bar img {
+      height: 45px;
+    }
+
+    .form-container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 100px 30px 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      margin-top: 80px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      background-color: #fff;
+      color: #000;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .error-message {
+      background-color: #ff6b6b;
+      color: white;
+      padding: 10px;
+      margin: 20px 0;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .form-container {
+        padding: 80px 20px 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <img src="/static/logo.png" alt="Logo">
+  </div>
+
+  {% if error %}
+  <div class="error-message">Nome completo ou senha incorretos. Tente novamente.</div>
+  {% endif %}
+
+  <form class="form-container" method="post">
+    <h1>Login do Professor</h1>
+
+    <input type="text" name="nome_completo" placeholder="Nome completo" required>
+    <input type="password" name="senha" placeholder="Senha" required>
+
+    <button type="submit">Entrar</button>
+  </form>
+</body>
+</html>
