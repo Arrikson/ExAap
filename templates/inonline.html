@@ -90,7 +90,14 @@
 
   <button id="ver-colegas">Ver colegas</button>
 
+  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+  <!-- Email do professor vindo do backend -->
+  <script>
+    const emailProfessor = "{{ professor.email }}";
+  </script>
+
   <script>
     const disciplinaSpan = document.getElementById("disciplina");
     const meuIDSpan = document.getElementById("meu-id");
@@ -116,8 +123,7 @@
     });
 
     async function fetchDisciplina() {
-      // simula carregar disciplina do backend
-      disciplinaSpan.textContent = "Matemática"; // <-- aqui será dinâmico
+      disciplinaSpan.textContent = "Matemática"; // Pode ser substituído por valor dinâmico
     }
 
     async function startStream() {
@@ -133,7 +139,6 @@
     startStream();
 
     document.getElementById("trocar-camera").onclick = async () => {
-      // alternância da câmera pode ser implementada aqui
       alert("Alternar câmera não implementado.");
     };
 
@@ -157,26 +162,40 @@
     });
 
     function escutarSolicitacoes() {
-      // aqui você usaria Firebase para escutar novos alunos pedindo para entrar
-      // Exemplo fake:
+      // Exemplo simulado
       setTimeout(() => {
-        adicionarSolicitacao("aluno_123", "Pedro");
+        adicionarSolicitacao("aluno123@email.com", "Pedro");
       }, 2000);
     }
 
-    function adicionarSolicitacao(alunoId, nome) {
+    function adicionarSolicitacao(alunoEmail, nome) {
       const li = document.createElement("li");
-      li.textContent = nome;
+      li.textContent = nome + " ";
+
       const btn = document.createElement("button");
       btn.textContent = "Aprovar";
-      btn.onclick = () => aprovarAluno(alunoId);
+      btn.onclick = async () => {
+        const formData = new FormData();
+        formData.append("email_prof", emailProfessor);
+        formData.append("email_aluno", alunoEmail);
+        formData.append("nome_aluno", nome);
+
+        const resposta = await fetch("/aceitar_aluno", {
+          method: "POST",
+          body: formData
+        });
+
+        const resultado = await resposta.json();
+        if (resposta.ok) {
+          alert(`✅ ${nome} aprovado.`);
+          li.remove();
+        } else {
+          alert("Erro: " + resultado.erro);
+        }
+      };
+
       li.appendChild(btn);
       listaSolicitacoes.appendChild(li);
-    }
-
-    function aprovarAluno(alunoId) {
-      // aqui você atualizaria o Firestore para marcar o aluno como aprovado
-      alert(`Aluno ${alunoId} aprovado. Aguarde conexão.`);
     }
 
     document.getElementById("ver-colegas").onclick = () => {
@@ -187,3 +206,4 @@
   </script>
 </body>
 </html>
+
