@@ -15,6 +15,64 @@
       color: white;
     }
 
+    #painel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      z-index: 5;
+      width: 100vw;
+      box-sizing: border-box;
+    }
+
+    #painel h1 {
+      margin: 0 0 10px 0;
+      font-weight: normal;
+      font-size: 1.8rem;
+    }
+
+    #painel p {
+      margin: 4px 0;
+      font-size: 1rem;
+    }
+
+    #disciplina-container, #codigo-aula {
+      margin-top: 10px;
+    }
+
+    #codigo-aula {
+      font-size: 1rem;
+    }
+
+    #codigo-aula button {
+      margin-left: 10px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    #status, #controles, #solicitacoes {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    #controles button {
+      padding: 8px;
+      margin-right: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s;
+    }
+
+    #controles button:hover {
+      background-color: #0056b3;
+    }
+
     #videos {
       position: relative;
       width: 100vw;
@@ -23,6 +81,8 @@
       justify-content: center;
       align-items: center;
       flex-wrap: wrap;
+      padding-top: 150px; /* Espaço para o painel */
+      box-sizing: border-box;
     }
 
     video {
@@ -32,30 +92,11 @@
       margin: 5px;
       border-radius: 10px;
       border: 2px solid #fff;
+      background: black;
     }
 
     #localVideo {
       border: 2px solid yellow;
-    }
-
-    #painel {
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: rgba(0,0,0,0.7);
-      padding: 10px;
-      z-index: 5;
-      width: 100vw;
-    }
-
-    #status, #controles, #solicitacoes, #codigo-aula {
-      margin-top: 5px;
-    }
-
-    button {
-      padding: 8px;
-      margin: 5px;
-      font-size: 14px;
     }
 
     #ver-colegas {
@@ -68,16 +109,31 @@
       padding: 8px 12px;
       border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
+      border: none;
     }
   </style>
 </head>
 <body>
 
   <div id="painel">
-    <div><strong>Disciplina:</strong> <span id="disciplina">Carregando...</span></div>
-    <div id="codigo-aula"><strong>Código da Aula:</strong> <span id="meu-id">Gerando...</span> <button id="copiar-id">Copiar</button></div>
+    <h1>Bem-vindo à sua Sala Virtual</h1>
+    <p><strong>Professor:</strong> {{ professor.nome }}</p>
+    <p><strong>Email:</strong> {{ professor.email }}</p>
+
+    <div id="disciplina-container"><strong>Disciplina:</strong> <span id="disciplina">Carregando...</span></div>
+    <div id="codigo-aula">
+      <strong>Código da Aula:</strong> <span id="meu-id">Gerando...</span> 
+      <button id="copiar-id">Copiar</button>
+    </div>
+
     <div id="status">Aguardando conexão...</div>
-    <div id="solicitacoes"><strong>Solicitações de entrada:</strong><ul id="lista-solicitacoes"></ul></div>
+
+    <div id="solicitacoes">
+      <strong>Solicitações de entrada:</strong>
+      <ul id="lista-solicitacoes"></ul>
+    </div>
+
     <div id="controles">
       <button id="trocar-camera">Trocar câmera</button>
       <button id="encerrar">Encerrar aula</button>
@@ -93,11 +149,6 @@
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
-  <!-- Email do professor vindo do backend -->
-  <script>
-    const emailProfessor = "{{ professor.email }}";
-  </script>
-
   <script>
     const disciplinaSpan = document.getElementById("disciplina");
     const meuIDSpan = document.getElementById("meu-id");
@@ -109,6 +160,15 @@
     let localStream;
     let alunos = {};
 
+    // Email do professor do backend
+    const emailProfessor = "{{ professor.email }}";
+
+    // Disciplina - se quiser, pode usar {{ nome_disciplina }} do backend e renderizar direto,
+    // aqui deixo um fallback dinâmico para demonstrar.
+    const nomeDisciplina = "{{ nome_disciplina }}" || "Matemática";
+
+    disciplinaSpan.textContent = nomeDisciplina;
+
     const peer = new Peer();
 
     peer.on("open", (id) => {
@@ -118,13 +178,8 @@
         copiarIDBtn.innerText = "Copiado!";
         setTimeout(() => copiarIDBtn.innerText = "Copiar", 1500);
       };
-      fetchDisciplina();
       escutarSolicitacoes();
     });
-
-    async function fetchDisciplina() {
-      disciplinaSpan.textContent = "Matemática"; // Pode ser substituído por valor dinâmico
-    }
 
     async function startStream() {
       try {
@@ -132,7 +187,7 @@
         localStream = stream;
         localVideo.srcObject = stream;
       } catch (err) {
-        alert("Erro ao acessar câmera/mic.");
+        alert("Erro ao acessar câmera/microfone.");
       }
     }
 
@@ -159,10 +214,20 @@
         video.playsInline = true;
         videoContainer.appendChild(video);
       });
+
+      call.on("close", () => {
+        // Remover vídeo do aluno quando desconectar
+        const vids = videoContainer.querySelectorAll("video");
+        vids.forEach(v => {
+          if (v.srcObject === call.remoteStream) {
+            videoContainer.removeChild(v);
+          }
+        });
+      });
     });
 
     function escutarSolicitacoes() {
-      // Exemplo simulado
+      // Simulação de solicitação, substituir com WebSocket ou outra tecnologia real
       setTimeout(() => {
         adicionarSolicitacao("aluno123@email.com", "Pedro");
       }, 2000);
@@ -204,6 +269,6 @@
       });
     };
   </script>
+
 </body>
 </html>
-
