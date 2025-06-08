@@ -1,6 +1,6 @@
 from starlette.status import HTTP_303_SEE_OTHER
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, HTMLResponse
-from fastapi import FastAPI, Form, Request, UploadFile, File, Body
+from fastapi import FastAPI, Form, Request, UploadFile, File, Body, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
@@ -12,6 +12,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from fpdf import FPDF
+
+
 
 
 
@@ -590,7 +592,6 @@ async def meus_dados(email: str = Query(...)):
         return {"erro": "Professor não encontrado"}
 
     return prof_doc.to_dict()
-
 
 @app.get("/meus-alunos")
 async def meus_alunos(email: str = Query(...)):
