@@ -510,8 +510,8 @@ async def post_cadastro(
     }
 
     db.collection("professores_online").add(dados)
-    return templates.TemplateResponse("professores_online.html", {"request": request, "success": True})
-
+    return RedirectResponse(url="/login_prof", {"request": request, "success": True}) 
+    
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
     return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
