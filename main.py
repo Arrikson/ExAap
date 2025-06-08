@@ -659,6 +659,28 @@ async def get_aula_online(request: Request, email: str):
     })
 
 
+@app.get("/sala_virtual", response_class=HTMLResponse)
+async def sala_virtual(request: Request, email: str):
+    """
+    Página da sala de aula online do professor.
+    O professor será identificado pelo email enviado via query string.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para criar a sala."})
+
+    prof_data = prof_doc.to_dict()
+    prof_data["id"] = prof_doc.id
+
+    return templates.TemplateResponse("inonline.html", {
+        "request": request,
+        "professor": prof_data
+    })
+
+
 @app.post("/aceitar_aluno")
 async def aceitar_aluno(
     email_prof: str = Form(...),
