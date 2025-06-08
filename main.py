@@ -659,6 +659,41 @@ async def get_aula_online(request: Request, email: str):
     })
 
 
+@app.post("/aceitar_aluno")
+async def aceitar_aluno(
+    email_prof: str = Form(...),
+    email_aluno: str = Form(...),
+    nome_aluno: str = Form(...)
+):
+    """
+    Marca um aluno como aprovado para entrar na aula do professor.
+    Atualiza a coleção 'aulas_ativas' no Firestore.
+    """
+    aula_ref = db.collection("aulas_ativas").document(email_prof)
+    aula_doc = aula_ref.get()
+
+    if not aula_doc.exists:
+        return JSONResponse({"erro": "Aula não encontrada."}, status_code=404)
+
+    aula_data = aula_doc.to_dict()
+    pendentes = aula_data.get("alunos_pendentes", [])
+    aprovados = aula_data.get("alunos_aprovados", [])
+
+    # Remove o aluno da lista de pendentes
+    pendentes = [a for a in pendentes if a["email"] != email_aluno]
+
+    # Adiciona na lista de aprovados
+    aprovados.append({"nome": nome_aluno, "email": email_aluno})
+
+    # Atualiza o Firestore
+    aula_ref.update({
+        "alunos_pendentes": pendentes,
+        "alunos_aprovados": aprovados
+    })
+
+    return JSONResponse({"mensagem": "Aluno aprovado com sucesso."})
+
+
 
 
 
