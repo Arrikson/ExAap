@@ -130,8 +130,14 @@
     <input type="text" name="area_formacao" placeholder="Área de formação" required>
     <input type="password" name="senha" placeholder="Definir senha" required>
 
-    <button type="submit">Enviar</button>
-  </form>
+   {% if success %}
+  <div class="success">Cadastro enviado com sucesso! Redirecionando para login...</div>
+  <script>
+    setTimeout(function() {
+      window.location.href = "/login_prof";
+    }, 2000); // 2 segundos
+  </script>
+{% endif %}
 
   <script>
     document.getElementById('nivel_ensino').addEventListener('change', function () {
