@@ -190,26 +190,36 @@
       <button type="button" style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
     </div>
 
-    <div id="alunos-disponiveis"></div>
-  </div>
+<div id="alunos-disponiveis"></div>
+</div>
 
-  <script>
-    function toggleDados() {
-      const div = document.getElementById('dadosSecretos');
-      div.style.display = div.style.display === 'none' || div.style.display === '' ? 'block' : 'none';
-    }
+<script>
+  function toggleDados() {
+    const div = document.getElementById('dadosSecretos');
+    div.style.display = div.style.display === 'none' || div.style.display === '' ? 'block' : 'none';
+  }
 
-    function comecarAula() {
-      const email = "{{ professor.email }}";
-      window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
-    }
+  function comecarAula() {
+    const email = "{{ professor.email }}";
+    window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
+  }
 
-    async function buscarAlunosDisponiveis() {
-      const email = "{{ professor.email }}";
+  async function buscarAlunosDisponiveis() {
+    const email = "{{ professor.email }}";
+    try {
       const res = await fetch(`/alunos-disponiveis/${email}`);
+      if (!res.ok) {
+        throw new Error("Erro ao buscar alunos disponíveis");
+      }
       const alunos = await res.json();
       const container = document.getElementById('alunos-disponiveis');
       container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+
+      if (alunos.length === 0) {
+        container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+        return;
+      }
+
       alunos.forEach(aluno => {
         const card = document.createElement('div');
         card.className = 'aluno-card';
@@ -219,19 +229,36 @@
         `;
         container.appendChild(card);
       });
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao buscar alunos.");
     }
+  }
 
-    async function vincularAluno(alunoNome, profEmail) {
+  async function vincularAluno(alunoNome, profEmail) {
+    try {
       const res = await fetch('/vincular-aluno', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
       });
+
       const data = await res.json();
-      alert(data.message);
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Erro ao vincular aluno.");
+      }
+
+      alert(data.message || "Aluno vinculado com sucesso!");
+      buscarAlunosDisponiveis(); // Atualiza a lista após vínculo
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
-  </script>
+  }
+</script>
 </body>
 </html>
+
 
 
