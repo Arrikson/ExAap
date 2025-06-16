@@ -12,6 +12,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
 from fpdf import FPDF
+from pydantic import BaseModel
+
 
 
 
