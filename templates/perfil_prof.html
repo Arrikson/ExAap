@@ -206,7 +206,6 @@
 
     async function buscarAlunosDisponiveis() {
       const email = "{{ professor.email }}";
-      const area = "{{ professor.area_formacao }}";
       const res = await fetch(`/alunos-disponiveis/${email}`);
       const alunos = await res.json();
       const container = document.getElementById('alunos-disponiveis');
@@ -216,17 +215,17 @@
         card.className = 'aluno-card';
         card.innerHTML = `
           <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-          <button onclick="vincularAluno('${aluno.id}', '${email}')">Vincular</button>
+          <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
         `;
         container.appendChild(card);
       });
     }
 
-    async function vincularAluno(alunoId, profEmail) {
+    async function vincularAluno(alunoNome, profEmail) {
       const res = await fetch('/vincular-aluno', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aluno_id: alunoId, professor_email: profEmail })
+        body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
       });
       const data = await res.json();
       alert(data.message);
@@ -234,4 +233,5 @@
   </script>
 </body>
 </html>
+
 
