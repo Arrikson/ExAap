@@ -755,6 +755,77 @@ async def solicitar_entrada(
     # Simulação de aprovação imediata (em produção, o professor aprovaria manualmente)
     return JSONResponse(content={"autorizado": True})
 
+# Modelo de entrada para criar vínculo
+class VinculoIn(BaseModel):
+    professor_email: str
+    aluno_nome: str  # Usar nome para buscar o aluno na coleção
+
+# Verifica se o vínculo já existe
+def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email) \
+             .where('aluno', '==', aluno_nome) \
+             .limit(1).stream()
+    return next(docs, None) is not None
+
+# Lista alunos disponíveis para um professor
+@app.get('/alunos-disponiveis/{prof_email}')
+async def alunos_disponiveis(prof_email: str):
+    prof_docs = db.collection('professores_online') \
+                  .where('email', '==', prof_email).limit(1).stream()
+    prof = next(prof_docs, None)
+    if not prof:
+        raise HTTPException(status_code=404, detail='Professor não encontrado')
+    
+    area = prof.get('area_formacao')
+    if not area:
+        return []
+
+    alunos = db.collection('alunos') \
+               .where('disciplina', '==', area).stream()
+    
+    disponiveis = []
+    for aluno in alunos:
+        nome = aluno.get('nome')
+        if nome and not vinculo_existe(prof_email, nome):
+            disponiveis.append({
+                'nome': nome,
+                'disciplina': aluno.get('disciplina')
+            })
+    return disponiveis
+
+# Cria o vínculo entre professor e aluno com dados completos do aluno (exceto senha, telefone, localização)
+@app.post('/vincular-aluno', status_code=201)
+async def vincular_aluno(item: VinculoIn):
+    if vinculo_existe(item.professor_email, item.aluno_nome):
+        raise HTTPException(status_code=409, detail='Vínculo já existe')
+
+    # Buscar aluno pelo nome
+    aluno_docs = db.collection('alunos') \
+                   .where('nome', '==', item.aluno_nome) \
+                   .limit(1).stream()
+    aluno_doc = next(aluno_docs, None)
+
+    if not aluno_doc:
+        raise HTTPException(status_code=404, detail='Aluno não encontrado')
+
+    dados_aluno = aluno_doc.to_dict()
+
+    # Remove os campos sensíveis
+    campos_excluir = ['senha', 'telefone', 'localizacao']
+    for campo in campos_excluir:
+        dados_aluno.pop(campo, None)
+
+    # Criar o vínculo com informações completas do aluno e nome do professor
+    db.collection('alunos_professor').add({
+        'professor': item.professor_email,
+        'aluno': item.aluno_nome,
+        'dados_aluno': dados_aluno,
+        'vinculado_em': datetime.now(timezone.utc).isoformat()
+    })
+
+    return {'message': 'Vínculo criado com sucesso'}
+
 
 
 
