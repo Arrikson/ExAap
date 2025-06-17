@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-yI1D+/s0IV8I+0+Vgqgk19MrbEbQnZQkAIK5w1rZsU3u4XhG8yT1A4rFZ5cOa2kxkG7rA3+3kd4xQ5aK0d1ckA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     body {
       margin: 0;
@@ -71,25 +71,19 @@
     }
 
     .accordion:after {
-      content: "\f0da"; /* Font Awesome fa-chevron-down */
+      content: "\f0da";
       font-family: "Font Awesome 6 Free";
       font-weight: 900;
-      float: right;
     }
 
     .accordion.active:after {
-      content: "\f0d7"; /* Font Awesome fa-chevron-up */
+      content: "\f0d7";
     }
 
     .panel {
       padding: 0 10px;
       display: none;
       overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .panel form,
-    .panel > div {
       margin-top: 10px;
     }
 
@@ -144,6 +138,13 @@
     .btn-enter:hover {
       background-color: #e0a800;
     }
+
+    #professor-nome {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #fff;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -154,37 +155,34 @@
   <div class="profile-container">
     <h1>Olá, {{ aluno.nome }}</h1>
 
+    <!-- Botão Professores -->
+    <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
+      <i class="fas fa-chalkboard-teacher"></i> Professores
+    </button>
+    <div id="professor-nome"></div>
+
     <!-- Dados Pessoais -->
-    <button class="accordion"> <i class="fas fa-user"></i> Dados Pessoais</button>
+    <button class="accordion"><i class="fas fa-user"></i> Dados Pessoais</button>
     <div class="panel">
       <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
         <label>Nome</label>
         <input type="text" value="{{ aluno.nome }}" readonly />
-
         <label>Nome do Pai</label>
         <input type="text" value="{{ aluno.nome_pai }}" readonly />
-
         <label>Nome da Mãe</label>
         <input type="text" value="{{ aluno.nome_mae }}" readonly />
-
         <label>Telefone</label>
         <input type="text" name="telefone" value="{{ aluno.telefone }}" />
-
         <label>Bairro</label>
         <input type="text" name="bairro" value="{{ aluno.bairro }}" />
-
         <label>Município</label>
         <input type="text" name="municipio" value="{{ aluno.municipio }}" />
-
         <label>Província</label>
         <input type="text" name="provincia" value="{{ aluno.provincia }}" />
-
         <label>Disciplina</label>
         <input type="text" name="disciplina" value="{{ aluno.disciplina }}" />
-
         <label>Outra Disciplina (opcional)</label>
         <input type="text" name="outra_disciplina" placeholder="Adicionar outra disciplina" />
-
         <button class="button" type="submit">Salvar Alterações</button>
       </form>
     </div>
@@ -195,13 +193,10 @@
       <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
         <label>Senha Antiga</label>
         <input type="password" name="senha_antiga" required />
-
         <label>Nova Senha</label>
         <input type="password" name="nova_senha" required />
-
         <label>Confirmar Nova Senha</label>
         <input type="password" name="confirmar_senha" required />
-
         <button class="button" type="submit">Confirmar Alteração de Senha</button>
       </form>
     </div>
@@ -209,16 +204,12 @@
     <!-- Mensalidade -->
     <button class="accordion"><i class="fas fa-wallet"></i> Mensalidade</button>
     <div class="panel">
-      <div>
-        <label>Aulas Recebidas</label>
-        <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
-
-        <label>Custo por Aula</label>
-        <input type="text" id="custo" value="2075" readonly />
-
-        <label>Mensalidade (kz)</label>
-        <input type="text" id="mensalidade" readonly />
-      </div>
+      <label>Aulas Recebidas</label>
+      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
+      <label>Custo por Aula</label>
+      <input type="text" id="custo" value="2075" readonly />
+      <label>Mensalidade (kz)</label>
+      <input type="text" id="mensalidade" readonly />
     </div>
 
     <!-- Informações Acadêmicas -->
@@ -226,7 +217,6 @@
     <div class="panel">
       <label>Professor Responsável</label>
       <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
-
       <label>Notas</label>
       <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
     </div>
@@ -247,6 +237,19 @@
 
     function entrarNaAula() {
       window.location.href = "/onlineaula/{{ aluno.nome }}";
+    }
+
+    function verProfessor(nomeAluno) {
+      fetch(`/buscar-professor/${nomeAluno}`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById('professor-nome');
+          div.innerHTML = "Professor responsável: <strong>" + (data.professor || 'Não encontrado') + "</strong>";
+        })
+        .catch(err => {
+          console.error("Erro ao buscar professor:", err);
+          document.getElementById('professor-nome').innerHTML = "Erro ao carregar professor.";
+        });
     }
 
     window.onload = calcularMensalidade;
