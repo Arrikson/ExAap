@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -244,7 +244,9 @@
         .then(res => res.json())
         .then(data => {
           const div = document.getElementById('professor-nome');
-          div.innerHTML = "Professor responsável: <strong>" + (data.professor || 'Não encontrado') + "</strong>";
+          const professor = data.professor || 'Não encontrado';
+          const disciplina = data.disciplina || 'Desconhecida';
+          div.innerHTML = `Professor responsável: <strong>${professor}</strong><br>Disciplina: <strong>${disciplina}</strong>`;
         })
         .catch(err => {
           console.error("Erro ao buscar professor:", err);
@@ -260,11 +262,7 @@
       acc.addEventListener("click", function () {
         this.classList.toggle("active");
         const panel = this.nextElementSibling;
-        if (panel.style.display === "block") {
-          panel.style.display = "none";
-        } else {
-          panel.style.display = "block";
-        }
+        panel.style.display = panel.style.display === "block" ? "none" : "block";
       });
     });
   </script>
