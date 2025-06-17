@@ -925,3 +925,4 @@ async def buscar_professor(nome_aluno: str):
         print("Erro ao buscar professor:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno ao buscar professor"})
 
+
