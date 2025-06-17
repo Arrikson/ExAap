@@ -850,3 +850,34 @@ async def vincular_aluno(item: VinculoIn):
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
 
+@app.get('/meus-alunos/{prof_email}')
+async def meus_alunos(prof_email: str):
+    try:
+        prof = prof_email.strip()
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof).stream()
+
+        alunos = []
+        for doc in docs:
+            data = doc.to_dict()
+            dados_aluno = data.get('dados_aluno', {})
+            aluno = {
+                'nome': dados_aluno.get('nome', ''),
+                'disciplina': dados_aluno.get('disciplina', ''),
+                'bairro': dados_aluno.get('bairro', ''),
+                'municipio': dados_aluno.get('municipio', ''),
+                'provincia': dados_aluno.get('provincia', ''),
+                'nome_pai': dados_aluno.get('nome_pai', ''),
+                'nome_mae': dados_aluno.get('nome_mae', ''),
+                'outra_disciplina': dados_aluno.get('outra_disciplina', ''),
+                'vinculado_em': data.get('vinculado_em', '')
+            }
+            alunos.append(aluno)
+
+        return JSONResponse(content=alunos)
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
+        )
