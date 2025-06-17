@@ -881,15 +881,36 @@ async def meus_alunos(prof_email: str):
             status_code=500,
             content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
         )
-        
+
 @app.get("/buscar-professor/{nome_aluno}")
 async def buscar_professor(nome_aluno: str):
-    alunos_ref = db.collection("alunos_professor")
-    query = alunos_ref.where("nome", "==", nome_aluno).limit(1).get()
+    try:
+        alunos_ref = db.collection("alunos_professor")
+        query = alunos_ref.where("aluno", "==", nome_aluno.strip()).limit(1).stream()
+        doc = next(query, None)
 
-    if not query:
-        return JSONResponse(status_code=404, content={"professor": None})
+        if not doc:
+            return JSONResponse(status_code=404, content={"professor": None})
 
-    doc = query[0]
-    professor = doc.to_dict().get("professor", "Desconhecido")
-    return {"professor": professor}
+        data = doc.to_dict()
+        professor_email = data.get("professor")
+
+        if not professor_email:
+            return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
+
+        # Buscar o nome do professor pelo email
+        prof_ref = db.collection("professores_online") \
+                     .where("email", "==", professor_email).limit(1).stream()
+        prof_doc = next(prof_ref, None)
+
+        if not prof_doc:
+            return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
+
+        prof_data = prof_doc.to_dict()
+        nome_professor = prof_data.get("nome", "Desconhecido")
+
+        return {"professor": nome_professor}
+
+    except Exception as e:
+        print("Erro ao buscar professor:", e)
+        return JSONResponse(status_code=500, content={"detail": "Erro interno ao buscar professor"})
