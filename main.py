@@ -881,3 +881,15 @@ async def meus_alunos(prof_email: str):
             status_code=500,
             content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
         )
+        
+@app.get("/buscar-professor/{nome_aluno}")
+async def buscar_professor(nome_aluno: str):
+    alunos_ref = db.collection("alunos_professor")
+    query = alunos_ref.where("nome", "==", nome_aluno).limit(1).get()
+
+    if not query:
+        return JSONResponse(status_code=404, content={"professor": None})
+
+    doc = query[0]
+    professor = doc.to_dict().get("professor", "Desconhecido")
+    return {"professor": professor}
