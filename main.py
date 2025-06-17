@@ -898,7 +898,7 @@ async def buscar_professor(nome_aluno: str):
         if not professor_email:
             return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
 
-        # Buscar o nome do professor pelo email
+        # Buscar o nome completo do professor pelo email
         prof_ref = db.collection("professores_online") \
                      .where("email", "==", professor_email).limit(1).stream()
         prof_doc = next(prof_ref, None)
@@ -907,7 +907,7 @@ async def buscar_professor(nome_aluno: str):
             return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
 
         prof_data = prof_doc.to_dict()
-        nome_professor = prof_data.get("nome", "Desconhecido")
+        nome_professor = prof_data.get("nome_completo", "Desconhecido")
 
         return {"professor": nome_professor}
 
