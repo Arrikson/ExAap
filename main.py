@@ -762,37 +762,41 @@ class VinculoIn(BaseModel):
     professor_email: str
     aluno_nome: str  # Usar nome para buscar o aluno na coleção
 
-# Verifica se o vínculo já existe
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
+    prof_email = prof_email.strip()
+    aluno_nome = aluno_nome.strip()
+
     docs = db.collection('alunos_professor') \
              .where('professor', '==', prof_email) \
              .where('aluno', '==', aluno_nome) \
              .limit(1).stream()
     return next(docs, None) is not None
-
+    
 # Lista alunos disponíveis para um professor
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
-                  .where('email', '==', prof_email).limit(1).stream()
+                  .where('email', '==', prof_email.strip()).limit(1).stream()
     prof = next(prof_docs, None)
     if not prof:
         raise HTTPException(status_code=404, detail='Professor não encontrado')
     
-    area = prof.get('area_formacao')
+    prof_data = prof.to_dict()
+    area = prof_data.get('area_formacao', '').strip()
     if not area:
         return []
 
     alunos = db.collection('alunos') \
                .where('disciplina', '==', area).stream()
-    
+
     disponiveis = []
     for aluno in alunos:
-        nome = aluno.get('nome')
-        if nome and not vinculo_existe(prof_email, nome):
+        aluno_data = aluno.to_dict()
+        nome = aluno_data.get('nome', '').strip()
+        if nome and not vinculo_existe(prof_email.strip(), nome):
             disponiveis.append({
                 'nome': nome,
-                'disciplina': aluno.get('disciplina')
+                'disciplina': aluno_data.get('disciplina', '').strip()
             })
     return disponiveis
 
