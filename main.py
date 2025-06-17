@@ -761,6 +761,15 @@ async def solicitar_entrada(
     # Simulação de aprovação imediata (em produção, o professor aprovaria manualmente)
     return JSONResponse(content={"autorizado": True})
 
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from datetime import datetime, timezone
+from firebase_admin import firestore
+
+db = firestore.client()
+app = FastAPI()
+
 # Modelo de entrada para criar vínculo
 class VinculoIn(BaseModel):
     professor_email: str
@@ -769,14 +778,12 @@ class VinculoIn(BaseModel):
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
     prof_email = prof_email.strip()
     aluno_nome = aluno_nome.strip()
-
     docs = db.collection('alunos_professor') \
              .where('professor', '==', prof_email) \
              .where('aluno', '==', aluno_nome) \
              .limit(1).stream()
     return next(docs, None) is not None
-    
-# Lista alunos disponíveis para um professor
+
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
@@ -784,7 +791,7 @@ async def alunos_disponiveis(prof_email: str):
     prof = next(prof_docs, None)
     if not prof:
         raise HTTPException(status_code=404, detail='Professor não encontrado')
-    
+
     prof_data = prof.to_dict()
     area = prof_data.get('area_formacao', '').strip()
     if not area:
@@ -810,7 +817,6 @@ async def vincular_aluno(item: VinculoIn):
         if vinculo_existe(item.professor_email, item.aluno_nome):
             raise HTTPException(status_code=409, detail='Vínculo já existe')
 
-        # Buscar aluno pelo nome
         aluno_docs = db.collection('alunos') \
                        .where('nome', '==', item.aluno_nome.strip()) \
                        .limit(1).stream()
@@ -820,31 +826,25 @@ async def vincular_aluno(item: VinculoIn):
             raise HTTPException(status_code=404, detail='Aluno não encontrado')
 
         dados_aluno = aluno_doc.to_dict()
-
-        # Remove os campos sensíveis
         campos_excluir = ['senha', 'telefone', 'localizacao']
         for campo in campos_excluir:
             dados_aluno.pop(campo, None)
 
-        # Criar o vínculo com informações completas do aluno e nome do professor
+        # Criar vínculo com campo online: True
         db.collection('alunos_professor').add({
             'professor': item.professor_email.strip(),
             'aluno': item.aluno_nome.strip(),
             'dados_aluno': dados_aluno,
-            'vinculado_em': datetime.now(timezone.utc).isoformat()
+            'vinculado_em': datetime.now(timezone.utc).isoformat(),
+            'online': True  # campo criado automaticamente
         })
 
         return {'message': 'Vínculo criado com sucesso'}
 
     except HTTPException as http_err:
-        # Retorna erro HTTP como JSON (já tratado)
         raise http_err
-
     except Exception as e:
-        # Registra erro no terminal para debug
         print('Erro interno ao vincular aluno:', e)
-
-        # Retorna erro 500 com mensagem JSON válida
         return JSONResponse(
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
@@ -901,7 +901,6 @@ async def buscar_professor(nome_aluno: str):
                 "disciplina": "Desconhecida"
             })
 
-        # Buscar nome completo e disciplina do professor pelo email
         prof_ref = db.collection("professores_online") \
                      .where("email", "==", professor_email).limit(1).stream()
         prof_doc = next(prof_ref, None)
@@ -933,7 +932,7 @@ async def meus_alunos_status(prof_email: str):
     for doc in docs:
         d = doc.to_dict()
         aluno_nome = d.get('aluno')
-        online = d.get('online', False)  # campo booleano no Firestore
+        online = d.get('online', False)
         dados = d.get('dados_aluno', {})
         alunos.append({
             'nome': dados.get('nome', aluno_nome),
@@ -941,3 +940,45 @@ async def meus_alunos_status(prof_email: str):
             'online': online
         })
     return alunos
+
+@app.put("/atualizar-status/{aluno_nome}/{status}")
+async def atualizar_status_online(aluno_nome: str, status: bool):
+    try:
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", aluno_nome.strip()).stream()
+
+        atualizado = False
+        for doc in query:
+            doc.reference.update({
+                "online": status,
+                "last_seen": datetime.now(timezone.utc).isoformat()
+            })
+            atualizado = True
+
+        if not atualizado:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado ou não vinculado")
+
+        return {"message": f"Status do aluno '{aluno_nome}' atualizado para {status}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao atualizar status", "erro": str(e)})
+
+@app.get("/alunos-status-completo/{prof_email}")
+async def alunos_status_completo(prof_email: str):
+    try:
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email.strip()).stream()
+
+        alunos = []
+        for doc in docs:
+            data = doc.to_dict()
+            alunos.append({
+                "nome": data.get("aluno"),
+                "online": data.get("online", False),
+                "last_seen": data.get("last_seen", "Desconhecido")
+            })
+
+        return alunos
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
+
