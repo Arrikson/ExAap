@@ -925,4 +925,19 @@ async def buscar_professor(nome_aluno: str):
         print("Erro ao buscar professor:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno ao buscar professor"})
 
-
+@app.get("/meus-alunos-status/{prof_email}")
+async def meus_alunos_status(prof_email: str):
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()).stream()
+    alunos = []
+    for doc in docs:
+        d = doc.to_dict()
+        aluno_nome = d.get('aluno')
+        online = d.get('online', False)  # campo booleano no Firestore
+        dados = d.get('dados_aluno', {})
+        alunos.append({
+            'nome': dados.get('nome', aluno_nome),
+            'disciplina': dados.get('disciplina'),
+            'online': online
+        })
+    return alunos
