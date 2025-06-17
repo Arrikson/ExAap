@@ -890,27 +890,38 @@ async def buscar_professor(nome_aluno: str):
         doc = next(query, None)
 
         if not doc:
-            return JSONResponse(status_code=404, content={"professor": None})
+            return JSONResponse(status_code=404, content={"professor": None, "disciplina": None})
 
         data = doc.to_dict()
         professor_email = data.get("professor")
 
         if not professor_email:
-            return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
+            return JSONResponse(status_code=200, content={
+                "professor": "Desconhecido",
+                "disciplina": "Desconhecida"
+            })
 
-        # Buscar o nome completo do professor pelo email
+        # Buscar nome completo e disciplina do professor pelo email
         prof_ref = db.collection("professores_online") \
                      .where("email", "==", professor_email).limit(1).stream()
         prof_doc = next(prof_ref, None)
 
         if not prof_doc:
-            return JSONResponse(status_code=200, content={"professor": "Desconhecido"})
+            return JSONResponse(status_code=200, content={
+                "professor": "Desconhecido",
+                "disciplina": "Desconhecida"
+            })
 
         prof_data = prof_doc.to_dict()
         nome_professor = prof_data.get("nome_completo", "Desconhecido")
+        disciplina = prof_data.get("area_formacao", "Desconhecida")
 
-        return {"professor": nome_professor}
+        return {
+            "professor": nome_professor,
+            "disciplina": disciplina
+        }
 
     except Exception as e:
         print("Erro ao buscar professor:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno ao buscar professor"})
+
