@@ -800,44 +800,49 @@ async def alunos_disponiveis(prof_email: str):
             })
     return disponiveis
 
-# Cria o vínculo entre professor e aluno com dados completos do aluno (exceto senha, telefone, localização)
 @app.post('/vincular-aluno', status_code=201)
 async def vincular_aluno(item: VinculoIn):
-    if vinculo_existe(item.professor_email, item.aluno_nome):
-        raise HTTPException(status_code=409, detail='Vínculo já existe')
+    try:
+        if vinculo_existe(item.professor_email, item.aluno_nome):
+            raise HTTPException(status_code=409, detail='Vínculo já existe')
 
-    # Buscar aluno pelo nome
-    aluno_docs = db.collection('alunos') \
-                   .where('nome', '==', item.aluno_nome) \
-                   .limit(1).stream()
-    aluno_doc = next(aluno_docs, None)
+        # Buscar aluno pelo nome
+        aluno_docs = db.collection('alunos') \
+                       .where('nome', '==', item.aluno_nome.strip()) \
+                       .limit(1).stream()
+        aluno_doc = next(aluno_docs, None)
 
-    if not aluno_doc:
-        raise HTTPException(status_code=404, detail='Aluno não encontrado')
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail='Aluno não encontrado')
 
-    dados_aluno = aluno_doc.to_dict()
+        dados_aluno = aluno_doc.to_dict()
 
-    # Remove os campos sensíveis
-    campos_excluir = ['senha', 'telefone', 'localizacao']
-    for campo in campos_excluir:
-        dados_aluno.pop(campo, None)
+        # Remove os campos sensíveis
+        campos_excluir = ['senha', 'telefone', 'localizacao']
+        for campo in campos_excluir:
+            dados_aluno.pop(campo, None)
 
-    # Criar o vínculo com informações completas do aluno e nome do professor
-    db.collection('alunos_professor').add({
-        'professor': item.professor_email,
-        'aluno': item.aluno_nome,
-        'dados_aluno': dados_aluno,
-        'vinculado_em': datetime.now(timezone.utc).isoformat()
-    })
+        # Criar o vínculo com informações completas do aluno e nome do professor
+        db.collection('alunos_professor').add({
+            'professor': item.professor_email.strip(),
+            'aluno': item.aluno_nome.strip(),
+            'dados_aluno': dados_aluno,
+            'vinculado_em': datetime.now(timezone.utc).isoformat()
+        })
 
-    return {'message': 'Vínculo criado com sucesso'}
+        return {'message': 'Vínculo criado com sucesso'}
 
+    except HTTPException as http_err:
+        # Retorna erro HTTP como JSON (já tratado)
+        raise http_err
 
+    except Exception as e:
+        # Registra erro no terminal para debug
+        print('Erro interno ao vincular aluno:', e)
 
-
-
-
-
-
-
+        # Retorna erro 500 com mensagem JSON válida
+        return JSONResponse(
+            status_code=500,
+            content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
+        )
 
