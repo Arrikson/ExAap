@@ -505,22 +505,31 @@ async def cadastrar_aluno(
     db.collection("alunos").document(aluno_id).set(dados)
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
 
-
 @app.get("/login", response_class=HTMLResponse)
 async def exibir_login(request: Request, sucesso: int = 0):
-    return templates.TemplateResponse("login.html", {"request": request, "sucesso": sucesso, "erro": None})
-
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "sucesso": sucesso,
+        "erro": None
+    })
 
 @app.post("/login")
 async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
-    alunos = db.collection("alunos").where("nome", "==", nome).where("senha", "==", senha).get()
-    if alunos:
-        aluno_doc = alunos[0]
-        # Atualizar status para online = True
-        db.collection("alunos").document(aluno_doc.id).update({"online": True})
+    db = firestore.client()
+    alunos_ref = db.collection("alunos")
+    query = alunos_ref.where("nome", "==", nome).where("senha", "==", senha).stream()
+
+    for aluno in query:
+        # Aluno encontrado – atualizar status para online
+        aluno.reference.update({"online": True})
         return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
 
-    return templates.TemplateResponse("login.html", {"request": request, "erro": "Nome de usuário ou senha inválidos", "sucesso": 0})
+    # Nenhum aluno encontrado
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "erro": "Nome de usuário ou senha inválidos",
+        "sucesso": 0
+    })
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
