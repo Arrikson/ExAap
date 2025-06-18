@@ -627,26 +627,6 @@ async def ping_online(payload: dict = Body(...)):
     else:
         return {"status": "erro", "mensagem": "Aluno não encontrado"}
 
-@app.get("/status-online/{nome}")
-async def status_online(nome: str):
-    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
-    if not aluno_ref:
-        return {"online": False}
-
-    aluno = aluno_ref[0].to_dict()
-    ultimo = aluno.get("ultimo_acesso")
-
-    if not ultimo:
-        return {"online": False}
-
-    # Considera online se acessou nos últimos 60 segundos
-    agora = datetime.utcnow()
-    ultimo_datetime = datetime.fromisoformat(ultimo)
-    if agora - ultimo_datetime < timedelta(seconds=60):
-        return {"online": True}
-
-    return {"online": False}
-
 @app.post("/atualizar-perfil/{nome}")
 async def atualizar_perfil(
     request: Request,
@@ -877,14 +857,13 @@ async def meus_dados(email: str = Query(...)):
 
     return prof_doc.to_dict()
 
-
 @app.get("/meus-alunos")
 async def meus_alunos(email: str = Query(...)):
-    lista = carregar_alunos_vinculados(email)  # Ex: [{'email': 'joao@email.com', ...}, ...]
-    
+    lista = carregar_alunos_vinculados(email)  # Ex: [{'nome': 'João', ...}, ...]
+
     for aluno in lista:
-        # Consulta no Firebase para verificar o campo "online"
-        query = db.collection("alunos").where("email", "==", aluno["email"]).limit(1).stream()
+        # Consulta no Firebase para verificar o campo "online" pelo nome do aluno
+        query = db.collection("alunos").where("nome", "==", aluno["nome"]).limit(1).stream()
         aluno_doc = next(query, None)
         
         if aluno_doc and aluno_doc.exists:
