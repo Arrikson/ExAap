@@ -2,53 +2,82 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cadastro de Aluno</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #2196F3, #21CBF3);
       margin: 0;
       padding: 0;
       color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
+
     .container {
-      max-width: 600px;
-      background: rgba(255,255,255,0.1);
-      padding: 20px;
-      border-radius: 10px;
-      margin: 50px auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 500px;
     }
+
     h2 {
       text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
     }
+
     label {
       display: block;
       margin-top: 15px;
-      font-weight: bold;
+      font-weight: 500;
     }
+
     input, select {
       width: 100%;
-      padding: 8px;
-      border-radius: 5px;
+      padding: 12px;
+      margin-top: 6px;
       border: none;
-      margin-top: 5px;
+      border-radius: 8px;
+      font-size: 14px;
     }
+
     button {
-      margin-top: 20px;
-      padding: 10px;
+      margin-top: 25px;
+      padding: 14px;
       width: 100%;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       background: #fff;
       color: #2196F3;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background 0.3s ease;
       cursor: pointer;
     }
+
+    button:hover {
+      background: #e0f0ff;
+    }
+
     .logo {
       display: block;
       margin: 0 auto 20px;
-      max-width: 150px;
+      max-width: 120px;
+      filter: drop-shadow(0 0 5px rgba(0,0,0,0.2));
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
     }
   </style>
   <script>
@@ -61,14 +90,14 @@
           alert("Erro ao capturar localização. Permita o acesso.");
         });
       } else {
-        alert("Geolocalização não suportada.");
+        alert("Geolocalização não suportada pelo seu navegador.");
       }
     }
   </script>
 </head>
 <body onload="capturarLocalizacao()">
   <div class="container">
-    <img src="/static/logo.png" alt="Logo" class="logo">
+    <img src="/static/logo.png" alt="Logo da Escola" class="logo">
     <h2>Cadastro de Aluno</h2>
     <form method="post" action="/cadastro-aluno">
       <label for="nome">Nome Completo</label>
