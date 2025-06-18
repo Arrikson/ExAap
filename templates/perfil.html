@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -34,6 +34,15 @@
       height: 45px;
     }
 
+    .logout-icon {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      color: #dc3545;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
     .profile-container {
       background-color: rgba(255, 255, 255, 0.1);
       padding: 100px 30px 30px;
@@ -41,11 +50,21 @@
       width: 100%;
       max-width: 700px;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      position: relative;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status {
+      font-size: 18px;
+      margin-left: auto;
     }
 
     .accordion {
@@ -122,14 +141,6 @@
       background-color: #218838;
     }
 
-    .logout-btn {
-      background-color: #dc3545;
-    }
-
-    .logout-btn:hover {
-      background-color: #c82333;
-    }
-
     .btn-enter {
       background-color: #ffc107;
       color: #000;
@@ -146,11 +157,8 @@
       font-weight: bold;
     }
 
-    #status-online {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
+    .logout-form {
+      display: none;
     }
   </style>
 </head>
@@ -160,15 +168,21 @@
   </div>
 
   <div class="profile-container">
-    <h1>Olá, {{ aluno.nome }}</h1>
+    <!-- Botão logout (ícone) -->
+    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
 
-    <!-- Botão Professores -->
+    <!-- Nome e status -->
+    <h1>
+      {{ aluno.nome }}
+      <span class="status" id="status-online">🟢 Online</span>
+    </h1>
+
     <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
       <i class="fas fa-chalkboard-teacher"></i> Professores
     </button>
     <div id="professor-nome"></div>
 
-    <!-- Dados Pessoais -->
+    <!-- Dados pessoais -->
     <button class="accordion"><i class="fas fa-user"></i> Dados Pessoais</button>
     <div class="panel">
       <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
@@ -230,11 +244,10 @@
 
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
-    <form method="post" action="/logout">
-      <button class="button logout-btn" type="submit">Sair</button>
+    <!-- Formulário invisível para logout -->
+    <form method="post" action="/logout" class="logout-form" id="logoutForm">
+      <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
-
-    <div id="status-online">Verificando status...</div>
   </div>
 
   <script>
@@ -263,41 +276,23 @@
         });
     }
 
-    // Status online
-    const nome = "{{ aluno.nome }}";
-    function verificarStatus() {
-      fetch('/ping-online', {
+    // Logout
+    function fazerLogout() {
+      fetch('/logout', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ nome })
+        body: JSON.stringify({ nome: "{{ aluno.nome }}" })
       })
-      .then(res => {
-        if (res.ok) {
-          document.getElementById('status-online').innerText = "🟢 Online";
-        } else {
-          document.getElementById('status-online').innerText = "🔴 Offline";
-        }
+      .then(() => {
+        window.location.href = "/";
       })
-      .catch(() => {
-        document.getElementById('status-online').innerText = "🔴 Offline";
+      .catch(err => {
+        console.error('Erro ao fazer logout:', err);
       });
     }
 
-    setInterval(verificarStatus, 30000); // a cada 30s
-    window.onload = () => {
-      calcularMensalidade();
-      verificarStatus();
-    };
-
-    // Accordion
-    const accordions = document.querySelectorAll(".accordion");
-    accordions.forEach(acc => {
-      acc.addEventListener("click", function () {
-        this.classList.toggle("active");
-        const panel = this.nextElementSibling;
-        panel.style.display = panel.style.display === "block" ? "none" : "block";
-      });
-    });
+    window.onload = calcularMensalidade;
   </script>
 </body>
 </html>
+
