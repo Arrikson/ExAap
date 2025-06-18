@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -185,8 +185,8 @@
       <button style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
     </div>
 
-    <div id="meus-alunos"></div>
-    <div id="alunos-disponiveis"></div>
+    <div id="meus-alunos" style="display: none;"></div>
+    <div id="alunos-disponiveis" style="display: none;"></div>
   </div>
 
   <script>
@@ -210,6 +210,10 @@
       window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
     }
 
+    function isOnlineFlag(value) {
+      return value === true || value === "true" || value === "True";
+    }
+
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
@@ -224,13 +228,14 @@
         }
 
         lista.forEach(aluno => {
+          const online = isOnlineFlag(aluno.online);
           const card = document.createElement('div');
           card.className = 'aluno-card';
           card.innerHTML = `
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <div class="status">
-              <span>${aluno.online ? 'Online' : 'Offline'}</span>
-              <span class="status-dot ${aluno.online ? 'online' : 'offline'}"></span>
+              <span>${online ? 'Online' : 'Offline'}</span>
+              <span class="status-dot ${online ? 'online' : 'offline'}"></span>
             </div>
           `;
           container.appendChild(card);
@@ -244,7 +249,7 @@
     async function buscarAlunosDisponiveis() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(`/alunos-disponiveis/${email}`);
+        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
         const alunos = await res.json();
         const container = document.getElementById('alunos-disponiveis');
         container.innerHTML = '<h2>Alunos Disponíveis</h2>';
@@ -281,12 +286,13 @@
         if (!res.ok) throw new Error(data.detail || "Erro ao vincular aluno.");
 
         alert(data.message || "Aluno vinculado com sucesso!");
-        buscarAlunosDisponiveis();
+        listarMeusAlunos(); // Atualiza lista
       } catch (err) {
         console.error(err);
-        alert(err.message);
+        alert("Erro ao vincular aluno.");
       }
     }
   </script>
 </body>
 </html>
+
