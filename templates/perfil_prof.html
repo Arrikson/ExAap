@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -285,8 +285,8 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Erro ao vincular aluno.");
 
-        alert(data.message || "Aluno vinculado com sucesso!");
-        listarMeusAlunos(); // Atualiza lista
+        alert(data.message || "Aluno vinculado com sucesso.");
+        listarMeusAlunos(); // Atualiza a lista após vínculo
       } catch (err) {
         console.error(err);
         alert("Erro ao vincular aluno.");
