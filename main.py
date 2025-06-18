@@ -877,17 +877,18 @@ async def meus_dados(email: str = Query(...)):
 
     return prof_doc.to_dict()
 
+
 @app.get("/meus-alunos")
 async def meus_alunos(email: str = Query(...)):
-    # Aqui será feita consulta real no futuro
     return {
         "professor": email,
         "alunos": [
-            {"nome": "João Pedro", "disciplina": "Matemática"},
-            {"nome": "Ana Carla", "disciplina": "Física"},
-            {"nome": "Luís Miguel", "disciplina": "Química"}
+            {"nome": "João Pedro", "disciplina": "Matemática", "online": True},
+            {"nome": "Ana Carla", "disciplina": "Física", "online": False},
+            {"nome": "Luís Miguel", "disciplina": "Química", "online": True}
         ]
     }
+
 
 @app.get("/aulas-dia")
 async def aulas_dadas_no_dia(email: str = Query(...)):
