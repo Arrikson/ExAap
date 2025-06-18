@@ -522,16 +522,25 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 
     return templates.TemplateResponse("login.html", {"request": request, "erro": "Nome de usuário ou senha inválidos", "sucesso": 0})
 
-
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
         return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
 
-    aluno = aluno_ref[0].to_dict()
-    return templates.TemplateResponse("perfil.html", {"request": request, "aluno": aluno})
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
 
+    # Atualiza status online com timestamp
+    db.collection("alunos").document(doc.id).update({
+        "online": True,
+        "ultimo_ping": datetime.utcnow().isoformat()
+    })
+
+    return templates.TemplateResponse("perfil.html", {
+        "request": request,
+        "aluno": aluno
+    })
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
@@ -579,21 +588,23 @@ async def alterar_senha(
         "sucesso_senha": "Senha alterada com sucesso!"
     })
 
+
 @app.post("/ping-online")
-async def ping_online(data: dict):
-    nome = data.get("nome")
+async def ping_online(payload: dict = Body(...)):
+    nome = payload.get("nome")
     if not nome:
-        return {"ok": False}
+        return {"status": "erro", "mensagem": "Nome não fornecido"}
 
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if aluno_ref:
-        aluno_doc = aluno_ref[0]
-        db.collection("alunos").document(aluno_doc.id).update({
+        doc = aluno_ref[0]
+        db.collection("alunos").document(doc.id).update({
             "online": True,
-            "ultimo_acesso": datetime.utcnow().isoformat()
+            "ultimo_ping": datetime.utcnow().isoformat()
         })
-    return {"ok": True}
-
+        return {"status": "ok"}
+    else:
+        return {"status": "erro", "mensagem": "Aluno não encontrado"}
 
 @app.get("/status-online/{nome}")
 async def status_online(nome: str):
