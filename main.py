@@ -579,6 +579,42 @@ async def alterar_senha(
         "sucesso_senha": "Senha alterada com sucesso!"
     })
 
+@app.post("/ping-online")
+async def ping_online(data: dict):
+    nome = data.get("nome")
+    if not nome:
+        return {"ok": False}
+
+    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
+    if aluno_ref:
+        aluno_doc = aluno_ref[0]
+        db.collection("alunos").document(aluno_doc.id).update({
+            "online": True,
+            "ultimo_acesso": datetime.utcnow().isoformat()
+        })
+    return {"ok": True}
+
+
+@app.get("/status-online/{nome}")
+async def status_online(nome: str):
+    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
+    if not aluno_ref:
+        return {"online": False}
+
+    aluno = aluno_ref[0].to_dict()
+    ultimo = aluno.get("ultimo_acesso")
+
+    if not ultimo:
+        return {"online": False}
+
+    # Considera online se acessou nos últimos 60 segundos
+    agora = datetime.utcnow()
+    ultimo_datetime = datetime.fromisoformat(ultimo)
+    if agora - ultimo_datetime < timedelta(seconds=60):
+        return {"online": True}
+
+    return {"online": False}
+
 @app.post("/atualizar-perfil/{nome}")
 async def atualizar_perfil(
     request: Request,
