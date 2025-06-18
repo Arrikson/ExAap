@@ -16,13 +16,6 @@ from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from datetime import datetime, timezone
-
-
-
-
-
-
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -93,29 +86,6 @@ def gerar_html_professores():
 if not os.path.exists(PROFESSORES_JSON):
     salvar_professores_local([])
 gerar_html_professores()
-
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-from datetime import datetime, timezone
-import firebase_admin
-from firebase_admin import credentials, firestore
-
-# Inicializar Firebase apenas uma vez
-if not firebase_admin._apps:
-    cred = credentials.Certificate("seu-arquivo-de-chave.json")  # substitua pelo caminho correto
-    firebase_admin.initialize_app(cred)
-
-db = firestore.client()
-
-app = FastAPI()
-
-# Configurar diretórios de templates e arquivos estáticos
-templates = Jinja2Templates(directory="templates")  # Certifique-se de que 'templates/index.html' existe
-app.mount("/static", StaticFiles(directory="static"), name="static")  # opcional para CSS/JS/imagens
-
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -491,6 +461,7 @@ async def gerar_pdf():
 async def exibir_formulario(request: Request):
     return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
 
+
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
     request: Request,
@@ -528,29 +499,47 @@ async def cadastrar_aluno(
         "localizacao": {"latitude": latitude, "longitude": longitude},
         "telefone": telefone,
         "disciplina": disciplina,
-        "outra_disciplina": outra_disciplina
+        "outra_disciplina": outra_disciplina,
+        "online": False  # Adicionado campo de status online
     }
     db.collection("alunos").document(aluno_id).set(dados)
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
+
 
 @app.get("/login", response_class=HTMLResponse)
 async def exibir_login(request: Request, sucesso: int = 0):
     return templates.TemplateResponse("login.html", {"request": request, "sucesso": sucesso, "erro": None})
 
+
 @app.post("/login")
 async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
     alunos = db.collection("alunos").where("nome", "==", nome).where("senha", "==", senha).get()
     if alunos:
+        aluno_doc = alunos[0]
+        # Atualizar status para online = True
+        db.collection("alunos").document(aluno_doc.id).update({"online": True})
         return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
+
     return templates.TemplateResponse("login.html", {"request": request, "erro": "Nome de usuário ou senha inválidos", "sucesso": 0})
+
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
         return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+
     aluno = aluno_ref[0].to_dict()
     return templates.TemplateResponse("perfil.html", {"request": request, "aluno": aluno})
+
+
+@app.get("/logout/{nome}")
+async def logout(nome: str):
+    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
+    if aluno_ref:
+        aluno_doc = aluno_ref[0]
+        db.collection("alunos").document(aluno_doc.id).update({"online": False})
+    return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
 
 @app.post("/alterar-senha/{nome}")
 async def alterar_senha(
