@@ -544,11 +544,23 @@ async def perfil(request: Request, nome: str):
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
-    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
-    if aluno_ref:
-        aluno_doc = aluno_ref[0]
-        db.collection("alunos").document(aluno_doc.id).update({"online": False})
-    return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+    db = firestore.client()
+    alunos_ref = db.collection("alunos")
+    query = alunos_ref.where("nome", "==", nome).stream()
+    for aluno in query:
+        aluno.reference.update({"online": False})
+    return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
+
+@app.post("/logout")
+async def logout(request: Request):
+    data = await request.json()
+    nome = data.get("nome")
+    db = firestore.client()
+    alunos_ref = db.collection("alunos")
+    query = alunos_ref.where("nome", "==", nome).stream()
+    for aluno in query:
+        aluno.reference.update({"online": False})
+    return RedirectResponse(url="/", status_code=303)
 
 @app.post("/alterar-senha/{nome}")
 async def alterar_senha(
