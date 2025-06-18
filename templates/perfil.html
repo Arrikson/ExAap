@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -145,6 +145,13 @@
       color: #fff;
       font-weight: bold;
     }
+
+    #status-online {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -226,6 +233,8 @@
     <form method="post" action="/logout">
       <button class="button logout-btn" type="submit">Sair</button>
     </form>
+
+    <div id="status-online">Verificando status...</div>
   </div>
 
   <script>
@@ -254,7 +263,31 @@
         });
     }
 
-    window.onload = calcularMensalidade;
+    // Status online
+    const nome = "{{ aluno.nome }}";
+    function verificarStatus() {
+      fetch('/ping-online', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nome })
+      })
+      .then(res => {
+        if (res.ok) {
+          document.getElementById('status-online').innerText = "🟢 Online";
+        } else {
+          document.getElementById('status-online').innerText = "🔴 Offline";
+        }
+      })
+      .catch(() => {
+        document.getElementById('status-online').innerText = "🔴 Offline";
+      });
+    }
+
+    setInterval(verificarStatus, 30000); // a cada 30s
+    window.onload = () => {
+      calcularMensalidade();
+      verificarStatus();
+    };
 
     // Accordion
     const accordions = document.querySelectorAll(".accordion");
