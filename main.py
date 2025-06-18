@@ -880,15 +880,23 @@ async def meus_dados(email: str = Query(...)):
 
 @app.get("/meus-alunos")
 async def meus_alunos(email: str = Query(...)):
+    lista = carregar_alunos_vinculados(email)  # Ex: [{'email': 'joao@email.com', ...}, ...]
+    
+    for aluno in lista:
+        # Consulta no Firebase para verificar o campo "online"
+        query = db.collection("alunos").where("email", "==", aluno["email"]).limit(1).stream()
+        aluno_doc = next(query, None)
+        
+        if aluno_doc and aluno_doc.exists:
+            aluno_data = aluno_doc.to_dict()
+            aluno["online"] = aluno_data.get("online", False)  # Default para False
+        else:
+            aluno["online"] = False  # Não encontrado no Firebase → offline
+
     return {
         "professor": email,
-        "alunos": [
-            {"nome": "João Pedro", "disciplina": "Matemática", "online": True},
-            {"nome": "Ana Carla", "disciplina": "Física", "online": False},
-            {"nome": "Luís Miguel", "disciplina": "Química", "online": True}
-        ]
+        "alunos": lista
     }
-
 
 @app.get("/aulas-dia")
 async def aulas_dadas_no_dia(email: str = Query(...)):
