@@ -198,20 +198,39 @@ async def meus_alunos(prof_email: str):
             content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
         )
 
+
 @app.get("/meus-alunos-status/{prof_email}")
 async def meus_alunos_status(prof_email: str):
-    docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip()).stream()
-    alunos = []
-    for doc in docs:
-        d = doc.to_dict()
-        dados = d.get('dados_aluno', {})
-        alunos.append({
-            'nome': dados.get('nome', d.get('aluno')),
-            'disciplina': dados.get('disciplina'),
-            'online': d.get('online', False)
-        })
-    return alunos
+    try:
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email.strip()).stream()
+
+        alunos = []
+        for doc in docs:
+            d = doc.to_dict()
+            dados = d.get('dados_aluno', {})
+            nome_aluno = dados.get('nome', d.get('aluno'))
+
+            # Verificar status real na coleção "alunos"
+            aluno_query = db.collection("alunos").where("nome", "==", nome_aluno).limit(1).stream()
+            aluno_doc = next(aluno_query, None)
+
+            online = False
+            if aluno_doc and aluno_doc.exists:
+                aluno_data = aluno_doc.to_dict()
+                online = aluno_data.get("online", False)
+
+            alunos.append({
+                'nome': nome_aluno,
+                'disciplina': dados.get('disciplina'),
+                'online': online
+            })
+
+        return alunos
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
+
 
 @app.get("/alunos-status-completo/{prof_email}")
 async def alunos_status_completo(prof_email: str):
@@ -222,21 +241,37 @@ async def alunos_status_completo(prof_email: str):
         alunos = []
         for doc in docs:
             data = doc.to_dict()
-            alunos.append({
-                "nome": data.get("aluno"),
-                "online": data.get("online", False),
-                "last_seen": data.get("last_seen", "Desconhecido")
-            })
+            nome = data.get("aluno")
+
+            # Buscar o documento na coleção "alunos"
+            aluno_query = db.collection("alunos").where("nome", "==", nome).limit(1).stream()
+            aluno_doc = next(aluno_query, None)
+
+            if aluno_doc and aluno_doc.exists:
+                aluno_data = aluno_doc.to_dict()
+                alunos.append({
+                    "nome": nome,
+                    "online": aluno_data.get("online", False),
+                    "last_seen": aluno_data.get("last_seen", "Desconhecido")
+                })
+            else:
+                alunos.append({
+                    "nome": nome,
+                    "online": False,
+                    "last_seen": "Desconhecido"
+                })
 
         return alunos
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
+
 
 @app.put("/atualizar-status/{aluno_nome}/{status}")
 async def atualizar_status_online(aluno_nome: str, status: bool):
     try:
-        query = db.collection("alunos_professor") \
-                  .where("aluno", "==", aluno_nome.strip()).stream()
+        query = db.collection("alunos") \
+                  .where("nome", "==", aluno_nome.strip()).stream()
 
         atualizado = False
         for doc in query:
@@ -247,28 +282,12 @@ async def atualizar_status_online(aluno_nome: str, status: bool):
             atualizado = True
 
         if not atualizado:
-            raise HTTPException(status_code=404, detail="Aluno não encontrado ou não vinculado")
+            raise HTTPException(status_code=404, detail="Aluno não encontrado na coleção 'alunos'")
 
         return {"message": f"Status do aluno '{aluno_nome}' atualizado para {status}"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": "Erro ao atualizar status", "erro": str(e)})
-
-@app.get("/meus-alunos-status/{prof_email}")
-async def meus_alunos_status(prof_email: str):
-    docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip()).stream()
-    alunos = []
-    for doc in docs:
-        d = doc.to_dict()
-        dados = d.get('dados_aluno', {})
-        alunos.append({
-            'nome': dados.get('nome', d.get('aluno')),
-            'disciplina': dados.get('disciplina'),
-            'online': d.get('online', False)
-        })
-    return alunos
-    
 
 @app.get("/buscar-professor/{nome_aluno}")
 async def buscar_professor(nome_aluno: str):
