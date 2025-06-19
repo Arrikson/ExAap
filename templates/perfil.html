@@ -161,56 +161,33 @@
       display: none;
     }
 
-    .notificacao-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0,0,0,0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-
-    .notificacao-box {
-      background: white;
-      color: black;
-      padding: 40px;
-      border-radius: 20px;
+    /* Estilo da notificação */
+    .notificacao-aula {
+      background-color: #fff;
+      color: #000;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
       text-align: center;
-      max-width: 400px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
 
-    .notificacao-box h2 {
-      font-size: 26px;
-      margin-bottom: 10px;
+    .notificacao-aula p {
+      margin: 10px 0;
     }
 
-    .notificacao-box p {
-      font-size: 20px;
-      margin-bottom: 30px;
-    }
-
-    .notificacao-box button {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 0 10px;
-    }
-
-    .btn-aceitar {
+    .notificacao-aula a {
+      display: inline-block;
+      margin-top: 10px;
       background-color: #28a745;
-      color: white;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      text-decoration: none;
     }
 
-    .btn-recusar {
-      background-color: #dc3545;
-      color: white;
+    .notificacao-aula a:hover {
+      background-color: #218838;
     }
   </style>
 </head>
@@ -221,6 +198,7 @@
 
   <div class="profile-container">
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
+
     <h1>
       {{ aluno.nome }}
       <span class="status" id="status-online">🟢 Online</span>
@@ -231,24 +209,73 @@
     </button>
     <div id="professor-nome"></div>
 
-    <!-- Acordeões e formulários omitidos para foco na notificação -->
-    <!-- ...restante conteúdo permanece igual... -->
+    <button class="accordion"><i class="fas fa-user"></i> Dados Pessoais</button>
+    <div class="panel">
+      <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
+        <label>Nome</label>
+        <input type="text" value="{{ aluno.nome }}" readonly />
+        <label>Nome do Pai</label>
+        <input type="text" value="{{ aluno.nome_pai }}" readonly />
+        <label>Nome da Mãe</label>
+        <input type="text" value="{{ aluno.nome_mae }}" readonly />
+        <label>Telefone</label>
+        <input type="text" name="telefone" value="{{ aluno.telefone }}" />
+        <label>Bairro</label>
+        <input type="text" name="bairro" value="{{ aluno.bairro }}" />
+        <label>Município</label>
+        <input type="text" name="municipio" value="{{ aluno.municipio }}" />
+        <label>Província</label>
+        <input type="text" name="provincia" value="{{ aluno.provincia }}" />
+        <label>Disciplina</label>
+        <input type="text" name="disciplina" value="{{ aluno.disciplina }}" />
+        <label>Outra Disciplina (opcional)</label>
+        <input type="text" name="outra_disciplina" placeholder="Adicionar outra disciplina" />
+        <button class="button" type="submit">Salvar Alterações</button>
+      </form>
+    </div>
+
+    <button class="accordion"><i class="fas fa-key"></i> Editar Senha</button>
+    <div class="panel">
+      <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
+        <label>Senha Antiga</label>
+        <input type="password" name="senha_antiga" required />
+        <label>Nova Senha</label>
+        <input type="password" name="nova_senha" required />
+        <label>Confirmar Nova Senha</label>
+        <input type="password" name="confirmar_senha" required />
+        <button class="button" type="submit">Confirmar Alteração de Senha</button>
+      </form>
+    </div>
+
+    <button class="accordion"><i class="fas fa-wallet"></i> Mensalidade</button>
+    <div class="panel">
+      <label>Aulas Recebidas</label>
+      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
+      <label>Custo por Aula</label>
+      <input type="text" id="custo" value="2075" readonly />
+      <label>Mensalidade (kz)</label>
+      <input type="text" id="mensalidade" readonly />
+    </div>
+
+    <button class="accordion"><i class="fas fa-graduation-cap"></i> Informações Acadêmicas</button>
+    <div class="panel">
+      <label>Professor Responsável</label>
+      <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
+      <label>Notas</label>
+      <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
+    </div>
 
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
+
+    <!-- Notificação de Aula -->
+    <div class="notificacao-aula" id="notificacaoAula" style="display: none;">
+      <p>📚 Aula disponível de <strong id="disciplinaAula"></strong></p>
+      <a id="aceitarAulaBtn" href="#">Entrar agora</a>
+    </div>
 
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
-  </div>
-
-  <!-- Notificação de Aula -->
-  <div class="notificacao-overlay" id="notificacaoAula" style="display:none;">
-    <div class="notificacao-box">
-      <h2>Pedido de Aula</h2>
-      <p>Disciplina: <strong>{{ aluno.disciplina }}</strong></p>
-      <button class="btn-aceitar" onclick="entrarNaAula()">Aceitar Aula</button>
-      <button class="btn-recusar" onclick="document.getElementById('notificacaoAula').style.display='none'">Recusar</button>
-    </div>
   </div>
 
   <script>
@@ -278,14 +305,26 @@
     }
 
     function fazerLogout() {
-      document.getElementById('logoutForm').submit();
+      fetch('/logout', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nome: "{{ aluno.nome }}" })
+      })
+      .then(() => {
+        window.location.href = "/";
+      })
+      .catch(err => {
+        console.error('Erro ao fazer logout:', err);
+      });
     }
 
-    // Exibir a notificação automaticamente (pode ser ajustado com lógica condicional)
-    window.onload = () => {
-      document.getElementById('notificacaoAula').style.display = 'flex';
-    };
+    function mostrarNotificacao(disciplina, alunoNome) {
+      document.getElementById('disciplinaAula').textContent = disciplina;
+      document.getElementById('aceitarAulaBtn').href = "/onlineaula/" + alunoNome;
+      document.getElementById('notificacaoAula').style.display = 'block';
+    }
+
+    window.onload = calcularMensalidade;
   </script>
 </body>
 </html>
-
