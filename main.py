@@ -167,52 +167,25 @@ async def alunos_disponiveis(prof_email: str):
             })
     return disponiveis
 
-@app.get('/meus-alunos/{prof_email}')
-async def meus_alunos(prof_email: str):
-    try:
-        docs = db.collection('alunos_professor') \
-                 .where('professor', '==', prof_email.strip()).stream()
+@app.get("/meus-alunos")
+async def meus_alunos(email: str = Query(...)):
+    lista = carregar_alunos_vinculados(email)  # Ex: [{'nome': 'João', ...}, ...]
 
-        alunos = []
-        for doc in docs:
-            data = doc.to_dict()
-            dados_aluno = data.get('dados_aluno', {})
-            
-            nome_aluno = dados_aluno.get('nome', '')
-            
-            # Verifica se o aluno está online na coleção "alunos"
-            query = db.collection("alunos").where("nome", "==", nome_aluno).limit(1).stream()
-            aluno_doc = next(query, None)
+    for aluno in lista:
+        # Consulta no Firebase para verificar o campo "online" pelo nome do aluno
+        query = db.collection("alunos").where("nome", "==", aluno["nome"]).limit(1).stream()
+        aluno_doc = next(query, None)
+        
+        if aluno_doc and aluno_doc.exists:
+            aluno_data = aluno_doc.to_dict()
+            aluno["online"] = aluno_data.get("online", False)  # Default para False
+        else:
+            aluno["online"] = False  # Não encontrado no Firebase → offline
 
-            online = False
-            if aluno_doc and aluno_doc.exists:
-                aluno_data = aluno_doc.to_dict()
-                online = aluno_data.get("online", False)
-
-            aluno = {
-                'nome': nome_aluno,
-                'disciplina': dados_aluno.get('disciplina', ''),
-                'bairro': dados_aluno.get('bairro', ''),
-                'municipio': dados_aluno.get('municipio', ''),
-                'provincia': dados_aluno.get('provincia', ''),
-                'nome_pai': dados_aluno.get('nome_pai', ''),
-                'nome_mae': dados_aluno.get('nome_mae', ''),
-                'outra_disciplina': dados_aluno.get('outra_disciplina', ''),
-                'vinculado_em': data.get('vinculado_em', ''),
-                'online': online
-            }
-            alunos.append(aluno)
-
-        return JSONResponse(content={
-            "professor": prof_email,
-            "alunos": alunos
-        })
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
-        )
+    return {
+        "professor": email,
+        "alunos": lista
+    }"
 
 @app.get("/meus-alunos-status/{prof_email}")
 async def meus_alunos_status(prof_email: str):
