@@ -214,6 +214,21 @@ async def meus_alunos(prof_email: str):
             content={'detail': 'Erro ao buscar alunos vinculados', 'erro': str(e)}
         )
 
+@app.get("/meus-alunos-status/{prof_email}")
+async def meus_alunos_status(prof_email: str):
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()).stream()
+    alunos = []
+    for doc in docs:
+        d = doc.to_dict()
+        dados = d.get('dados_aluno', {})
+        alunos.append({
+            'nome': dados.get('nome', d.get('aluno')),
+            'disciplina': dados.get('disciplina'),
+            'online': d.get('online', False)
+        })
+    return alunos
+
 @app.get("/buscar-professor/{nome_aluno}")
 async def buscar_professor(nome_aluno: str):
     try:
