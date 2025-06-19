@@ -177,8 +177,20 @@ async def meus_alunos(prof_email: str):
         for doc in docs:
             data = doc.to_dict()
             dados_aluno = data.get('dados_aluno', {})
+            
+            nome_aluno = dados_aluno.get('nome', '')
+            
+            # Verifica se o aluno está online na coleção "alunos"
+            query = db.collection("alunos").where("nome", "==", nome_aluno).limit(1).stream()
+            aluno_doc = next(query, None)
+
+            online = False
+            if aluno_doc and aluno_doc.exists:
+                aluno_data = aluno_doc.to_dict()
+                online = aluno_data.get("online", False)
+
             aluno = {
-                'nome': dados_aluno.get('nome', ''),
+                'nome': nome_aluno,
                 'disciplina': dados_aluno.get('disciplina', ''),
                 'bairro': dados_aluno.get('bairro', ''),
                 'municipio': dados_aluno.get('municipio', ''),
@@ -186,11 +198,15 @@ async def meus_alunos(prof_email: str):
                 'nome_pai': dados_aluno.get('nome_pai', ''),
                 'nome_mae': dados_aluno.get('nome_mae', ''),
                 'outra_disciplina': dados_aluno.get('outra_disciplina', ''),
-                'vinculado_em': data.get('vinculado_em', '')
+                'vinculado_em': data.get('vinculado_em', ''),
+                'online': online
             }
             alunos.append(aluno)
 
-        return JSONResponse(content=alunos)
+        return JSONResponse(content={
+            "professor": prof_email,
+            "alunos": alunos
+        })
 
     except Exception as e:
         return JSONResponse(
@@ -233,66 +249,9 @@ async def buscar_professor(nome_aluno: str):
         print("Erro ao buscar professor:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno ao buscar professor"})
 
-@app.get("/meus-alunos-status/{prof_email}")
-async def meus_alunos_status(prof_email: str):
-    docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip()).stream()
-    alunos = []
-    for doc in docs:
-        d = doc.to_dict()
-        dados = d.get('dados_aluno', {})
-        alunos.append({
-            'nome': dados.get('nome', d.get('aluno')),
-            'disciplina': dados.get('disciplina'),
-            'online': d.get('online', False)
-        })
-    return alunos
-
-@app.put("/atualizar-status/{aluno_nome}/{status}")
-async def atualizar_status_online(aluno_nome: str, status: bool):
-    try:
-        query = db.collection("alunos_professor") \
-                  .where("aluno", "==", aluno_nome.strip()).stream()
-
-        atualizado = False
-        for doc in query:
-            doc.reference.update({
-                "online": status,
-                "last_seen": datetime.now(timezone.utc).isoformat()
-            })
-            atualizado = True
-
-        if not atualizado:
-            raise HTTPException(status_code=404, detail="Aluno não encontrado ou não vinculado")
-
-        return {"message": f"Status do aluno '{aluno_nome}' atualizado para {status}"}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": "Erro ao atualizar status", "erro": str(e)})
-
-@app.get("/alunos-status-completo/{prof_email}")
-async def alunos_status_completo(prof_email: str):
-    try:
-        docs = db.collection('alunos_professor') \
-                 .where('professor', '==', prof_email.strip()).stream()
-
-        alunos = []
-        for doc in docs:
-            data = doc.to_dict()
-            alunos.append({
-                "nome": data.get("aluno"),
-                "online": data.get("online", False),
-                "last_seen": data.get("last_seen", "Desconhecido")
-            })
-
-        return alunos
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
-
 @app.get("/criar-conta", response_class=HTMLResponse)
 async def criar_conta(request: Request):
     return templates.TemplateResponse("criar-conta.html", {"request": request})
-
 
 @app.post("/criar-conta")
 async def criar_conta_post(
@@ -856,26 +815,6 @@ async def meus_dados(email: str = Query(...)):
         return {"erro": "Professor não encontrado"}
 
     return prof_doc.to_dict()
-
-@app.get("/meus-alunos")
-async def meus_alunos(email: str = Query(...)):
-    lista = carregar_alunos_vinculados(email)  # Ex: [{'nome': 'João', ...}, ...]
-
-    for aluno in lista:
-        # Consulta no Firebase para verificar o campo "online" pelo nome do aluno
-        query = db.collection("alunos").where("nome", "==", aluno["nome"]).limit(1).stream()
-        aluno_doc = next(query, None)
-        
-        if aluno_doc and aluno_doc.exists:
-            aluno_data = aluno_doc.to_dict()
-            aluno["online"] = aluno_data.get("online", False)  # Default para False
-        else:
-            aluno["online"] = False  # Não encontrado no Firebase → offline
-
-    return {
-        "professor": email,
-        "alunos": lista
-    }
 
 @app.get("/aulas-dia")
 async def aulas_dadas_no_dia(email: str = Query(...)):
