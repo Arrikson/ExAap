@@ -213,7 +213,7 @@
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(`/meus-alunos/${encodeURIComponent(email)}`);
+        const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
         const lista = await res.json();
         const container = document.getElementById('meus-alunos');
         container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -226,19 +226,22 @@
         lista.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-          const online = aluno.online === true;
+
+          const statusClass = aluno.online ? 'online' : 'offline';
+          const statusText = aluno.online ? 'Online' : 'Offline';
+
           card.innerHTML = `
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <div class="status">
-              <span>${online ? 'Online' : 'Offline'}</span>
-              <span class="status-dot ${online ? 'online' : 'offline'}"></span>
+              <span>${statusText}</span>
+              <span class="status-dot ${statusClass}"></span>
             </div>
           `;
           container.appendChild(card);
         });
       } catch (err) {
         console.error(err);
-        alert("Erro ao buscar alunos vinculados.");
+        alert("Erro ao buscar alunos.");
       }
     }
 
@@ -277,20 +280,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ aluno: alunoNome, professor: profEmail })
         });
-
         const result = await res.json();
-        if (res.ok) {
-          alert('Aluno vinculado com sucesso!');
-          buscarAlunosDisponiveis();
-        } else {
-          alert(result.message || 'Erro ao vincular aluno.');
-        }
+        alert(result.mensagem || 'Aluno vinculado!');
+        listarMeusAlunos();
       } catch (err) {
         console.error(err);
-        alert('Erro ao vincular aluno.');
+        alert("Erro ao vincular aluno.");
       }
     }
   </script>
 </body>
 </html>
-
