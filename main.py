@@ -185,7 +185,7 @@ async def meus_alunos(email: str = Query(...)):
     return {
         "professor": email,
         "alunos": lista
-    }"
+    }
 
 @app.get("/meus-alunos-status/{prof_email}")
 async def meus_alunos_status(prof_email: str):
