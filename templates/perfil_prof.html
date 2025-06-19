@@ -210,10 +210,6 @@
       window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
     }
 
-    function isOnlineFlag(value) {
-      return value === true || value === "true" || value === "True";
-    }
-
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
@@ -228,9 +224,9 @@
         }
 
         lista.forEach(aluno => {
-          const online = isOnlineFlag(aluno.online);
           const card = document.createElement('div');
           card.className = 'aluno-card';
+          const online = aluno.online === true;
           card.innerHTML = `
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <div class="status">
@@ -242,7 +238,7 @@
         });
       } catch (err) {
         console.error(err);
-        alert("Erro ao buscar alunos.");
+        alert("Erro ao buscar alunos vinculados.");
       }
     }
 
@@ -279,17 +275,19 @@
         const res = await fetch('/vincular-aluno', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
+          body: JSON.stringify({ aluno: alunoNome, professor: profEmail })
         });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Erro ao vincular aluno.");
-
-        alert(data.message || "Aluno vinculado com sucesso.");
-        listarMeusAlunos(); // Atualiza a lista após vínculo
+        const result = await res.json();
+        if (res.ok) {
+          alert('Aluno vinculado com sucesso!');
+          buscarAlunosDisponiveis();
+        } else {
+          alert(result.message || 'Erro ao vincular aluno.');
+        }
       } catch (err) {
         console.error(err);
-        alert("Erro ao vincular aluno.");
+        alert('Erro ao vincular aluno.');
       }
     }
   </script>
