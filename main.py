@@ -229,6 +229,63 @@ async def meus_alunos_status(prof_email: str):
         })
     return alunos
 
+@app.get("/alunos-status-completo/{prof_email}")
+async def alunos_status_completo(prof_email: str):
+    try:
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email.strip()).stream()
+
+        alunos = []
+        for doc in docs:
+            data = doc.to_dict()
+            alunos.append({
+                "nome": data.get("aluno"),
+                "online": data.get("online", False),
+                "last_seen": data.get("last_seen", "Desconhecido")
+            })
+
+        return alunos
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
+
+@app.put("/atualizar-status/{aluno_nome}/{status}")
+async def atualizar_status_online(aluno_nome: str, status: bool):
+    try:
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", aluno_nome.strip()).stream()
+
+        atualizado = False
+        for doc in query:
+            doc.reference.update({
+                "online": status,
+                "last_seen": datetime.now(timezone.utc).isoformat()
+            })
+            atualizado = True
+
+        if not atualizado:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado ou não vinculado")
+
+        return {"message": f"Status do aluno '{aluno_nome}' atualizado para {status}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao atualizar status", "erro": str(e)})
+
+@app.get("/meus-alunos-status/{prof_email}")
+async def meus_alunos_status(prof_email: str):
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()).stream()
+    alunos = []
+    for doc in docs:
+        d = doc.to_dict()
+        dados = d.get('dados_aluno', {})
+        alunos.append({
+            'nome': dados.get('nome', d.get('aluno')),
+            'disciplina': dados.get('disciplina'),
+            'online': d.get('online', False)
+        })
+    return alunos
+    
+
 @app.get("/buscar-professor/{nome_aluno}")
 async def buscar_professor(nome_aluno: str):
     try:
