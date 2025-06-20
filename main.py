@@ -565,6 +565,18 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
         "sucesso": 0
     })
 
+
+# Funções para lidar com notificações
+def carregar_notificacoes():
+    if os.path.exists("notificacoes.json"):
+        with open("notificacoes.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def salvar_notificacoes(dados):
+    with open("notificacoes.json", "w", encoding="utf-8") as f:
+        json.dump(dados, f, ensure_ascii=False, indent=2)
+
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
@@ -580,10 +592,29 @@ async def perfil(request: Request, nome: str):
         "ultimo_ping": datetime.utcnow().isoformat()
     })
 
+    # --- Lógica de notificação ---
+    notificacoes = carregar_notificacoes()
+    notificacao = notificacoes.get(nome)
+
+    if nome in notificacoes:
+        del notificacoes[nome]  # remove após exibir
+        salvar_notificacoes(notificacoes)
+
     return templates.TemplateResponse("perfil.html", {
         "request": request,
-        "aluno": aluno
+        "aluno": aluno,
+        "notificacao": notificacao
     })
+
+@app.post("/notificar-aluno")
+async def notificar_aluno(nome: str = Form(...), disciplina: str = Form(...)):
+    notificacoes = carregar_notificacoes()
+    notificacoes[nome] = {
+        "mensagem": f"Aula disponível de {disciplina}",
+        "disciplina": disciplina
+    }
+    salvar_notificacoes(notificacoes)
+    return JSONResponse(content={"status": "ok", "mensagem": "Aluno notificado com sucesso"})
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
@@ -1129,19 +1160,4 @@ async def ver_professor(nome_aluno: str):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
-
-@app.post("/notificar-aluno")
-async def notificar_aluno(
-    request: Request,
-    nome: str = Form(...),
-    mensagem: str = Form(...)
-):
-    # Aqui você pode salvar ou processar a notificação
-    notificacao = f"Mensagem para {nome}: {mensagem}"
-
-    # Renderiza perfil.html com a notificação
-    return templates.TemplateResponse("perfil.html", {
-        "request": request,
-        "notificacao": notificacao
-    })
 
