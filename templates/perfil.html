@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -41,6 +41,20 @@
       color: #dc3545;
       font-size: 24px;
       cursor: pointer;
+    }
+
+    .notificacao-btn {
+      position: absolute;
+      top: 12px;
+      left: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .notificacao-btn img {
+      height: 28px;
+      width: 28px;
     }
 
     .profile-container {
@@ -127,7 +141,7 @@
 
     .button {
       padding: 12px 20px;
-      background-color: #4CAF50;
+      background-color: #28a745;
       border: none;
       border-radius: 10px;
       font-size: 16px;
@@ -135,11 +149,10 @@
       color: #fff;
       width: 100%;
       margin-top: 10px;
-      transition: 0.3s;
     }
 
     .button:hover {
-      background-color: #3e8e41;
+      background-color: #218838;
     }
 
     .btn-enter {
@@ -156,6 +169,10 @@
       font-size: 18px;
       color: #fff;
       font-weight: bold;
+    }
+
+    .logout-form {
+      display: none;
     }
 
     .notificacao-aula {
@@ -185,32 +202,27 @@
     .notificacao-aula a:hover {
       background-color: #218838;
     }
-
-    .logout-form {
-      display: none;
-    }
   </style>
 </head>
 <body>
   <div class="top-bar">
+    <button class="notificacao-btn" onclick="mostrarNotificacao()" title="Notificações">
+      <img src="/static/sino.png" alt="Notificações">
+    </button>
     <img src="/static/logo.png" alt="Logo">
+    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
 
   <div class="profile-container">
-    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
-
     <h1>
       {{ aluno.nome }}
       <span class="status" id="status-online">🟢 Online</span>
     </h1>
 
-    <button class="button btn-enter" onclick="verProfessor('{{ aluno.nome }}')">
+    <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
       <i class="fas fa-chalkboard-teacher"></i> Professores
     </button>
     <div id="professor-nome"></div>
-
-    <!-- NOTIFICAÇÕES DINÂMICAS -->
-    <div id="notificacoes-container"></div>
 
     <button class="accordion"><i class="fas fa-user"></i> Dados Pessoais</button>
     <div class="panel">
@@ -249,66 +261,70 @@
         <button class="button" type="submit">Confirmar Alteração de Senha</button>
       </form>
     </div>
+
+    <button class="accordion"><i class="fas fa-wallet"></i> Mensalidade</button>
+    <div class="panel">
+      <label>Aulas Recebidas</label>
+      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
+      <label>Custo por Aula</label>
+      <input type="text" id="custo" value="2075" readonly />
+      <label>Mensalidade (kz)</label>
+      <input type="text" id="mensalidade" readonly />
+    </div>
+
+    <button class="accordion"><i class="fas fa-graduation-cap"></i> Informações Acadêmicas</button>
+    <div class="panel">
+      <label>Professor Responsável</label>
+      <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
+      <label>Notas</label>
+      <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
+    </div>
+
+    <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
+
+    <!-- Notificação de Aula -->
+    <div class="notificacao-aula" id="notificacaoAula" style="display: none;">
+      <p>📚 Aula disponível de <strong id="disciplinaAula">{{ aluno.disciplina }}</strong></p>
+      <a id="aceitarAulaBtn" href="/onlineaula/{{ aluno.nome }}">Entrar agora</a>
+    </div>
+
+    <form method="post" action="/logout" class="logout-form" id="logoutForm">
+      <input type="hidden" name="nome" value="{{ aluno.nome }}">
+    </form>
   </div>
 
   <script>
-    // Accordion Toggle
-    const accordions = document.querySelectorAll(".accordion");
-    accordions.forEach(btn => {
-      btn.addEventListener("click", function () {
-        this.classList.toggle("active");
-        const panel = this.nextElementSibling;
-        panel.style.display = panel.style.display === "block" ? "none" : "block";
-      });
-    });
-
-    function fazerLogout() {
-      fetch("/logout", { method: "POST" }).then(() => window.location.href = "/");
+    function calcularMensalidade() {
+      const aulas = parseInt(document.getElementById('aulas').value) || 0;
+      const custo = parseFloat(document.getElementById('custo').value) || 0;
+      document.getElementById('mensalidade').value = (aulas * custo).toLocaleString('pt-PT') + ',00 kz';
     }
 
-    function verProfessor(nome) {
-      fetch(`/ver-professor/${nome}`)
+    function entrarNaAula() {
+      window.location.href = "/onlineaula/{{ aluno.nome }}";
+    }
+
+    function verProfessor(nomeAluno) {
+      fetch(`/buscar-professor/${nomeAluno}`)
         .then(res => res.json())
         .then(data => {
-          document.getElementById("professor-nome").textContent = "Professor: " + (data.professor || "Nenhum vinculado");
+          const div = document.getElementById('professor-nome');
+          const professor = data.professor || 'Não encontrado';
+          const disciplina = data.disciplina || 'Desconhecida';
+          div.innerHTML = `Professor: <strong>${professor}</strong> - Disciplina: <strong>${disciplina}</strong>`;
         });
     }
 
-    // Carregar notificações do professor
-    function buscarNotificacoes() {
-      const aluno = "{{ aluno.nome }}";
-      fetch(`/notificacoes-aluno/${aluno}`)
-        .then(response => response.json())
-        .then(notificacoes => {
-          const container = document.getElementById("notificacoes-container");
-          container.innerHTML = "";
-          notificacoes.forEach(n => {
-            const div = document.createElement("div");
-            div.className = "notificacao-aula";
-            div.innerHTML = `
-              <p>${n.mensagem}</p>
-              <a href="/aceitar-aula" onclick="aceitarAula('${aluno}', '${n.professor}'); return false;">Aceitar Aula</a>
-            `;
-            container.appendChild(div);
-          });
-        });
+    function fazerLogout() {
+      document.getElementById('logoutForm').submit();
     }
 
-    function aceitarAula(aluno, professor) {
-      fetch("/aceitar-aula", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ aluno, professor })
-      }).then(res => {
-        if (res.redirected) {
-          window.location.href = res.url;
-        }
-      });
+    function mostrarNotificacao() {
+      const notificacao = document.getElementById("notificacaoAula");
+      notificacao.style.display = "block";
     }
 
-    window.onload = buscarNotificacoes;
+    calcularMensalidade();
   </script>
 </body>
 </html>
