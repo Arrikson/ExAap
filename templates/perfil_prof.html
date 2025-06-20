@@ -78,16 +78,16 @@
     }
     .action-buttons button {
       padding: 14px;
-      background-color: #004085;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 15px;
       cursor: pointer;
       color: #fff;
-      transition: 0.3s;
+      transition: transform 0.2s ease-in-out;
     }
     .action-buttons button:hover {
-      background-color: #002752;
+      transform: scale(1.05);
     }
     .dados-secretos {
       display: none;
@@ -145,10 +145,16 @@
     }
     .notificar-btn {
       margin-top: 10px;
-      background-color: #17a2b8;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #000;
     }
     .notificar-btn:hover {
-      background-color: #0d667a;
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
   </style>
 </head>
@@ -191,7 +197,7 @@
       <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
       <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
       <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
+      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
     </div>
 
     <div id="meus-alunos" style="display: none;"></div>
@@ -282,7 +288,7 @@
           const card = document.createElement('div');
           card.className = 'aluno-card';
           card.innerHTML = `
-            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span><br>
             <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
           `;
           container.appendChild(card);
@@ -293,32 +299,22 @@
       }
     }
 
-    async function vincularAluno(alunoNome, profEmail) {
+    async function notificarAluno(emailAluno, emailProfessor) {
       try {
-        await fetch('/vincular-aluno', {
+        const resposta = await fetch('/notificar-aluno', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aluno_email: emailAluno, professor_email: emailProfessor })
         });
-        alert('Aluno vinculado com sucesso!');
-        listarMeusAlunos();
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao vincular aluno.');
-      }
-    }
 
-    async function notificarAluno(alunoEmail, professorEmail) {
-      try {
-        await fetch('/notificar-aluno', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ aluno_email: alunoEmail, professor_email: professorEmail })
-        });
-        alert('Notificação enviada ao aluno!');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao notificar aluno.');
+        if (resposta.ok) {
+          alert("Aluno notificado com sucesso!");
+        } else {
+          alert("Erro ao notificar aluno.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Erro na comunicação com o servidor.");
       }
     }
   </script>
