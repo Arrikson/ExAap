@@ -1129,3 +1129,19 @@ async def ver_professor(nome_aluno: str):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
+
+@app.post("/notificar-aluno")
+async def notificar_aluno(
+    request: Request,
+    nome: str = Form(...),
+    mensagem: str = Form(...)
+):
+    # Aqui você pode salvar ou processar a notificação
+    notificacao = f"Mensagem para {nome}: {mensagem}"
+
+    # Renderiza perfil.html com a notificação
+    return templates.TemplateResponse("perfil.html", {
+        "request": request,
+        "notificacao": notificacao
+    })
+
