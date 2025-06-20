@@ -1041,28 +1041,55 @@ async def solicitar_entrada(
     # Simulação de aprovação imediata (em produção, o professor aprovaria manualmente)
     return JSONResponse(content={"autorizado": True})
 
-NOTIFICACOES_FILE = "notificacoes.json"
+@app.get("/notificacoes-aluno/{nome_aluno}")
+async def notificacoes_aluno(nome_aluno: str):
+    try:
+        # Verificar se o aluno existe na coleção de vínculos
+        docs = db.collection('alunos_professor') \
+                 .where('aluno', '==', nome_aluno.strip()) \
+                 .limit(1).stream()
 
-def carregar_notificacoes():
-    if not os.path.exists(NOTIFICACOES_FILE):
-        return []
-    with open(NOTIFICACOES_FILE, "r") as f:
-        return json.load(f)
+        if not next(docs, None):
+            raise HTTPException(status_code=404, detail="Aluno não está vinculado a nenhum professor")
 
-def salvar_notificacoes(lista):
-    with open(NOTIFICACOES_FILE, "w") as f:
-        json.dump(lista, f, indent=4)
+        # Buscar notificações com base no nome do aluno
+        notificacoes = carregar_notificacoes()
+        minhas =from fastapi.responses import HTMLResponse, RedirectResponse
 
-@app.post("/notificar-aluno")
-async def notificar_aluno(request: Request):
-    data = await request.json()
-    notificacoes = carregar_notificacoes()
-    notificacoes.append(data)
-    salvar_notificacoes(notificacoes)
-    return {"status": "ok", "mensagem": "Notificação enviada com sucesso"}
+@app.post("/aceitar-aula")
+async def aceitar_aula(request: Request):
+    try:
+        data = await request.json()
+        nome_aluno = data.get("aluno", "").strip()
+        email_professor = data.get("professor", "").strip()
 
-@app.get("/notificacoes-aluno/{email}")
-async def notificacoes_aluno(email: str):
-    notificacoes = carregar_notificacoes()
-    minhas = [n for n in notificacoes if n["para"] == email]
-    return minhas
+        if not nome_aluno or not email_professor:
+            raise HTTPException(status_code=400, detail="Dados incompletos")
+
+        # Verificar se o vínculo existe
+        if not vinculo_existe(email_professor, nome_aluno):
+            raise HTTPException(status_code=404, detail="Vínculo entre professor e aluno não encontrado")
+
+        # (Opcional) Salvar notificação de confirmação da aula
+        notificacoes = carregar_notificacoes()
+        notificacoes.append({
+            "para": email_professor,
+            "mensagem": f"O aluno {nome_aluno} aceitou a aula.",
+            "data": datetime.now(timezone.utc).isoformat()
+        })
+        salvar_notificacoes(notificacoes)
+
+        # Redirecionar para a sala virtual (ou renderizar diretamente)
+        return RedirectResponse(url=f"/sala_virtual?aluno={nome_aluno}&professor={email_professor}", status_code=303)
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao aceitar aula", "erro": str(e)}
+        )
+ [n for n in notificacoes if n.get("para", "").strip().lower() == nome_aluno.strip().lower()]
+        return minhas
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar notificações", "erro": str(e)})
+
