@@ -1040,3 +1040,29 @@ async def solicitar_entrada(
     
     # Simulação de aprovação imediata (em produção, o professor aprovaria manualmente)
     return JSONResponse(content={"autorizado": True})
+
+NOTIFICACOES_FILE = "notificacoes.json"
+
+def carregar_notificacoes():
+    if not os.path.exists(NOTIFICACOES_FILE):
+        return []
+    with open(NOTIFICACOES_FILE, "r") as f:
+        return json.load(f)
+
+def salvar_notificacoes(lista):
+    with open(NOTIFICACOES_FILE, "w") as f:
+        json.dump(lista, f, indent=4)
+
+@app.post("/notificar-aluno")
+async def notificar_aluno(request: Request):
+    data = await request.json()
+    notificacoes = carregar_notificacoes()
+    notificacoes.append(data)
+    salvar_notificacoes(notificacoes)
+    return {"status": "ok", "mensagem": "Notificação enviada com sucesso"}
+
+@app.get("/notificacoes-aluno/{email}")
+async def notificacoes_aluno(email: str):
+    notificacoes = carregar_notificacoes()
+    minhas = [n for n in notificacoes if n["para"] == email]
+    return minhas
