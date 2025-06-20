@@ -234,8 +234,6 @@
     </button>
     <div id="professor-nome"></div>
 
-    <!-- DEMAIS SEÇÕES PERMANECEM IGUAIS -->
-
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
     <!-- Notificação de aula -->
@@ -244,10 +242,18 @@
       <a id="aceitarAulaBtn" href="/onlineaula/{{ aluno.nome }}">Entrar agora</a>
     </div>
 
-    <!-- Bloco de mensagem do professor -->
+    <!-- Mensagem dinâmica via parâmetro -->
+    {% if mensagem %}
+      <div class="notificacao-aula" style="background-color: #ffeb3b; color: #000;">
+        <p><strong>Mensagem do professor:</strong></p>
+        <p>{{ mensagem }}</p>
+      </div>
+    {% endif %}
+
+    <!-- Bloco de mensagem oculta controlada por botão -->
     <div class="mensagem-professor" id="mensagemProfessor" style="display: none;">
       <p><strong>Mensagem do Professor:</strong></p>
-      <p>{{ mensagem_professor or "Sem mensagens no momento." }}</p>
+      <p>{{ mensagem or "Sem mensagens no momento." }}</p>
     </div>
 
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
@@ -302,5 +308,6 @@
   </script>
 </body>
 </html>
+
 
 
