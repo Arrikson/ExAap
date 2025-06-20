@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -282,7 +282,6 @@
 
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
-    <!-- Notificação de Aula -->
     <div class="notificacao-aula" id="notificacaoAula" style="display: none;">
       <p>📚 Aula disponível de <strong id="disciplinaAula">{{ aluno.disciplina }}</strong></p>
       <a id="aceitarAulaBtn" href="/onlineaula/{{ aluno.nome }}">Entrar agora</a>
@@ -294,6 +293,17 @@
   </div>
 
   <script>
+    calcularMensalidade();
+
+    const accordions = document.querySelectorAll(".accordion");
+    accordions.forEach(btn => {
+      btn.addEventListener("click", function () {
+        this.classList.toggle("active");
+        const panel = this.nextElementSibling;
+        panel.style.display = (panel.style.display === "block") ? "none" : "block";
+      });
+    });
+
     function calcularMensalidade() {
       const aulas = parseInt(document.getElementById('aulas').value) || 0;
       const custo = parseFloat(document.getElementById('custo').value) || 0;
@@ -304,27 +314,27 @@
       window.location.href = "/onlineaula/{{ aluno.nome }}";
     }
 
-    function verProfessor(nomeAluno) {
-      fetch(`/buscar-professor/${nomeAluno}`)
-        .then(res => res.json())
-        .then(data => {
-          const div = document.getElementById('professor-nome');
-          const professor = data.professor || 'Não encontrado';
-          const disciplina = data.disciplina || 'Desconhecida';
-          div.innerHTML = `Professor: <strong>${professor}</strong> - Disciplina: <strong>${disciplina}</strong>`;
-        });
-    }
-
     function fazerLogout() {
       document.getElementById('logoutForm').submit();
     }
 
     function mostrarNotificacao() {
-      const notificacao = document.getElementById("notificacaoAula");
-      notificacao.style.display = "block";
+      const notificacao = document.getElementById('notificacaoAula');
+      notificacao.style.display = notificacao.style.display === 'none' ? 'block' : 'none';
     }
 
-    calcularMensalidade();
+    function verProfessor(nomeAluno) {
+      fetch(`/ver-professor/${nomeAluno}`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("professor-nome");
+          div.innerText = data.professor ? `Professor: ${data.professor}` : 'Nenhum professor atribuído ainda.';
+        })
+        .catch(() => {
+          alert("Erro ao buscar o professor.");
+        });
+    }
   </script>
 </body>
 </html>
+
