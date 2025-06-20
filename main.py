@@ -1054,7 +1054,12 @@ async def notificacoes_aluno(nome_aluno: str):
 
         # Buscar notificações com base no nome do aluno
         notificacoes = carregar_notificacoes()
-        minhas =from fastapi.responses import HTMLResponse, RedirectResponse
+
+        # Aqui você pode retornar um HTMLResponse com base nos dados:
+        return HTMLResponse(content=f"<h1>Notificações para {nome_aluno}</h1><p>{notificacoes}</p>")
+
+    except Exception as e:
+        return RedirectResponse(url="/erro")
 
 @app.post("/aceitar-aula")
 async def aceitar_aula(request: Request):
