@@ -1099,3 +1099,33 @@ async def aceitar_aula(request: Request):
             status_code=500,
             content={"detail": "Erro ao aceitar aula", "erro": str(e)}
         )
+
+
+@app.get("/ver-professor/{nome_aluno}")
+async def ver_professor(nome_aluno: str):
+    try:
+        # Buscar o vínculo do aluno na coleção 'alunos_professor'
+        docs = db.collection('alunos_professor') \
+                 .where('aluno', '==', nome_aluno.strip()) \
+                 .limit(1).stream()
+
+        doc = next(docs, None)
+
+        if not doc or not doc.exists:
+            raise HTTPException(status_code=404, detail="Professor não encontrado para este aluno")
+
+        dados = doc.to_dict()
+        email_professor = dados.get("professor", "Professor não definido")
+
+        # HTML simples com link para sala virtual
+        html = f"""
+            <h2>Professor de {nome_aluno}: {email_professor}</h2>
+            <a href="/sala_virtual?aluno={nome_aluno}&professor={email_professor}">
+                <button>Entrar na sala virtual</button>
+            </a>
+        """
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"erro": str(e)})
