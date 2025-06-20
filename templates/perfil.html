@@ -305,36 +305,34 @@
     });
 
     function calcularMensalidade() {
-      const aulas = parseInt(document.getElementById('aulas').value) || 0;
-      const custo = parseFloat(document.getElementById('custo').value) || 0;
-      document.getElementById('mensalidade').value = (aulas * custo).toLocaleString('pt-PT') + ',00 kz';
-    }
-
-    function entrarNaAula() {
-      window.location.href = "/onlineaula/{{ aluno.nome }}";
-    }
-
-    function fazerLogout() {
-      document.getElementById('logoutForm').submit();
+      const aulas = parseInt(document.getElementById("aulas").value);
+      const custo = parseFloat(document.getElementById("custo").value);
+      const mensalidade = aulas * custo;
+      document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
     }
 
     function mostrarNotificacao() {
-      const notificacao = document.getElementById('notificacaoAula');
-      notificacao.style.display = notificacao.style.display === 'none' ? 'block' : 'none';
+      const bloco = document.getElementById("notificacaoAula");
+      bloco.style.display = bloco.style.display === "none" ? "block" : "none";
     }
 
-    function verProfessor(nomeAluno) {
-      fetch(`/ver-professor/${nomeAluno}`)
-        .then(res => res.json())
+    function fazerLogout() {
+      document.getElementById("logoutForm").submit();
+    }
+
+    function verProfessor(nome) {
+      fetch(`/professor-do-aluno/${nome}`)
+        .then(response => response.json())
         .then(data => {
-          const div = document.getElementById("professor-nome");
-          div.innerText = data.professor ? `Professor: ${data.professor}` : 'Nenhum professor atribuído ainda.';
-        })
-        .catch(() => {
-          alert("Erro ao buscar o professor.");
+          document.getElementById("professor-nome").innerText = "Professor: " + data.professor;
         });
+    }
+
+    function entrarNaAula() {
+      document.getElementById("notificacaoAula").style.display = "block";
     }
   </script>
 </body>
 </html>
+
 
