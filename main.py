@@ -568,16 +568,17 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 from starlette.status import HTTP_303_SEE_OTHER
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
-async def perfil(request: Request, nome: str, mensagem: str = None):
+async def perfil_aluno(request: Request, nome: str, professor_email: str = None):
+    # Buscar aluno
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
         return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
 
-    doc = aluno_ref[0]
-    aluno = doc.to_dict()
+    aluno_doc = aluno_ref[0]
+    aluno = aluno_doc.to_dict()
 
     # Atualiza status online com timestamp
-    db.collection("alunos").document(doc.id).update({
+    db.collection("alunos").document(aluno_doc.id).update({
         "online": True,
         "ultimo_ping": datetime.utcnow().isoformat()
     })
@@ -594,12 +595,24 @@ async def perfil(request: Request, nome: str, mensagem: str = None):
         del notificacoes[nome]
         salvar_notificacoes(notificacoes)
 
+    # Buscar nome do professor para exibir na notificação
+    nome_professor = ""
+    if professor_email:
+        prof_ref = db.collection("professores_online").where("email", "==", professor_email).get()
+        if prof_ref:
+            nome_professor = prof_ref[0].to_dict().get("nome_completo", "")
+
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "aluno": aluno,
         "notificacao": notificacao,
-        "mensagem": mensagem  # <-- adiciona aqui
+        "nome_professor": nome_professor,
+        "email_professor": professor_email
     })
+
+@app.get("/recusar-chamada")
+async def recusar_chamada():
+    return RedirectResponse(url="/dashboard")  # ou outra rota principal do aluno
 
 @app.post("/notificar-aluno")
 async def notificar_aluno(nome: str = Form(...), disciplina: str = Form(...)):
@@ -992,6 +1005,12 @@ async def sala_virtual(request: Request, email: str):
         "professor": prof_data
     })
 
+@app.get("/sala_virtual_aluno", response_class=HTMLResponse)
+async def sala_virtual_aluno(request: Request, professor_email: str):
+    return templates.TemplateResponse("sala_virtual_aluno.html", {
+        "request": request,
+        "professor_email": professor_email
+    })
 
 @app.post("/aceitar_aluno")
 async def aceitar_aluno(
