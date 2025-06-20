@@ -568,7 +568,7 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 from starlette.status import HTTP_303_SEE_OTHER
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
-async def perfil(request: Request, nome: str):
+async def perfil(request: Request, nome: str, mensagem: str = None):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
         return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
@@ -597,9 +597,9 @@ async def perfil(request: Request, nome: str):
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "aluno": aluno,
-        "notificacao": notificacao
+        "notificacao": notificacao,
+        "mensagem": mensagem  # <-- adiciona aqui
     })
-
 
 @app.post("/notificar-aluno")
 async def notificar_aluno(nome: str = Form(...), disciplina: str = Form(...)):
