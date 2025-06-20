@@ -7,137 +7,154 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
       margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #007BFF, #00C6FF);
+      color: #fff;
       padding: 0;
     }
-
     .top-bar {
-      background-color: #004aad;
-      color: white;
-      padding: 10px;
+      background: #fff;
+      color: #000;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-
     .top-bar img {
       height: 40px;
     }
-
+    .professor-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px;
+      font-size: 18px;
+    }
+    .professor-header i {
+      font-size: 28px;
+    }
     .logout-btn {
-      background: none;
+      background-color: transparent;
+      color: #000;
       border: none;
-      color: white;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
     }
-
-    .professor-header {
-      text-align: center;
-      font-size: 20px;
-      margin-top: 10px;
-    }
-
     .profile-container {
-      background: white;
-      padding: 20px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 600px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
     .info label {
       display: block;
-      margin-top: 10px;
       font-weight: bold;
+      margin-top: 10px;
     }
-
     .info input {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    .toggle-btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #006eff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .dados-secretos {
-      margin-top: 15px;
-      display: none;
-    }
-
-    .action-buttons {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .action-buttons button {
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .aluno-card {
-      background-color: #f9f9f9;
       padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      background-color: #e2e8f0;
+      color: #333;
     }
-
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .action-buttons button {
+      padding: 14px;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      color: #fff;
+      transition: transform 0.2s ease-in-out;
+    }
+    .action-buttons button:hover {
+      transform: scale(1.05);
+    }
+    .dados-secretos {
+      display: none;
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .toggle-btn {
+      background-color: #ffc107;
+      color: #000;
+      margin-top: 20px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .toggle-btn:hover {
+      background-color: #e0a800;
+    }
+    #meus-alunos, #alunos-disponiveis {
+      margin-top: 30px;
+    }
+    .aluno-card {
+      background: #fff;
+      color: #000;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
     .aluno-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
     .status {
       display: flex;
       align-items: center;
       gap: 5px;
     }
-
+    .status span {
+      font-weight: bold;
+    }
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
+      display: inline-block;
     }
-
-    .status-dot.online {
-      background-color: green;
+    .online {
+      background-color: #28a745;
     }
-
-    .status-dot.offline {
-      background-color: gray;
+    .offline {
+      background-color: #dc3545;
     }
-
     .notificar-btn {
       margin-top: 10px;
-      background-color: orange;
-      color: white;
-      padding: 8px 14px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
       border: none;
-      border-radius: 4px;
+      padding: 10px 15px;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
+      color: #000;
+    }
+    .notificar-btn:hover {
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
   </style>
 </head>
@@ -182,7 +199,7 @@
       <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
       <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
       <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="window.location.href='/sala_virtual_aluno?professor_email={{ professor.email }}'">Começar Aula</button>
+      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
     </div>
 
     <div id="meus-alunos" style="display: none;"></div>
@@ -203,6 +220,11 @@
         section.style.display = 'block';
         fetchFunction();
       }
+    }
+
+    function comecarAula() {
+      const email = "{{ professor.email }}";
+      window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
     }
 
     async function listarMeusAlunos() {
