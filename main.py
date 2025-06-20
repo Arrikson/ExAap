@@ -568,17 +568,16 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 from starlette.status import HTTP_303_SEE_OTHER
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
-async def perfil_aluno(request: Request, nome: str, professor_email: str = None):
-    # Buscar aluno
+async def perfil(request: Request, nome: str):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
         return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
 
-    aluno_doc = aluno_ref[0]
-    aluno = aluno_doc.to_dict()
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
 
     # Atualiza status online com timestamp
-    db.collection("alunos").document(aluno_doc.id).update({
+    db.collection("alunos").document(doc.id).update({
         "online": True,
         "ultimo_ping": datetime.utcnow().isoformat()
     })
@@ -595,19 +594,10 @@ async def perfil_aluno(request: Request, nome: str, professor_email: str = None)
         del notificacoes[nome]
         salvar_notificacoes(notificacoes)
 
-    # Buscar nome do professor para exibir na notificação
-    nome_professor = ""
-    if professor_email:
-        prof_ref = db.collection("professores_online").where("email", "==", professor_email).get()
-        if prof_ref:
-            nome_professor = prof_ref[0].to_dict().get("nome_completo", "")
-
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "aluno": aluno,
-        "notificacao": notificacao,
-        "nome_professor": nome_professor,
-        "email_professor": professor_email
+        "notificacao": notificacao
     })
 
 @app.get("/recusar-chamada")
