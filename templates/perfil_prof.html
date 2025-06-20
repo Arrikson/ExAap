@@ -255,21 +255,21 @@
             </div>
           `;
 
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.className = 'notificar-btn';
-            btn.innerText = 'Dar Aula';
-            btn.onclick = () => notificarAluno(aluno.email, email);
-            card.appendChild(btn);
-          }
+         if (aluno.online) {
+             const btn = document.createElement('button');
+             btn.className = 'notificar-btn';
+             btn.innerText = 'Dar Aula';
+             btn.onclick = () => notificarAluno(aluno.nome, email);
+             card.appendChild(btn);
+            }
 
-          container.appendChild(card);
-        });
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao buscar alunos.");
-      }
-    }
+            container.appendChild(card);
+            });
+            } catch (err) {
+              console.error(err);
+              alert("Erro ao buscar alunos.");
+             }
+
 
     async function buscarAlunosDisponiveis() {
       const email = "{{ professor.email }}";
@@ -299,24 +299,22 @@
       }
     }
 
-    async function notificarAluno(emailAluno, emailProfessor) {
-      try {
-        const resposta = await fetch('/notificar-aluno', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aluno_email: emailAluno, professor_email: emailProfessor })
-        });
+async function notificarAluno(nomeAluno, emailProfessor) {
+  try {
+    const res = await fetch(`/notificar-aluno?nome=${encodeURIComponent(nomeAluno)}&professor=${encodeURIComponent(emailProfessor)}`, {
+      method: 'POST'
+    });
 
-        if (resposta.ok) {
-          alert("Aluno notificado com sucesso!");
-        } else {
-          alert("Erro ao notificar aluno.");
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Erro na comunicação com o servidor.");
-      }
+    if (res.ok) {
+      alert("Notificação enviada com sucesso!");
+    } else {
+      alert("Erro ao enviar notificação.");
     }
+  } catch (err) {
+    console.error(err);
+    alert("Erro de rede ao enviar notificação.");
+  }
+}
   </script>
 </body>
 </html>
