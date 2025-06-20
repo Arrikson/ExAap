@@ -565,17 +565,7 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
         "sucesso": 0
     })
 
-
-# Funções para lidar com notificações
-def carregar_notificacoes():
-    if os.path.exists("notificacoes.json"):
-        with open("notificacoes.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-def salvar_notificacoes(dados):
-    with open("notificacoes.json", "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=2)
+from starlette.status import HTTP_303_SEE_OTHER
 
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
@@ -592,12 +582,16 @@ async def perfil(request: Request, nome: str):
         "ultimo_ping": datetime.utcnow().isoformat()
     })
 
-    # --- Lógica de notificação ---
+    # Carrega notificações (deve ser um dicionário)
     notificacoes = carregar_notificacoes()
+    if not isinstance(notificacoes, dict):
+        notificacoes = {}
+
     notificacao = notificacoes.get(nome)
 
+    # Remove notificação após leitura
     if nome in notificacoes:
-        del notificacoes[nome]  # remove após exibir
+        del notificacoes[nome]
         salvar_notificacoes(notificacoes)
 
     return templates.TemplateResponse("perfil.html", {
@@ -605,6 +599,7 @@ async def perfil(request: Request, nome: str):
         "aluno": aluno,
         "notificacao": notificacao
     })
+
 
 @app.post("/notificar-aluno")
 async def notificar_aluno(nome: str = Form(...), disciplina: str = Form(...)):
