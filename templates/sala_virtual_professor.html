@@ -1,132 +1,302 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sala de Aula Online</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil do Professor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #000;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #007BFF, #00C6FF);
       color: #fff;
-      overflow: hidden;
+      padding: 0;
     }
-    #videos {
+    .top-bar {
+      background: #fff;
+      color: #000;
+      padding: 10px 20px;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      padding: 10px;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    video {
-      width: 300px;
-      height: 225px;
-      background: #333;
-      border: 2px solid #555;
-      border-radius: 10px;
+    .top-bar img {
+      height: 40px;
     }
-    #controles {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px;
-      border-radius: 10px;
-    }
-    #formulario {
+    .professor-header {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
+      padding: 20px;
+      font-size: 18px;
     }
-    input, button {
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 5px;
+    .professor-header i {
+      font-size: 28px;
+    }
+    .logout-btn {
+      background-color: transparent;
+      color: #000;
       border: none;
-    }
-    button {
-      background-color: #28a745;
-      color: #fff;
+      font-size: 18px;
       cursor: pointer;
+    }
+    .profile-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .info label {
+      display: block;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .info input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      background-color: #e2e8f0;
+      color: #333;
+    }
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .action-buttons button {
+      padding: 14px;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      color: #fff;
+      transition: transform 0.2s ease-in-out;
+    }
+    .action-buttons button:hover {
+      transform: scale(1.05);
+    }
+    .dados-secretos {
+      display: none;
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .toggle-btn {
+      background-color: #ffc107;
+      color: #000;
+      margin-top: 20px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .toggle-btn:hover {
+      background-color: #e0a800;
+    }
+    #meus-alunos, #alunos-disponiveis {
+      margin-top: 30px;
+    }
+    .aluno-card {
+      background: #fff;
+      color: #000;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .aluno-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status span {
+      font-weight: bold;
+    }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .online {
+      background-color: #28a745;
+    }
+    .offline {
+      background-color: #dc3545;
+    }
+    .notificar-btn {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #000;
+    }
+    .notificar-btn:hover {
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
   </style>
 </head>
 <body>
-  <div id="controles">
-    <form id="formulario">
-      <input type="text" id="nomeAluno" placeholder="Seu nome" required />
-      <input type="password" id="senhaAluno" placeholder="Sua senha" required />
-      <input type="text" id="idProfessor" placeholder="Email do professor" required />
-      <button type="submit">Entrar na aula</button>
-    </form>
-    <p id="status"></p>
+  <div class="top-bar">
+    <img src="/static/logo.png" alt="Logo">
+    <button class="logout-btn" onclick="window.location.href='/logout'">
+      <i class="fas fa-sign-out-alt"></i> Sair
+    </button>
   </div>
 
-  <div id="videos">
-    <video id="meuVideo" autoplay muted></video>
+  <div class="professor-header">
+    <i class="fas fa-graduation-cap"></i>
+    <span>{{professor.nome_completo}}</span>
   </div>
 
-  <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+  <div class="profile-container">
+    <h1>Meu Perfil</h1>
+    {% if mensagem %}<p style="text-align:center; color: yellow; font-size: 18px;">{{ mensagem }}</p>{% endif %}
+
+    <div class="info">
+      <label>Nome completo</label>
+      <input type="text" value="{{professor.nome_completo}}" readonly>
+      <label>Nível de Ensino</label>
+      <input type="text" value="{{professor.nivel_ensino}}" readonly>
+    </div>
+
+    <button class="toggle-btn" onclick="toggleDados()">Meus Dados</button>
+    <div class="dados-secretos" id="dadosSecretos">
+      <p><strong>Email:</strong> {{professor.email}}</p>
+      <p><strong>Formado em:</strong> {{professor.area_formacao}}</p>
+      <p><strong>Telefone:</strong> {{professor.telefone}}</p>
+      <p><strong>Nome da mãe:</strong> {{professor.nome_mae}}</p>
+      <p><strong>Nome do pai:</strong> {{professor.nome_pai}}</p>
+      <p><strong>Bilhete:</strong> {{professor.bilhete}}</p>
+      <p><strong>Localização:</strong> {{professor.localizacao}}</p>
+      <p><strong>Senha:</strong> ••••••••••</p>
+    </div>
+
+    <div class="action-buttons">
+      <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+      <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+      <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
+      <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
+      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="window.location.href='/sala_virtual_professor'">Começar Aula</button>
+    </div>
+
+    <div id="meus-alunos" style="display: none;"></div>
+    <div id="alunos-disponiveis" style="display: none;"></div>
+  </div>
+
   <script>
-    const videoGrid = document.getElementById('videos');
-    const meuVideo = document.getElementById('meuVideo');
-    const status = document.getElementById('status');
-    let peer;
-    let streamLocal;
+    function toggleDados() {
+      const div = document.getElementById('dadosSecretos');
+      div.style.display = div.style.display === 'block' ? 'none' : 'block';
+    }
 
-    async function pedirPermissoes() {
-      try {
-        streamLocal = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        meuVideo.srcObject = streamLocal;
-      } catch (err) {
-        alert('Permissão negada para acessar câmera/microfone.');
+    function toggleSection(id, fetchFunction) {
+      const section = document.getElementById(id);
+      if (section.style.display === 'block') {
+        section.style.display = 'none';
+      } else {
+        section.style.display = 'block';
+        fetchFunction();
       }
     }
 
-    pedirPermissoes();
+    async function listarMeusAlunos() {
+      const email = "{{ professor.email }}";
+      try {
+        const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
+        const lista = await res.json();
+        const container = document.getElementById('meus-alunos');
+        container.innerHTML = '<h2>Meus Alunos</h2>';
 
-    document.getElementById('formulario').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nomeAluno = document.getElementById('nomeAluno').value;
-      const senhaAluno = document.getElementById('senhaAluno').value;
-      const idProfessor = document.getElementById('idProfessor').value;
-
-      peer = new Peer();
-
-      peer.on('open', async (peerId) => {
-        const formData = new FormData();
-        formData.append('nome_aluno', nomeAluno);
-        formData.append('senha_aluno', senhaAluno);
-        formData.append('peer_id_aluno', peerId);
-        formData.append('id_professor', idProfessor);
-
-        const resposta = await fetch('/solicitar_entrada', {
-          method: 'POST',
-          body: formData
-        });
-
-        const resultado = await resposta.json();
-
-        if (resultado.autorizado) {
-          status.innerText = 'Acesso autorizado. Aguardando conexão do professor...';
-        } else {
-          status.innerText = 'Acesso negado: ' + (resultado.motivo || resultado.erro);
+        if (lista.length === 0) {
+          container.innerHTML += '<p>Nenhum aluno vinculado ainda.</p>';
           return;
         }
-      });
 
-      peer.on('call', (chamada) => {
-        chamada.answer(streamLocal);
-        const video = document.createElement('video');
-        chamada.on('stream', (remoteStream) => {
-          video.srcObject = remoteStream;
-          video.autoplay = true;
-          videoGrid.appendChild(video);
+        lista.forEach(aluno => {
+          const card = document.createElement('div');
+          card.className = 'aluno-card';
+
+          const statusClass = aluno.online ? 'online' : 'offline';
+          const statusText = aluno.online ? 'Online' : 'Offline';
+
+          card.innerHTML = `
+            <div class="aluno-header">
+              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+              <div class="status">
+                <span>${statusText}</span>
+                <span class="status-dot ${statusClass}"></span>
+              </div>
+            </div>
+          `;
+
+          if (aluno.online) {
+            const btn = document.createElement('button');
+            btn.className = 'notificar-btn';
+            btn.innerText = 'Dar Aula';
+            btn.onclick = () => {
+              window.location.href = '/sala_virtual_professor';
+            };
+            card.appendChild(btn);
+          }
+
+          container.appendChild(card);
         });
-      });
-    });
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao buscar alunos.");
+      }
+    }
+
+    async function buscarAlunosDisponiveis() {
+      const email = "{{ professor.email }}";
+      try {
+        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
+        const alunos = await res.json();
+        const container = document.getElementById('alunos-disponiveis');
+        container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+
+        if (alunos.length === 0) {
+          container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+          return;
+        }
+
+        alunos.forEach(aluno => {
+          const card = document.createElement('div');
+          card.className = 'aluno-card';
+          card.innerHTML = `
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span><br>
+            <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao buscar alunos disponíveis.");
+      }
+    }
   </script>
 </body>
 </html>
