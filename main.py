@@ -608,17 +608,40 @@ async def get_sala_virtual_professor(request: Request):
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
 async def get_sala_virtual_aluno(request: Request):
     return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
+    
+
+def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()) \
+             .where('aluno', '==', aluno_nome.strip()) \
+             .limit(1).stream()
+    return next(docs, None) is not None
 
 @app.post("/solicitar_entrada")
 async def solicitar_entrada(
     nome_aluno: str = Form(...),
     email_aluno: str = Form(...),
     peer_id_aluno: str = Form(...),
-    id_professor: str = Form(...)
+    id_professor: str = Form(...)  # Aqui é o email do professor
 ):
-    # Simulação de lógica de autorização
-    print(f"Solicitação de {nome_aluno} para professor {id_professor}")
-    return JSONResponse(content={"autorizado": True})
+    try:
+        if not vinculo_existe(id_professor, nome_aluno):
+            return JSONResponse(
+                status_code=403,
+                content={"autorizado": False, "motivo": "Aluno não está vinculado ao professor."}
+            )
+
+        # Você pode registrar a tentativa, salvar o peer_id ou outra lógica aqui
+        print(f"✅ Solicitação autorizada: {nome_aluno} para professor {id_professor} com PeerID {peer_id_aluno}")
+        return JSONResponse(content={"autorizado": True})
+
+    except Exception as e:
+        print(f"Erro ao verificar solicitação: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"autorizado": False, "erro": "Erro interno ao verificar vínculo."}
+        )
+
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
