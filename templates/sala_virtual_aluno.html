@@ -3,35 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Entrar na Aula</title>
+  <title>Sala Virtual do Aluno</title>
   <style>
     body {
       margin: 0;
       padding: 0;
       background-color: #000;
       color: white;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      height: 100vh;
     }
 
     header {
       width: 100%;
-      background: white;
-      color: black;
+      background: linear-gradient(90deg, #007bff, #00c6ff);
+      color: white;
       text-align: center;
       padding: 15px 0;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
     }
 
-    form {
-      margin-top: 50px;
+    #formulario {
+      margin: 20px auto;
       display: flex;
       flex-direction: column;
       gap: 15px;
-      width: 80%;
+      width: 90%;
       max-width: 400px;
     }
 
@@ -39,11 +39,12 @@
       padding: 10px;
       border-radius: 5px;
       border: none;
+      font-size: 16px;
     }
 
     button {
       padding: 12px;
-      background: #007bff;
+      background: #28a745;
       color: white;
       border: none;
       font-size: 16px;
@@ -51,45 +52,82 @@
       cursor: pointer;
     }
 
+    .video-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      gap: 10px;
+    }
+
     video {
-      margin-top: 30px;
-      width: 100%;
-      max-width: 800px;
       border-radius: 10px;
+      background-color: #111;
+    }
+
+    #videoProfessor {
+      width: 100%;
+      max-width: 960px;
+      height: 60vh;
+      object-fit: cover;
+    }
+
+    #videoAluno {
+      width: 250px;
+      height: 140px;
+      object-fit: cover;
+      border: 2px solid #fff;
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<header>Entrar na Aula</header>
+<header>Sala Virtual do Aluno</header>
 
 <form id="formulario">
   <input type="text" id="nome" placeholder="Seu nome" required />
-  <input type="email" id="email" placeholder="Seu email" required />
   <input type="text" id="id_professor" placeholder="Código da aula" required />
   <button type="submit">Solicitar entrada</button>
 </form>
 
-<video id="videoAula" autoplay playsinline controls muted style="display:none;"></video>
+<div class="video-container" style="display: none;" id="salaVideos">
+  <video id="videoProfessor" autoplay playsinline></video>
+  <video id="videoAluno" autoplay playsinline muted></video>
+</div>
 
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script>
   const form = document.getElementById("formulario");
-  const videoAula = document.getElementById("videoAula");
+  const salaVideos = document.getElementById("salaVideos");
+  const videoProfessor = document.getElementById("videoProfessor");
+  const videoAluno = document.getElementById("videoAluno");
   const peer = new Peer();
 
-  let stream;
+  let minhaStream = null;
 
   peer.on("open", id => {
     form.addEventListener("submit", async e => {
       e.preventDefault();
 
       const nome = document.getElementById("nome").value;
-      const email = document.getElementById("email").value;
       const id_professor = document.getElementById("id_professor").value;
 
+      try {
+        minhaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        videoAluno.srcObject = minhaStream;
+        videoAluno.style.display = "block";
+      } catch (err) {
+        alert("Erro ao acessar sua câmera/microfone.");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("email_aluno", email);
       formData.append("nome_aluno", nome);
       formData.append("peer_id_aluno", id);
       formData.append("id_professor", id_professor);
@@ -109,10 +147,12 @@
   });
 
   function iniciarChamada(id_professor) {
-    const call = peer.call(id_professor, null); // aluno não envia stream, apenas recebe
+    const call = peer.call(id_professor, minhaStream);
+
     call.on("stream", remoteStream => {
-      videoAula.srcObject = remoteStream;
-      videoAula.style.display = "block";
+      salaVideos.style.display = "flex";
+      videoProfessor.srcObject = remoteStream;
+      form.style.display = "none";
     });
 
     call.on("close", () => {
@@ -124,4 +164,3 @@
 
 </body>
 </html>
-
