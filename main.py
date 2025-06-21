@@ -600,19 +600,25 @@ async def perfil(request: Request, nome: str):
         "notificacao": notificacao
     })
 
-@app.get("/recusar-chamada")
-async def recusar_chamada():
-    return RedirectResponse(url="/dashboard")  # ou outra rota principal do aluno
 
-@app.post("/notificar-aluno")
-async def notificar_aluno(nome: str = Form(...), disciplina: str = Form(...)):
-    notificacoes = carregar_notificacoes()
-    notificacoes[nome] = {
-        "mensagem": f"Aula disponível de {disciplina}",
-        "disciplina": disciplina
-    }
-    salvar_notificacoes(notificacoes)
-    return JSONResponse(content={"status": "ok", "mensagem": "Aluno notificado com sucesso"})
+@app.get("/sala_virtual_professor", response_class=HTMLResponse)
+async def get_sala_virtual_professor(request: Request):
+    return templates.TemplateResponse("sala_virtual_professor.html", {"request": request})
+
+@app.get("/sala_virtual_aluno", response_class=HTMLResponse)
+async def get_sala_virtual_aluno(request: Request):
+    return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
+
+@app.post("/solicitar_entrada")
+async def solicitar_entrada(
+    nome_aluno: str = Form(...),
+    email_aluno: str = Form(...),
+    peer_id_aluno: str = Form(...),
+    id_professor: str = Form(...)
+):
+    # Simulação de lógica de autorização
+    print(f"Solicitação de {nome_aluno} para professor {id_professor}")
+    return JSONResponse(content={"autorizado": True})
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
@@ -724,9 +730,6 @@ async def atualizar_perfil(
     aluno_ref.update(atualizacoes)
     return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
 
-@app.get("/aulaonline", response_class=HTMLResponse)
-async def aula_online(request: Request):
-    return templates.TemplateResponse("onlineaula.html", {"request": request})
 
 @app.post("/verificar-aluno")
 async def verificar_aluno(
@@ -780,17 +783,6 @@ async def verificar_aluno(
 
     except Exception as e:
         return JSONResponse({"status": "erro", "mensagem": str(e)})
-
-@app.get("/onlineaula", response_class=HTMLResponse)
-async def get_online_aula(request: Request):
-    return templates.TemplateResponse("onlineaula.html", {"request": request})
-
-@app.get("/onlineaula/{nome_aluno}", response_class=HTMLResponse)
-async def exibir_online_aula(request: Request, nome_aluno: str):
-    return templates.TemplateResponse("onlineaula.html", {
-        "request": request,
-        "nome_aluno": nome_aluno
-    })
 
 @app.get("/professores_online", response_class=HTMLResponse)
 async def get_cadastro(request: Request):
@@ -948,32 +940,6 @@ async def aulas_dadas_no_mes(email: str = Query(...)):
         "resumo": "Aulas ministradas com regularidade nas 4 semanas."
     }
 
-
-@app.get("/aula_online", response_class=HTMLResponse)
-async def get_aula_online(request: Request, email: str):
-    """
-    Renderiza a página da aula online (inonline.html) com o nome da disciplina.
-    """
-    professores_ref = db.collection("professores_online")
-    query = professores_ref.where("email", "==", email).limit(1).stream()
-    prof_doc = next(query, None)
-
-    if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado."})
-
-    prof_data = prof_doc.to_dict()
-
-    nome_disciplina = prof_data.get("formado_em", "Aula")
-    professor_nome = prof_data.get("nome", "Professor")
-
-    return templates.TemplateResponse("inonline.html", {
-        "request": request,
-        "nome_disciplina": nome_disciplina,
-        "professor_nome": professor_nome,
-        "email": email
-    })
-
-
 @app.get("/sala_virtual", response_class=HTMLResponse)
 async def sala_virtual(request: Request, email: str):
     """
@@ -995,47 +961,6 @@ async def sala_virtual(request: Request, email: str):
         "professor": prof_data
     })
 
-@app.get("/sala_virtual_aluno", response_class=HTMLResponse)
-async def sala_virtual_aluno(request: Request, professor_email: str):
-    return templates.TemplateResponse("sala_virtual_aluno.html", {
-        "request": request,
-        "professor_email": professor_email
-    })
-
-@app.post("/aceitar_aluno")
-async def aceitar_aluno(
-    email_prof: str = Form(...),
-    email_aluno: str = Form(...),
-    nome_aluno: str = Form(...)
-):
-    """
-    Marca um aluno como aprovado para entrar na aula do professor.
-    Atualiza a coleção 'aulas_ativas' no Firestore.
-    """
-    aula_ref = db.collection("aulas_ativas").document(email_prof)
-    aula_doc = aula_ref.get()
-
-    if not aula_doc.exists:
-        return JSONResponse({"erro": "Aula não encontrada."}, status_code=404)
-
-    aula_data = aula_doc.to_dict()
-    pendentes = aula_data.get("alunos_pendentes", [])
-    aprovados = aula_data.get("alunos_aprovados", [])
-
-    # Remove o aluno da lista de pendentes
-    pendentes = [a for a in pendentes if a["email"] != email_aluno]
-
-    # Adiciona na lista de aprovados
-    aprovados.append({"nome": nome_aluno, "email": email_aluno})
-
-    # Atualiza o Firestore
-    aula_ref.update({
-        "alunos_pendentes": pendentes,
-        "alunos_aprovados": aprovados
-    })
-
-    return JSONResponse({"mensagem": "Aluno aprovado com sucesso."})
-
 @app.post("/verificar_aluno")
 async def verificar_aluno(request: Request):
     dados = await request.json()
@@ -1049,119 +974,3 @@ async def verificar_aluno(request: Request):
         if aluno["nome"] == nome and aluno["senha"] == senha:
             return {"ok": True}
     return JSONResponse(status_code=403, content={"erro": "Nome ou senha incorretos."})
-
-
-@app.get("/sala_aluno", response_class=HTMLResponse)
-async def exibir_sala_virtual_aluno(request: Request):
-    return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
-
-solicitacoes = []  # Lista para armazenar solicitações
-notificacoes = []  # Lista para notificações (você pode adaptar para JSON ou banco)
-
-def carregar_notificacoes():
-    return notificacoes
-
-def salvar_notificacoes(lista):
-    global notificacoes
-    notificacoes = lista
-
-def vinculo_existe(email_professor, nome_aluno):
-    # Esta função precisa verificar se o vínculo existe — substitua com sua lógica real
-    return True  # Simulação
-
-@app.post("/solicitar_entrada")
-async def solicitar_entrada(
-    email_aluno: str = Form(...),
-    nome_aluno: str = Form(...),
-    peer_id_aluno: str = Form(...),
-    id_professor: str = Form(...)
-):
-    solicitacoes.append({
-        "email": email_aluno,
-        "nome": nome_aluno,
-        "peer_id": peer_id_aluno,
-        "id_professor": id_professor
-    })
-    
-    print(f"Solicitação recebida de {nome_aluno} ({email_aluno}) para aula {id_professor}")
-    
-    return JSONResponse(content={"autorizado": True})
-
-@app.get("/notificacoes-aluno/{nome_aluno}")
-async def notificacoes_aluno(nome_aluno: str):
-    try:
-        # Simulação de verificação de vínculo
-        docs = [{"aluno": nome_aluno}]  # substitua por sua lógica real
-
-        if not docs:
-            raise HTTPException(status_code=404, detail="Aluno não está vinculado a nenhum professor")
-
-        notificacoes_aluno = [
-            n for n in notificacoes
-            if n.get("para", "").strip().lower() == nome_aluno.strip().lower()
-        ]
-
-        return HTMLResponse(content=f"<h1>Notificações para {nome_aluno}</h1><p>{notificacoes_aluno}</p>")
-
-    except Exception as e:
-        return RedirectResponse(url="/erro")
-
-@app.post("/aceitar-aula")
-async def aceitar_aula(request: Request):
-    try:
-        data = await request.json()
-        nome_aluno = data.get("aluno", "").strip()
-        email_professor = data.get("professor", "").strip()
-
-        if not nome_aluno or not email_professor:
-            raise HTTPException(status_code=400, detail="Dados incompletos")
-
-        if not vinculo_existe(email_professor, nome_aluno):
-            raise HTTPException(status_code=404, detail="Vínculo entre professor e aluno não encontrado")
-
-        notificacoes = carregar_notificacoes()
-        notificacoes.append({
-            "para": email_professor,
-            "mensagem": f"O aluno {nome_aluno} aceitou a aula.",
-            "data": datetime.now(timezone.utc).isoformat()
-        })
-        salvar_notificacoes(notificacoes)
-
-        return RedirectResponse(url=f"/sala_virtual?aluno={nome_aluno}&professor={email_professor}", status_code=303)
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro ao aceitar aula", "erro": str(e)}
-        )
-
-
-@app.get("/ver-professor/{nome_aluno}")
-async def ver_professor(nome_aluno: str):
-    try:
-        # Buscar o vínculo do aluno na coleção 'alunos_professor'
-        docs = db.collection('alunos_professor') \
-                 .where('aluno', '==', nome_aluno.strip()) \
-                 .limit(1).stream()
-
-        doc = next(docs, None)
-
-        if not doc or not doc.exists:
-            raise HTTPException(status_code=404, detail="Professor não encontrado para este aluno")
-
-        dados = doc.to_dict()
-        email_professor = dados.get("professor", "Professor não definido")
-
-        # HTML simples com link para sala virtual
-        html = f"""
-            <h2>Professor de {nome_aluno}: {email_professor}</h2>
-            <a href="/sala_virtual?aluno={nome_aluno}&professor={email_professor}">
-                <button>Entrar na sala virtual</button>
-            </a>
-        """
-
-        return HTMLResponse(content=html)
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
-
