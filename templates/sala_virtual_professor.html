@@ -1,233 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aulas Virtuais</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sala de Aula Online</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: Arial, sans-serif;
       background-color: #000;
       color: #fff;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      height: 100vh;
+      overflow: hidden;
     }
-
-    .video-container {
-      position: relative;
-      scroll-snap-align: start;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
-
-    .sidebar {
-      position: absolute;
-      right: 10px;
-      top: 40%;
+    #videos {
       display: flex;
-      flex-direction: column;
-      gap: 15px;
-      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
     }
-
-    .sidebar button {
-      background-color: blue;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-size: 20px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    video {
+      width: 300px;
+      height: 225px;
+      background: #333;
+      border: 2px solid #555;
+      border-radius: 10px;
     }
-
-    .sidebar button.liked,
-    .sidebar button.disliked {
-      background-color: yellow;
-      color: black;
-    }
-
-    .search-bar {
+    #controles {
       position: fixed;
       top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      width: 90%;
-      max-width: 400px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      border-radius: 10px;
     }
-
-    .search-bar input {
+    #formulario {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    input, button {
       padding: 8px;
-      width: 100%;
-      font-size: 16px;
-      border-radius: 20px;
+      font-size: 14px;
+      border-radius: 5px;
       border: none;
     }
-
-    #login-modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 10px;
-      z-index: 30;
-      width: 300px;
-      text-align: center;
-    }
-
-    #login-modal input {
-      margin: 5px 0;
-      padding: 8px;
-      width: 90%;
-    }
-
-    #login-modal button {
-      margin-top: 10px;
-      padding: 8px;
-      width: 100%;
-    }
-
-    #mensagem-erro {
-      color: red;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 600px) {
-      .sidebar {
-        right: 5px;
-        gap: 10px;
-      }
-
-      .sidebar button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
-
-      #login-modal {
-        width: 90%;
-      }
+    button {
+      background-color: #28a745;
+      color: #fff;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="search-bar">
-    <input type="text" id="pesquisa" placeholder="Buscar professor ou disciplina">
+  <div id="controles">
+    <form id="formulario">
+      <input type="text" id="nomeAluno" placeholder="Seu nome" required />
+      <input type="email" id="emailAluno" placeholder="Seu email" required />
+      <input type="text" id="idProfessor" placeholder="Email do professor" required />
+      <button type="submit">Entrar na aula</button>
+    </form>
+    <p id="status"></p>
   </div>
 
-  <div id="videos-scroll"></div>
-
-  <div id="login-modal">
-    <p>Solicite acesso à aula:</p>
-    <input type="text" id="nome_aluno" placeholder="Seu nome">
-    <input type="email" id="email_aluno" placeholder="Seu e-mail">
-    <input type="text" id="peer_id" placeholder="Seu ID da chamada">
-    <button onclick="solicitarEntrada()">Solicitar Entrada</button>
-    <div id="mensagem-erro"></div>
+  <div id="videos">
+    <video id="meuVideo" autoplay muted></video>
   </div>
 
+  <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
   <script>
-    const videoData = [
-      { id: 'prof1', src: 'video1.mp4', professor: 'Carlos', disciplina: 'Matemática' },
-      { id: 'prof2', src: 'video2.mp4', professor: 'Joana', disciplina: 'Física' },
-      { id: 'prof3', src: 'video3.mp4', professor: 'Mario', disciplina: 'Inglês' }
-    ];
+    const videoGrid = document.getElementById('videos');
+    const meuVideo = document.getElementById('meuVideo');
+    const status = document.getElementById('status');
+    let peer;
+    let streamLocal;
 
-    const container = document.getElementById('videos-scroll');
-
-    videoData.forEach(data => {
-      const div = document.createElement('div');
-      div.className = 'video-container';
-      div.dataset.professor = data.professor.toLowerCase();
-      div.dataset.disciplina = data.disciplina.toLowerCase();
-      div.dataset.idProfessor = data.id;
-
-      div.innerHTML = `
-        <video src="${data.src}" autoplay muted loop></video>
-        <div class="sidebar">
-          <button onclick="curtir(this)">❤️</button>
-          <button onclick="descurtir(this)">👎</button>
-          <button onclick="abrirLogin('${data.id}')">🎓</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-
-    function curtir(btn) {
-      btn.classList.toggle('liked');
-    }
-
-    function descurtir(btn) {
-      btn.classList.toggle('disliked');
-    }
-
-    let idProfessorAtual = "";
-
-    function abrirLogin(id) {
-      idProfessorAtual = id;
-      document.getElementById('login-modal').style.display = 'block';
-      document.getElementById('mensagem-erro').innerText = '';
-    }
-
-    async function solicitarEntrada() {
-      const nome = document.getElementById('nome_aluno').value.trim();
-      const email = document.getElementById('email_aluno').value.trim();
-      const peerId = document.getElementById('peer_id').value.trim();
-
-      if (!nome || !email || !peerId) {
-        document.getElementById('mensagem-erro').innerText = 'Preencha todos os campos!';
-        return;
-      }
-
+    async function pedirPermissoes() {
       try {
-        const response = await fetch("/solicitar_entrada", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            nome_aluno: nome,
-            email_aluno: email,
-            peer_id_aluno: peerId,
-            id_professor: idProfessorAtual
-          })
+        streamLocal = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        meuVideo.srcObject = streamLocal;
+      } catch (err) {
+        alert('Permissão negada para acessar câmera/microfone.');
+      }
+    }
+
+    pedirPermissoes();
+
+    document.getElementById('formulario').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nomeAluno = document.getElementById('nomeAluno').value;
+      const emailAluno = document.getElementById('emailAluno').value;
+      const idProfessor = document.getElementById('idProfessor').value;
+
+      peer = new Peer();
+
+      peer.on('open', async (peerId) => {
+        const formData = new FormData();
+        formData.append('nome_aluno', nomeAluno);
+        formData.append('email_aluno', emailAluno);
+        formData.append('peer_id_aluno', peerId);
+        formData.append('id_professor', idProfessor);
+
+        const resposta = await fetch('/solicitar_entrada', {
+          method: 'POST',
+          body: formData
         });
 
-        const result = await response.json();
-        if (result.autorizado) {
-          alert("✅ Acesso autorizado! Entrando na aula...");
-          document.getElementById('login-modal').style.display = 'none';
-        } else {
-          document.getElementById('mensagem-erro').innerText = '❌ Acesso negado pelo professor.';
-        }
-      } catch (error) {
-        console.error("Erro ao solicitar entrada:", error);
-        document.getElementById('mensagem-erro').innerText = 'Erro ao enviar solicitação.';
-      }
-    }
+        const resultado = await resposta.json();
 
-    document.getElementById('pesquisa').addEventListener('input', function() {
-      const termo = this.value.toLowerCase();
-      document.querySelectorAll('.video-container').forEach(container => {
-        const prof = container.dataset.professor;
-        const disc = container.dataset.disciplina;
-        container.style.display = (prof.includes(termo) || disc.includes(termo)) ? 'block' : 'none';
+        if (resultado.autorizado) {
+          status.innerText = 'Acesso autorizado. Aguardando conexão do professor...';
+        } else {
+          status.innerText = 'Acesso negado: ' + (resultado.motivo || resultado.erro);
+          return;
+        }
+      });
+
+      peer.on('call', (chamada) => {
+        chamada.answer(streamLocal);
+        const video = document.createElement('video');
+        chamada.on('stream', (remoteStream) => {
+          video.srcObject = remoteStream;
+          video.autoplay = true;
+          videoGrid.appendChild(video);
+        });
       });
     });
   </script>
 </body>
 </html>
-
