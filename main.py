@@ -900,47 +900,32 @@ async def login_prof_post(
     })
 
 
-@app.get("/perfil_prof", response_class=HTMLResponse)
-async def get_perfil_prof(request: Request, email: str, mensagem: str = None):
-    professores_ref = db.collection("professores_online")
-    query = professores_ref.where("email", "==", email).limit(1).stream()
-    prof_doc = next(query, None)
+@app.get("/perfil/{email}", response_class=HTMLResponse)
+async def mostrar_perfil_professor(request: Request, email: str, mensagem: str = None):
+    prof_ref = db.collection("professores_online").document(email)
+    prof_doc = prof_ref.get()
+    
+    if not prof_doc.exists:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado."})
 
-    if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
-
-    prof_data = prof_doc.to_dict()
-    prof_data["id"] = prof_doc.id  # Para atualização posterior se necessário
+    professor = prof_doc.to_dict()
     return templates.TemplateResponse("perfil_prof.html", {
         "request": request,
-        "professor": prof_data,
+        "professor": professor,
         "mensagem": mensagem
     })
 
+# POST - Atualiza ou recebe algo (ex: início da aula ou outra ação futura)
+class AulaInicio(BaseModel):
+    professor_email: str
+    status: str
 
-@app.post("/perfil_prof", response_class=HTMLResponse)
-async def post_perfil_prof(
-    request: Request,
-    email: str = Form(...),
-    status: str = Form(...)
-):
-    """
-    Atualiza o status do professor (por exemplo: 'Estou aqui').
-    """
-    professores_ref = db.collection("professores_online")
-    query = professores_ref.where("email", "==", email).limit(1).stream()
-    prof_doc = next(query, None)
-
-    if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
-
-    # Atualiza o status do professor
-    db.collection("professores_online").document(prof_doc.id).update({
-        "status": status
-    })
-
-    return RedirectResponse(url=f"/perfil_prof?email={email}&mensagem=Status atualizado!", status_code=303)
-
+@app.post("/perfil/{email}")
+async def atualizar_status_aula(email: str, dados: AulaInicio):
+    prof_ref = db.collection("professores_online").document(email)
+    prof_ref.update({"status": dados.status})
+    return {"mensagem": "Status atualizado com sucesso!"}
+    
 @app.get("/meus-dados")
 async def meus_dados(email: str = Query(...)):
     prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
