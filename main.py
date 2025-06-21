@@ -901,11 +901,7 @@ async def login_prof_post(
 
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
-async def get_perfil_prof(request: Request, email: str):
-    """
-    Exibe o perfil do professor com base no email fornecido.
-    Esse email normalmente virá da sessão de login ou como query param após login.
-    """
+async def get_perfil_prof(request: Request, email: str, mensagem: str = None):
     professores_ref = db.collection("professores_online")
     query = professores_ref.where("email", "==", email).limit(1).stream()
     prof_doc = next(query, None)
@@ -914,18 +910,22 @@ async def get_perfil_prof(request: Request, email: str):
         return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
 
     prof_data = prof_doc.to_dict()
-    prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
-    return templates.TemplateResponse("perfil_prof.html", {"request": request, "professor": prof_data})
+    prof_data["id"] = prof_doc.id  # Para atualização posterior se necessário
+    return templates.TemplateResponse("perfil_prof.html", {
+        "request": request,
+        "professor": prof_data,
+        "mensagem": mensagem
+    })
 
 
 @app.post("/perfil_prof", response_class=HTMLResponse)
 async def post_perfil_prof(
     request: Request,
     email: str = Form(...),
-    descricao: str = Form(...)
+    status: str = Form(...)
 ):
     """
-    Atualiza apenas o campo "descricao" do professor logado.
+    Atualiza o status do professor (por exemplo: 'Estou aqui').
     """
     professores_ref = db.collection("professores_online")
     query = professores_ref.where("email", "==", email).limit(1).stream()
@@ -934,14 +934,12 @@ async def post_perfil_prof(
     if not prof_doc:
         return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
 
-    # Atualizar o campo descrição
+    # Atualiza o status do professor
     db.collection("professores_online").document(prof_doc.id).update({
-        "descricao": descricao
+        "status": status
     })
 
-    # Redireciona de volta ao perfil com confirmação
-    return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
-
+    return RedirectResponse(url=f"/perfil_prof?email={email}&mensagem=Status atualizado!", status_code=303)
 
 @app.get("/meus-dados")
 async def meus_dados(email: str = Query(...)):
