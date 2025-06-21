@@ -57,7 +57,7 @@
   <div id="controles">
     <form id="formulario">
       <input type="text" id="nomeAluno" placeholder="Seu nome" required />
-      <input type="email" id="emailAluno" placeholder="Seu email" required />
+      <input type="password" id="senhaAluno" placeholder="Sua senha" required />
       <input type="text" id="idProfessor" placeholder="Email do professor" required />
       <button type="submit">Entrar na aula</button>
     </form>
@@ -90,7 +90,7 @@
     document.getElementById('formulario').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nomeAluno = document.getElementById('nomeAluno').value;
-      const emailAluno = document.getElementById('emailAluno').value;
+      const senhaAluno = document.getElementById('senhaAluno').value;
       const idProfessor = document.getElementById('idProfessor').value;
 
       peer = new Peer();
@@ -98,7 +98,7 @@
       peer.on('open', async (peerId) => {
         const formData = new FormData();
         formData.append('nome_aluno', nomeAluno);
-        formData.append('email_aluno', emailAluno);
+        formData.append('senha_aluno', senhaAluno);
         formData.append('peer_id_aluno', peerId);
         formData.append('id_professor', idProfessor);
 
