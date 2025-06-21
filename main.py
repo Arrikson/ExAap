@@ -609,29 +609,40 @@ async def get_sala_virtual_professor(request: Request):
 async def get_sala_virtual_aluno(request: Request):
     return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
     
-
-def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
+def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
     docs = db.collection('alunos_professor') \
              .where('professor', '==', prof_email.strip()) \
              .where('aluno', '==', aluno_nome.strip()) \
              .limit(1).stream()
-    return next(docs, None) is not None
+
+    for doc in docs:
+        return doc.to_dict()  # Retorna os dados do aluno encontrado
+
+    return None
 
 @app.post("/solicitar_entrada")
 async def solicitar_entrada(
     nome_aluno: str = Form(...),
-    email_aluno: str = Form(...),
+    senha_aluno: str = Form(...),
     peer_id_aluno: str = Form(...),
     id_professor: str = Form(...)  # Aqui é o email do professor
 ):
     try:
-        if not vinculo_existe(id_professor, nome_aluno):
+        aluno_info = vinculo_existe(id_professor, nome_aluno)
+
+        if not aluno_info:
             return JSONResponse(
                 status_code=403,
                 content={"autorizado": False, "motivo": "Aluno não está vinculado ao professor."}
             )
 
-        # Você pode registrar a tentativa, salvar o peer_id ou outra lógica aqui
+        # Verificação de senha
+        if aluno_info.get("senha") != senha_aluno:
+            return JSONResponse(
+                status_code=403,
+                content={"autorizado": False, "motivo": "Senha incorreta."}
+            )
+
         print(f"✅ Solicitação autorizada: {nome_aluno} para professor {id_professor} com PeerID {peer_id_aluno}")
         return JSONResponse(content={"autorizado": True})
 
