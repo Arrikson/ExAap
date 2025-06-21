@@ -601,9 +601,18 @@ async def perfil(request: Request, nome: str):
     })
 
 
+def professor_possui_alunos(prof_email: str) -> bool:
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()) \
+             .limit(1).stream()
+    return next(docs, None) is not None
+
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
-async def get_sala_virtual_professor(request: Request):
-    return templates.TemplateResponse("sala_virtual_professor.html", {"request": request})
+async def get_sala_virtual_professor(request: Request, prof_email: str):
+    if not professor_possui_alunos(prof_email):
+        raise HTTPException(status_code=403, detail="Acesso negado: professor sem alunos vinculados.")
+    
+    return templates.TemplateResponse("sala_virtual_professor.html", {"request": request, "prof_email": prof_email})
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
 async def get_sala_virtual_aluno(request: Request):
@@ -625,7 +634,7 @@ async def solicitar_entrada(
     nome_aluno: str = Form(...),
     senha_aluno: str = Form(...),
     peer_id_aluno: str = Form(...),
-    id_professor: str = Form(...)  # Aqui é o email do professor
+    id_professor: str = Form(...)
 ):
     try:
         aluno_info = vinculo_existe(id_professor, nome_aluno)
@@ -636,7 +645,6 @@ async def solicitar_entrada(
                 content={"autorizado": False, "motivo": "Aluno não está vinculado ao professor."}
             )
 
-        # Verificação de senha
         if aluno_info.get("senha") != senha_aluno:
             return JSONResponse(
                 status_code=403,
@@ -652,7 +660,6 @@ async def solicitar_entrada(
             status_code=500,
             content={"autorizado": False, "erro": "Erro interno ao verificar vínculo."}
         )
-
 
 @app.get("/logout/{nome}")
 async def logout(nome: str):
