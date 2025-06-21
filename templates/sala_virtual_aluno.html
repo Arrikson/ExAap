@@ -5,66 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sala Virtual do Aluno</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      background-color: #000;
-      color: white;
-      font-family: Arial, sans-serif;
+      background-color: #0a0a0a;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
     }
 
     header {
-      width: 100%;
       background: linear-gradient(90deg, #007bff, #00c6ff);
-      color: white;
       text-align: center;
-      padding: 15px 0;
-      font-size: 22px;
+      padding: 20px 0;
+      font-size: 24px;
       font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      z-index: 2;
     }
 
     #formulario {
-      margin: 20px auto;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #111;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 198, 255, 0.3);
       display: flex;
       flex-direction: column;
       gap: 15px;
       width: 90%;
       max-width: 400px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    input, button {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      outline: none;
     }
 
     input {
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
+      background-color: #222;
+      color: white;
+    }
+
+    input:focus {
+      border: 2px solid #00c6ff;
     }
 
     button {
-      padding: 12px;
-      background: #28a745;
+      background: linear-gradient(to right, #28a745, #20c997);
       color: white;
-      border: none;
-      font-size: 16px;
-      border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #20c997, #28a745);
     }
 
     .video-container {
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       padding: 10px;
       gap: 10px;
+      display: none;
     }
 
     video {
-      border-radius: 10px;
+      border-radius: 12px;
       background-color: #111;
+      box-shadow: 0 0 12px rgba(0, 198, 255, 0.4);
     }
 
     #videoProfessor {
@@ -78,11 +102,23 @@
       width: 250px;
       height: 140px;
       object-fit: cover;
-      border: 2px solid #fff;
-      position: absolute;
+      border: 2px solid #00c6ff;
+      position: fixed;
       bottom: 20px;
       right: 20px;
       display: none;
+      z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+      #videoProfessor {
+        height: 40vh;
+      }
+
+      #videoAluno {
+        width: 160px;
+        height: 100px;
+      }
     }
   </style>
 </head>
@@ -96,7 +132,7 @@
   <button type="submit">Solicitar entrada</button>
 </form>
 
-<div class="video-container" style="display: none;" id="salaVideos">
+<div class="video-container" id="salaVideos">
   <video id="videoProfessor" autoplay playsinline></video>
   <video id="videoAluno" autoplay playsinline muted></video>
 </div>
@@ -115,8 +151,13 @@
     form.addEventListener("submit", async e => {
       e.preventDefault();
 
-      const nome = document.getElementById("nome").value;
-      const id_professor = document.getElementById("id_professor").value;
+      const nome = document.getElementById("nome").value.trim();
+      const id_professor = document.getElementById("id_professor").value.trim();
+
+      if (!nome || !id_professor) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+      }
 
       try {
         minhaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -158,6 +199,10 @@
     call.on("close", () => {
       alert("A aula foi encerrada.");
       location.reload();
+    });
+
+    call.on("error", err => {
+      alert("Erro durante a chamada: " + err.message);
     });
   }
 </script>
