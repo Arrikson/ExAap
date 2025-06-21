@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sala do Professor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    header {
+      background-color: #333;
+      padding: 15px;
+      font-size: 22px;
+    }
+
+    video {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 960px;
+      height: 65vh;
+      background-color: black;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>Sala do Professor</header>
+  <video id="meuVideo" autoplay playsinline muted></video>
+
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script>
+    const peer = new Peer();
+
+    peer.on("open", id => {
+      console.log("ID do professor:", id);
+      // Você pode exibir ou compartilhar esse ID com o aluno
+    });
+
+    peer.on("call", call => {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+        document.getElementById("meuVideo").srcObject = stream;
+        call.answer(stream);
+
+        call.on("stream", remoteStream => {
+          console.log("Recebendo vídeo do aluno");
+          // Se quiser exibir o vídeo do aluno, crie outro vídeo aqui
+        });
+
+        call.on("close", () => {
+          alert("A chamada terminou.");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
