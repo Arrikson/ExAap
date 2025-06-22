@@ -140,6 +140,48 @@ async def vincular_aluno(item: VinculoIn):
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
 
+@app.get("/perfil_prof", response_class=HTMLResponse)
+async def get_perfil_prof(request: Request, email: str):
+    """
+    Exibe o perfil do professor com base no email fornecido.
+    Esse email normalmente virá da sessão de login ou como query param após login.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
+
+    prof_data = prof_doc.to_dict()
+    prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
+    return templates.TemplateResponse("perfil_prof.html", {"request": request, "professor": prof_data})
+
+
+@app.post("/perfil_prof", response_class=HTMLResponse)
+async def post_perfil_prof(
+    request: Request,
+    email: str = Form(...),
+    descricao: str = Form(...)
+):
+    """
+    Atualiza apenas o campo "descricao" do professor logado.
+    """
+    professores_ref = db.collection("professores_online")
+    query = professores_ref.where("email", "==", email).limit(1).stream()
+    prof_doc = next(query, None)
+
+    if not prof_doc:
+        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
+
+    # Atualizar o campo descrição
+    db.collection("professores_online").document(prof_doc.id).update({
+        "descricao": descricao
+    })
+
+    # Redireciona de volta ao perfil com confirmação
+    return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
+
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
