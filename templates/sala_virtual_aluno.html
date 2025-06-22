@@ -5,207 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sala Virtual do Aluno</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      margin: 0;
-      padding: 0;
-      background-color: #0a0a0a;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    header {
-      background: linear-gradient(90deg, #007bff, #00c6ff);
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
       text-align: center;
-      padding: 20px 0;
-      font-size: 24px;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      z-index: 2;
+      padding: 2rem;
     }
-
-    #formulario {
-      margin: 30px auto;
-      padding: 20px;
-      background-color: #111;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0, 198, 255, 0.3);
+    #videoContainer {
       display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 90%;
-      max-width: 400px;
-      transition: all 0.3s ease-in-out;
-    }
-
-    input, button {
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      outline: none;
-    }
-
-    input {
-      background-color: #222;
-      color: white;
-    }
-
-    input:focus {
-      border: 2px solid #00c6ff;
-    }
-
-    button {
-      background: linear-gradient(to right, #28a745, #20c997);
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: linear-gradient(to right, #20c997, #28a745);
-    }
-
-    .video-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       justify-content: center;
-      align-items: center;
-      padding: 10px;
-      gap: 10px;
-      display: none;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 2rem;
     }
-
     video {
-      border-radius: 12px;
-      background-color: #111;
-      box-shadow: 0 0 12px rgba(0, 198, 255, 0.4);
+      width: 300px;
+      max-width: 90%;
+      border: 2px solid #007BFF;
+      border-radius: 10px;
     }
-
-    #videoProfessor {
-      width: 100%;
-      max-width: 960px;
-      height: 60vh;
-      object-fit: cover;
+    #status {
+      font-size: 1.2rem;
+      color: green;
+      margin-top: 1rem;
     }
-
-    #videoAluno {
-      width: 250px;
-      height: 140px;
-      object-fit: cover;
-      border: 2px solid #00c6ff;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: none;
-      z-index: 10;
+    .btn {
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #dc3545;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 1rem;
     }
-
-    @media (max-width: 768px) {
-      #videoProfessor {
-        height: 40vh;
-      }
-
-      #videoAluno {
-        width: 160px;
-        height: 100px;
-      }
+    .btn:hover {
+      background-color: #c82333;
     }
   </style>
 </head>
-<body>
+<body data-prof-email="{{ email }}">
 
-<header>Sala Virtual do Aluno</header>
+  <h1>Aula Online</h1>
+  <p>Professor: {{ professor.nome }} ({{ professor.email }})</p>
 
-<form id="formulario">
-  <input type="text" id="nome" placeholder="Seu nome" required />
-  <input type="text" id="id_professor" placeholder="Código da aula" required />
-  <button type="submit">Solicitar entrada</button>
-</form>
+  <div id="status">Aguardando conexão com o professor...</div>
 
-<div class="video-container" id="salaVideos">
-  <video id="videoProfessor" autoplay playsinline></video>
-  <video id="videoAluno" autoplay playsinline muted></video>
-</div>
+  <div id="videoContainer">
+    <div>
+      <h3>Seu vídeo</h3>
+      <video id="localVideo" autoplay muted></video>
+    </div>
+    <div>
+      <h3>Vídeo do Professor</h3>
+      <video id="remoteVideo" autoplay></video>
+    </div>
+  </div>
 
-<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-<script>
-  const form = document.getElementById("formulario");
-  const salaVideos = document.getElementById("salaVideos");
-  const videoProfessor = document.getElementById("videoProfessor");
-  const videoAluno = document.getElementById("videoAluno");
-  const peer = new Peer();
+  <button class="btn" onclick="encerrarChamada()">Sair da Aula</button>
 
-  let minhaStream = null;
+  <script>
+    const profEmail = document.body.dataset.profEmail;
+    const statusDiv = document.getElementById("status");
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
 
-  peer.on("open", id => {
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
-
-      const nome = document.getElementById("nome").value.trim();
-      const id_professor = document.getElementById("id_professor").value.trim();
-
-      if (!nome || !id_professor) {
-        alert("Por favor, preencha todos os campos.");
-        return;
-      }
-
+    // Simula a chamada - aqui deveria usar PeerJS/WebRTC
+    async function iniciarChamada() {
       try {
-        minhaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        videoAluno.srcObject = minhaStream;
-        videoAluno.style.display = "block";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+
+        // Aqui deve ir o código para se conectar ao professor com PeerJS
+        statusDiv.textContent = "Conectado ao professor!";
       } catch (err) {
-        alert("Erro ao acessar sua câmera/microfone.");
-        return;
+        statusDiv.textContent = "Erro ao acessar câmera/microfone.";
+        console.error(err);
       }
+    }
 
-      const formData = new FormData();
-      formData.append("nome_aluno", nome);
-      formData.append("peer_id_aluno", id);
-      formData.append("id_professor", id_professor);
+    function encerrarChamada() {
+      window.location.href = "/perfil";
+    }
 
-      const resp = await fetch("/solicitar_entrada", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await resp.json();
-      if (resp.ok && result.autorizado) {
-        iniciarChamada(id_professor);
-      } else {
-        alert("Aguardando aprovação do professor...");
-      }
-    });
-  });
-
-  function iniciarChamada(id_professor) {
-    const call = peer.call(id_professor, minhaStream);
-
-    call.on("stream", remoteStream => {
-      salaVideos.style.display = "flex";
-      videoProfessor.srcObject = remoteStream;
-      form.style.display = "none";
-    });
-
-    call.on("close", () => {
-      alert("A aula foi encerrada.");
-      location.reload();
-    });
-
-    call.on("error", err => {
-      alert("Erro durante a chamada: " + err.message);
-    });
-  }
-</script>
-
+    iniciarChamada();
+  </script>
 </body>
 </html>
