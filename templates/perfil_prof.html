@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -261,7 +261,9 @@
             const btn = document.createElement('button');
             btn.className = 'notificar-btn';
             btn.innerText = 'Dar Aula';
-            btn.onclick = () => notificarAluno(aluno.email, email);
+            btn.onclick = () => {
+              window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
+            };
             card.appendChild(btn);
           }
 
@@ -300,25 +302,7 @@
         alert("Erro ao buscar alunos disponíveis.");
       }
     }
-
-    async function notificarAluno(emailAluno, emailProfessor) {
-      try {
-        const resposta = await fetch('/notificar-aluno', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aluno_email: emailAluno, professor_email: emailProfessor })
-        });
-
-        if (resposta.ok) {
-          alert("Aluno notificado com sucesso!");
-        } else {
-          alert("Erro ao notificar aluno.");
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Erro na comunicação com o servidor.");
-      }
-    }
   </script>
 </body>
 </html>
+
