@@ -326,10 +326,10 @@
         btn.innerText = 'Vincular';
       }
     }
-  function notificarAluno(nomeAluno, profEmail) {
-  const url = `/sala_virtual_professor?prof_email=${encodeURIComponent(profEmail)}`;
-  window.location.href = url;
-}
+<form action="/sala_virtual_professor" method="get">
+  <input type="hidden" name="prof_email" value="{{ professor.email }}">
+  <button type="submit">Dar aula</button>
+</form>
   </script>
 </body>
 </html>
