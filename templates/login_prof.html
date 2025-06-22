@@ -99,8 +99,8 @@
     <img src="/static/logo.png" alt="Logo">
   </div>
 
-  {% if error %}
-  <div class="error-message">Nome completo ou senha incorretos. Tente novamente.</div>
+  {% if erro %}
+  <div class="error-message">{{ erro }}</div>
   {% endif %}
 
   <form class="form-container" method="post">
@@ -113,3 +113,4 @@
   </form>
 </body>
 </html>
+
