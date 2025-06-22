@@ -7,9 +7,18 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f8ff;
+      background: linear-gradient(135deg, #28a745, #85d49c);
+      color: #fff;
       text-align: center;
       padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
     }
     #videoContainer {
       display: flex;
@@ -21,74 +30,127 @@
     video {
       width: 300px;
       max-width: 90%;
-      border: 2px solid #007BFF;
+      border: 3px solid #fff;
       border-radius: 10px;
+      background-color: black;
     }
     #status {
       font-size: 1.2rem;
-      color: green;
+      color: #ffc107;
       margin-top: 1rem;
     }
     .btn {
-      padding: 0.7rem 1.2rem;
+      padding: 0.7rem 1.5rem;
       font-size: 1rem;
       border: none;
-      background-color: #dc3545;
+      background-color: #007bff;
       color: white;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
       margin-top: 1rem;
+      transition: background 0.3s ease;
     }
     .btn:hover {
-      background-color: #c82333;
+      background-color: #0056b3;
+    }
+    .form-container {
+      margin-top: 2rem;
+    }
+    input {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
     }
   </style>
 </head>
-<body data-prof-email="{{ email }}">
+<body>
 
-  <h1>Aula Online</h1>
-  <p>Professor: {{ professor.nome }} ({{ professor.email }})</p>
+  <h1>Bem-vindo à Sala Virtual</h1>
 
-  <div id="status">Aguardando conexão com o professor...</div>
+  <div class="form-container">
+    <input type="text" id="alunoNome" placeholder="Seu Nome" required />
+    <input type="password" id="alunoSenha" placeholder="Sua Senha" required />
+    <button class="btn" onclick="entrarNaAula()">Entrar na Aula</button>
+  </div>
 
-  <div id="videoContainer">
+  <div id="status">Insira seus dados para entrar na aula.</div>
+
+  <div id="videoContainer" style="display: none;">
     <div>
-      <h3>Seu vídeo</h3>
-      <video id="localVideo" autoplay muted></video>
+      <h3>Seu Vídeo</h3>
+      <video id="localVideo" autoplay muted playsinline></video>
     </div>
     <div>
       <h3>Vídeo do Professor</h3>
-      <video id="remoteVideo" autoplay></video>
+      <video id="remoteVideo" autoplay playsinline></video>
     </div>
   </div>
 
-  <button class="btn" onclick="encerrarChamada()">Sair da Aula</button>
-
   <script>
-    const profEmail = document.body.dataset.profEmail;
     const statusDiv = document.getElementById("status");
+    const videoContainer = document.getElementById("videoContainer");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    // Simula a chamada - aqui deveria usar PeerJS/WebRTC
-    async function iniciarChamada() {
+    async function entrarNaAula() {
+      const nome = document.getElementById("alunoNome").value.trim();
+      const senha = document.getElementById("alunoSenha").value.trim();
+
+      if (!nome || !senha) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+      }
+
       try {
+        // Verifica se o aluno está vinculado a algum professor
+        const response = await fetch("/verificar-aluno-vinculo", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ aluno_nome: nome, senha: senha })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          alert(result.detail || "Erro ao verificar vínculo.");
+          return;
+        }
+
+        const profEmail = result.professor_email;
+
+        // Verifica se a chamada está ativa
+        const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
+        const statusCheck = await check.json();
+
+        if (!statusCheck.ativa) {
+          alert("O professor ainda não iniciou a aula.");
+          return;
+        }
+
+        statusDiv.textContent = `Conectado com o professor ${result.professor_nome}`;
+        videoContainer.style.display = "flex";
+
+        // Exibir vídeo local do aluno
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        // Aqui deve ir o código para se conectar ao professor com PeerJS
-        statusDiv.textContent = "Conectado ao professor!";
+        // Simula stream do professor (temporário)
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then((profStream) => {
+          remoteVideo.srcObject = profStream;
+        }).catch(() => {
+          statusDiv.textContent = "Erro ao carregar vídeo do professor.";
+        });
+
       } catch (err) {
-        statusDiv.textContent = "Erro ao acessar câmera/microfone.";
         console.error(err);
+        alert("Erro ao conectar. Tente novamente.");
       }
     }
-
-    function encerrarChamada() {
-      window.location.href = "/perfil";
-    }
-
-    iniciarChamada();
   </script>
+
 </body>
 </html>
