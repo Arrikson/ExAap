@@ -262,6 +262,7 @@
             btn.className = 'notificar-btn';
             btn.innerText = 'Dar Aula';
             btn.onclick = () => {
+              const email = "{{ professor.email }}";
               window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
             };
             card.appendChild(btn);
@@ -305,5 +306,3 @@
   </script>
 </body>
 </html>
-
-
