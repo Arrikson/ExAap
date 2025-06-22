@@ -221,13 +221,13 @@
 
     function comecarAula() {
       const email = "{{ professor.email }}";
-      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
+      window.location.href = /sala_virtual_professor?email=${encodeURIComponent(email)};
     }
 
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
+        const res = await fetch(/meus-alunos-status/${encodeURIComponent(email)});
         const lista = await res.json();
         const container = document.getElementById('meus-alunos');
         container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -244,7 +244,7 @@
           const statusClass = aluno.online ? 'online' : 'offline';
           const statusText = aluno.online ? 'Online' : 'Offline';
 
-          card.innerHTML = `
+          card.innerHTML = 
             <div class="aluno-header">
               <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
               <div class="status">
@@ -252,7 +252,7 @@
                 <span class="status-dot ${statusClass}"></span>
               </div>
             </div>
-          `;
+          ;
 
           if (aluno.online) {
             const btn = document.createElement('button');
@@ -273,7 +273,7 @@
     async function buscarAlunosDisponiveis() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
+        const res = await fetch(/alunos-disponiveis/${encodeURIComponent(email)});
         const alunos = await res.json();
         const container = document.getElementById('alunos-disponiveis');
         container.innerHTML = '<h2>Alunos Disponíveis</h2>';
@@ -286,12 +286,12 @@
         alunos.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-          const buttonId = `btn-${aluno.nome.replace(/\s+/g, '-')}`;
+          const buttonId = btn-${aluno.nome.replace(/\s+/g, '-')};
 
-          card.innerHTML = `
+          card.innerHTML = 
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <button id="${buttonId}" onclick="vincularAluno('${aluno.nome}', '${email}', '${buttonId}')">Vincular</button>
-          `;
+          ;
           container.appendChild(card);
         });
       } catch (err) {
@@ -326,11 +326,11 @@
         btn.innerText = 'Vincular';
       }
     }
-    </script>
-<form action="/sala_virtual_professor" method="get">
-  <input type="hidden" name="email" value="{{ professor.email }}">
-  <button type="submit">Dar aula</button>
-</form> 
+async function notificarAluno(nomeAluno) {
+  const email = "{{ professor.email }}";
+  const url = `/sala_virtual_professor?prof_email=${encodeURIComponent(email)}`;
+  window.location.href = url;
+}
+  </script>
 </body>
 </html>
-
