@@ -678,7 +678,7 @@ async def logout(nome: str):
     for aluno in query:
         aluno.reference.update({"online": False})
     return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
-
+    
 @app.post("/logout")
 async def logout(request: Request):
     data = await request.json()
