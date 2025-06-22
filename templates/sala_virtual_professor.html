@@ -91,11 +91,17 @@
 
   <button class="btn" onclick="encerrarChamada()">Encerrar Aula</button>
 
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
   <script>
     const profEmail = document.body.dataset.profEmail;
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
+
+    let peer = null;
+    let currentStream = null;
 
     async function verificarChamadaAtiva() {
       try {
@@ -117,14 +123,27 @@
       try {
         await verificarChamadaAtiva();
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
+        currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = currentStream;
         statusDiv.textContent = "Aguardando aluno entrar...";
 
         await fetch("/registrar-chamada", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: profEmail, ativa: true })
+        });
+
+        peer = new Peer(profEmail);
+        peer.on("open", (id) => {
+          console.log("PeerJS iniciado com ID:", id);
+        });
+
+        peer.on("call", (call) => {
+          call.answer(currentStream);
+          call.on("stream", (alunoStream) => {
+            remoteVideo.srcObject = alunoStream;
+            statusDiv.textContent = "Aluno conectado!";
+          });
         });
 
       } catch (err) {
@@ -159,8 +178,7 @@
         const result = await response.json();
 
         if (response.ok) {
-          statusDiv.textContent = `Aluno ${alunoNome} conectado!`;
-          simularStreamAluno();
+          statusDiv.textContent = `Aluno ${alunoNome} autorizado! Aguarde ele se conectar.`;
         } else {
           alert(result.detail || "Erro ao permitir entrada.");
         }
@@ -170,15 +188,8 @@
       }
     }
 
-    function simularStreamAluno() {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then((stream) => {
-        remoteVideo.srcObject = stream;
-      }).catch(() => {
-        statusDiv.textContent = "Erro ao carregar vídeo do aluno.";
-      });
-    }
-
     async function encerrarChamada() {
+      if (peer) peer.destroy();
       await fetch("/registrar-chamada", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
