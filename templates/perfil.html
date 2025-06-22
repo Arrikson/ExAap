@@ -43,20 +43,6 @@
       cursor: pointer;
     }
 
-    .notificacao-btn {
-      position: absolute;
-      top: 12px;
-      left: 15px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    .notificacao-btn img {
-      height: 28px;
-      width: 28px;
-    }
-
     .profile-container {
       background-color: rgba(255, 255, 255, 0.1);
       padding: 100px 30px 30px;
@@ -174,41 +160,10 @@
     .logout-form {
       display: none;
     }
-
-    .notificacao-aula {
-      background-color: #fff;
-      color: #000;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 20px;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    .notificacao-aula p {
-      margin: 10px 0;
-    }
-
-    .notificacao-aula a {
-      display: inline-block;
-      margin-top: 10px;
-      background-color: #28a745;
-      color: #fff;
-      padding: 10px 15px;
-      border-radius: 8px;
-      text-decoration: none;
-    }
-
-    .notificacao-aula a:hover {
-      background-color: #218838;
-    }
   </style>
 </head>
 <body>
   <div class="top-bar">
-    <button class="notificacao-btn" onclick="mostrarNotificacao()" title="Notificações">
-      <img src="/static/sino.png" alt="Notificações">
-    </button>
     <img src="/static/logo.png" alt="Logo">
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
@@ -282,11 +237,6 @@
 
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
-    <div class="notificacao-aula" id="notificacaoAula" style="display: none;">
-      <p>📚 Aula disponível de <strong id="disciplinaAula">{{ aluno.disciplina }}</strong></p>
-      <a id="aceitarAulaBtn" href="/onlineaula/{{ aluno.nome }}">Entrar agora</a>
-    </div>
-
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
@@ -311,11 +261,6 @@
       document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
     }
 
-    function mostrarNotificacao() {
-      const bloco = document.getElementById("notificacaoAula");
-      bloco.style.display = bloco.style.display === "none" ? "block" : "none";
-    }
-
     function fazerLogout() {
       document.getElementById("logoutForm").submit();
     }
@@ -329,7 +274,7 @@
     }
 
     function entrarNaAula() {
-      document.getElementById("notificacaoAula").style.display = "block";
+      window.location.href = "/onlineaula/{{ aluno.nome }}";
     }
   </script>
 </body>
