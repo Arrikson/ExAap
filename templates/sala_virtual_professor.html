@@ -163,13 +163,12 @@
       }
 
       try {
-        const response = await fetch("/verificar-vinculo", {
+        const response = await fetch("/verificar-aluno-vinculo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            professor_email: profEmail,
             aluno_nome: alunoNome,
             senha: alunoSenha
           })
@@ -178,7 +177,12 @@
         const result = await response.json();
 
         if (response.ok) {
-          statusDiv.textContent = `Aluno ${alunoNome} autorizado! Aguarde ele se conectar.`;
+          // Verifica se o professor do aluno é o mesmo da sala atual
+          if (result.professor_email === profEmail) {
+            statusDiv.textContent = `Aluno ${alunoNome} autorizado! Aguarde ele se conectar.`;
+          } else {
+            alert("Este aluno está vinculado a outro professor.");
+          }
         } else {
           alert(result.detail || "Erro ao permitir entrada.");
         }
@@ -203,3 +207,4 @@
 
 </body>
 </html>
+
