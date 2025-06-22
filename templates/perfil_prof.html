@@ -326,8 +326,8 @@
         btn.innerText = 'Vincular';
       }
     }
-   function notificarAluno(nomeAluno, nomeProfessor) {
-  const url = `/sala_virtual_professor?aluno=${encodeURIComponent(nomeAluno)}&professor=${encodeURIComponent(nomeProfessor)}`;
+  function notificarAluno(nomeAluno, profEmail) {
+  const url = `/sala_virtual_professor?prof_email=${encodeURIComponent(profEmail)}`;
   window.location.href = url;
 }
   </script>
