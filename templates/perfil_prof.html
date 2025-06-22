@@ -146,6 +146,11 @@
     .notificar-btn {
       margin-top: 10px;
       background-color: #17a2b8;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
     }
     .notificar-btn:hover {
       background-color: #0d667a;
@@ -216,7 +221,7 @@
 
     function comecarAula() {
       const email = "{{ professor.email }}";
-      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
+      window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
     }
 
     async function listarMeusAlunos() {
@@ -281,9 +286,11 @@
         alunos.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
+          const buttonId = `btn-${aluno.nome.replace(/\s+/g, '-')}`;
+
           card.innerHTML = `
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-            <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
+            <button id="${buttonId}" onclick="vincularAluno('${aluno.nome}', '${email}', '${buttonId}')">Vincular</button>
           `;
           container.appendChild(card);
         });
@@ -293,21 +300,32 @@
       }
     }
 
-    async function vincularAluno(alunoNome, profEmail) {
+    async function vincularAluno(alunoNome, profEmail, btnId) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = true;
+      btn.innerText = 'Vinculando...';
       try {
-        await fetch('/vincular-aluno', {
+        const res = await fetch('/vincular-aluno', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
         });
-        alert('Aluno vinculado com sucesso!');
-        listarMeusAlunos();
+
+        const resultado = await res.json();
+        if (res.ok) {
+          alert("Aluno vinculado com sucesso!");
+          buscarAlunosDisponiveis(); // Atualiza a lista
+        } else {
+          alert(resultado.erro || "Erro ao vincular aluno.");
+        }
       } catch (err) {
         console.error(err);
-        alert('Erro ao vincular aluno.');
+        alert("Erro ao conectar com o servidor.");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Vincular';
       }
     }
-
    function notificarAluno(nomeAluno, nomeProfessor) {
   const url = `/sala_virtual_professor?aluno=${encodeURIComponent(nomeAluno)}&professor=${encodeURIComponent(nomeProfessor)}`;
   window.location.href = url;
