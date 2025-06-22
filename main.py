@@ -607,6 +607,15 @@ def professor_possui_alunos(prof_email: str) -> bool:
              .limit(1).stream()
     return next(docs, None) is not None
 
+def buscar_professor_por_email(email):
+    # Exemplo para JSON
+    with open("professores.json", "r") as f:
+        professores = json.load(f)
+    for p in professores:
+        if p["email"] == email:
+            return p  # ou use uma classe Professor(**p)
+    return None
+
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(request: Request, prof_email: str):
     if not professor_possui_alunos(prof_email):
