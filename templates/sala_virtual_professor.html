@@ -97,15 +97,40 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    // Inicia vídeo do professor
+    async function verificarChamadaAtiva() {
+      try {
+        const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
+        const result = await response.json();
+
+        if (result.ativa) {
+          statusDiv.textContent = "Já existe uma aula em andamento nesse email.";
+          alert("Você já está em uma aula ativa. Saia da outra sessão primeiro.");
+          throw new Error("Chamada já ativa");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar aula ativa:", error);
+        throw error;
+      }
+    }
+
     async function iniciarChamada() {
       try {
+        await verificarChamadaAtiva();
+
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         statusDiv.textContent = "Aguardando aluno entrar...";
+
+        await fetch("/registrar-chamada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: profEmail, ativa: true })
+        });
+
       } catch (err) {
-        statusDiv.textContent = "Erro ao acessar câmera/microfone.";
-        console.error("Erro ao iniciar chamada:", err);
+        if (err.message !== "Chamada já ativa") {
+          statusDiv.textContent = "Erro ao acessar câmera/microfone.";
+        }
       }
     }
 
@@ -135,7 +160,7 @@
 
         if (response.ok) {
           statusDiv.textContent = `Aluno ${alunoNome} conectado!`;
-          simularStreamAluno(); // substitua por PeerJS/WebRTC futuramente
+          simularStreamAluno();
         } else {
           alert(result.detail || "Erro ao permitir entrada.");
         }
@@ -146,7 +171,6 @@
     }
 
     function simularStreamAluno() {
-      // Simulação do vídeo remoto do aluno
       navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then((stream) => {
         remoteVideo.srcObject = stream;
       }).catch(() => {
@@ -154,7 +178,12 @@
       });
     }
 
-    function encerrarChamada() {
+    async function encerrarChamada() {
+      await fetch("/registrar-chamada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: profEmail, ativa: false })
+      });
       window.location.href = "/perfil/" + encodeURIComponent(profEmail);
     }
 
