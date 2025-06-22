@@ -607,6 +607,9 @@ def professor_possui_alunos(prof_email: str) -> bool:
              .limit(1).stream()
     return next(docs, None) is not None
 
+
+from typing import Optional
+
 def buscar_professor_por_email(email: str):
     """
     Busca o professor na coleção 'professores_online' com base no campo 'email'.
@@ -617,7 +620,13 @@ def buscar_professor_por_email(email: str):
     return None
 
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
-async def get_sala_virtual_professor(request: Request, email: str):
+async def get_sala_virtual_professor(
+    request: Request,
+    email: Optional[str] = Query(default=None)
+):
+    if not email:
+        return HTMLResponse("<h2 style='color:red'>Erro: email não fornecido na URL.</h2>", status_code=400)
+    
     professor = buscar_professor_por_email(email)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
