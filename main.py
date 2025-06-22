@@ -611,8 +611,16 @@ def professor_possui_alunos(prof_email: str) -> bool:
 async def get_sala_virtual_professor(request: Request, prof_email: str):
     if not professor_possui_alunos(prof_email):
         raise HTTPException(status_code=403, detail="Acesso negado: professor sem alunos vinculados.")
+
+    professor = buscar_professor_por_email(prof_email)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado.")
     
-    return templates.TemplateResponse("sala_virtual_professor.html", {"request": request, "prof_email": prof_email})
+    return templates.TemplateResponse("sala_virtual_professor.html", {
+        "request": request,
+        "prof_email": prof_email,
+        "professor": professor
+    })
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
 async def get_sala_virtual_aluno(request: Request):
