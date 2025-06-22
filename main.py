@@ -876,16 +876,17 @@ async def post_cadastro(
         "nivel_ensino": nivel_ensino,
         "ano_faculdade": ano_faculdade,
         "area_formacao": area_formacao,
-        "senha": senha
+        "senha": senha,
+        "online": True  
     }
 
     db.collection("professores_online").add(dados)
     return RedirectResponse(url="/login_prof", status_code=303)
-
+    
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
     return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
-    
+
 
 @app.post("/login_prof", response_class=HTMLResponse)
 async def login_prof_post(
@@ -899,7 +900,12 @@ async def login_prof_post(
         dados = prof.to_dict()
         if dados.get("senha") == senha:
             email = dados.get("email")
-            # ✅ Redirecionar para o perfil usando o e-mail na query string
+
+            # Atualiza o campo 'online' para True
+            db.collection("professores_online").document(prof.id).update({
+                "online": True
+            })
+
             return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
 
     # ❌ Se não encontrou ou senha incorreta
@@ -908,46 +914,18 @@ async def login_prof_post(
         "erro": "Nome completo ou senha incorretos."
     })
 
+@app.post("/logout_prof", response_class=HTMLResponse)
+async def logout_prof(request: Request, email: str = Form(...)):
+    professores_ref = db.collection("professores_online").where("email", "==", email).stream()
 
-@app.get("/perfil_prof", response_class=HTMLResponse)
-async def get_perfil_prof(request: Request, email: str):
-    
-    professores_ref = db.collection("professores_online")
-    query = professores_ref.where("email", "==", email).limit(1).stream()
-    prof_doc = next(query, None)
+    for prof in professores_ref:
+        db.collection("professores_online").document(prof.id).update({
+            "online": False
+        })
+        break  # só precisa atualizar um documento
 
-    if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
+    return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
 
-    prof_data = prof_doc.to_dict()
-    prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
-    return templates.TemplateResponse("perfil_prof.html", {"request": request, "professor": prof_data})
-
-
-@app.post("/perfil_prof", response_class=HTMLResponse)
-async def post_perfil_prof(
-    request: Request,
-    email: str = Form(...),
-    descricao: str = Form(...)
-):
-    """
-    Atualiza apenas o campo "descricao" do professor logado.
-    """
-    professores_ref = db.collection("professores_online")
-    query = professores_ref.where("email", "==", email).limit(1).stream()
-    prof_doc = next(query, None)
-
-    if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
-
-    # Atualizar o campo descrição
-    db.collection("professores_online").document(prof_doc.id).update({
-        "descricao": descricao
-    })
-
-    # Redireciona de volta ao perfil com confirmação
-    return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
-    
 @app.get("/meus-dados")
 async def meus_dados(email: str = Query(...)):
     prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
