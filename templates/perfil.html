@@ -62,11 +62,6 @@
       gap: 10px;
     }
 
-    .status {
-      font-size: 18px;
-      margin-left: auto;
-    }
-
     .accordion {
       background-color: #ffffff22;
       color: #fff;
@@ -268,7 +263,19 @@
     }
 
     function fazerLogout() {
-      document.getElementById("logoutForm").submit();
+      fetch("/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nome: "{{ aluno.nome }}" })
+      })
+      .then(() => {
+        window.location.href = "/";
+      })
+      .catch(error => {
+        console.error("Erro ao fazer logout:", error);
+      });
     }
 
     function verProfessor(nome) {
