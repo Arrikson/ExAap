@@ -609,29 +609,11 @@ def professor_possui_alunos(prof_email: str) -> bool:
 
 def buscar_professor_por_email(email: str):
     """
-    Busca o professor a partir da coleção 'alunos_professor',
-    onde um aluno esteja vinculado a um professor com o email fornecido.
+    Busca o professor na coleção 'professores_online' com base no campo 'email'.
     """
-    alunos = db.collection("alunos_professor").where("professor.email", "==", email).stream()
-    for aluno in alunos:
-        data = aluno.to_dict()
-        professor = data.get("professor")
-        if professor and professor.get("email", "").lower() == email.lower():
-            return professor  # Retorna o dicionário com os dados do professor
-    return None
-
-
-def buscar_professor_por_email(email: str):
-    """
-    Busca o professor a partir da coleção 'alunos_professor',
-    onde um aluno esteja vinculado a um professor com o email fornecido.
-    """
-    alunos = db.collection("alunos_professor").where("professor.email", "==", email).stream()
-    for aluno in alunos:
-        data = aluno.to_dict()
-        professor = data.get("professor")
-        if professor and professor.get("email", "").lower() == email.lower():
-            return professor  # Retorna o dicionário com os dados do professor
+    professores = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+    for prof in professores:
+        return prof.to_dict()  # Retorna o dicionário com os dados do professor
     return None
 
 
