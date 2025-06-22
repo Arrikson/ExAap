@@ -616,21 +616,15 @@ def buscar_professor_por_email(email: str):
         return prof.to_dict()  # Retorna o dicionário com os dados do professor
     return None
 
-
-from typing import Optional
-
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
-async def get_sala_virtual_professor(request: Request, prof_email: Optional[str] = None):
-    if not prof_email:
-        raise HTTPException(status_code=400, detail="O parâmetro 'prof_email' é obrigatório.")
-    
-    professor = buscar_professor_por_email(prof_email)
+async def get_sala_virtual_professor(request: Request, email: str):
+    professor = buscar_professor_por_email(email)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
     
     return templates.TemplateResponse("sala_virtual_professor.html", {
         "request": request,
-        "prof_email": prof_email,
+        "email": email,
         "professor": professor
     })
 
