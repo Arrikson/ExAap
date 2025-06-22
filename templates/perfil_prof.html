@@ -162,11 +162,11 @@
   <div class="top-bar">
     <img src="/static/logo.png" alt="Logo">
     <form id="logoutForm" method="post" action="/logout_prof">
-  <input type="hidden" name="email" value="{{ professor.email }}">
-  <button type="submit" class="logout-btn">
-    <i class="fas fa-sign-out-alt"></i> Sair
-  </button>
-</form>
+      <input type="hidden" name="email" value="{{ professor.email }}">
+      <button type="submit" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
+    </form>
   </div>
 
   <div class="professor-header">
@@ -230,6 +230,26 @@
       window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
     }
 
+    async function iniciarChamada(aluno, professorEmail) {
+      try {
+        await fetch("/iniciar-aula", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            aluno: aluno,
+            professor: professorEmail,
+            sala: `${professorEmail}-${aluno}`
+          })
+        });
+        window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}`;
+      } catch (error) {
+        console.error("Erro ao iniciar chamada:", error);
+        alert("Erro ao iniciar a chamada.");
+      }
+    }
+
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
@@ -264,11 +284,7 @@
             const btn = document.createElement('button');
             btn.className = 'notificar-btn';
             btn.innerText = 'Dar Aula';
-            btn.onclick = () => {
-             window.location.href = `/sala_virtual_professor?email={{ professor.email | urlencode }}`;
-            };
-
-
+            btn.onclick = () => iniciarChamada(aluno.nome, email);
             card.appendChild(btn);
           }
 
