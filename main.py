@@ -1100,3 +1100,21 @@ async def meu_professor_status(nome_aluno: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/iniciar-aula")
+async def iniciar_aula(payload: dict):
+    aluno = payload.get("aluno")
+    professor = payload.get("professor")
+    sala = payload.get("sala")
+
+    # Aqui é onde a coleção "chamadas_ao_vivo" será criada automaticamente
+    db.collection("chamadas_ao_vivo").document(aluno).set({
+        "aluno": aluno,
+        "professor": professor,
+        "sala": sala,
+        "status": "pendente",
+        "timestamp": firestore.SERVER_TIMESTAMP
+    })
+
+    return {"mensagem": "Chamada enviada ao aluno"}
+
