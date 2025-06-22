@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -78,16 +78,16 @@
     }
     .action-buttons button {
       padding: 14px;
-      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      background-color: #004085;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       font-size: 15px;
       cursor: pointer;
       color: #fff;
-      transition: transform 0.2s ease-in-out;
+      transition: 0.3s;
     }
     .action-buttons button:hover {
-      transform: scale(1.05);
+      background-color: #002752;
     }
     .dados-secretos {
       display: none;
@@ -117,8 +117,6 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    }
-    .aluno-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -142,19 +140,6 @@
     }
     .offline {
       background-color: #dc3545;
-    }
-    .notificar-btn {
-      margin-top: 10px;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #000;
-    }
-    .notificar-btn:hover {
-      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
   </style>
 </head>
@@ -197,7 +182,7 @@
       <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
       <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
       <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
+      <button style="background-color: #dc3545;" onclick="comecarAula()">Começar a Aula</button>
     </div>
 
     <div id="meus-alunos" style="display: none;"></div>
@@ -222,13 +207,13 @@
 
     function comecarAula() {
       const email = "{{ professor.email }}";
-      window.location.href = /sala_virtual_professor?email=${encodeURIComponent(email)};
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
     }
 
     async function listarMeusAlunos() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(/meus-alunos-status/${encodeURIComponent(email)});
+        const res = await fetch(`/meus-alunos/${encodeURIComponent(email)}`);
         const lista = await res.json();
         const container = document.getElementById('meus-alunos');
         container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -241,40 +226,26 @@
         lista.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-
-          const statusClass = aluno.online ? 'online' : 'offline';
-          const statusText = aluno.online ? 'Online' : 'Offline';
-
-          card.innerHTML = 
-            <div class="aluno-header">
-              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-              <div class="status">
-                <span>${statusText}</span>
-                <span class="status-dot ${statusClass}"></span>
-              </div>
+          const online = aluno.online === true;
+          card.innerHTML = `
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+            <div class="status">
+              <span>${online ? 'Online' : 'Offline'}</span>
+              <span class="status-dot ${online ? 'online' : 'offline'}"></span>
             </div>
-          ;
-
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.className = 'notificar-btn';
-            btn.innerText = 'Dar Aula';
-            btn.onclick = () => notificarAluno(aluno.email, email);
-            card.appendChild(btn);
-          }
-
+          `;
           container.appendChild(card);
         });
       } catch (err) {
         console.error(err);
-        alert("Erro ao buscar alunos.");
+        alert("Erro ao buscar alunos vinculados.");
       }
     }
 
     async function buscarAlunosDisponiveis() {
       const email = "{{ professor.email }}";
       try {
-        const res = await fetch(/alunos-disponiveis/${encodeURIComponent(email)});
+        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
         const alunos = await res.json();
         const container = document.getElementById('alunos-disponiveis');
         container.innerHTML = '<h2>Alunos Disponíveis</h2>';
@@ -287,10 +258,10 @@
         alunos.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-          card.innerHTML = 
-            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span><br>
+          card.innerHTML = `
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
-          ;
+          `;
           container.appendChild(card);
         });
       } catch (err) {
@@ -299,22 +270,24 @@
       }
     }
 
-    async function notificarAluno(emailAluno, emailProfessor) {
+    async function vincularAluno(alunoNome, profEmail) {
       try {
-        const resposta = await fetch('/sala_virtual_professor', {
+        const res = await fetch('/vincular-aluno', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aluno_email: emailAluno, professor_email: emailProfessor })
+          body: JSON.stringify({ aluno: alunoNome, professor: profEmail })
         });
 
-        if (resposta.ok) {
-          alert("Aluno notificado com sucesso!");
+        const result = await res.json();
+        if (res.ok) {
+          alert('Aluno vinculado com sucesso!');
+          buscarAlunosDisponiveis();
         } else {
-          alert("Erro ao notificar aluno.");
+          alert(result.message || 'Erro ao vincular aluno.');
         }
-      } catch (error) {
-        console.error(error);
-        alert("Erro na comunicação com o servidor.");
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao vincular aluno.');
       }
     }
   </script>
