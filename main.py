@@ -1118,3 +1118,43 @@ async def iniciar_aula(payload: dict):
 
     return {"mensagem": "Chamada enviada ao aluno"}
 
+@app.post('/verificar-vinculo')
+async def verificar_vinculo(dados: dict):
+    prof_email = dados.get('professor_email', '').strip()
+    aluno_nome = dados.get('aluno_nome', '').strip()
+    senha = dados.get('senha', '').strip()
+
+    try:
+        # Buscar todos os alunos vinculados ao professor
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email).stream()
+
+        aluno_encontrado = False
+        for doc in docs:
+            data = doc.to_dict()
+            dados_aluno = data.get('dados_aluno', {})
+            if dados_aluno.get('nome', '').strip().lower() == aluno_nome.lower():
+                aluno_encontrado = True
+                break
+
+        if not aluno_encontrado:
+            raise HTTPException(status_code=404, detail="Vínculo com este aluno não encontrado.")
+
+        # Verifica se a senha está correta na base de alunos
+        aluno_docs = db.collection('alunos') \
+                       .where('nome', '==', aluno_nome) \
+                       .where('senha', '==', senha) \
+                       .limit(1).stream()
+        aluno_doc = next(aluno_docs, None)
+        if not aluno_doc:
+            raise HTTPException(status_code=403, detail="Senha incorreta.")
+
+        return {"message": "Aluno autorizado."}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Erro ao verificar vínculo:", e)
+        raise HTTPException(status_code=500, detail="Erro interno.")
+
+
