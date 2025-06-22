@@ -171,9 +171,7 @@
   </div>
 
   <div class="profile-container">
-    <h1>
-      {{ aluno.nome }}
-    </h1>
+    <h1>{{ aluno.nome }}</h1>
 
     <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
       <i class="fas fa-chalkboard-teacher"></i> Professores
@@ -279,12 +277,16 @@
     }
 
     function verProfessor(nome) {
-      fetch(`/professor-do-aluno/${nome}`)
+      fetch(`/meu-professor-status/${nome}`)
         .then(response => response.json())
         .then(data => {
           const statusIcon = data.online ? '🟢' : '⚪';
           const statusText = data.online ? 'Online' : 'Offline';
           document.getElementById("professor-nome").innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+        })
+        .catch(err => {
+          document.getElementById("professor-nome").innerHTML = "Professor não encontrado.";
+          console.error("Erro ao buscar professor:", err);
         });
     }
 
