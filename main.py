@@ -1074,4 +1074,29 @@ async def obter_professor_do_aluno(nome_aluno: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+        
 
+@app.get("/meu-professor-status/{nome_aluno}")
+async def meu_professor_status(nome_aluno: str):
+    try:
+        # Procurar vínculo na coleção alunos_professor
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("aluno", "==", nome_aluno) \
+                        .limit(1) \
+                        .stream()
+        vinculo_doc = next(vinculo_ref, None)
+
+        if not vinculo_doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado para este aluno.")
+
+        data = vinculo_doc.to_dict()
+        professor_nome = data.get("professor")
+        online_status = data.get("online", False)
+
+        return JSONResponse(content={
+            "professor": professor_nome,
+            "online": online_status
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
