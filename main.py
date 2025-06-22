@@ -567,7 +567,7 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 
 from starlette.status import HTTP_303_SEE_OTHER
 
-@app.get("/perfil/{nome}", response_class=HTMLResponse)
+@app.get("/perfil/{nome}", response_class=HTMLResponse) 
 async def perfil(request: Request, nome: str):
     aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
     if not aluno_ref:
@@ -582,24 +582,10 @@ async def perfil(request: Request, nome: str):
         "ultimo_ping": datetime.utcnow().isoformat()
     })
 
-    # Carrega notificações (deve ser um dicionário)
-    notificacoes = carregar_notificacoes()
-    if not isinstance(notificacoes, dict):
-        notificacoes = {}
-
-    notificacao = notificacoes.get(nome)
-
-    # Remove notificação após leitura
-    if nome in notificacoes:
-        del notificacoes[nome]
-        salvar_notificacoes(notificacoes)
-
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "aluno": aluno,
-        "notificacao": notificacao
     })
-
 
 def professor_possui_alunos(prof_email: str) -> bool:
     docs = db.collection('alunos_professor') \
