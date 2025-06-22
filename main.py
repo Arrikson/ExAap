@@ -998,3 +998,37 @@ async def verificar_aluno(request: Request):
         if aluno["nome"] == nome and aluno["senha"] == senha:
             return {"ok": True}
     return JSONResponse(status_code=403, content={"erro": "Nome ou senha incorretos."})
+
+
+@app.get("/professor-do-aluno/{nome_aluno}")
+async def obter_professor_do_aluno(nome_aluno: str):
+    try:
+        # Buscar o documento do aluno na coleção "alunos_professor"
+        alunos_ref = db.collection("alunos_professor")
+        query = alunos_ref.where("nome", "==", nome_aluno).limit(1).get()
+
+        if not query:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+
+        aluno_doc = query[0]
+        professor_email = aluno_doc.to_dict().get("email")
+
+        if not professor_email:
+            raise HTTPException(status_code=404, detail="Email do professor não encontrado.")
+
+        # Verificar se o professor está online na coleção "professores_online"
+        prof_online_ref = db.collection("professores_online").document(professor_email)
+        online_doc = prof_online_ref.get()
+
+        online_status = False
+        if online_doc.exists:
+            online_status = online_doc.to_dict().get("online", False)
+
+        return JSONResponse(content={
+            "professor": professor_email,
+            "online": online_status
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
