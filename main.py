@@ -1047,24 +1047,25 @@ async def obter_professor_do_aluno(nome_aluno: str):
     try:
         # Buscar o documento do aluno na coleção "alunos_professor"
         alunos_ref = db.collection("alunos_professor")
-        query = alunos_ref.where("nome", "==", nome_aluno).limit(1).get()
+        query = alunos_ref.where("aluno", "==", nome_aluno.strip()).limit(1).stream()
+        aluno_doc = next(query, None)
 
-        if not query:
-            raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não vinculado a nenhum professor.")
 
-        aluno_doc = query[0]
-        professor_email = aluno_doc.to_dict().get("email")
+        dados = aluno_doc.to_dict()
+        professor_email = dados.get("professor")
 
         if not professor_email:
             raise HTTPException(status_code=404, detail="Email do professor não encontrado.")
 
         # Verificar se o professor está online na coleção "professores_online"
-        prof_online_ref = db.collection("professores_online").document(professor_email)
-        online_doc = prof_online_ref.get()
+        prof_online_ref = db.collection("professores_online").where("email", "==", professor_email).limit(1).stream()
+        prof_doc = next(prof_online_ref, None)
 
         online_status = False
-        if online_doc.exists:
-            online_status = online_doc.to_dict().get("online", False)
+        if prof_doc:
+            online_status = prof_doc.to_dict().get("online", False)
 
         return JSONResponse(content={
             "professor": professor_email,
