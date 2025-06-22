@@ -617,8 +617,13 @@ def buscar_professor_por_email(email: str):
     return None
 
 
+from typing import Optional
+
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
-async def get_sala_virtual_professor(request: Request, prof_email: str):
+async def get_sala_virtual_professor(request: Request, prof_email: Optional[str] = None):
+    if not prof_email:
+        raise HTTPException(status_code=400, detail="O parâmetro 'prof_email' é obrigatório.")
+    
     professor = buscar_professor_por_email(prof_email)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
