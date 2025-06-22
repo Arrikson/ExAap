@@ -117,6 +117,8 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .aluno-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -140,6 +142,13 @@
     }
     .offline {
       background-color: #dc3545;
+    }
+    .notificar-btn {
+      margin-top: 10px;
+      background-color: #17a2b8;
+    }
+    .notificar-btn:hover {
+      background-color: #0d667a;
     }
   </style>
 </head>
@@ -207,7 +216,7 @@
 
     function comecarAula() {
       const email = "{{ professor.email }}";
-      window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
     }
 
     async function listarMeusAlunos() {
@@ -231,12 +240,23 @@
           const statusText = aluno.online ? 'Online' : 'Offline';
 
           card.innerHTML = `
-            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-            <div class="status">
-              <span>${statusText}</span>
-              <span class="status-dot ${statusClass}"></span>
+            <div class="aluno-header">
+              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+              <div class="status">
+                <span>${statusText}</span>
+                <span class="status-dot ${statusClass}"></span>
+              </div>
             </div>
           `;
+
+          if (aluno.online) {
+            const btn = document.createElement('button');
+            btn.className = 'notificar-btn';
+            btn.innerText = 'Dar Aula';
+            btn.onclick = () => notificarAluno(aluno.email, email);
+            card.appendChild(btn);
+          }
+
           container.appendChild(card);
         });
       } catch (err) {
@@ -275,19 +295,23 @@
 
     async function vincularAluno(alunoNome, profEmail) {
       try {
-        const res = await fetch('/vincular-aluno', {
+        await fetch('/vincular-aluno', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aluno: alunoNome, professor: profEmail })
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ aluno_nome: alunoNome, professor_email: profEmail })
         });
-        const result = await res.json();
-        alert(result.mensagem || 'Aluno vinculado!');
+        alert('Aluno vinculado com sucesso!');
         listarMeusAlunos();
       } catch (err) {
         console.error(err);
-        alert("Erro ao vincular aluno.");
+        alert('Erro ao vincular aluno.');
       }
     }
+
+   function notificarAluno(nomeAluno, nomeProfessor) {
+  const url = `/sala_virtual_professor?aluno=${encodeURIComponent(nomeAluno)}&professor=${encodeURIComponent(nomeProfessor)}`;
+  window.location.href = url;
+}
   </script>
 </body>
 </html>
