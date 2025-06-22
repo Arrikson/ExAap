@@ -1157,4 +1157,62 @@ async def verificar_vinculo(dados: dict):
         print("Erro ao verificar vínculo:", e)
         raise HTTPException(status_code=500, detail="Erro interno.")
 
+class VerificarAlunoInput(BaseModel):
+    aluno_nome: str
+    senha: str
+
+@app.post("/verificar-aluno-vinculo")
+async def verificar_aluno_vinculo(data: VerificarAlunoInput):
+    try:
+        # 1. Verifica se o aluno existe e valida a senha
+        aluno_docs = db.collection('alunos') \
+            .where('nome', '==', data.aluno_nome.strip()) \
+            .limit(1).stream()
+
+        aluno_doc = next(aluno_docs, None)
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+
+        aluno_data = aluno_doc.to_dict()
+        if aluno_data.get("senha") != data.senha:
+            raise HTTPException(status_code=401, detail="Senha incorreta.")
+
+        # 2. Busca o professor vinculado na coleção alunos_professor
+        vinculo_docs = db.collection('alunos_professor') \
+            .where('aluno', '==', data.aluno_nome.strip()) \
+            .limit(1).stream()
+
+        vinculo_doc = next(vinculo_docs, None)
+        if not vinculo_doc:
+            raise HTTPException(status_code=404, detail="Nenhum vínculo encontrado com professor.")
+
+        vinculo_data = vinculo_doc.to_dict()
+        professor_email = vinculo_data.get("professor")
+
+        # 3. Busca nome completo do professor na coleção 'professores_online'
+        prof_docs = db.collection('professores_online') \
+            .where('email', '==', professor_email) \
+            .limit(1).stream()
+
+        prof_doc = next(prof_docs, None)
+        if not prof_doc:
+            professor_nome = "Professor"
+        else:
+            professor_nome = prof_doc.to_dict().get("nome_completo", "Professor")
+
+        return {
+            "professor_email": professor_email,
+            "professor_nome": professor_nome
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Erro interno:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro interno ao verificar vínculo do aluno."}
+        )
+
+
 
