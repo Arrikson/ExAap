@@ -621,19 +621,22 @@ def buscar_professor_por_email(email: str):
     return None
 
 
-def professor_possui_alunos(email: str):
+def buscar_professor_por_email(email: str):
     """
-    Verifica se existe pelo menos um aluno vinculado ao professor com o email informado.
+    Busca o professor a partir da coleção 'alunos_professor',
+    onde um aluno esteja vinculado a um professor com o email fornecido.
     """
-    alunos = db.collection("alunos_professor").where("professor.email", "==", email).limit(1).stream()
-    return any(True for _ in alunos)
+    alunos = db.collection("alunos_professor").where("professor.email", "==", email).stream()
+    for aluno in alunos:
+        data = aluno.to_dict()
+        professor = data.get("professor")
+        if professor and professor.get("email", "").lower() == email.lower():
+            return professor  # Retorna o dicionário com os dados do professor
+    return None
 
 
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(request: Request, prof_email: str):
-    if not professor_possui_alunos(prof_email):
-        raise HTTPException(status_code=403, detail="Acesso negado: professor sem alunos vinculados.")
-
     professor = buscar_professor_por_email(prof_email)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado.")
