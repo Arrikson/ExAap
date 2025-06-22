@@ -221,7 +221,7 @@
 
     function comecarAula() {
       const email = "{{ professor.email }}";
-      window.location.href = `/sala_virtual?email=${encodeURIComponent(email)}`;
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}`;
     }
 
     async function listarMeusAlunos() {
