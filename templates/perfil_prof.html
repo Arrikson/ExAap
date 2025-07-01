@@ -178,7 +178,7 @@
 
   <div class="professor-header">
     <i class="fas fa-graduation-cap"></i>
-    <span>{{professor.nome_completo}}</span>
+    <span>{{ professor.nome_completo }}</span>
   </div>
 
   <div class="profile-container">
@@ -193,20 +193,20 @@
 
     <div class="info">
       <label>Meu nome completo</label>
-      <input type="text" value="{{professor.nome_completo}}" readonly>
+      <input type="text" value="{{ professor.nome_completo }}" readonly>
       <label>Meu nível de Ensino</label>
-      <input type="text" value="{{professor.nivel_ensino}}" readonly>
+      <input type="text" value="{{ professor.nivel_ensino }}" readonly>
     </div>
 
     <button class="toggle-btn" onclick="toggleDados()">Meus Dados</button>
     <div class="dados-secretos" id="dadosSecretos">
-      <p><strong>Email:</strong> {{professor.email}}</p>
-      <p><strong>Formado em:</strong> {{professor.area_formacao}}</p>
-      <p><strong>Telefone:</strong> {{professor.telefone}}</p>
-      <p><strong>Nome da mãe:</strong> {{professor.nome_mae}}</p>
-      <p><strong>Nome do pai:</strong> {{professor.nome_pai}}</p>
-      <p><strong>Bilhete:</strong> {{professor.bilhete}}</p>
-      <p><strong>Localização:</strong> {{professor.localizacao}}</p>
+      <p><strong>Email:</strong> {{ professor.email }}</p>
+      <p><strong>Formado em:</strong> {{ professor.area_formacao }}</p>
+      <p><strong>Telefone:</strong> {{ professor.telefone }}</p>
+      <p><strong>Nome da mãe:</strong> {{ professor.nome_mae }}</p>
+      <p><strong>Nome do pai:</strong> {{ professor.nome_pai }}</p>
+      <p><strong>Bilhete:</strong> {{ professor.bilhete }}</p>
+      <p><strong>Localização:</strong> {{ professor.localizacao }}</p>
       <p><strong>Senha:</strong> ••••••••••</p>
     </div>
 
@@ -247,9 +247,7 @@
       try {
         await fetch("/iniciar-aula", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             aluno: aluno,
             professor: professorEmail,
@@ -279,7 +277,6 @@
         lista.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-
           const statusClass = aluno.online ? 'online' : 'offline';
           const statusText = aluno.online ? 'Online' : 'Offline';
 
@@ -291,47 +288,37 @@
                 <span class="status-dot ${statusClass}"></span>
               </div>
             </div>
+            <button class="notificar-btn" onclick="iniciarChamada('${aluno.nome}', '{{ professor.email }}')">Iniciar Aula</button>
           `;
-
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.textContent = 'Iniciar Aula';
-            btn.className = 'notificar-btn';
-            btn.onclick = () => iniciarChamada(aluno.nome, email);
-            card.appendChild(btn);
-          }
-
           container.appendChild(card);
         });
       } catch (error) {
         console.error("Erro ao buscar alunos:", error);
-        alert("Erro ao buscar alunos.");
       }
     }
 
     async function buscarAlunosDisponiveis() {
-      const email = "{{ professor.email }}";
-      try {
-        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-        const lista = await res.json();
-        const container = document.getElementById('alunos-disponiveis');
-        container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+      const res = await fetch('/alunos-disponiveis');
+      const lista = await res.json();
+      const container = document.getElementById('alunos-disponiveis');
+      container.innerHTML = '<h2>Alunos Disponíveis</h2>';
 
-        if (lista.length === 0) {
-          container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
-          return;
-        }
-
-        lista.forEach(aluno => {
-          const card = document.createElement('div');
-          card.className = 'aluno-card';
-          card.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Erro ao buscar alunos disponíveis:", error);
-        alert("Erro ao buscar alunos disponíveis.");
+      if (lista.length === 0) {
+        container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+        return;
       }
+
+      lista.forEach(aluno => {
+        const card = document.createElement('div');
+        card.className = 'aluno-card';
+        card.innerHTML = `
+          <div class="aluno-header">
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+          </div>
+          <button class="notificar-btn" onclick="iniciarChamada('${aluno.nome}', '{{ professor.email }}')">Chamar</button>
+        `;
+        container.appendChild(card);
+      });
     }
   </script>
 </body>
