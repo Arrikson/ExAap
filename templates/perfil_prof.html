@@ -1,4 +1,4 @@
-me mostre aqui neste codigo a parte que busca os alunos disboniveis "<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -285,34 +285,21 @@ me mostre aqui neste codigo a parte que busca os alunos disboniveis "<!DOCTYPE h
 
           card.innerHTML = `
             <div class="aluno-header">
-              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-              <div class="status">
-                <span>${statusText}</span>
-                <span class="status-dot ${statusClass}"></span>
-              </div>
+              <span><strong>${aluno.nome}</strong></span>
+              <div class="status"><span>${statusText}</span> <span class="status-dot ${statusClass}"></span></div>
             </div>
+            <button class="notificar-btn" onclick="iniciarChamada('${aluno.email}', '{{ professor.email }}')">Notificar para aula</button>
           `;
-
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.textContent = 'Iniciar Aula';
-            btn.className = 'notificar-btn';
-            btn.onclick = () => iniciarChamada(aluno.nome, email);
-            card.appendChild(btn);
-          }
-
           container.appendChild(card);
         });
       } catch (error) {
         console.error("Erro ao buscar alunos:", error);
-        alert("Erro ao buscar alunos.");
       }
     }
 
     async function buscarAlunosDisponiveis() {
-      const email = "{{ professor.email }}";
       try {
-        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
+        const res = await fetch("/alunos-disponiveis");
         const lista = await res.json();
         const container = document.getElementById('alunos-disponiveis');
         container.innerHTML = '<h2>Alunos Disponíveis</h2>';
@@ -325,12 +312,40 @@ me mostre aqui neste codigo a parte que busca os alunos disboniveis "<!DOCTYPE h
         lista.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-          card.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
+          card.innerHTML = `
+            <div class="aluno-header">
+              <span><strong>${aluno.nome}</strong></span>
+              <button class="notificar-btn" onclick="vincularAluno('${aluno.email}')">Vincular</button>
+            </div>
+          `;
           container.appendChild(card);
         });
       } catch (error) {
         console.error("Erro ao buscar alunos disponíveis:", error);
-        alert("Erro ao buscar alunos disponíveis.");
+      }
+    }
+
+    async function vincularAluno(alunoEmail) {
+      const professorEmail = "{{ professor.email }}";
+      try {
+        const resposta = await fetch("/vincular-aluno", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ aluno: alunoEmail, professor: professorEmail })
+        });
+
+        if (resposta.ok) {
+          alert("Aluno vinculado com sucesso!");
+          buscarAlunosDisponiveis(); // Atualiza a lista
+        } else {
+          const erro = await resposta.text();
+          alert("Erro ao vincular aluno: " + erro);
+        }
+      } catch (error) {
+        console.error("Erro ao vincular aluno:", error);
+        alert("Erro inesperado ao tentar vincular aluno.");
       }
     }
   </script>
