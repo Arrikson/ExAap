@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -53,6 +53,13 @@
     h1 {
       text-align: center;
       margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    h1 img {
+      height: 40px;
     }
     .info label {
       display: block;
@@ -175,8 +182,14 @@
   </div>
 
   <div class="profile-container">
-    <h1>Meu Perfil</h1>
-    {% if mensagem %}<p style="text-align:center; color: yellow; font-size: 18px;">{{ mensagem }}</p>{% endif %}
+    <h1>
+      <img src="/static/professor.png" alt="Ícone Professor">
+      Meu Perfil
+    </h1>
+
+    {% if mensagem %}
+      <p style="text-align:center; color: yellow; font-size: 18px;">{{ mensagem }}</p>
+    {% endif %}
 
     <div class="info">
       <label>Meu nome completo</label>
@@ -282,16 +295,16 @@
 
           if (aluno.online) {
             const btn = document.createElement('button');
+            btn.textContent = 'Iniciar Aula';
             btn.className = 'notificar-btn';
-            btn.innerText = 'Dar Aula';
             btn.onclick = () => iniciarChamada(aluno.nome, email);
             card.appendChild(btn);
           }
 
           container.appendChild(card);
         });
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Erro ao buscar alunos:", error);
         alert("Erro ao buscar alunos.");
       }
     }
@@ -300,26 +313,23 @@
       const email = "{{ professor.email }}";
       try {
         const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-        const alunos = await res.json();
+        const lista = await res.json();
         const container = document.getElementById('alunos-disponiveis');
         container.innerHTML = '<h2>Alunos Disponíveis</h2>';
 
-        if (alunos.length === 0) {
+        if (lista.length === 0) {
           container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
           return;
         }
 
-        alunos.forEach(aluno => {
+        lista.forEach(aluno => {
           const card = document.createElement('div');
           card.className = 'aluno-card';
-          card.innerHTML = `
-            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span><br>
-            <button onclick="vincularAluno('${aluno.nome}', '${email}')">Vincular</button>
-          `;
+          card.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
           container.appendChild(card);
         });
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Erro ao buscar alunos disponíveis:", error);
         alert("Erro ao buscar alunos disponíveis.");
       }
     }
