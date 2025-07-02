@@ -346,7 +346,14 @@
   const db = firebase.firestore();
 
   const nomeAluno = "{{ aluno.nome }}";
-  const professorEmail = "{{ aluno.professor or '' }}";  // ← EMAIL do professor
+  let professorEmail = "";
+  db.collection("alunos_professor").doc(nomeAluno)
+    .get()
+    .then((doc) => {
+      if (doc.exists) {
+        professorEmail = doc.data().professor;
+      }
+    });
 
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
@@ -372,32 +379,28 @@
     if (okBtn) {
       okBtn.addEventListener("click", () => {
         fetch("/desativar-notificacao", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            aluno: nomeAluno.trim(),
-            professor: professorEmail.trim()  // ← corrigido aqui
-          })
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Erro ao desativar notificação.");
-          }
-          return response.json();
-        })
-        .then(data => {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        })
-        .catch(error => {
-          console.error("Erro ao desativar notificação:", error);
-        });
-      });
-    }
-  };
-
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json"
+         },
+         body: JSON.stringify({
+           aluno: nomeAluno.trim(),
+           professor: professorEmail.trim()
+         })
+       })
+       .then(response => {
+         if (!response.ok) throw new Error("Erro ao desativar notificação.");
+         return response.json();
+  })
+  .then(() => {
+    notificacaoEl.style.display = "none";
+    contadorAulas.innerText = "";
+  })
+  .catch(error => {
+    console.error("Erro ao desativar notificação:", error);
+  });
+});
+      
   // Convite para sala ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
