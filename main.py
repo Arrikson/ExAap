@@ -1240,30 +1240,25 @@ async def ativar_notificacao(data: NotificacaoIn):
         print("Erro ao ativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
 
-class NotificacaoIn(BaseModel):
-    professor: str  
-    aluno: str
-
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        # Certifique-se de comparar com o e-mail do professor (como está no Firestore)
-        query = db.collection("alunos_professor") \
-                  .where("professor", "==", data.professor.strip()) \
-                  .where("aluno", "==", data.aluno.strip()) \
-                  .limit(1).stream()
+        print("Recebido:", data.dict())
 
-        doc = next(query, None)
+        doc_ref = db.collection("alunos_professor").document(data.aluno.strip())
+        doc = doc_ref.get()
 
-        if not doc:
+        if not doc.exists:
+            print("Documento não existe:", data.aluno.strip())
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
-        db.collection("alunos_professor").document(doc.id).update({
-            "notificacao": False
-        })
+        if doc.to_dict().get("professor") != data.professor.strip():
+            print("Professor não autorizado:", doc.to_dict().get("professor"))
+            raise HTTPException(status_code=403, detail="Professor não autorizado a alterar essa notificação")
 
+        doc_ref.update({"notificacao": False})
         return {"message": "Notificação desativada com sucesso"}
-    
+
     except Exception as e:
         print("Erro ao desativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
