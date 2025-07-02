@@ -236,6 +236,11 @@
 
     <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
 
+    <!-- 🔔 Notificação -->
+    <div id="notificacao-mensagem" style="display: none; background-color: #ffc107; color: #000; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold;">
+      A tua aula irá começar
+    </div>
+
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
@@ -303,13 +308,13 @@
       apiKey: "...",
       authDomain: "...",
       projectId: "...",
-      // outros campos se necessário
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const nomeAluno = "{{ aluno.nome }}";
 
+    // Chamada ao vivo
     db.collection("chamadas_ao_vivo").doc(nomeAluno)
       .onSnapshot((doc) => {
         if (doc.exists) {
@@ -329,6 +334,21 @@
         db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
       }
     }
+
+    // 🔔 Notificação "A tua aula irá começar"
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+
+    db.collection("alunos_professor").doc(nomeAluno)
+      .onSnapshot((doc) => {
+        if (doc.exists) {
+          const dados = doc.data();
+          if (dados.notificacao === true) {
+            notificacaoEl.style.display = "block";
+          } else {
+            notificacaoEl.style.display = "none";
+          }
+        }
+      });
   </script>
 </body>
 </html>
