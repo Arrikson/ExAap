@@ -173,7 +173,7 @@
       text-align: center;
       font-weight: bold;
     }
-  </style>
+</style>
 </head>
 <body>
   <div class="top-bar">
@@ -193,7 +193,12 @@
       <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
-    <div id="notificacao-mensagem">A tua aula irá começar</div>
+    <!-- Mensagem de notificação com botão OK -->
+    <div id="notificacao-mensagem" style="display: none;">
+      A tua aula irá começar
+      <button id="ok-btn" style="margin-left: 10px; background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer;">OK</button>
+    </div>
+
     <div id="professor-nome"></div>
 
     <!-- Dados Pessoais -->
@@ -282,17 +287,11 @@
   function fazerLogout() {
     fetch("/logout", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome: "{{ aluno.nome }}" })
     })
-    .then(() => {
-      window.location.href = "/";
-    })
-    .catch(error => {
-      console.error("Erro ao fazer logout:", error);
-    });
+    .then(() => window.location.href = "/")
+    .catch(error => console.error("Erro ao fazer logout:", error));
   }
 
   let professorVisivel = false;
@@ -319,15 +318,13 @@
       });
   }
 
-  let notificacaoVisivel = false;
   function verNotificacao() {
     const msg = document.getElementById("notificacao-mensagem");
-    if (notificacaoVisivel) {
+    if (msg.style.display === "block") {
       msg.style.display = "none";
-      notificacaoVisivel = false;
+      contadorAulas.innerText = "";
     } else {
       msg.style.display = "block";
-      notificacaoVisivel = true;
     }
   }
 
@@ -336,7 +333,7 @@
   }
 </script>
 
- <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
@@ -348,10 +345,11 @@
   const db = firebase.firestore();
 
   const nomeAluno = "{{ aluno.nome }}";
-  const professorNome = "{{ aluno.professor or '' }}"; // Evita undefined
+  const professorNome = "{{ aluno.professor or '' }}";
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
+  // Listener da notificação
   db.collection("alunos_professor").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
@@ -359,37 +357,6 @@
         if (dados.notificacao === true) {
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
-
-          // Desaparecer após 5 segundos
-          setTimeout(() => {
-            notificacaoEl.style.display = "none";
-            contadorAulas.innerText = "";
-
-            // ⚠️ Enviar corretamente os dados para desativar
-            fetch("/desativar-notificacao", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                aluno: nomeAluno.trim(),
-                professor: professorNome.trim()
-              })
-            })
-            .then(response => {
-              if (!response.ok) {
-                throw new Error("Erro ao desativar");
-              }
-              return response.json();
-            })
-            .then(data => {
-              console.log("Notificação desativada:", data);
-            })
-            .catch(error => {
-              console.error("Erro ao desativar notificação:", error);
-            });
-
-          }, 5000);
         } else {
           notificacaoEl.style.display = "none";
           contadorAulas.innerText = "";
@@ -397,6 +364,21 @@
       }
     });
 
+  // Clique no botão OK da notificação
+  document.getElementById("ok-btn").addEventListener("click", desativarNotificacaoFirebase);
+
+  function desativarNotificacaoFirebase() {
+    db.collection("alunos_professor").doc(nomeAluno).update({
+      notificacao: false
+    }).then(() => {
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
+    }).catch((error) => {
+      console.error("Erro ao desativar notificação:", error);
+    });
+  }
+
+  // Convite para sala ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
@@ -416,19 +398,7 @@
       db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
     }
   }
-
-  function verNotificacao() {
-    const msg = document.getElementById("notificacao-mensagem");
-    if (msg.style.display === "block") {
-      msg.style.display = "none";
-      contadorAulas.innerText = "";
-    } else {
-      msg.style.display = "block";
-      contadorAulas.innerText = "(1)";
-      setTimeout(() => {
-        msg.style.display = "none";
-        contadorAulas.innerText = "";
-      }, 5000);
-    }
-  }
 </script>
+</body>
+</html>
+
