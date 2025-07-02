@@ -126,7 +126,8 @@ async def vincular_aluno(item: VinculoIn):
             'aluno': item.aluno_nome.strip(),
             'dados_aluno': dados_aluno,
             'vinculado_em': datetime.now(timezone.utc).isoformat(),
-            'online': True
+            'online': True,
+            'notificacao': False  # ✅ Novo campo adicionado aqui
         })
 
         return {'message': 'Vínculo criado com sucesso'}
@@ -139,6 +140,7 @@ async def vincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
+
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
