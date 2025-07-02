@@ -1216,5 +1216,27 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
+class NotificacaoIn(BaseModel):
+    professor: str
+    aluno: str
 
+@app.post("/ativar-notificacao")
+async def ativar_notificacao(data: NotificacaoIn):
+    try:
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", data.professor.strip()) \
+                  .where("aluno", "==", data.aluno.strip()) \
+                  .limit(1).stream()
+        doc = next(query, None)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+
+        doc_id = doc.id
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
+
+        return {"message": "Notificação ativada com sucesso"}
+    except Exception as e:
+        print("Erro ao ativar notificação:", e)
+        raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
 
