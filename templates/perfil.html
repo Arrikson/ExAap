@@ -260,65 +260,86 @@
     </form>
   </div>
 
- <script>
-    calcularMensalidade();
+<!-- ... mantém o código anterior até o script principal ... -->
 
-    const accordions = document.querySelectorAll(".accordion");
-    accordions.forEach(btn => {
-      btn.addEventListener("click", function () {
-        this.classList.toggle("active");
-        const panel = this.nextElementSibling;
-        panel.style.display = (panel.style.display === "block") ? "none" : "block";
-      });
+<script>
+  calcularMensalidade();
+
+  const accordions = document.querySelectorAll(".accordion");
+  accordions.forEach(btn => {
+    btn.addEventListener("click", function () {
+      this.classList.toggle("active");
+      const panel = this.nextElementSibling;
+      panel.style.display = (panel.style.display === "block") ? "none" : "block";
     });
+  });
 
-    function calcularMensalidade() {
-      const aulas = parseInt(document.getElementById("aulas").value);
-      const custo = parseFloat(document.getElementById("custo").value);
-      const mensalidade = aulas * custo;
-      document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
+  function calcularMensalidade() {
+    const aulas = parseInt(document.getElementById("aulas").value);
+    const custo = parseFloat(document.getElementById("custo").value);
+    const mensalidade = aulas * custo;
+    document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
+  }
+
+  function fazerLogout() {
+    fetch("/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ nome: "{{ aluno.nome }}" })
+    })
+    .then(() => {
+      window.location.href = "/";
+    })
+    .catch(error => {
+      console.error("Erro ao fazer logout:", error);
+    });
+  }
+
+  let professorVisivel = false;
+  function verProfessor(nome) {
+    const container = document.getElementById("professor-nome");
+    if (professorVisivel) {
+      container.innerHTML = "";
+      professorVisivel = false;
+      return;
     }
 
-    function fazerLogout() {
-      fetch("/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ nome: "{{ aluno.nome }}" })
+    fetch(`/meu-professor-status/${nome}`)
+      .then(response => response.json())
+      .then(data => {
+        const statusIcon = data.online ? '🟢' : '⚪';
+        const statusText = data.online ? 'Online' : 'Offline';
+        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+        professorVisivel = true;
       })
-      .then(() => {
-        window.location.href = "/";
-      })
-      .catch(error => {
-        console.error("Erro ao fazer logout:", error);
+      .catch(err => {
+        container.innerHTML = "Professor não encontrado.";
+        professorVisivel = true;
+        console.error("Erro ao buscar professor:", err);
       });
-    }
+  }
 
-    function verProfessor(nome) {
-      fetch(`/meu-professor-status/${nome}`)
-        .then(response => response.json())
-        .then(data => {
-          const statusIcon = data.online ? '🟢' : '⚪';
-          const statusText = data.online ? 'Online' : 'Offline';
-          document.getElementById("professor-nome").innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-        })
-        .catch(err => {
-          document.getElementById("professor-nome").innerHTML = "Professor não encontrado.";
-          console.error("Erro ao buscar professor:", err);
-        });
+  let notificacaoVisivel = false;
+  function verNotificacao() {
+    const msg = document.getElementById("notificacao-mensagem");
+    if (notificacaoVisivel) {
+      msg.style.display = "none";
+      notificacaoVisivel = false;
+    } else {
+      msg.style.display = "block";
+      notificacaoVisivel = true;
     }
+  }
 
-    function entrarNaAula() {
-      window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
-    }
+  function entrarNaAula() {
+    window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
+  }
+</script>
 
-    function verNotificacao() {
-      document.getElementById("notificacao-mensagem").style.display = "block";
-    }
-  </script>
+<!-- ... Firebase scripts permanecem os mesmos ... -->
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
   <script>
