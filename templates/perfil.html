@@ -335,6 +335,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
 <script>
   const firebaseConfig = {
     apiKey: "...",
@@ -345,7 +346,8 @@
   const db = firebase.firestore();
 
   const nomeAluno = "{{ aluno.nome }}";
-  const professorNome = "{{ aluno.professor or '' }}";
+  const professorEmail = "{{ aluno.professor or '' }}";  // ← EMAIL do professor
+
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
@@ -363,38 +365,39 @@
         }
       }
     });
-  
- window.onload = function () {
-  const okBtn = document.getElementById("ok-btn");
 
-  if (okBtn) {
-    okBtn.addEventListener("click", () => {
-      fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          aluno: nomeAluno.trim(),
-          professor: professorNome.trim()
+  window.onload = function () {
+    const okBtn = document.getElementById("ok-btn");
+
+    if (okBtn) {
+      okBtn.addEventListener("click", () => {
+        fetch("/desativar-notificacao", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            aluno: nomeAluno.trim(),
+            professor: professorEmail.trim()  // ← corrigido aqui
+          })
         })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Erro ao desativar notificação.");
-        }
-        return response.json();
-      })
-      .then(data => {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      })
-      .catch(error => {
-        console.error("Erro ao desativar notificação:", error);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Erro ao desativar notificação.");
+          }
+          return response.json();
+        })
+        .then(data => {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        })
+        .catch(error => {
+          console.error("Erro ao desativar notificação:", error);
+        });
       });
-    });
-  }
-};
+    }
+  };
+
   // Convite para sala ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
