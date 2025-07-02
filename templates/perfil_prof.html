@@ -222,117 +222,124 @@
     <div id="alunos-disponiveis" style="display: none;"></div>
   </div>
 
-  <script>
-    function toggleDados() {
-      const div = document.getElementById('dadosSecretos');
-      div.style.display = div.style.display === 'block' ? 'none' : 'block';
+  <!-- ... (todo seu código anterior se mantém igual até o final do script) -->
+
+<script>
+  function toggleDados() {
+    const div = document.getElementById('dadosSecretos');
+    div.style.display = div.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function toggleSection(id, fetchFunction) {
+    const section = document.getElementById(id);
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+    } else {
+      section.style.display = 'block';
+      fetchFunction();
     }
+  }
 
-    function toggleSection(id, fetchFunction) {
-      const section = document.getElementById(id);
-      if (section.style.display === 'block') {
-        section.style.display = 'none';
-      } else {
-        section.style.display = 'block';
-        fetchFunction();
-      }
+  function comecarAula() {
+    const email = "{{ professor.email }}";
+    window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
+  }
+
+  async function iniciarChamada(aluno, professorEmail) {
+    try {
+      await fetch("/iniciar-aula", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          aluno: aluno,
+          professor: professorEmail,
+          sala: `${professorEmail}-${aluno}`
+        })
+      });
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}`;
+    } catch (error) {
+      console.error("Erro ao iniciar chamada:", error);
     }
+  }
 
-    function comecarAula() {
-      const email = "{{ professor.email }}";
-      window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
+  async function buscarAlunosDisponiveis() {
+    const container = document.getElementById("alunos-disponiveis");
+    container.innerHTML = "<p>Carregando...</p>";
+    try {
+      const response = await fetch("/alunos-disponiveis");
+      const alunos = await response.json();
+      container.innerHTML = "";
+      const professorEmail = "{{ professor.email }}";
+      alunos.forEach(aluno => {
+        const card = document.createElement("div");
+        card.className = "aluno-card";
+        card.innerHTML = `
+          <div class="aluno-header">
+            <span><strong>${aluno.nome}</strong></span>
+            <button onclick="vincularAluno('${aluno.nome}', '${professorEmail}')" class="notificar-btn">Vincular</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar alunos:", error);
+      container.innerHTML = "<p>Erro ao carregar alunos.</p>";
     }
+  }
 
-    async function iniciarChamada(aluno, professorEmail) {
-      try {
-        await fetch("/iniciar-aula", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            aluno: aluno,
-            professor: professorEmail,
-            sala: `${professorEmail}-${aluno}`
-          })
-        });
-        window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}`;
-      } catch (error) {
-        console.error("Erro ao iniciar chamada:", error);
-        alert("Erro ao iniciar a chamada.");
-      }
+  async function vincularAluno(nomeAluno, emailProfessor) {
+    try {
+      const response = await fetch("/vincular-aluno", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nome_aluno: nomeAluno,
+          email_professor: emailProfessor
+        })
+      });
+      const result = await response.json();
+      alert(result.mensagem || "Aluno vinculado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao vincular aluno:", error);
+      alert("Erro ao vincular aluno.");
     }
+  }
 
-    async function listarMeusAlunos() {
-      const email = "{{ professor.email }}";
-      try {
-        const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
-        const lista = await res.json();
-        const container = document.getElementById('meus-alunos');
-        container.innerHTML = '<h2>Meus Alunos</h2>';
-
-        if (lista.length === 0) {
-          container.innerHTML += '<p>Nenhum aluno vinculado ainda.</p>';
-          return;
-        }
-
-        lista.forEach(aluno => {
-          const card = document.createElement('div');
-          card.className = 'aluno-card';
-
-          const statusClass = aluno.online ? 'online' : 'offline';
-          const statusText = aluno.online ? 'Online' : 'Offline';
-
-          card.innerHTML = `
-            <div class="aluno-header">
-              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-              <div class="status">
-                <span>${statusText}</span>
-                <span class="status-dot ${statusClass}"></span>
-              </div>
+  async function listarMeusAlunos() {
+    const container = document.getElementById("meus-alunos");
+    container.innerHTML = "<p>Carregando...</p>";
+    try {
+      const response = await fetch("/meus-alunos");
+      const alunos = await response.json();
+      container.innerHTML = "";
+      alunos.forEach(aluno => {
+        const card = document.createElement("div");
+        card.className = "aluno-card";
+        card.innerHTML = `
+          <div class="aluno-header">
+            <span><strong>${aluno.nome}</strong></span>
+            <div class="status">
+              <span>Status:</span>
+              <span class="status-dot ${aluno.online ? 'online' : 'offline'}"></span>
+              <span>${aluno.online ? 'Online' : 'Offline'}</span>
             </div>
-          `;
-
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.textContent = 'Iniciar Aula';
-            btn.className = 'notificar-btn';
-            btn.onclick = () => iniciarChamada(aluno.nome, email);
-            card.appendChild(btn);
-          }
-
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Erro ao buscar alunos:", error);
-        alert("Erro ao buscar alunos.");
-      }
+          </div>
+          <button class="notificar-btn" onclick="iniciarChamada('${aluno.nome}', '{{ professor.email }}')">
+            Notificar para aula
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar alunos vinculados:", error);
+      container.innerHTML = "<p>Erro ao carregar alunos.</p>";
     }
+  }
+</script>
 
-    async function buscarAlunosDisponiveis() {
-      const email = "{{ professor.email }}";
-      try {
-        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-        const lista = await res.json();
-        const container = document.getElementById('alunos-disponiveis');
-        container.innerHTML = '<h2>Alunos Disponíveis</h2>';
-
-        if (lista.length === 0) {
-          container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
-          return;
-        }
-
-        lista.forEach(aluno => {
-          const card = document.createElement('div');
-          card.className = 'aluno-card';
-          card.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Erro ao buscar alunos disponíveis:", error);
-        alert("Erro ao buscar alunos disponíveis.");
-      }
-    }
-  </script>
 </body>
 </html>
