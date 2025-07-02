@@ -243,6 +243,23 @@
       window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
     }
 
+    async function notificarAluno(aluno, professorEmail) {
+      try {
+        await fetch("/ativar-notificacao", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            aluno: aluno,
+            professor: professorEmail
+          })
+        });
+      } catch (error) {
+        console.error("Erro ao ativar notificação:", error);
+      }
+    }
+
     async function iniciarChamada(aluno, professorEmail) {
       try {
         await fetch("/iniciar-aula", {
@@ -297,7 +314,10 @@
             const btn = document.createElement('button');
             btn.textContent = 'Iniciar Aula';
             btn.className = 'notificar-btn';
-            btn.onclick = () => iniciarChamada(aluno.nome, email);
+            btn.onclick = async () => {
+              await notificarAluno(aluno.nome, email);
+              iniciarChamada(aluno.nome, email);
+            };
             card.appendChild(btn);
           }
 
