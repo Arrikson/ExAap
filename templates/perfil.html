@@ -363,21 +363,35 @@
         }
       }
     });
-
+  
   // Clique no botão OK da notificação
-  document.getElementById("ok-btn").addEventListener("click", desativarNotificacaoFirebase);
+document.getElementById("ok-btn").addEventListener("click", desativarNotificacaoBackend);
 
-  function desativarNotificacaoFirebase() {
-    db.collection("alunos_professor").doc(nomeAluno).update({
-      notificacao: false
-    }).then(() => {
-      notificacaoEl.style.display = "none";
-      contadorAulas.innerText = "";
-    }).catch((error) => {
-      console.error("Erro ao desativar notificação:", error);
-    });
-  }
-
+function desativarNotificacaoBackend() {
+  fetch("/desativar-notificacao", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      aluno: nomeAluno.trim(),
+      professor: professorNome.trim()
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Erro ao desativar notificação.");
+    }
+    return response.json();
+  })
+  .then(data => {
+    notificacaoEl.style.display = "none";
+    contadorAulas.innerText = "";
+  })
+  .catch(error => {
+    console.error("Erro ao desativar notificação:", error);
+  });
+}
   // Convite para sala ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
