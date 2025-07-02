@@ -1240,3 +1240,23 @@ async def ativar_notificacao(data: NotificacaoIn):
         print("Erro ao ativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
 
+@app.post("/desativar-notificacao")
+async def desativar_notificacao(data: NotificacaoIn):
+    try:
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", data.professor.strip()) \
+                  .where("aluno", "==", data.aluno.strip()) \
+                  .limit(1).stream()
+        doc = next(query, None)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+
+        doc_id = doc.id
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": False})
+
+        return {"message": "Notificação desativada com sucesso"}
+    except Exception as e:
+        print("Erro ao desativar notificação:", e)
+        raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
+
