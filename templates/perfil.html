@@ -260,8 +260,6 @@
     </form>
   </div>
 
-<!-- ... mantém o código anterior até o script principal ... -->
-
 <script>
   calcularMensalidade();
 
@@ -338,82 +336,99 @@
   }
 </script>
 
-<!-- ... Firebase scripts permanecem os mesmos ... -->
+ <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "...",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  const nomeAluno = "{{ aluno.nome }}";
+  const professorNome = "{{ aluno.professor or '' }}"; // Evita undefined
+  const notificacaoEl = document.getElementById("notificacao-mensagem");
+  const contadorAulas = document.getElementById("contador-aulas");
 
-    const nomeAluno = "{{ aluno.nome }}";
-    const professorNome = "{{ aluno.professor }}";
-    const notificacaoEl = document.getElementById("notificacao-mensagem");
-    const contadorAulas = document.getElementById("contador-aulas");
-    const botaoAulas = document.getElementById("botao-aulas");
+  db.collection("alunos_professor").doc(nomeAluno)
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        const dados = doc.data();
+        if (dados.notificacao === true) {
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
 
-    db.collection("alunos_professor").doc(nomeAluno)
-      .onSnapshot((doc) => {
-        if (doc.exists) {
-          const dados = doc.data();
-          if (dados.notificacao === true) {
-            notificacaoEl.style.display = "block";
-            contadorAulas.innerText = "(1)";
-
-            setTimeout(() => {
-              notificacaoEl.style.display = "none";
-              contadorAulas.innerText = "";
-
-              fetch("/desativar-notificacao", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  aluno: nomeAluno,
-                  professor: professorNome
-                })
-              })
-              .then(response => response.json())
-              .then(data => {
-                console.log("Notificação desativada:", data);
-              })
-              .catch(error => {
-                console.error("Erro ao desativar notificação:", error);
-              });
-
-            }, 5000);
-          } else {
+          // Desaparecer após 5 segundos
+          setTimeout(() => {
             notificacaoEl.style.display = "none";
             contadorAulas.innerText = "";
-          }
-        }
-      });
 
-    db.collection("chamadas_ao_vivo").doc(nomeAluno)
-      .onSnapshot((doc) => {
-        if (doc.exists) {
-          const dados = doc.data();
-          if (dados.status === "pendente") {
-            mostrarConvite(dados.professor, dados.sala);
-          }
-        }
-      });
+            // ⚠️ Enviar corretamente os dados para desativar
+            fetch("/desativar-notificacao", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                aluno: nomeAluno.trim(),
+                professor: professorNome.trim()
+              })
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Erro ao desativar");
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Notificação desativada:", data);
+            })
+            .catch(error => {
+              console.error("Erro ao desativar notificação:", error);
+            });
 
-    function mostrarConvite(professor, sala) {
-      const aceitar = confirm(`O professor ${professor} está te chamando para uma aula. Deseja entrar?`);
-      if (aceitar) {
-        db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "aceito" });
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      } else {
-        db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
+          }, 5000);
+        } else {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        }
       }
+    });
+
+  db.collection("chamadas_ao_vivo").doc(nomeAluno)
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        const dados = doc.data();
+        if (dados.status === "pendente") {
+          mostrarConvite(dados.professor, dados.sala);
+        }
+      }
+    });
+
+  function mostrarConvite(professor, sala) {
+    const aceitar = confirm(`O professor ${professor} está te chamando para uma aula. Deseja entrar?`);
+    if (aceitar) {
+      db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "aceito" });
+      window.location.href = `/sala_virtual_aluno/${sala}`;
+    } else {
+      db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
     }
-  </script>
-</body>
-</html>
+  }
+
+  function verNotificacao() {
+    const msg = document.getElementById("notificacao-mensagem");
+    if (msg.style.display === "block") {
+      msg.style.display = "none";
+      contadorAulas.innerText = "";
+    } else {
+      msg.style.display = "block";
+      contadorAulas.innerText = "(1)";
+      setTimeout(() => {
+        msg.style.display = "none";
+        contadorAulas.innerText = "";
+      }, 5000);
+    }
+  }
+</script>
