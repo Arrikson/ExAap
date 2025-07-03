@@ -347,6 +347,9 @@
 
   const nomeAluno = "{{ aluno.nome }}";
   let professorEmail = "";
+  const notificacaoEl = document.getElementById("notificacao-mensagem");
+  const contadorAulas = document.getElementById("contador-aulas");
+
   db.collection("alunos_professor").doc(nomeAluno)
     .get()
     .then((doc) => {
@@ -355,17 +358,13 @@
       }
     });
 
- <script>
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-
   // Listener de notificação
   db.collection("alunos_professor").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
         const dados = doc.data();
         if (dados.notificacao === true) {
-          verNotificacao(); // Chama a função que trata o botão e mostra a notificação
+          verNotificacao(); // Mostra a notificação
         } else {
           notificacaoEl.style.display = "none";
           contadorAulas.innerText = "";
