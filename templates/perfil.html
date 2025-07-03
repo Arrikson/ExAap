@@ -374,34 +374,34 @@
     });
 
   window.onload = function () {
-    const okBtn = document.getElementById("ok-btn");
+  const okBtn = document.getElementById("ok-btn");
 
-    if (okBtn) {
-      okBtn.addEventListener("click", () => {
-        fetch("/desativar-notificacao", {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json"
-         },
-         body: JSON.stringify({
-           aluno: nomeAluno.trim(),
-           professor: professorEmail.trim()
-         })
-       })
-       .then(response => {
-         if (!response.ok) throw new Error("Erro ao desativar notificação.");
-         return response.json();
-  })
-  .then(() => {
-    notificacaoEl.style.display = "none";
-    contadorAulas.innerText = "";
-  })
-  .catch(error => {
-    console.error("Erro ao desativar notificação:", error);
-  });
-});
-      
-  // Convite para sala ao vivo
+  if (okBtn) {
+    okBtn.addEventListener("click", () => {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          aluno: nomeAluno.trim(),
+          professor: professorEmail.trim()
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Erro ao desativar notificação.");
+        return response.json();
+      })
+      .then(() => {
+        notificacaoEl.style.display = "none";
+        contadorAulas.innerText = "";
+      })
+      .catch(error => {
+        console.error("Erro ao desativar notificação:", error);
+      });
+    });
+  }
+}; 
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
