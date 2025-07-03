@@ -193,11 +193,13 @@
       <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
-    <!-- Mensagem de notificação com botão OK -->
+    <!-- Mensagem de notificação -->
     <div id="notificacao-mensagem" style="display: none;">
       A tua aula irá começar
-      <button id="ok-btn" style="margin-left: 10px; background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer;">OK</button>
     </div>
+
+    <!-- Botão OK separado -->
+    <button class="button" id="ok-btn" onclick="desativarNotificacao()" style="margin: 10px 0; background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer;">OK</button>
 
     <div id="professor-nome"></div>
 
@@ -319,13 +321,8 @@
   }
 
   function verNotificacao() {
-    const msg = document.getElementById("notificacao-mensagem");
-    if (msg.style.display === "block") {
-      msg.style.display = "none";
-      contadorAulas.innerText = "";
-    } else {
-      msg.style.display = "block";
-    }
+    notificacaoEl.style.display = "block";
+    contadorAulas.innerText = "(1)";
   }
 
   function entrarNaAula() {
@@ -364,7 +361,7 @@
       if (doc.exists) {
         const dados = doc.data();
         if (dados.notificacao === true) {
-          verNotificacao(); // Mostra a notificação
+          verNotificacao();
         } else {
           notificacaoEl.style.display = "none";
           contadorAulas.innerText = "";
@@ -372,36 +369,28 @@
       }
     });
 
-  function verNotificacao() {
-    notificacaoEl.style.display = "block";
-    contadorAulas.innerText = "(1)";
-
-    const okBtn = document.getElementById("ok-btn");
-    if (okBtn) {
-      okBtn.onclick = () => {
-        fetch("/desativar-notificacao", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            aluno: nomeAluno.trim(),
-            professor: professorEmail.trim()
-          })
-        })
-        .then(response => {
-          if (!response.ok) throw new Error("Erro ao desativar notificação.");
-          return response.json();
-        })
-        .then(() => {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        })
-        .catch(error => {
-          console.error("Erro ao desativar notificação:", error);
-        });
-      };
-    }
+  function desativarNotificacao() {
+    fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        aluno: nomeAluno,
+        professor: professorEmail
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        notificacaoEl.style.display = "none";
+        contadorAulas.innerText = "";
+      } else {
+        console.error("Falha ao desativar notificação");
+      }
+    })
+    .catch(error => {
+      console.error("Erro ao enviar requisição:", error);
+    });
   }
 
   // Listener de chamadas ao vivo
@@ -427,4 +416,5 @@
 </script>
 </body>
 </html>
+
 
