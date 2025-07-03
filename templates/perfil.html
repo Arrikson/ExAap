@@ -355,17 +355,17 @@
       }
     });
 
+ <script>
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
-  // Listener da notificação
+  // Listener de notificação
   db.collection("alunos_professor").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
         const dados = doc.data();
         if (dados.notificacao === true) {
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
+          verNotificacao(); // Chama a função que trata o botão e mostra a notificação
         } else {
           notificacaoEl.style.display = "none";
           contadorAulas.innerText = "";
@@ -373,35 +373,39 @@
       }
     });
 
-  window.onload = function () {
-  const okBtn = document.getElementById("ok-btn");
+  function verNotificacao() {
+    notificacaoEl.style.display = "block";
+    contadorAulas.innerText = "(1)";
 
-  if (okBtn) {
-    okBtn.addEventListener("click", () => {
-      fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          aluno: nomeAluno.trim(),
-          professor: professorEmail.trim()
+    const okBtn = document.getElementById("ok-btn");
+    if (okBtn) {
+      okBtn.onclick = () => {
+        fetch("/desativar-notificacao", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            aluno: nomeAluno.trim(),
+            professor: professorEmail.trim()
+          })
         })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error("Erro ao desativar notificação.");
-        return response.json();
-      })
-      .then(() => {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      })
-      .catch(error => {
-        console.error("Erro ao desativar notificação:", error);
-      });
-    });
+        .then(response => {
+          if (!response.ok) throw new Error("Erro ao desativar notificação.");
+          return response.json();
+        })
+        .then(() => {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        })
+        .catch(error => {
+          console.error("Erro ao desativar notificação:", error);
+        });
+      };
+    }
   }
-}; 
+
+  // Listener de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
