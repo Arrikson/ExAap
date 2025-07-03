@@ -1254,3 +1254,4 @@ async def desativar_notificacao(data: NotificacaoRequest):
 
     doc_ref.update({"notificacao": False})
     return JSONResponse(content={"mensagem": "Notificação desativada com sucesso"})
+    
