@@ -354,21 +354,23 @@
         professorEmail = doc.data().professor;
       }
     });
-
-  // Listener de notificação
-  db.collection("alunos_professor").doc(nomeAluno)
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        const dados = doc.data();
-        if (dados.notificacao === true) {
-          verNotificacao();
-        } else {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        }
+db.collection("alunos_professor").doc(nomeAluno)
+  .onSnapshot((doc) => {
+    if (doc.exists) {
+      const dados = doc.data();
+      if (dados.notificacao === true) {
+        notificacaoEl.style.display = "block";
+        contadorAulas.innerText = "(1)";
+      } else {
+        notificacaoEl.style.display = "none";
+        contadorAulas.innerText = "";
       }
-    });
-
+    } else {
+      // Documento não existe: oculta por segurança
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
+    }
+  });
   function desativarNotificacao() {
     fetch("/desativar-notificacao", {
       method: "POST",
