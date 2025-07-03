@@ -1239,3 +1239,27 @@ async def ativar_notificacao(data: NotificacaoIn):
     except Exception as e:
         print("Erro ao ativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
+
+# Modelo de dados recebido do front-end
+class DesativarNotificacaoRequest(BaseModel):
+    aluno: str
+    professor: str
+
+@app.post("/desativar-notificacao")
+async def desativar_notificacao(request: DesativarNotificacaoRequest):
+    try:
+        doc_ref = db.collection("alunos_professor").document(request.aluno)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            doc_data = doc.to_dict()
+            if doc_data.get("professor") == request.professor:
+                doc_ref.update({"notificacao": False})
+                return JSONResponse(content={"status": "ok", "mensagem": "Notificação desativada com sucesso."})
+            else:
+                return JSONResponse(content={"status": "erro", "mensagem": "Professor não corresponde."}, status_code=400)
+        else:
+            return JSONResponse(content={"status": "erro", "mensagem": "Documento do aluno não encontrado."}, status_code=404)
+
+    except Exception as e:
+        return JSONResponse(content={"status": "erro", "mensagem": str(e)}, status_code=500)
