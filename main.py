@@ -1216,6 +1216,10 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
+class NotificacaoIn(BaseModel):
+    professor: str
+    aluno: str
+
 @app.post("/ativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
