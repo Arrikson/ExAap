@@ -1221,7 +1221,7 @@ class NotificacaoIn(BaseModel):
     aluno: str
 
 @app.post("/ativar-notificacao")
-async def desativar_notificacao(data: NotificacaoIn):
+async def ativar_notificacao(data: NotificacaoIn):
     try:
         query = db.collection("alunos_professor") \
                   .where("professor", "==", data.professor.strip()) \
@@ -1233,12 +1233,12 @@ async def desativar_notificacao(data: NotificacaoIn):
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_id = doc.id
-        db.collection("alunos_professor").document(doc_id).update({"notificacao": False})
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})  # <-- Aqui está o ajuste
 
-        return {"message": "Notificação desativada com sucesso"}
+        return {"message": "Notificação ativada com sucesso"}
     except Exception as e:
-        print("Erro ao desativar notificação:", e)
-        raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
+        print("Erro ao ativar notificação:", e)
+        raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
 
 class NotificacaoIn(BaseModel):
     aluno: str
@@ -1267,13 +1267,13 @@ async def desativar_notificacao(data: NotificacaoIn):
         print("✅ Documento encontrado:", doc_id)
 
         db.collection("alunos_professor").document(doc_id).update({
-            "notificacao": True
+            "notificacao": False  # Corrigido aqui!
         })
 
-        return {"message": "Notificação ativada com sucesso (via rota desativar-notificacao)"}
+        return {"message": "Notificação desativada com sucesso"}
 
     except HTTPException:
         raise
     except Exception as e:
-        print("❌ Erro ao ativar notificação:", e)
-        raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
+        print("❌ Erro ao desativar notificação:", e)
+        raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
