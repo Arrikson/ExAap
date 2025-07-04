@@ -1256,22 +1256,24 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        print("📩 Dados recebidos:", data.dict())
+        print("🔍 Dados recebidos:", data.dict())
 
         doc = vinculo_existe(data.professor, data.aluno)
         if not doc:
-            print("❌ Vínculo não encontrado no Firestore.")
+            print("❌ Vínculo não encontrado.")
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_id = doc.id
-        print("✅ Documento encontrado, ID:", doc_id)
+        print("✅ Documento encontrado:", doc_id)
 
-        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
+        db.collection("alunos_professor").document(doc_id).update({
+            "notificacao": True
+        })
 
         return {"message": "Notificação ativada com sucesso (via rota desativar-notificacao)"}
 
     except HTTPException:
         raise
     except Exception as e:
-        print("Erro ao ativar notificação:", e)
+        print("❌ Erro ao ativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
