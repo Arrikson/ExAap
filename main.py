@@ -1256,17 +1256,16 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        # Consulta o vínculo entre professor e aluno
-        query = db.collection("alunos_professor") \
-                  .where("professor", "==", data.professor.strip()) \
-                  .where("aluno", "==", data.aluno.strip()) \
-                  .limit(1).stream()
-        doc = next(query, None)
+        # Procurar vínculo na coleção alunos_professor apenas pelo nome do aluno
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("aluno", "==", data.aluno.strip()) \
+                        .limit(1).stream()
+        vinculo_doc = next(vinculo_ref, None)
 
-        if not doc:
-            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+        if not vinculo_doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado para este aluno.")
 
-        doc_id = doc.id
+        doc_id = vinculo_doc.id
         db.collection("alunos_professor").document(doc_id).update({"notificacao": False})
 
         return {"message": "Notificação desativada com sucesso"}
