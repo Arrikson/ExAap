@@ -371,30 +371,30 @@ db.collection("alunos_professor").doc(nomeAluno)
       contadorAulas.innerText = "";
     }
   });
-  function desativarNotificacao() {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        aluno: nomeAluno,
-        professor: professorEmail
-      }),
-    })
-    .then(response => {
-      if (response.ok) {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      } else {
-        console.error("Falha ao desativar notificação");
-      }
-    })
-    .catch(error => {
-      console.error("Erro ao enviar requisição:", error);
-    });
-  }
-
+ function desativarNotificacao() {
+  fetch("/desativar-notificacao", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      aluno: nomeAluno,
+      professor: professorEmail
+    }),
+  })
+  .then(response => {
+    if (response.ok) {
+      // Como a rota agora ativa a notificação (True), mostramos a notificação novamente
+      notificacaoEl.style.display = "block";
+      contadorAulas.innerText = "(1)";
+    } else {
+      console.error("Falha ao ativar notificação");
+    }
+  })
+  .catch(error => {
+    console.error("Erro ao enviar requisição:", error);
+  });
+}
   // Listener de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
