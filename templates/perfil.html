@@ -362,79 +362,91 @@ db.collection("alunos_professor")
         professor: professorEmail
       });
 
-      // Enviar requisição para a rota FastAPI
-      fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          aluno: nomeAluno,
-          professor: professorEmail
-        }),
-      })
-      .then(response => {
-        if (response.ok) {
+      <script>
+  const firebaseConfig = {
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const nomeAluno = "{{ aluno.nome }}";
+  let professorEmail = "";
+  const notificacaoEl = document.getElementById("notificacao-mensagem");
+  const contadorAulas = document.getElementById("contador-aulas");
+
+  // 👇 Função chamada ao clicar no botão OK
+  function desativarNotificacao() {
+    const nomeAluno = "{{ aluno.nome }}";
+
+    db.collection("alunos_professor")
+      .where("aluno", "==", nomeAluno)
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          const professorEmail = doc.data().professor;
+
+          console.log("📨 Enviando para FastAPI (ativar notificação):", {
+            aluno: nomeAluno,
+            professor: professorEmail
+          });
+
+          fetch("/desativar-notificacao", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              aluno: nomeAluno,
+              professor: professorEmail
+            }),
+          })
+          .then(response => {
+            if (response.ok) {
+              console.log("✅ Notificação ativada com sucesso");
+              notificacaoEl.style.display = "block";
+              contadorAulas.innerText = "(1)";
+            } else {
+              console.error("❌ Falha ao ativar notificação");
+            }
+          })
+          .catch(error => {
+            console.error("❌ Erro ao enviar requisição:", error);
+          });
+
+        } else {
+          console.error("❌ Aluno não encontrado no Firestore.");
+        }
+      });
+  }
+
+  // 👀 Monitorar mudanças em tempo real no campo "notificacao"
+  db.collection("alunos_professor")
+    .where("aluno", "==", nomeAluno)
+    .limit(1)
+    .onSnapshot((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        const dados = doc.data();
+
+        if (dados.notificacao === true) {
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
         } else {
-          console.error("❌ Falha ao ativar notificação");
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
         }
-      })
-      .catch(error => {
-        console.error("❌ Erro ao enviar requisição:", error);
-      });
-
-    } else {
-      console.error("❌ Aluno não encontrado no Firestore.");
-    }
-  });
-
-
-// 👀 Monitorar mudanças em tempo real no campo "notificacao"
-db.collection("alunos_professor")
-  .where("aluno", "==", nomeAluno)
-  .limit(1)
-  .onSnapshot((querySnapshot) => {
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      const dados = doc.data();
-
-      if (dados.notificacao === true) {
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
       } else {
         notificacaoEl.style.display = "none";
         contadorAulas.innerText = "";
       }
-    } else {
-      notificacaoEl.style.display = "none";
-      contadorAulas.innerText = "";
-    }
-  });
-  fetch("/desativar-notificacao", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      aluno: nomeAluno,
-      professor: professorEmail
-    }),
-  })
-  .then(response => {
-    if (response.ok) {
-      // Como a rota agora ativa a notificação (True), mostramos a notificação novamente
-      notificacaoEl.style.display = "block";
-      contadorAulas.innerText = "(1)";
-    } else {
-      console.error("Falha ao ativar notificação");
-    }
-  })
-  .catch(error => {
-    console.error("Erro ao enviar requisição:", error);
-  });
-}
+    });
+
+  // 🔴 (Removido o fetch duplicado fora da função)
+
   // Listener de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
@@ -458,5 +470,3 @@ db.collection("alunos_professor")
 </script>
 </body>
 </html>
-
-
