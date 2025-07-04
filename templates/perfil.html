@@ -347,50 +347,53 @@
   const contadorAulas = document.getElementById("contador-aulas");
 
   // 👇 Função chamada ao clicar no botão OK
-  function desativarNotificacao() {
-    db.collection("alunos_professor")
-      .where("aluno", "==", nomeAluno)
-      .limit(1)
-      .get()
-      .then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-          const doc = querySnapshot.docs[0];
-          const professorEmail = doc.data().professor;
+function desativarNotificacao() {
+  db.collection("alunos_professor")
+    .where("aluno", "==", nomeAluno)
+    .limit(1)
+    .get()
+    .then((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        const professorEmail = doc.data().professor;
 
-          console.log("📨 Enviando para FastAPI (desativar notificação):", {
+        console.log("📨 Enviando para FastAPI (desativar notificação):", {
+          aluno: nomeAluno,
+          professor: professorEmail
+        });
+
+        fetch("/desativar-notificacao", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             aluno: nomeAluno,
             professor: professorEmail
-          });
+          }),
+        })
+        .then(response => {
+          if (response.ok) {
+            console.log("✅ Notificação desativada com sucesso");
+            notificacaoEl.style.display = "none";
+            contadorAulas.innerText = "";
+            alert("Notificação desativada com sucesso");
+          } else {
+            console.error("❌ Falha ao desativar notificação");
+            alert("Erro ao desativar a notificação");
+          }
+        })
+        .catch(error => {
+          console.error("❌ Erro ao enviar requisição:", error);
+          alert("Erro na requisição: " + error.message);
+        });
 
-          fetch("/desativar-notificacao", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              aluno: nomeAluno,
-              professor: professorEmail
-            }),
-          })
-          .then(response => {
-            if (response.ok) {
-              console.log("✅ Notificação desativada com sucesso");
-              notificacaoEl.style.display = "none";
-              contadorAulas.innerText = "";
-            } else {
-              console.error("❌ Falha ao desativar notificação");
-            }
-          })
-          .catch(error => {
-            console.error("❌ Erro ao enviar requisição:", error);
-          });
-
-        } else {
-          console.error("❌ Aluno não encontrado no Firestore.");
-        }
-      });
-  }
-
+      } else {
+        console.error("❌ Aluno não encontrado no Firestore.");
+        alert("Aluno não encontrado no Firestore.");
+      }
+    });
+}
   // 🔁 Monitorar mudanças em tempo real no campo "notificacao"
   db.collection("alunos_professor")
     .where("aluno", "==", nomeAluno)
