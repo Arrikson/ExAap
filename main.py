@@ -1245,13 +1245,22 @@ class NotificacaoRequest(BaseModel):
     professor: str
 
 @app.post("/desativar-notificacao")
-async def desativar_notificacao(data: NotificacaoRequest):
-    doc_ref = db.collection("alunos_professor").document(data.aluno)
-    doc = doc_ref.get()
+async def desativar_notificacao(data: NotificacaoIn):
+    try:
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", data.professor.strip()) \
+                  .where("aluno", "==", data.aluno.strip()) \
+                  .limit(1).stream()
+        doc = next(query, None)
 
-    if not doc.exists:
-        return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
+        if not doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
-    doc_ref.update({"notificacao": False})
-    return JSONResponse(content={"mensagem": "Notificação desativada com sucesso"})
-    
+        doc_id = doc.id
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
+
+        return {"message": "Notificação ativada com sucesso (via rota desativar-notificacao)"}
+    except Exception as e:
+        print("Erro ao ativar notificação:", e)
+        raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
+
