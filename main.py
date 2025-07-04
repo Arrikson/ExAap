@@ -1240,18 +1240,23 @@ async def desativar_notificacao(data: NotificacaoIn):
         print("Erro ao desativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
 
-class NotificacaoRequest(BaseModel):
+class NotificacaoIn(BaseModel):
     aluno: str
     professor: str
 
+# Função que verifica se o vínculo existe
+def vinculo_existe(prof_email: str, aluno_nome: str):
+    docs = db.collection('alunos_professor') \
+             .where('professor', '==', prof_email.strip()) \
+             .where('aluno', '==', aluno_nome.strip()) \
+             .limit(1).stream()
+    return next(docs, None)
+
+# Rota que ativa a notificação (notificacao: True)
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        query = db.collection("alunos_professor") \
-                  .where("professor", "==", data.professor.strip()) \
-                  .where("aluno", "==", data.aluno.strip()) \
-                  .limit(1).stream()
-        doc = next(query, None)
+        doc = vinculo_existe(data.professor, data.aluno)
 
         if not doc:
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
@@ -1260,7 +1265,9 @@ async def desativar_notificacao(data: NotificacaoIn):
         db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
 
         return {"message": "Notificação ativada com sucesso (via rota desativar-notificacao)"}
+
+    except HTTPException:
+        raise
     except Exception as e:
         print("Erro ao ativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
-
