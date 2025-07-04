@@ -362,7 +362,7 @@ function desativarNotificacao() {
           professor: professorEmail
         });
 
-        fetch("/desativar-notificacao", {
+        fetch("https://beckend-exaap.onrender.com/desativar-notificacao", {  // <== use URL completa se estiver separado
           method: "POST",
           headers: {
             "Content-Type": "application/json",
