@@ -1256,24 +1256,21 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        print("🔍 Dados recebidos:", data.dict())
+        # Consulta o vínculo entre professor e aluno
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", data.professor.strip()) \
+                  .where("aluno", "==", data.aluno.strip()) \
+                  .limit(1).stream()
+        doc = next(query, None)
 
-        doc = vinculo_existe(data.professor, data.aluno)
         if not doc:
-            print("❌ Vínculo não encontrado.")
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_id = doc.id
-        print("✅ Documento encontrado:", doc_id)
-
-        db.collection("alunos_professor").document(doc_id).update({
-            "notificacao": False  # Corrigido aqui!
-        })
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": False})
 
         return {"message": "Notificação desativada com sucesso"}
 
-    except HTTPException:
-        raise
     except Exception as e:
-        print("❌ Erro ao desativar notificação:", e)
+        print("Erro ao desativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
