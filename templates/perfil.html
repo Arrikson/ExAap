@@ -343,43 +343,11 @@
   const db = firebase.firestore();
 
   const nomeAluno = "{{ aluno.nome }}";
-  let professorEmail = "";
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-
-// 🔍 Buscar professor corretamente e enviar requisição para FastAPI
-db.collection("alunos_professor")
-  .where("aluno", "==", nomeAluno)
-  .limit(1)
-  .get()
-  .then((querySnapshot) => {
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      const professorEmail = doc.data().professor;
-
-      console.log("📨 Enviando para FastAPI:", {
-        aluno: nomeAluno,
-        professor: professorEmail
-      });
-
-      <script>
-  const firebaseConfig = {
-    apiKey: "...",
-    authDomain: "...",
-    projectId: "...",
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const nomeAluno = "{{ aluno.nome }}";
-  let professorEmail = "";
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
   // 👇 Função chamada ao clicar no botão OK
   function desativarNotificacao() {
-    const nomeAluno = "{{ aluno.nome }}";
-
     db.collection("alunos_professor")
       .where("aluno", "==", nomeAluno)
       .limit(1)
@@ -389,7 +357,7 @@ db.collection("alunos_professor")
           const doc = querySnapshot.docs[0];
           const professorEmail = doc.data().professor;
 
-          console.log("📨 Enviando para FastAPI (ativar notificação):", {
+          console.log("📨 Enviando para FastAPI (desativar notificação):", {
             aluno: nomeAluno,
             professor: professorEmail
           });
@@ -406,11 +374,11 @@ db.collection("alunos_professor")
           })
           .then(response => {
             if (response.ok) {
-              console.log("✅ Notificação ativada com sucesso");
-              notificacaoEl.style.display = "block";
-              contadorAulas.innerText = "(1)";
+              console.log("✅ Notificação desativada com sucesso");
+              notificacaoEl.style.display = "none";
+              contadorAulas.innerText = "";
             } else {
-              console.error("❌ Falha ao ativar notificação");
+              console.error("❌ Falha ao desativar notificação");
             }
           })
           .catch(error => {
@@ -423,7 +391,7 @@ db.collection("alunos_professor")
       });
   }
 
-  // 👀 Monitorar mudanças em tempo real no campo "notificacao"
+  // 🔁 Monitorar mudanças em tempo real no campo "notificacao"
   db.collection("alunos_professor")
     .where("aluno", "==", nomeAluno)
     .limit(1)
@@ -445,9 +413,7 @@ db.collection("alunos_professor")
       }
     });
 
-  // 🔴 (Removido o fetch duplicado fora da função)
-
-  // Listener de chamadas ao vivo
+  // 📞 Listener de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
