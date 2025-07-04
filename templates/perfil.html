@@ -347,17 +347,26 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
-  db.collection("alunos_professor").doc(nomeAluno)
-    .get()
-    .then((doc) => {
-      if (doc.exists) {
-        professorEmail = doc.data().professor;
-      }
-    });
-db.collection("alunos_professor").doc(nomeAluno)
-  .onSnapshot((doc) => {
-    if (doc.exists) {
+  db.collection("alunos_professor")
+  .where("aluno", "==", nomeAluno)
+  .limit(1)
+  .get()
+  .then((querySnapshot) => {
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      professorEmail = doc.data().professor;
+    } else {
+      console.error("❌ Aluno não encontrado no Firestore.");
+    }
+  });
+db.collection("alunos_professor")
+  .where("aluno", "==", nomeAluno)
+  .limit(1)
+  .onSnapshot((querySnapshot) => {
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
       const dados = doc.data();
+
       if (dados.notificacao === true) {
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
@@ -366,12 +375,16 @@ db.collection("alunos_professor").doc(nomeAluno)
         contadorAulas.innerText = "";
       }
     } else {
-      // Documento não existe: oculta por segurança
       notificacaoEl.style.display = "none";
       contadorAulas.innerText = "";
     }
   });
  function desativarNotificacao() {
+  console.log("Enviando para FastAPI:", {
+    aluno: nomeAluno,
+    professor: professorEmail
+  });
+
   fetch("/desativar-notificacao", {
     method: "POST",
     headers: {
