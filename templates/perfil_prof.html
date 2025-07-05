@@ -6,6 +6,7 @@
   <title>Perfil do Professor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    /* (mesmo estilo anterior, não modificado) */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -243,20 +244,23 @@
       window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
     }
 
-    async function notificarAluno(aluno, professorEmail) {
+    async function enviarNotificacao(alunoId, professorEmail) {
       try {
-        await fetch("/ativar-notificacao", {
+        const resposta = await fetch("/enviar-notificacao", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            aluno: aluno,
-            professor: professorEmail
+            aluno_id: alunoId,
+            professor: professorEmail,
+            mensagem: "A tua aula vai começar!"
           })
         });
+
+        const resultado = await resposta.json();
+        alert(resultado.msg || "Notificação enviada");
       } catch (error) {
-        console.error("Erro ao ativar notificação:", error);
+        console.error("Erro ao enviar notificação:", error);
+        alert("Erro ao enviar notificação.");
       }
     }
 
@@ -264,9 +268,7 @@
       try {
         await fetch("/iniciar-aula", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             aluno: aluno,
             professor: professorEmail,
@@ -315,7 +317,7 @@
             btn.textContent = 'Iniciar Aula';
             btn.className = 'notificar-btn';
             btn.onclick = async () => {
-              await notificarAluno(aluno.nome, email);
+              await enviarNotificacao(aluno.id, email);
               iniciarChamada(aluno.nome, email);
             };
             card.appendChild(btn);
