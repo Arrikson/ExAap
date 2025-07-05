@@ -88,6 +88,8 @@
     </div>
   </div>
 
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const statusDiv = document.getElementById("status");
     const videoContainer = document.getElementById("videoContainer");
@@ -104,12 +106,9 @@
       }
 
       try {
-        // Verifica se o aluno está vinculado a algum professor
         const response = await fetch("/verificar-aluno-vinculo", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ aluno_nome: nome, senha: senha })
         });
 
@@ -122,7 +121,6 @@
 
         const profEmail = result.professor_email;
 
-        // Verifica se a chamada está ativa
         const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
         const statusCheck = await check.json();
 
@@ -131,18 +129,32 @@
           return;
         }
 
-        statusDiv.textContent = `Conectado com o professor ${result.professor_nome}`;
+        statusDiv.textContent = `Conectando com o professor ${result.professor_nome}...`;
         videoContainer.style.display = "flex";
 
-        // Exibir vídeo local do aluno
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        // Simula stream do professor (temporário)
-        navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then((profStream) => {
-          remoteVideo.srcObject = profStream;
-        }).catch(() => {
-          statusDiv.textContent = "Erro ao carregar vídeo do professor.";
+        const peer = new Peer(); // ID gerado automaticamente
+
+        peer.on("open", (id) => {
+          console.log("ID do aluno:", id);
+          const call = peer.call(profEmail, stream);
+
+          call.on("stream", (profStream) => {
+            remoteVideo.srcObject = profStream;
+            statusDiv.textContent = "Conectado!";
+          });
+
+          call.on("close", () => {
+            alert("A chamada foi encerrada.");
+            statusDiv.textContent = "Chamada finalizada.";
+          });
+        });
+
+        peer.on("error", (err) => {
+          console.error("Erro no PeerJS:", err);
+          alert("Erro na conexão com o professor.");
         });
 
       } catch (err) {
