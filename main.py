@@ -1220,28 +1220,34 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
         )
 
 class NotificacaoIn(BaseModel):
-    professor: str
     aluno: str
+    professor: str
 
+# ✅ Ativar notificação (alunos_professor)
 @app.post("/ativar-notificacao")
 async def ativar_notificacao(data: NotificacaoIn):
     try:
+        print(f"🔔 Ativando notificação para aluno: {data.aluno}, professor: {data.professor}")
         query = db.collection("alunos_professor") \
                   .where("professor", "==", data.professor.strip()) \
                   .where("aluno", "==", data.aluno.strip()) \
                   .limit(1).stream()
+
         doc = next(query, None)
 
         if not doc:
+            print("❌ Vínculo não encontrado para ativação.")
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_id = doc.id
-        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})  # <-- Aqui está o ajuste
+        print(f"✅ Documento encontrado: {doc_id}")
+        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
 
         return {"message": "Notificação ativada com sucesso"}
+
     except Exception as e:
-        print("Erro ao ativar notificação:", e)
-        raise HTTPException(status_code=500, detail="Erro interno ao ativar notificação")
+        print("❌ Erro ao ativar notificação:", e)
+        raise HTTPException(status_code=500, detail=f"Erro interno ao ativar notificação: {e}")
 
 class NotificacaoIn(BaseModel):
     aluno: str
@@ -1260,17 +1266,18 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
 async def desativar_notificacao(data: NotificacaoIn):
     try:
         aluno_nome = data.aluno.strip()
+        print(f"🔕 Desativando notificação para aluno: {aluno_nome}")
 
-        # Buscar o aluno na coleção "alunos"
         aluno_ref = db.collection("alunos") \
                       .where("nome", "==", aluno_nome) \
                       .limit(1).stream()
         aluno_doc = next(aluno_ref, None)
 
         if not aluno_doc:
+            print("❌ Aluno não encontrado na coleção 'alunos'.")
             raise HTTPException(status_code=404, detail="Aluno não encontrado na coleção 'alunos'.")
 
-        # Atualizar o campo "notificacao" para False
+        print(f"✅ Documento de aluno encontrado: {aluno_doc.id}")
         db.collection("alunos").document(aluno_doc.id).update({
             "notificacao": False
         })
@@ -1279,4 +1286,4 @@ async def desativar_notificacao(data: NotificacaoIn):
 
     except Exception as e:
         print("❌ Erro ao desativar notificação:", e)
-        raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
+        raise HTTPException(status_code=500, detail=f"Erro interno ao desativar notificação: {e}")
