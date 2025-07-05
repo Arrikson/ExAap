@@ -326,6 +326,7 @@
     authDomain: "...",
     projectId: "...",
   };
+ <script>
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
@@ -333,36 +334,59 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
+  // ✅ VERIFICAÇÃO MANUAL COM ROTA (por clique no botão "AULAS")
   function verNotificacao() {
-    notificacaoEl.style.display = "block";
-    contadorAulas.innerText = "(1)";
+    db.collection("alunos")
+      .where("nome", "==", nomeAluno)
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const dados = querySnapshot.docs[0].data();
+          if (dados.notificacao === true) {
+            notificacaoEl.style.display = "block";
+            contadorAulas.innerText = "(1)";
+          } else {
+            notificacaoEl.style.display = "none";
+            contadorAulas.innerText = "";
+          }
+        } else {
+          console.warn("Aluno não encontrado.");
+        }
+      })
+      .catch((error) => {
+        console.error("Erro ao verificar notificação:", error);
+      });
   }
 
- db.collection("alunos")
-  .where("nome", "==", nomeAluno)
-  .limit(1)
-  .onSnapshot((querySnapshot) => {
-    console.log("📡 Snapshot recebido:", querySnapshot.size);
+  // ✅ OBSERVAÇÃO EM TEMPO REAL (caso mude no Firebase)
+  db.collection("alunos")
+    .where("nome", "==", nomeAluno)
+    .limit(1)
+    .onSnapshot((querySnapshot) => {
+      console.log("📡 Snapshot recebido:", querySnapshot.size);
 
-    if (!querySnapshot.empty) {
-      const dados = querySnapshot.docs[0].data();
-      console.log("📦 Dados do aluno:", dados);
+      if (!querySnapshot.empty) {
+        const dados = querySnapshot.docs[0].data();
+        console.log("📦 Dados do aluno:", dados);
 
-      if (dados.notificacao === true) {
-        console.log("✅ Notificação ativada");
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
+        if (dados.notificacao === true) {
+          console.log("✅ Notificação ativada");
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+        } else {
+          console.log("❌ Notificação desativada");
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        }
       } else {
-        console.log("❌ Notificação desativada");
+        console.warn("⚠️ Nenhum documento encontrado para este aluno.");
         notificacaoEl.style.display = "none";
         contadorAulas.innerText = "";
       }
-    } else {
-      console.warn("⚠️ Nenhum documento encontrado para este aluno.");
-      notificacaoEl.style.display = "none";
-      contadorAulas.innerText = "";
-    }
-  });
+    });
+
+  // ✅ OBSERVAÇÃO DE CHAMADA AO VIVO
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
@@ -387,31 +411,29 @@
     window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
   }
 
+  // ✅ DESATIVAR NOTIFICAÇÃO (Botão OK)
   function desativarNotificacao() {
-  const professorEmail = "{{ aluno.professor }}"; // se disponível no template
-
-function desativarNotificacao() {
-  fetch("/desativar-notificacao", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ aluno: nomeAluno })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Erro ao desativar a notificação.");
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log(data.message);
-    document.getElementById("notificacao-mensagem").style.display = "none";  // CORRETO AQUI
-    const contadorEl = document.getElementById("contador-aulas");
-    if (contadorEl) contadorEl.innerText = "";
-  })
-  .catch(error => {
-    console.error("Erro:", error);
-  });
-}
+    fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erro ao desativar a notificação.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data.message);
+      document.getElementById("notificacao-mensagem").style.display = "none";
+      const contadorEl = document.getElementById("contador-aulas");
+      if (contadorEl) contadorEl.innerText = "";
+    })
+    .catch(error => {
+      console.error("Erro:", error);
+    });
+  }
 </script>
 </body>
 </html>
