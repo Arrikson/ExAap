@@ -80,6 +80,7 @@
 
   <script>
     const profEmail = document.body.dataset.profEmail;
+    const peerId = profEmail.replace(/[@.]/g, "_");  // ID seguro para o PeerJS
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
@@ -88,18 +89,13 @@
     let currentStream = null;
 
     async function verificarChamadaAtiva() {
-      try {
-        const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
-        const result = await response.json();
+      const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
+      const result = await response.json();
 
-        if (result.ativa) {
-          statusDiv.textContent = "Já existe uma aula em andamento nesse email.";
-          alert("Você já está em uma aula ativa. Saia da outra sessão primeiro.");
-          throw new Error("Chamada já ativa");
-        }
-      } catch (error) {
-        console.error("Erro ao verificar aula ativa:", error);
-        throw error;
+      if (result.ativa) {
+        statusDiv.textContent = "Já existe uma aula em andamento nesse email.";
+        alert("Você já está em uma aula ativa. Saia da outra sessão primeiro.");
+        throw new Error("Chamada já ativa");
       }
     }
 
@@ -107,32 +103,52 @@
       try {
         await verificarChamadaAtiva();
 
+        // Captura vídeo e áudio do professor
         currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = currentStream;
+
+        // Atualiza status na interface
         statusDiv.textContent = "Aguardando aluno entrar...";
 
+        // Marca a chamada como ativa no backend
         await fetch("/registrar-chamada", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: profEmail, ativa: true })
         });
 
-        peer = new Peer(profEmail);
+        // Criação do peer com ID baseado no e-mail
+        peer = new Peer(peerId);
+
         peer.on("open", (id) => {
           console.log("PeerJS iniciado com ID:", id);
         });
 
+        // Quando o aluno liga para o professor
         peer.on("call", (call) => {
-          call.answer(currentStream);
+          console.log("Recebendo chamada do aluno...");
+          call.answer(currentStream);  // Envia o vídeo do professor
           call.on("stream", (alunoStream) => {
+            console.log("Stream do aluno recebido.");
             remoteVideo.srcObject = alunoStream;
             statusDiv.textContent = "Aluno conectado!";
           });
+
+          call.on("close", () => {
+            console.log("Chamada encerrada pelo aluno.");
+            statusDiv.textContent = "Aula encerrada pelo aluno.";
+          });
+        });
+
+        peer.on("error", (err) => {
+          console.error("Erro no PeerJS:", err);
+          alert("Erro na conexão com o aluno.");
         });
 
       } catch (err) {
         if (err.message !== "Chamada já ativa") {
           statusDiv.textContent = "Erro ao acessar câmera/microfone.";
+          console.error("Erro ao iniciar chamada:", err);
         }
       }
     }
@@ -152,5 +168,4 @@
 
 </body>
 </html>
-
 
