@@ -347,62 +347,81 @@
   const contadorAulas = document.getElementById("contador-aulas");
 
   // 👇 Função chamada ao clicar no botão OK
-function desativarNotificacao() {
-  db.collection("alunos_professor")
-    .where("aluno", "==", nomeAluno)
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const professorEmail = doc.data().professor;
+  function desativarNotificacao() {
+    // Atualiza a coleção "alunos"
+    db.collection("alunos")
+      .where("nome", "==", nomeAluno)
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const alunoDocRef = querySnapshot.docs[0].ref;
+          alunoDocRef.update({ notificacao: false })
+            .then(() => {
+              console.log("✅ Notificação desativada na coleção 'alunos'");
+              notificacaoEl.style.display = "none";
+              contadorAulas.innerText = "";
+            })
+            .catch((error) => {
+              console.error("❌ Erro ao atualizar a coleção 'alunos':", error);
+              alert("Erro ao atualizar notificação");
+            });
+        } else {
+          console.error("❌ Aluno não encontrado na coleção 'alunos'");
+        }
+      });
 
-        console.log("📨 Enviando para FastAPI (desativar notificação):", {
-          aluno: nomeAluno,
-          professor: professorEmail
-        });
+    // Também busca da coleção "alunos_professor" e envia à FastAPI
+    db.collection("alunos_professor")
+      .where("aluno", "==", nomeAluno)
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          const professorEmail = doc.data().professor;
 
-        fetch("https://beckend-exaap.onrender.com/desativar-notificacao", {  // <== use URL completa se estiver separado
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+          console.log("📨 Enviando para FastAPI:", {
             aluno: nomeAluno,
-            professor: professorEmail
-          }),
-        })
-        .then(response => {
-          if (response.ok) {
-            console.log("✅ Notificação desativada com sucesso");
-            notificacaoEl.style.display = "none";
-            contadorAulas.innerText = "";
-            alert("Notificação desativada com sucesso");
-          } else {
-            console.error("❌ Falha ao desativar notificação");
-            alert("Erro ao desativar a notificação");
-          }
-        })
-        .catch(error => {
-          console.error("❌ Erro ao enviar requisição:", error);
-          alert("Erro na requisição: " + error.message);
-        });
+            professor: professorEmail,
+          });
 
-      } else {
-        console.error("❌ Aluno não encontrado no Firestore.");
-        alert("Aluno não encontrado no Firestore.");
-      }
-    });
-}
-  // 🔁 Monitorar mudanças em tempo real no campo "notificacao"
-  db.collection("alunos_professor")
-    .where("aluno", "==", nomeAluno)
+          fetch("https://beckend-exaap.onrender.com/desativar-notificacao", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              aluno: nomeAluno,
+              professor: professorEmail,
+            }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log("✅ FastAPI confirmou desativação");
+              } else {
+                console.error("❌ FastAPI retornou erro");
+              }
+            })
+            .catch((error) => {
+              console.error("❌ Erro na requisição FastAPI:", error);
+            });
+        } else {
+          console.warn("⚠️ Aluno não encontrado na coleção 'alunos_professor'");
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Erro ao consultar alunos_professor:", error);
+      });
+  }
+
+  // 🔁 Monitorar em tempo real o campo "notificacao" na coleção "alunos"
+  db.collection("alunos")
+    .where("nome", "==", nomeAluno)
     .limit(1)
     .onSnapshot((querySnapshot) => {
       if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const dados = doc.data();
-
+        const dados = querySnapshot.docs[0].data();
         if (dados.notificacao === true) {
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
@@ -416,7 +435,7 @@ function desativarNotificacao() {
       }
     });
 
-  // 📞 Listener de chamadas ao vivo
+  // 📞 Monitoramento de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
