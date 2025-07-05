@@ -192,7 +192,10 @@
       <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
-    <div id="notificacao-mensagem">A tua aula irá começar</div>
+    <div id="notificacao-mensagem">
+      A tua aula irá começar
+      <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+    </div>
 
     <div id="professor-nome"></div>
 
@@ -376,6 +379,29 @@
 
   function entrarNaAula() {
     window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
+  }
+
+  // 👉 Função para desativar notificação via POST
+  function desativarNotificacao() {
+    fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erro ao desativar a notificação.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data.message);
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
+    })
+    .catch(error => {
+      console.error("Erro:", error);
+    });
   }
 </script>
 </body>
