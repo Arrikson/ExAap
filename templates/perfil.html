@@ -338,25 +338,31 @@
     contadorAulas.innerText = "(1)";
   }
 
-  db.collection("alunos")
-    .where("nome", "==", nomeAluno)
-    .limit(1)
-    .onSnapshot((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const dados = querySnapshot.docs[0].data();
-        if (dados.notificacao === true) {
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
-        } else {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        }
+ db.collection("alunos")
+  .where("nome", "==", nomeAluno)
+  .limit(1)
+  .onSnapshot((querySnapshot) => {
+    console.log("📡 Snapshot recebido:", querySnapshot.size);
+
+    if (!querySnapshot.empty) {
+      const dados = querySnapshot.docs[0].data();
+      console.log("📦 Dados do aluno:", dados);
+
+      if (dados.notificacao === true) {
+        console.log("✅ Notificação ativada");
+        notificacaoEl.style.display = "block";
+        contadorAulas.innerText = "(1)";
       } else {
+        console.log("❌ Notificação desativada");
         notificacaoEl.style.display = "none";
         contadorAulas.innerText = "";
       }
-    });
-
+    } else {
+      console.warn("⚠️ Nenhum documento encontrado para este aluno.");
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
+    }
+  });
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
