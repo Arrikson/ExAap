@@ -106,6 +106,9 @@
         // Captura vídeo e áudio do professor
         currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = currentStream;
+        localVideo.onloadedmetadata = () => {
+          localVideo.play();
+        };
 
         // Atualiza status na interface
         statusDiv.textContent = "Aguardando aluno entrar...";
@@ -128,9 +131,13 @@
         peer.on("call", (call) => {
           console.log("Recebendo chamada do aluno...");
           call.answer(currentStream);  // Envia o vídeo do professor
+
           call.on("stream", (alunoStream) => {
             console.log("Stream do aluno recebido.");
             remoteVideo.srcObject = alunoStream;
+            remoteVideo.onloadedmetadata = () => {
+              remoteVideo.play();
+            };
             statusDiv.textContent = "Aluno conectado!";
           });
 
@@ -168,4 +175,3 @@
 
 </body>
 </html>
-
