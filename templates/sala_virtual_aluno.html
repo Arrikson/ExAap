@@ -39,43 +39,14 @@
       color: #ffc107;
       margin-top: 1rem;
     }
-    .btn {
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.3s ease;
-    }
-    .btn:hover {
-      background-color: #0056b3;
-    }
-    .form-container {
-      margin-top: 2rem;
-    }
-    input {
-      padding: 0.5rem;
-      margin: 0.5rem;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-    }
   </style>
 </head>
-<body>
+<body data-aluno-nome="{{ aluno.nome }}" data-prof-email="{{ professor.email }}" data-prof-nome="{{ professor.nome_completo }}">
 
   <h1>Bem-vindo à Sala Virtual</h1>
+  <p>Aluno: {{ aluno.nome }}<br>Professor: {{ professor.nome_completo }}</p>
 
-  <div class="form-container">
-    <input type="text" id="alunoNome" placeholder="Seu Nome" required />
-    <input type="password" id="alunoSenha" placeholder="Sua Senha" required />
-    <button class="btn" onclick="entrarNaAula()">Entrar na Aula</button>
-  </div>
-
-  <div id="status">Insira seus dados para entrar na aula.</div>
+  <div id="status">Conectando com o professor...</div>
 
   <div id="videoContainer" style="display: none;">
     <div>
@@ -96,40 +67,20 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    async function entrarNaAula() {
-      const nome = document.getElementById("alunoNome").value.trim();
-      const senha = document.getElementById("alunoSenha").value.trim();
+    const profEmail = document.body.dataset.profEmail;
+    const profNome = document.body.dataset.profNome;
 
-      if (!nome || !senha) {
-        alert("Por favor, preencha todos os campos.");
-        return;
-      }
-
+    async function conectarComProfessor() {
       try {
-        const response = await fetch("/verificar-aluno-vinculo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ aluno_nome: nome, senha: senha })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          alert(result.detail || "Erro ao verificar vínculo.");
-          return;
-        }
-
-        const profEmail = result.professor_email;
-
         const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
         const statusCheck = await check.json();
 
         if (!statusCheck.ativa) {
-          alert("O professor ainda não iniciou a aula.");
+          statusDiv.textContent = "O professor ainda não iniciou a aula.";
           return;
         }
 
-        statusDiv.textContent = `Conectando com o professor ${result.professor_nome}...`;
+        statusDiv.textContent = `Conectando com o professor ${profNome}...`;
         videoContainer.style.display = "flex";
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -162,6 +113,8 @@
         alert("Erro ao conectar. Tente novamente.");
       }
     }
+
+    conectarComProfessor();
   </script>
 
 </body>
