@@ -398,8 +398,7 @@ function desativarNotificacao() {
   })
   .then(data => {
     console.log(data.message);
-    document.getElementById("notificacao-alerta").style.display = "none";
-    // Se quiser limpar contador também:
+    document.getElementById("notificacao-mensagem").style.display = "none";  // CORRETO AQUI
     const contadorEl = document.getElementById("contador-aulas");
     if (contadorEl) contadorEl.innerText = "";
   })
