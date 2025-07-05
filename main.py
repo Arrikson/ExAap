@@ -1227,22 +1227,29 @@ class NotificacaoIn(BaseModel):
 @app.post("/ativar-notificacao")
 async def ativar_notificacao(data: NotificacaoIn):
     try:
-        print(f"🔔 Ativando notificação para aluno: {data.aluno}, professor: {data.professor}")
-        query = db.collection("alunos_professor") \
-                  .where("professor", "==", data.professor.strip()) \
-                  .where("aluno", "==", data.aluno.strip()) \
-                  .limit(1).stream()
+        aluno_nome = data.aluno.strip()
+        print(f"🔔 Ativando notificação para aluno: {aluno_nome}")
 
-        doc = next(query, None)
+        # Buscar o aluno na coleção 'alunos'
+        aluno_query = db.collection("alunos") \
+                        .where("nome", "==", aluno_nome) \
+                        .limit(1).stream()
 
-        if not doc:
-            print("❌ Vínculo não encontrado para ativação.")
-            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+        aluno_doc = next(aluno_query, None)
 
-        doc_id = doc.id
-        print(f"✅ Documento encontrado: {doc_id}")
-        db.collection("alunos_professor").document(doc_id).update({"notificacao": True})
+        if not aluno_doc or not aluno_doc.exists:
+            print("❌ Aluno não encontrado na coleção 'alunos'.")
+            raise HTTPException(status_code=404, detail="Aluno não encontrado na coleção 'alunos'.")
 
+        aluno_id = aluno_doc.id
+        print(f"✅ Documento de aluno encontrado: {aluno_id}")
+
+        # Atualizar o campo 'notificacao' para True
+        db.collection("alunos").document(aluno_id).update({
+            "notificacao": True
+        })
+
+        print("✅ Notificação ativada com sucesso.")
         return {"message": "Notificação ativada com sucesso"}
 
     except Exception as e:
@@ -1261,7 +1268,6 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
              .limit(1).stream()
     return next(docs, None)
 
-# Rota que ativa a notificação (notificacao: True)
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
