@@ -53,16 +53,6 @@
     .btn:hover {
       background-color: #c82333;
     }
-    .form-container {
-      margin-top: 2rem;
-    }
-    input {
-      padding: 0.5rem;
-      margin: 0.5rem;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-    }
   </style>
 </head>
 <body data-prof-email="{{ professor.email }}">
@@ -71,12 +61,6 @@
   <p>Professor: {{ professor.nome_completo }}<br>Email: {{ professor.email }}</p>
 
   <div id="status">Aguardando conexão com o aluno...</div>
-
-  <div class="form-container">
-    <input type="text" id="alunoNome" placeholder="Nome do Aluno" required />
-    <input type="password" id="alunoSenha" placeholder="Senha do Aluno" required />
-    <button class="btn" onclick="permitirEntrada()">Permitir entrada do aluno</button>
-  </div>
 
   <div id="videoContainer">
     <div>
@@ -153,45 +137,6 @@
       }
     }
 
-    async function permitirEntrada() {
-      const alunoNome = document.getElementById("alunoNome").value.trim();
-      const alunoSenha = document.getElementById("alunoSenha").value.trim();
-
-      if (!alunoNome || !alunoSenha) {
-        alert("Preencha o nome e a senha do aluno.");
-        return;
-      }
-
-      try {
-        const response = await fetch("/verificar-aluno-vinculo", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            aluno_nome: alunoNome,
-            senha: alunoSenha
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          // Verifica se o professor do aluno é o mesmo da sala atual
-          if (result.professor_email === profEmail) {
-            statusDiv.textContent = `Aluno ${alunoNome} autorizado! Aguarde ele se conectar.`;
-          } else {
-            alert("Este aluno está vinculado a outro professor.");
-          }
-        } else {
-          alert(result.detail || "Erro ao permitir entrada.");
-        }
-      } catch (error) {
-        console.error("Erro ao verificar vínculo:", error);
-        alert("Erro na conexão com o servidor.");
-      }
-    }
-
     async function encerrarChamada() {
       if (peer) peer.destroy();
       await fetch("/registrar-chamada", {
@@ -207,4 +152,5 @@
 
 </body>
 </html>
+
 
