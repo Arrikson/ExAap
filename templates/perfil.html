@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -173,7 +173,7 @@
       text-align: center;
       font-weight: bold;
     }
-</style>
+  </style>
 </head>
 <body>
   <div class="top-bar">
@@ -184,7 +184,6 @@
   <div class="profile-container">
     <h1>{{ aluno.nome }}</h1>
 
-    <!-- Botões Professores e AULAS -->
     <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
       <i class="fas fa-chalkboard-teacher"></i> Professores
     </button>
@@ -193,13 +192,7 @@
       <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
-    <!-- Mensagem de notificação -->
-    <div id="notificacao-mensagem" style="display: none;">
-      A tua aula irá começar
-    </div>
-
-    <!-- Botão OK separado -->
-    <button class="button" id="ok-btn" onclick="desativarNotificacao()" style="margin: 10px 0; background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer;">OK</button>
+    <div id="notificacao-mensagem">A tua aula irá começar</div>
 
     <div id="professor-nome"></div>
 
@@ -337,94 +330,11 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
-  console.log("🔎 Nome do aluno:", nomeAluno);
-
-  // ✅ Função para exibir notificação
   function verNotificacao() {
     notificacaoEl.style.display = "block";
     contadorAulas.innerText = "(1)";
   }
 
-  // 👇 Função chamada ao clicar no botão OK
-  function desativarNotificacao() {
-    const okBtn = document.getElementById("ok-btn");
-    okBtn.disabled = true;
-    okBtn.innerText = "Atualizando...";
-
-    // Atualiza a coleção "alunos"
-    db.collection("alunos")
-      .where("nome", "==", nomeAluno)
-      .limit(1)
-      .get()
-      .then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-          const alunoDocRef = querySnapshot.docs[0].ref;
-          alunoDocRef.update({ notificacao: false })
-            .then(() => {
-              console.log("✅ Notificação desativada na coleção 'alunos'");
-              notificacaoEl.style.display = "none";
-              contadorAulas.innerText = "";
-              okBtn.innerText = "OK";
-              okBtn.disabled = false;
-            })
-            .catch((error) => {
-              console.error("❌ Erro ao atualizar a coleção 'alunos':", error);
-              alert("Erro ao atualizar notificação");
-              okBtn.innerText = "OK";
-              okBtn.disabled = false;
-            });
-        } else {
-          console.error("❌ Aluno não encontrado na coleção 'alunos'");
-          okBtn.innerText = "OK";
-          okBtn.disabled = false;
-        }
-      });
-
-    // Também busca da coleção "alunos_professor" e envia à FastAPI
-    db.collection("alunos_professor")
-      .where("aluno", "==", nomeAluno)
-      .limit(1)
-      .get()
-      .then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-          const doc = querySnapshot.docs[0];
-          const professorEmail = doc.data().professor;
-
-          console.log("📨 Enviando para FastAPI:", {
-            aluno: nomeAluno,
-            professor: professorEmail,
-          });
-
-          fetch("https://beckend-exaap.onrender.com/desativar-notificacao", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              aluno: nomeAluno,
-              professor: professorEmail,
-            }),
-          })
-            .then((response) => {
-              if (response.ok) {
-                console.log("✅ FastAPI confirmou desativação");
-              } else {
-                console.error("❌ FastAPI retornou erro");
-              }
-            })
-            .catch((error) => {
-              console.error("❌ Erro na requisição FastAPI:", error);
-            });
-        } else {
-          console.warn("⚠️ Aluno não encontrado na coleção 'alunos_professor'");
-        }
-      })
-      .catch((error) => {
-        console.error("❌ Erro ao consultar alunos_professor:", error);
-      });
-  }
-
-  // 🔁 Monitorar em tempo real o campo "notificacao" na coleção "alunos"
   db.collection("alunos")
     .where("nome", "==", nomeAluno)
     .limit(1)
@@ -444,7 +354,6 @@
       }
     });
 
-  // 📞 Monitoramento de chamadas ao vivo
   db.collection("chamadas_ao_vivo").doc(nomeAluno)
     .onSnapshot((doc) => {
       if (doc.exists) {
@@ -471,3 +380,4 @@
 </script>
 </body>
 </html>
+
