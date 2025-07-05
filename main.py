@@ -539,7 +539,6 @@ async def gerar_pdf():
 async def exibir_formulario(request: Request):
     return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
 
-
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
     request: Request,
@@ -574,11 +573,15 @@ async def cadastrar_aluno(
         "provincia": provincia,
         "municipio": municipio,
         "bairro": bairro,
-        "localizacao": {"latitude": latitude, "longitude": longitude},
+        "localizacao": {
+            "latitude": latitude,
+            "longitude": longitude
+        },
         "telefone": telefone,
         "disciplina": disciplina,
         "outra_disciplina": outra_disciplina,
-        "online": False  # Adicionado campo de status online
+        "online": False,         
+        "notificacao": False     
     }
     db.collection("alunos").document(aluno_id).set(dados)
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
