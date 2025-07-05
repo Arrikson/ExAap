@@ -384,13 +384,11 @@
   function desativarNotificacao() {
   const professorEmail = "{{ aluno.professor }}"; // se disponível no template
 
+function desativarNotificacao() {
   fetch("/desativar-notificacao", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      aluno: nomeAluno,
-      professor: professorEmail
-    })
+    body: JSON.stringify({ aluno: nomeAluno })
   })
   .then(response => {
     if (!response.ok) {
@@ -400,8 +398,10 @@
   })
   .then(data => {
     console.log(data.message);
-    notificacaoEl.style.display = "none";
-    contadorAulas.innerText = "";
+    document.getElementById("notificacao-alerta").style.display = "none";
+    // Se quiser limpar contador também:
+    const contadorEl = document.getElementById("contador-aulas");
+    if (contadorEl) contadorEl.innerText = "";
   })
   .catch(error => {
     console.error("Erro:", error);
