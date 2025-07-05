@@ -1268,20 +1268,25 @@ async def desativar_notificacao(data: NotificacaoIn):
         aluno_nome = data.aluno.strip()
         print(f"🔕 Desativando notificação para aluno: {aluno_nome}")
 
-        aluno_ref = db.collection("alunos") \
-                      .where("nome", "==", aluno_nome) \
-                      .limit(1).stream()
-        aluno_doc = next(aluno_ref, None)
+        aluno_query = db.collection("alunos") \
+                        .where("nome", "==", aluno_nome) \
+                        .limit(1) \
+                        .stream()
 
-        if not aluno_doc:
+        aluno_doc = next(aluno_query, None)
+
+        if not aluno_doc or not aluno_doc.exists:
             print("❌ Aluno não encontrado na coleção 'alunos'.")
             raise HTTPException(status_code=404, detail="Aluno não encontrado na coleção 'alunos'.")
 
-        print(f"✅ Documento de aluno encontrado: {aluno_doc.id}")
-        db.collection("alunos").document(aluno_doc.id).update({
+        aluno_id = aluno_doc.id
+        print(f"✅ Documento de aluno encontrado: {aluno_id}")
+
+        db.collection("alunos").document(aluno_id).update({
             "notificacao": False
         })
 
+        print("✅ Notificação desativada com sucesso.")
         return {"message": "Notificação desativada com sucesso"}
 
     except Exception as e:
