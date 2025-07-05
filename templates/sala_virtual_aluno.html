@@ -85,6 +85,9 @@
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
+        localVideo.onloadedmetadata = () => {
+          localVideo.play();
+        };
 
         const peer = new Peer();
 
@@ -95,6 +98,9 @@
           call.on("stream", (profStream) => {
             console.log("Recebendo stream do professor...");
             remoteVideo.srcObject = profStream;
+            remoteVideo.onloadedmetadata = () => {
+              remoteVideo.play();
+            };
             statusDiv.textContent = "Conectado com o professor!";
             videoContainer.style.display = "flex";
           });
