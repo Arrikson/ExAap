@@ -671,9 +671,28 @@ async def get_sala_virtual_professor(
     })
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
-async def get_sala_virtual_aluno(request: Request):
-    return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
+async def get_sala_virtual_aluno(
+    request: Request,
+    email: Optional[str] = Query(default=None),
+    aluno: Optional[str] = Query(default=None)
+):
+    if not email or not aluno:
+        return HTMLResponse("<h2 style='color:red'>Erro: Parâmetros faltando.</h2>", status_code=400)
 
+    aluno_data = vinculo_existe(email, aluno)
+    if not aluno_data:
+        return HTMLResponse("<h2 style='color:red'>Aluno não encontrado ou não vinculado ao professor.</h2>", status_code=404)
+
+    professor = buscar_professor_por_email(email)
+    if not professor:
+        return HTMLResponse("<h2 style='color:red'>Professor não encontrado.</h2>", status_code=404)
+
+    return templates.TemplateResponse("sala_virtual_aluno.html", {
+        "request": request,
+        "aluno": aluno_data,
+        "professor": professor
+    })
+    
 @app.get("/sala_virtual_aluno/{sala}")
 async def redirecionar_para_sala_aluno(sala: str):
     try:
