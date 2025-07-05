@@ -1259,20 +1259,24 @@ def vinculo_existe(prof_email: str, aluno_nome: str):
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(data: NotificacaoIn):
     try:
-        # Procurar vínculo na coleção alunos_professor apenas pelo nome do aluno
-        vinculo_ref = db.collection("alunos_professor") \
-                        .where("aluno", "==", data.aluno.strip()) \
-                        .limit(1).stream()
-        vinculo_doc = next(vinculo_ref, None)
+        aluno_nome = data.aluno.strip()
 
-        if not vinculo_doc:
-            raise HTTPException(status_code=404, detail="Vínculo não encontrado para este aluno.")
+        # Buscar o aluno na coleção "alunos"
+        aluno_ref = db.collection("alunos") \
+                      .where("nome", "==", aluno_nome) \
+                      .limit(1).stream()
+        aluno_doc = next(aluno_ref, None)
 
-        doc_id = vinculo_doc.id
-        db.collection("alunos_professor").document(doc_id).update({"notificacao": False})
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado na coleção 'alunos'.")
+
+        # Atualizar o campo "notificacao" para False
+        db.collection("alunos").document(aluno_doc.id).update({
+            "notificacao": False
+        })
 
         return {"message": "Notificação desativada com sucesso"}
 
     except Exception as e:
-        print("Erro ao desativar notificação:", e)
+        print("❌ Erro ao desativar notificação:", e)
         raise HTTPException(status_code=500, detail="Erro interno ao desativar notificação")
