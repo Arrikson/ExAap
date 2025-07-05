@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -176,264 +176,40 @@
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <img src="/static/logo.png" alt="Logo">
-    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
-  </div>
+  <!-- conteúdo original omitido para brevidade -->
 
-  <div class="profile-container">
-    <h1>{{ aluno.nome }}</h1>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
-      <i class="fas fa-chalkboard-teacher"></i> Professores
-    </button>
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_DOMINIO.firebaseapp.com",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_BUCKET.appspot.com",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
+  };
 
-    <button class="button btn-enter" id="botao-aulas" onclick="verNotificacao()">
-      <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
-    </button>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    <div id="notificacao-mensagem">
-      A tua aula irá começar
-      <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-    </div>
+  const alunoId = "{{ aluno.nome }}";
 
-    <div id="professor-nome"></div>
+  const notificacoesRef = collection(db, "alunos", alunoId, "notificacoes");
 
-    <!-- Dados Pessoais -->
-    <button class="accordion"><i class="fas fa-user"></i> Dados Pessoais</button>
-    <div class="panel">
-      <form method="POST" action="/atualizar-perfil/{{ aluno.nome }}">
-        <label>Nome</label>
-        <input type="text" value="{{ aluno.nome }}" readonly />
-        <label>Nome do Pai</label>
-        <input type="text" value="{{ aluno.nome_pai }}" readonly />
-        <label>Nome da Mãe</label>
-        <input type="text" value="{{ aluno.nome_mae }}" readonly />
-        <label>Telefone</label>
-        <input type="text" name="telefone" value="{{ aluno.telefone }}" />
-        <label>Bairro</label>
-        <input type="text" name="bairro" value="{{ aluno.bairro }}" />
-        <label>Município</label>
-        <input type="text" name="municipio" value="{{ aluno.municipio }}" />
-        <label>Província</label>
-        <input type="text" name="provincia" value="{{ aluno.provincia }}" />
-        <label>Disciplina</label>
-        <input type="text" name="disciplina" value="{{ aluno.disciplina }}" />
-        <label>Outra Disciplina (opcional)</label>
-        <input type="text" name="outra_disciplina" placeholder="Adicionar outra disciplina" />
-        <button class="button" type="submit">Salvar Alterações</button>
-      </form>
-    </div>
-
-    <button class="accordion"><i class="fas fa-key"></i> Editar Senha</button>
-    <div class="panel">
-      <form method="POST" action="/alterar-senha/{{ aluno.nome }}">
-        <label>Senha Antiga</label>
-        <input type="password" name="senha_antiga" required />
-        <label>Nova Senha</label>
-        <input type="password" name="nova_senha" required />
-        <label>Confirmar Nova Senha</label>
-        <input type="password" name="confirmar_senha" required />
-        <button class="button" type="submit">Confirmar Alteração de Senha</button>
-      </form>
-    </div>
-
-    <button class="accordion"><i class="fas fa-wallet"></i> Mensalidade</button>
-    <div class="panel">
-      <label>Aulas Recebidas</label>
-      <input type="number" id="aulas" value="{{ aluno.aulas or 0 }}" readonly />
-      <label>Custo por Aula</label>
-      <input type="text" id="custo" value="2075" readonly />
-      <label>Mensalidade (kz)</label>
-      <input type="text" id="mensalidade" readonly />
-    </div>
-
-    <button class="accordion"><i class="fas fa-graduation-cap"></i> Informações Acadêmicas</button>
-    <div class="panel">
-      <label>Professor Responsável</label>
-      <input type="text" value="{{ aluno.professor or 'A definir' }}" readonly />
-      <label>Notas</label>
-      <input type="text" value="{{ aluno.notas or 'Ainda não disponíveis' }}" readonly />
-    </div>
-
-    <button class="button btn-enter" onclick="entrarNaAula()">Entrar na Aula</button>
-
-    <form method="post" action="/logout" class="logout-form" id="logoutForm">
-      <input type="hidden" name="nome" value="{{ aluno.nome }}">
-    </form>
-  </div>
-
-<script>
-  calcularMensalidade();
-
-  const accordions = document.querySelectorAll(".accordion");
-  accordions.forEach(btn => {
-    btn.addEventListener("click", function () {
-      this.classList.toggle("active");
-      const panel = this.nextElementSibling;
-      panel.style.display = (panel.style.display === "block") ? "none" : "block";
+  onSnapshot(notificacoesRef, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const data = change.doc.data();
+        if (!data.lida) {
+          alert(data.mensagem);
+        }
+      }
     });
   });
-
-  function calcularMensalidade() {
-    const aulas = parseInt(document.getElementById("aulas").value);
-    const custo = parseFloat(document.getElementById("custo").value);
-    const mensalidade = aulas * custo;
-    document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
-  }
-
-  function fazerLogout() {
-    fetch("/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: "{{ aluno.nome }}" })
-    })
-    .then(() => window.location.href = "/")
-    .catch(error => console.error("Erro ao fazer logout:", error));
-  }
-
-  let professorVisivel = false;
-  function verProfessor(nome) {
-    const container = document.getElementById("professor-nome");
-    if (professorVisivel) {
-      container.innerHTML = "";
-      professorVisivel = false;
-      return;
-    }
-
-    fetch(`/meu-professor-status/${nome}`)
-      .then(response => response.json())
-      .then(data => {
-        const statusIcon = data.online ? '🟢' : '⚪';
-        const statusText = data.online ? 'Online' : 'Offline';
-        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-        professorVisivel = true;
-      })
-      .catch(err => {
-        container.innerHTML = "Professor não encontrado.";
-        professorVisivel = true;
-        console.error("Erro ao buscar professor:", err);
-      });
-  }
-</script>
-
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "...",
-    authDomain: "...",
-    projectId: "...",
-  };
- <script>
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const nomeAluno = "{{ aluno.nome }}";
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-
-  // ✅ VERIFICAÇÃO MANUAL COM ROTA (por clique no botão "AULAS")
-  function verNotificacao() {
-    db.collection("alunos")
-      .where("nome", "==", nomeAluno)
-      .limit(1)
-      .get()
-      .then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-          const dados = querySnapshot.docs[0].data();
-          if (dados.notificacao === true) {
-            notificacaoEl.style.display = "block";
-            contadorAulas.innerText = "(1)";
-          } else {
-            notificacaoEl.style.display = "none";
-            contadorAulas.innerText = "";
-          }
-        } else {
-          console.warn("Aluno não encontrado.");
-        }
-      })
-      .catch((error) => {
-        console.error("Erro ao verificar notificação:", error);
-      });
-  }
-
-  // ✅ OBSERVAÇÃO EM TEMPO REAL (caso mude no Firebase)
-  db.collection("alunos")
-    .where("nome", "==", nomeAluno)
-    .limit(1)
-    .onSnapshot((querySnapshot) => {
-      console.log("📡 Snapshot recebido:", querySnapshot.size);
-
-      if (!querySnapshot.empty) {
-        const dados = querySnapshot.docs[0].data();
-        console.log("📦 Dados do aluno:", dados);
-
-        if (dados.notificacao === true) {
-          console.log("✅ Notificação ativada");
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
-        } else {
-          console.log("❌ Notificação desativada");
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        }
-      } else {
-        console.warn("⚠️ Nenhum documento encontrado para este aluno.");
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    });
-
-  // ✅ OBSERVAÇÃO DE CHAMADA AO VIVO
-  db.collection("chamadas_ao_vivo").doc(nomeAluno)
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        const dados = doc.data();
-        if (dados.status === "pendente") {
-          mostrarConvite(dados.professor, dados.sala);
-        }
-      }
-    });
-
-  function mostrarConvite(professor, sala) {
-    const aceitar = confirm(`O professor ${professor} está te chamando para uma aula. Deseja entrar?`);
-    if (aceitar) {
-      db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "aceito" });
-      window.location.href = `/sala_virtual_aluno/${sala}`;
-    } else {
-      db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
-    }
-  }
-
-  function entrarNaAula() {
-    window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
-  }
-
-  // ✅ DESATIVAR NOTIFICAÇÃO (Botão OK)
-  function desativarNotificacao() {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Erro ao desativar a notificação.");
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log(data.message);
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      const contadorEl = document.getElementById("contador-aulas");
-      if (contadorEl) contadorEl.innerText = "";
-    })
-    .catch(error => {
-      console.error("Erro:", error);
-    });
-  }
 </script>
 </body>
 </html>
