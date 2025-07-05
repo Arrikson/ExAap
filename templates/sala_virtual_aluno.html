@@ -69,6 +69,7 @@
 
     const profEmail = document.body.dataset.profEmail;
     const profNome = document.body.dataset.profNome;
+    const safePeerId = profEmail.replace(/[@.]/g, "_"); // Mesma substituição usada no professor
 
     async function conectarComProfessor() {
       try {
@@ -81,25 +82,31 @@
         }
 
         statusDiv.textContent = `Conectando com o professor ${profNome}...`;
-        videoContainer.style.display = "flex";
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        const peer = new Peer(); // ID gerado automaticamente
+        const peer = new Peer();
 
         peer.on("open", (id) => {
           console.log("ID do aluno:", id);
-          const call = peer.call(profEmail, stream);
+          const call = peer.call(safePeerId, stream);  // Usando o ID corrigido
 
           call.on("stream", (profStream) => {
+            console.log("Recebendo stream do professor...");
             remoteVideo.srcObject = profStream;
-            statusDiv.textContent = "Conectado!";
+            statusDiv.textContent = "Conectado com o professor!";
+            videoContainer.style.display = "flex";
           });
 
           call.on("close", () => {
             alert("A chamada foi encerrada.");
             statusDiv.textContent = "Chamada finalizada.";
+          });
+
+          call.on("error", (err) => {
+            console.error("Erro na chamada:", err);
+            statusDiv.textContent = "Erro na chamada.";
           });
         });
 
@@ -109,8 +116,9 @@
         });
 
       } catch (err) {
-        console.error(err);
+        console.error("Erro ao conectar:", err);
         alert("Erro ao conectar. Tente novamente.");
+        statusDiv.textContent = "Erro na conexão.";
       }
     }
 
