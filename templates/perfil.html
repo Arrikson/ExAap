@@ -319,15 +319,6 @@
         console.error("Erro ao buscar professor:", err);
       });
   }
-
-  function verNotificacao() {
-    notificacaoEl.style.display = "block";
-    contadorAulas.innerText = "(1)";
-  }
-
-  function entrarNaAula() {
-    window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
-  }
 </script>
 
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -346,8 +337,20 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
+  console.log("🔎 Nome do aluno:", nomeAluno);
+
+  // ✅ Função para exibir notificação
+  function verNotificacao() {
+    notificacaoEl.style.display = "block";
+    contadorAulas.innerText = "(1)";
+  }
+
   // 👇 Função chamada ao clicar no botão OK
   function desativarNotificacao() {
+    const okBtn = document.getElementById("ok-btn");
+    okBtn.disabled = true;
+    okBtn.innerText = "Atualizando...";
+
     // Atualiza a coleção "alunos"
     db.collection("alunos")
       .where("nome", "==", nomeAluno)
@@ -361,13 +364,19 @@
               console.log("✅ Notificação desativada na coleção 'alunos'");
               notificacaoEl.style.display = "none";
               contadorAulas.innerText = "";
+              okBtn.innerText = "OK";
+              okBtn.disabled = false;
             })
             .catch((error) => {
               console.error("❌ Erro ao atualizar a coleção 'alunos':", error);
               alert("Erro ao atualizar notificação");
+              okBtn.innerText = "OK";
+              okBtn.disabled = false;
             });
         } else {
           console.error("❌ Aluno não encontrado na coleção 'alunos'");
+          okBtn.innerText = "OK";
+          okBtn.disabled = false;
         }
       });
 
@@ -454,6 +463,10 @@
     } else {
       db.collection("chamadas_ao_vivo").doc(nomeAluno).update({ status: "rejeitado" });
     }
+  }
+
+  function entrarNaAula() {
+    window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
   }
 </script>
 </body>
