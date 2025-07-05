@@ -675,15 +675,14 @@ async def get_sala_virtual_aluno(request: Request):
     return templates.TemplateResponse("sala_virtual_aluno.html", {"request": request})
 
 @app.get("/sala_virtual_aluno/{sala}")
-async def redirecionar_para_sala_professor(sala: str):
+async def redirecionar_para_sala_aluno(sala: str):
     try:
-        # Divide a string "email-do-professor-nome-do-aluno"
-        professor_email, _ = sala.split("-", 1)
+        professor_email, aluno_nome = sala.split("-", 1)
     except ValueError:
-        return HTMLResponse("<h2>Formato da sala inválido</h2>", status_code=400)
+        return HTMLResponse("<h2>Formato inválido</h2>", status_code=400)
 
-    # Redireciona para a sala virtual do professor com o email na query string
-    return RedirectResponse(url=f"/sala_virtual_professor?email={professor_email}")
+    # Redirecionar para a sala_virtual_aluno.html com query params
+    return RedirectResponse(url=f"/sala_virtual_aluno?email={professor_email}&aluno={aluno_nome}")
     
 def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
     docs = db.collection('alunos_professor') \
