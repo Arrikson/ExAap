@@ -1249,6 +1249,36 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
         )
 
 class Notificacao(BaseModel):
+    aluno: str
+    professor: str | None = None 
+    
+@app.post("/ativar-notificacao")
+async def ativar_notificacao(request: Request):
+    body = await request.json()
+    nome_aluno = body.get("aluno")
+
+    doc_ref = db.collection("alunos").where("nome", "==", nome_aluno).limit(1)
+    results = doc_ref.get()
+    for doc in results:
+        doc.reference.update({"notificacao": True})
+        return {"message": "Notificação ativada com sucesso."}
+
+    return {"message": "Aluno não encontrado."}
+
+@app.post("/desativar-notificacao")
+async def desativar_notificacao(request: Request):
+    body = await request.json()
+    nome_aluno = body.get("aluno")
+
+    doc_ref = db.collection("alunos").where("nome", "==", nome_aluno).limit(1)
+    results = doc_ref.get()
+    for doc in results:
+        doc.reference.update({"notificacao": False})
+        return {"message": "Notificação desativada com sucesso."}
+
+    return {"message": "Aluno não encontrado."}
+
+class Notificacao(BaseModel):
     aluno_id: str
     professor: str
     mensagem: str
