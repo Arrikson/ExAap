@@ -6,7 +6,6 @@
   <title>Perfil do Professor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    /* (mesmo estilo anterior, não modificado) */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -212,189 +211,192 @@
     </div>
 
     <div class="action-buttons">
-      <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-      <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
-      <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
-      <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
-    </div>
+  <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+  <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
+  <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
+  <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
+</div>
 
-    <div id="meus-alunos" style="display: none;"></div>
-    <div id="alunos-disponiveis" style="display: none;"></div>
-  </div>
+<div id="meus-alunos" style="display: none;"></div>
+<div id="alunos-disponiveis" style="display: none;"></div>
+</div>
 
-  <script>
-    function toggleDados() {
-      const div = document.getElementById('dadosSecretos');
-      div.style.display = div.style.display === 'block' ? 'none' : 'block';
+<script>
+  function toggleDados() {
+    const div = document.getElementById('dadosSecretos');
+    div.style.display = div.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function toggleSection(id, fetchFunction) {
+    const section = document.getElementById(id);
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+    } else {
+      section.style.display = 'block';
+      fetchFunction();
     }
+  }
 
-    function toggleSection(id, fetchFunction) {
-      const section = document.getElementById(id);
-      if (section.style.display === 'block') {
-        section.style.display = 'none';
+  function comecarAula() {
+    const email = "{{ professor.email }}";
+    window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
+  }
+
+  async function enviarNotificacao(aluno, professorEmail) {
+    try {
+      const resposta = await fetch("/enviar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aluno_id: aluno,
+          professor: professorEmail,
+          mensagem: "A tua aula vai começar!"
+        })
+      });
+
+      const resultado = await resposta.json();
+      alert(resultado.msg || "Notificação enviada");
+    } catch (error) {
+      console.error("Erro ao enviar notificação:", error);
+      alert("Erro ao enviar notificação.");
+    }
+  }
+
+  async function iniciarChamada(aluno, professorEmail) {
+    try {
+      await fetch("/iniciar-aula", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          aluno: aluno,
+          professor: professorEmail,
+          sala: `${professorEmail}-${aluno}`
+        })
+      });
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}`;
+    } catch (error) {
+      console.error("Erro ao iniciar chamada:", error);
+      alert("Erro ao iniciar a chamada.");
+    }
+  }
+
+  async function listarMeusAlunos() {
+    const email = "{{ professor.email }}";
+    try {
+      const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
+      const lista = await res.json();
+      const container = document.getElementById('meus-alunos');
+      container.innerHTML = '<h2>Meus Alunos</h2>';
+
+      if (lista.length === 0) {
+        container.innerHTML += '<p>Nenhum aluno vinculado ainda.</p>';
+        return;
+      }
+
+      lista.forEach(aluno => {
+        const card = document.createElement('div');
+        card.className = 'aluno-card';
+
+        const statusClass = aluno.online ? 'online' : 'offline';
+        const statusText = aluno.online ? 'Online' : 'Offline';
+
+        card.innerHTML = `
+          <div class="aluno-header">
+            <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+            <div class="status">
+              <span>${statusText}</span>
+              <span class="status-dot ${statusClass}"></span>
+            </div>
+          </div>
+        `;
+
+        if (aluno.online) {
+          const btn = document.createElement('button');
+          btn.textContent = 'Iniciar Aula';
+          btn.className = 'notificar-btn';
+          btn.onclick = async () => {
+            await enviarNotificacao(aluno.nome, email);
+            iniciarChamada(aluno.nome, email);
+          };
+          card.appendChild(btn);
+        }
+
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar alunos:", error);
+      alert("Erro ao buscar alunos.");
+    }
+  }
+
+  async function buscarAlunosDisponiveis() {
+    const email = "{{ professor.email }}";
+    try {
+      const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
+      const lista = await res.json();
+      const container = document.getElementById('alunos-disponiveis');
+      container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+
+      if (lista.length === 0) {
+        container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+        return;
+      }
+
+      lista.forEach(aluno => {
+        const card = document.createElement('div');
+        card.className = 'aluno-card';
+
+        const nomeAluno = aluno.nome;
+        const disciplina = aluno.disciplina;
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${nomeAluno}</strong> - ${disciplina}
+            </div>
+            <button class="notificar-btn" onclick="vincularAluno('${nomeAluno}', '{{ professor.email }}')">
+              Vincular
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar alunos disponíveis:", error);
+      alert("Erro ao buscar alunos disponíveis.");
+    }
+  }
+
+  async function vincularAluno(nomeAluno, professorEmail) {
+    try {
+      const res = await fetch('/vincular-aluno', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          professor_email: professorEmail,
+          aluno_nome: nomeAluno
+        })
+      });
+
+      if (res.ok) {
+        alert(`Aluno "${nomeAluno}" vinculado com sucesso!`);
+        buscarAlunosDisponiveis();
       } else {
-        section.style.display = 'block';
-        fetchFunction();
+        const erro = await res.json();
+        alert(`Erro: ${erro.detail}`);
       }
+    } catch (error) {
+      console.error('Erro ao vincular aluno:', error);
+      alert('Erro interno ao tentar vincular o aluno.');
     }
-
-    function comecarAula() {
-      const email = "{{ professor.email }}";
-      window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
-    }
-
-    async function enviarNotificacao(alunoId, professorEmail) {
-      try {
-        const resposta = await fetch("/enviar-notificacao", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            aluno_id: alunoId,
-            professor: professorEmail,
-            mensagem: "A tua aula vai começar!"
-          })
-        });
-
-        const resultado = await resposta.json();
-        alert(resultado.msg || "Notificação enviada");
-      } catch (error) {
-        console.error("Erro ao enviar notificação:", error);
-        alert("Erro ao enviar notificação.");
-      }
-    }
-
-    async function iniciarChamada(aluno, professorEmail) {
-      try {
-        await fetch("/iniciar-aula", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            aluno: aluno,
-            professor: professorEmail,
-            sala: `${professorEmail}-${aluno}`
-          })
-        });
-        window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}`;
-      } catch (error) {
-        console.error("Erro ao iniciar chamada:", error);
-        alert("Erro ao iniciar a chamada.");
-      }
-    }
-
-    async function listarMeusAlunos() {
-      const email = "{{ professor.email }}";
-      try {
-        const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
-        const lista = await res.json();
-        const container = document.getElementById('meus-alunos');
-        container.innerHTML = '<h2>Meus Alunos</h2>';
-
-        if (lista.length === 0) {
-          container.innerHTML += '<p>Nenhum aluno vinculado ainda.</p>';
-          return;
-        }
-
-        lista.forEach(aluno => {
-          const card = document.createElement('div');
-          card.className = 'aluno-card';
-
-          const statusClass = aluno.online ? 'online' : 'offline';
-          const statusText = aluno.online ? 'Online' : 'Offline';
-
-          card.innerHTML = `
-            <div class="aluno-header">
-              <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
-              <div class="status">
-                <span>${statusText}</span>
-                <span class="status-dot ${statusClass}"></span>
-              </div>
-            </div>
-          `;
-
-          if (aluno.online) {
-            const btn = document.createElement('button');
-            btn.textContent = 'Iniciar Aula';
-            btn.className = 'notificar-btn';
-            btn.onclick = async () => {
-              await enviarNotificacao(aluno.id, email);
-              iniciarChamada(aluno.nome, email);
-            };
-            card.appendChild(btn);
-          }
-
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Erro ao buscar alunos:", error);
-        alert("Erro ao buscar alunos.");
-      }
-    }
-
-    async function buscarAlunosDisponiveis() {
-      const email = "{{ professor.email }}";
-      try {
-        const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-        const lista = await res.json();
-        const container = document.getElementById('alunos-disponiveis');
-        container.innerHTML = '<h2>Alunos Disponíveis</h2>';
-
-        if (lista.length === 0) {
-          container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
-          return;
-        }
-
-        lista.forEach(aluno => {
-          const card = document.createElement('div');
-          card.className = 'aluno-card';
-
-          const nomeAluno = aluno.nome;
-          const disciplina = aluno.disciplina;
-
-          card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong>${nomeAluno}</strong> - ${disciplina}
-              </div>
-              <button class="notificar-btn" onclick="vincularAluno('${nomeAluno}', '{{ professor.email }}')">
-                Vincular
-              </button>
-            </div>
-          `;
-
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Erro ao buscar alunos disponíveis:", error);
-        alert("Erro ao buscar alunos disponíveis.");
-      }
-    }
-
-    async function vincularAluno(nomeAluno, professorEmail) {
-      try {
-        const res = await fetch('/vincular-aluno', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            professor_email: professorEmail,
-            aluno_nome: nomeAluno
-          })
-        });
-
-        if (res.ok) {
-          alert(`Aluno "${nomeAluno}" vinculado com sucesso!`);
-          buscarAlunosDisponiveis();
-        } else {
-          const erro = await res.json();
-          alert(`Erro: ${erro.detail}`);
-        }
-      } catch (error) {
-        console.error('Erro ao vincular aluno:', error);
-        alert('Erro interno ao tentar vincular o aluno.');
-      }
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
+
