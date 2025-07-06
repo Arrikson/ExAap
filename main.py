@@ -1265,4 +1265,19 @@ def ativar_notificacao(alerta: Alerta):
     })
 
     return {"msg": f"Notificação ativada para {alerta.aluno}"}
+
+@router.post("/desativar-notificacao")
+def desativar_notificacao(alerta: Alerta):
+    db = firestore.client()
+    aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
+
+    if not aluno_ref:
+        return {"erro": "Aluno não encontrado"}
+
+    doc_id = aluno_ref[0].id
+    db.collection("alunos").document(doc_id).update({
+        "notificacao": False
+    })
+
+    return {"msg": f"Notificação desativada para {alerta.aluno}"}
     
