@@ -6,7 +6,173 @@
   <title>Perfil do Aluno</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    /* ... (mantém todos os estilos iguais ao original) ... */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #00C6FF, #007BFF);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .top-bar img {
+      height: 45px;
+    }
+
+    .logout-icon {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      color: #dc3545;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .profile-container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 100px 30px 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .accordion {
+      background-color: #ffffff22;
+      color: #fff;
+      cursor: pointer;
+      padding: 15px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 18px;
+      transition: 0.3s;
+      border-radius: 10px;
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .accordion:hover {
+      background-color: #ffffff33;
+    }
+
+    .accordion:after {
+      content: "\f0da";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+
+    .accordion.active:after {
+      content: "\f0d7";
+    }
+
+    .panel {
+      padding: 0 10px;
+      display: none;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    input[readonly] {
+      background-color: #ddd;
+    }
+
+    .button {
+      padding: 12px 20px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .button:hover {
+      background-color: #218838;
+    }
+
+    .btn-enter {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .btn-enter:hover {
+      background-color: #e0a800;
+    }
+
+    #professor-nome {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #fff;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-icon {
+      font-size: 18px;
+    }
+
+    .logout-form {
+      display: none;
+    }
+
+    #notificacao-mensagem {
+      margin-top: 10px;
+      display: none;
+      background: #fffa;
+      color: #000;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
