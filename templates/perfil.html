@@ -192,14 +192,9 @@
       <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
-    <div id="notificacao-mensagem">
-      A tua aula irá começar
-      <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-    </div>
+    <div id="notificacao-mensagem"></div>
 
     <div id="professor-nome"></div>
-
-    <!-- ... (demais seções mantidas como estavam) ... -->
 
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
@@ -235,32 +230,39 @@
     .catch(error => console.error("Erro ao fazer logout:", error));
   }
 
-  let professorVisivel = false;
   function verProfessor(nome) {
     const container = document.getElementById("professor-nome");
-    if (professorVisivel) {
-      container.innerHTML = "";
-      professorVisivel = false;
-      return;
-    }
-
     fetch(`/meu-professor-status/${nome}`)
       .then(response => response.json())
       .then(data => {
         const statusIcon = data.online ? '🟢' : '⚪';
         const statusText = data.online ? 'Online' : 'Offline';
         container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-        professorVisivel = true;
       })
       .catch(err => {
         container.innerHTML = "Professor não encontrado.";
-        professorVisivel = true;
         console.error("Erro ao buscar professor:", err);
       });
   }
 
-  function entrarNaAula() {
-    window.location.href = "/sala_virtual_professor/{{ aluno.nome }}";
+  function verNotificacao() {
+    const nomeAluno = "{{ aluno.nome }}";
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+
+    fetch(`/verificar-notificacao/${nomeAluno}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.notificacao === true) {
+          notificacaoEl.innerHTML = `A tua aula irá começar
+            <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>`;
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+        } else {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        }
+      });
   }
 
   function desativarNotificacao() {
@@ -269,12 +271,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ aluno: "{{ aluno.nome }}" })
     })
-    .then(response => {
-      if (!response.ok) throw new Error("Erro ao desativar a notificação.");
-      return response.json();
-    })
-    .then(data => {
-      console.log(data.message);
+    .then(() => {
       document.getElementById("notificacao-mensagem").style.display = "none";
       document.getElementById("contador-aulas").innerText = "";
     })
@@ -282,7 +279,6 @@
   }
 </script>
 
-<!-- Firebase 10.12.0 com módulo ES -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
@@ -294,7 +290,7 @@
     apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
     authDomain: "exap-8a935.firebaseapp.com",
     projectId: "exap-8a935",
-    storageBucket: "exap-8a935.firebasestorage.app",
+    storageBucket: "exap-8a935.appspot.com",
     messagingSenderId: "664710895978",
     appId: "1:664710895978:web:304790f37d7561d9b1ed13"
   };
@@ -306,31 +302,12 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
-  // Verificação manual (clique no botão)
-  window.verNotificacao = async function () {
-    const alunosRef = collection(db, "alunos");
-    const q = query(alunosRef, where("nome", "==", nomeAluno));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const dados = querySnapshot.docs[0].data();
-      if (dados.notificacao === true) {
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    } else {
-      console.warn("Aluno não encontrado.");
-    }
-  };
-
-  // Escuta em tempo real
   onSnapshot(query(collection(db, "alunos"), where("nome", "==", nomeAluno)), (snapshot) => {
     snapshot.forEach((docSnap) => {
       const dados = docSnap.data();
       if (dados.notificacao === true) {
+        notificacaoEl.innerHTML = `A tua aula irá começar
+          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>`;
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
       } else {
@@ -339,6 +316,31 @@
       }
     });
   });
+
+  // Subcoleção de notificações
+  const notificacoesRef = collection(db, "alunos", nomeAluno, "notificacoes");
+  onSnapshot(notificacoesRef, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const data = change.doc.data();
+        if (!data.lida) {
+          notificacaoEl.innerHTML = `
+            ${data.mensagem}
+            <button class="button" onclick="marcarNotificacaoComoLida('${change.doc.id}')" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+          `;
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+        }
+      }
+    });
+  });
+
+  window.marcarNotificacaoComoLida = async function(id) {
+    const ref = doc(db, "alunos", nomeAluno, "notificacoes", id);
+    await updateDoc(ref, { lida: true });
+    notificacaoEl.style.display = "none";
+    contadorAulas.innerText = "";
+  };
 
   // Chamada ao vivo
   const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
@@ -355,19 +357,6 @@
         }
       }
     }
-  });
-
-  // Notificações da subcoleção
-  const notificacoesRef = collection(db, "alunos", nomeAluno, "notificacoes");
-  onSnapshot(notificacoesRef, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === "added") {
-        const data = change.doc.data();
-        if (!data.lida) {
-          alert(data.mensagem);
-        }
-      }
-    });
   });
 </script>
 </body>
