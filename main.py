@@ -1248,9 +1248,6 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
-
-app.include_router(notificacoes.router)
-
 class Alerta(BaseModel):
     aluno: str 
 
