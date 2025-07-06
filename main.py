@@ -1285,6 +1285,7 @@ class Notificacao(BaseModel):
 
 @app.post("/enviar-notificacao")
 def enviar_notificacao(dados: Notificacao):
+    # aqui 'aluno_id' deve ser o mesmo que o nome do documento no Firebase
     doc_ref = db.collection("alunos").document(dados.aluno_id).collection("notificacoes").document()
     doc_ref.set({
         "mensagem": dados.mensagem,
