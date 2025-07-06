@@ -243,6 +243,24 @@
     window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
   }
 
+  async function notificarAluno(nomeAluno) {
+    try {
+      const resposta = await fetch("/ativar-notificacao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ aluno: nomeAluno })
+      });
+
+      const resultado = await resposta.json();
+      alert(resultado.msg || "Notificação enviada!");
+    } catch (error) {
+      console.error("Erro ao notificar:", error);
+      alert("Falha ao enviar notificação");
+    }
+  }
+
   async function enviarNotificacao(aluno, professorEmail) {
     try {
       const resposta = await fetch("/enviar-notificacao", {
@@ -314,14 +332,20 @@
         `;
 
         if (aluno.online) {
-          const btn = document.createElement('button');
-          btn.textContent = 'Iniciar Aula';
-          btn.className = 'notificar-btn';
-          btn.onclick = async () => {
+          const notificarBtn = document.createElement('button');
+          notificarBtn.textContent = 'Notificar aluno';
+          notificarBtn.className = 'notificar-btn';
+          notificarBtn.onclick = () => notificarAluno(aluno.nome);
+          card.appendChild(notificarBtn);
+
+          const iniciarBtn = document.createElement('button');
+          iniciarBtn.textContent = 'Iniciar Aula';
+          iniciarBtn.className = 'notificar-btn';
+          iniciarBtn.onclick = async () => {
             await enviarNotificacao(aluno.nome, email);
             iniciarChamada(aluno.nome, email);
           };
-          card.appendChild(btn);
+          card.appendChild(iniciarBtn);
         }
 
         container.appendChild(card);
