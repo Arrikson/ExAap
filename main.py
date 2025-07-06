@@ -1248,14 +1248,13 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
-from routes import notificacoes
 
 app.include_router(notificacoes.router)
 
 class Alerta(BaseModel):
     aluno: str 
 
-@router.post("/ativar-notificacao")
+@app.post("/ativar-notificacao")
 def ativar_notificacao(alerta: Alerta):
     db = firestore.client()
     aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
@@ -1270,7 +1269,7 @@ def ativar_notificacao(alerta: Alerta):
 
     return {"msg": f"Notificação ativada para {alerta.aluno}"}
 
-@router.post("/desativar-notificacao")
+@app.post("/desativar-notificacao")
 def desativar_notificacao(alerta: Alerta):
     db = firestore.client()
     aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
