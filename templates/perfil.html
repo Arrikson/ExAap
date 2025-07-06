@@ -246,23 +246,7 @@
   }
 
   function verNotificacao() {
-    const nomeAluno = "{{ aluno.id_documento }}";
-    const notificacaoEl = document.getElementById("notificacao-mensagem");
-    const contadorAulas = document.getElementById("contador-aulas");
-
-    fetch(`/verificar-notificacao/${nomeAluno}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.notificacao === true) {
-          notificacaoEl.innerHTML = `A tua aula irá começar
-            <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>`;
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
-        } else {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        }
-      });
+    // Esta função pode ser mantida ou descartada se estiveres usando somente o snapshot.
   }
 
   function desativarNotificacao() {
@@ -302,6 +286,7 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
+  // 🔔 Escuta direta do campo "notificacao" da coleção "alunos"
   onSnapshot(query(collection(db, "alunos"), where("nome", "==", nomeAluno)), (snapshot) => {
     snapshot.forEach((docSnap) => {
       const dados = docSnap.data();
@@ -317,7 +302,7 @@
     });
   });
 
-  // Subcoleção de notificações
+  // 🔔 Escuta da subcoleção "notificacoes" (caso continue usando ela também)
   const notificacoesRef = collection(db, "alunos", nomeAluno, "notificacoes");
   onSnapshot(notificacoesRef, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
@@ -335,6 +320,7 @@
     });
   });
 
+  // ✅ Função chamada pelo botão "Vista"
   window.marcarNotificacaoComoLida = async function(id) {
     const ref = doc(db, "alunos", nomeAluno, "notificacoes", id);
     await updateDoc(ref, { lida: true });
@@ -342,7 +328,7 @@
     contadorAulas.innerText = "";
   };
 
-  // Chamada ao vivo
+  // 📞 Chamada ao vivo
   const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
   onSnapshot(chamadaRef, (docSnap) => {
     if (docSnap.exists()) {
