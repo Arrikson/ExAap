@@ -1248,49 +1248,21 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
-class Notificacao(BaseModel):
-    aluno: str
-    professor: str | None = None 
-    
-@app.post("/ativar-notificacao")
-async def ativar_notificacao(request: Request):
-    body = await request.json()
-    nome_aluno = body.get("aluno")
+class Alerta(BaseModel):
+    aluno: str  # Nome do aluno
 
-    doc_ref = db.collection("alunos").where("nome", "==", nome_aluno).limit(1)
-    results = doc_ref.get()
-    for doc in results:
-        doc.reference.update({"notificacao": True})
-        return {"message": "Notificação ativada com sucesso."}
+@router.post("/ativar-notificacao")
+def ativar_notificacao(alerta: Alerta):
+    db = firestore.client()
+    aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
 
-    return {"message": "Aluno não encontrado."}
+    if not aluno_ref:
+        return {"erro": "Aluno não encontrado"}
 
-@app.post("/desativar-notificacao")
-async def desativar_notificacao(request: Request):
-    body = await request.json()
-    nome_aluno = body.get("aluno")
-
-    doc_ref = db.collection("alunos").where("nome", "==", nome_aluno).limit(1)
-    results = doc_ref.get()
-    for doc in results:
-        doc.reference.update({"notificacao": False})
-        return {"message": "Notificação desativada com sucesso."}
-
-    return {"message": "Aluno não encontrado."}
-
-class Notificacao(BaseModel):
-    aluno_id: str
-    professor: str
-    mensagem: str
-
-@app.post("/enviar-notificacao")
-def enviar_notificacao(dados: Notificacao):
-    # aqui 'aluno_id' deve ser o mesmo que o nome do documento no Firebase
-    doc_ref = db.collection("alunos").document(dados.aluno_id).collection("notificacoes").document()
-    doc_ref.set({
-        "mensagem": dados.mensagem,
-        "lida": False,
-        "professor": dados.professor,
-        "timestamp": firestore.SERVER_TIMESTAMP
+    doc_id = aluno_ref[0].id
+    db.collection("alunos").document(doc_id).update({
+        "notificacao": True
     })
-    return {"msg": "Notificação enviada com sucesso!"}
+
+    return {"msg": f"Notificação ativada para {alerta.aluno}"}
+    
