@@ -263,11 +263,12 @@
   }
 </script>
 
+<!-- 🔄 Substituição da lógica anterior -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getFirestore, collection, doc, query, where,
-    onSnapshot, getDocs, updateDoc
+    getFirestore, collection, query, where,
+    onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -286,13 +287,17 @@
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
 
-  // 🔔 Escuta direta do campo "notificacao" da coleção "alunos"
-  onSnapshot(query(collection(db, "alunos"), where("nome", "==", nomeAluno)), (snapshot) => {
+  // 🔔 Verifica campo "notificacao" na coleção "alunos_professor"
+  const q = query(collection(db, "alunos_professor"), where("aluno", "==", nomeAluno));
+
+  onSnapshot(q, (snapshot) => {
     snapshot.forEach((docSnap) => {
       const dados = docSnap.data();
       if (dados.notificacao === true) {
-        notificacaoEl.innerHTML = `A tua aula irá começar
-          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>`;
+        notificacaoEl.innerHTML = `
+          A tua aula irá começar
+          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+        `;
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
       } else {
@@ -302,33 +307,8 @@
     });
   });
 
-  // 🔔 Escuta da subcoleção "notificacoes" (caso continue usando ela também)
-  const notificacoesRef = collection(db, "alunos", nomeAluno, "notificacoes");
-  onSnapshot(notificacoesRef, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === "added") {
-        const data = change.doc.data();
-        if (!data.lida) {
-          notificacaoEl.innerHTML = `
-            ${data.mensagem}
-            <button class="button" onclick="marcarNotificacaoComoLida('${change.doc.id}')" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-          `;
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
-        }
-      }
-    });
-  });
-
-  // ✅ Função chamada pelo botão "Vista"
-  window.marcarNotificacaoComoLida = async function(id) {
-    const ref = doc(db, "alunos", nomeAluno, "notificacoes", id);
-    await updateDoc(ref, { lida: true });
-    notificacaoEl.style.display = "none";
-    contadorAulas.innerText = "";
-  };
-
-  // 📞 Chamada ao vivo
+  // 📞 Escuta chamada ao vivo (mantida)
+  import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
   onSnapshot(chamadaRef, (docSnap) => {
     if (docSnap.exists()) {
