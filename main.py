@@ -1319,3 +1319,26 @@ async def verificar_notificacao(request: Request):
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
+@app.post("/registrar-chamada")
+async def registrar_chamada(request: Request):
+    dados = await request.json()
+    aluno = dados.get("aluno")
+    professor = dados.get("professor")
+
+    if not aluno or not professor:
+        return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+
+    db_firestore = firestore.client()
+
+    try:
+        doc_ref = db_firestore.collection("chamadas_ao_vivo").document(aluno)
+        doc_ref.set({
+            "aluno": aluno,
+            "professor": professor,
+            "sala": professor,  # Aqui usamos o email como nome da sala
+            "status": "pendente"
+        })
+        return JSONResponse(content={"mensagem": "Chamada registrada com sucesso"})
+    except Exception as e:
+        return JSONResponse(content={"erro": str(e)}, status_code=500)
