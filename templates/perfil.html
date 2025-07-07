@@ -200,10 +200,13 @@
     </form>
   </div>
 
+<!-- ... início do HTML e estilo permanecem iguais ... -->
+
 <script>
   const nomeAluno = "{{ aluno.nome }}";
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
+  let professorEmailAtual = null;
 
   function fazerLogout() {
     fetch("/logout", {
@@ -230,7 +233,7 @@
       });
   }
 
- function verNotificacao() {
+  function verNotificacao() {
     fetch("/verificar-notificacao", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -239,9 +242,10 @@
     .then(response => response.json())
     .then(data => {
       if (data.notificacao === true) {
+        professorEmailAtual = data.professor_email; // <-- necessário no backend
         notificacaoEl.innerHTML = `
           A tua aula irá começar
-          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+          <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
         `;
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
@@ -253,7 +257,7 @@
     .catch(error => console.error("Erro ao verificar notificação:", error));
   }
 
-  function desativarNotificacao() {
+  function desativarNotificacaoERedirecionar() {
     fetch("/desativar-notificacao", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -262,12 +266,17 @@
     .then(() => {
       document.getElementById("notificacao-mensagem").style.display = "none";
       document.getElementById("contador-aulas").innerText = "";
+      if (professorEmailAtual) {
+        // Redireciona o aluno para a sala virtual do professor
+        const sala = encodeURIComponent(professorEmailAtual);
+        window.location.href = `/sala_virtual_aluno/${sala}`;
+      }
     })
     .catch(error => console.error("Erro:", error));
   }
 </script>
 
-<!-- Chamada ao vivo -->
+<!-- Firebase chamada ao vivo permanece igual -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
