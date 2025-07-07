@@ -695,12 +695,18 @@ async def get_sala_virtual_aluno(
     
 @app.get("/sala_virtual_aluno/{sala}")
 async def redirecionar_para_sala_aluno(sala: str):
-    try:
-        professor_email, aluno_nome = sala.split("-", 1)
-    except ValueError:
-        return HTMLResponse("<h2>Formato inválido</h2>", status_code=400)
+    # Decodifica caso tenha %40 no e-mail
+    decoded = unquote(sala)
 
-    # Redirecionar para a sala_virtual_aluno.html com query params
+    if "-" not in decoded:
+        return HTMLResponse("<h2>Formato inválido: esperado 'email-do-professor-nome-do-aluno'</h2>", status_code=400)
+
+    try:
+        professor_email, aluno_nome = decoded.split("-", 1)
+    except Exception:
+        return HTMLResponse("<h2>Erro ao processar os dados da sala</h2>", status_code=400)
+
+    # Redireciona para o HTML final com query parameters
     return RedirectResponse(url=f"/sala_virtual_aluno?email={professor_email}&aluno={aluno_nome}")
     
 def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
