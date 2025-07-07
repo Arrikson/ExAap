@@ -238,24 +238,25 @@
     }
   }
 
- async function enviarNotificacao(aluno) {
-  try {
-    const resposta = await fetch("/ativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        aluno: aluno
-      })
-    });
+  async function enviarNotificacao(aluno) {
+    try {
+      const resposta = await fetch("/ativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aluno: aluno
+        })
+      });
 
-    const resultado = await resposta.json();
-    alert(resultado.msg || "Notificação enviada!");
-  } catch (error) {
-    console.error("Erro ao enviar notificação:", error);
-    alert("Erro ao enviar notificação.");
+      const resultado = await resposta.json();
+      alert(resultado.msg || "Notificação enviada!");
+    } catch (error) {
+      console.error("Erro ao enviar notificação:", error);
+      alert("Erro ao enviar notificação.");
+    }
   }
-}
- function slugify(text) {
+
+  function slugify(text) {
     return text
       .toLowerCase()
       .replace(/\s+/g, '-')       // espaços → hífens
@@ -267,8 +268,9 @@
 
   async function iniciarChamada(aluno, professorEmail) {
     try {
-      await enviarNotificacao(aluno);  
+      await enviarNotificacao(aluno);
 
+      // Registrar a aula no Firebase
       await fetch("/iniciar-aula", {
         method: "POST",
         headers: {
@@ -281,13 +283,23 @@
         })
       });
 
+      // ✅ Definir status como "ok"
+      await fetch("/definir-status-ok", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ aluno: aluno })
+      });
+
+      // Redirecionar para a sala
       window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
     } catch (error) {
       console.error("Erro ao iniciar chamada:", error);
       alert("Erro ao iniciar a chamada.");
     }
   }
-  
+
   async function listarMeusAlunos() {
     const email = "{{ professor.email }}";
     try {
@@ -401,4 +413,5 @@
 </script>
 </body>
 </html>
+
 
