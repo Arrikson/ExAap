@@ -1280,6 +1280,7 @@ async def desativar_notificacao(info: AlunoInfo):
         doc.reference.update({"notificacao": False})
         return {"status": "ok", "mensagem": "Notificação desativada"}
     return {"status": "erro", "mensagem": "Aluno não encontrado"}
+    
 
 @app.post("/verificar-notificacao")
 async def verificar_notificacao(request: Request):
@@ -1292,13 +1293,29 @@ async def verificar_notificacao(request: Request):
     db_firestore = firestore.client()
 
     try:
-        query = db_firestore.collection("alunos_professor").where("aluno", "==", nome_aluno).limit(1).get()
+        query = (
+            db_firestore.collection("alunos_professor")
+            .where("aluno", "==", nome_aluno)
+            .limit(1)
+            .get()
+        )
+
         if not query:
-            return JSONResponse(content={"notificacao": False, "mensagem": "Aluno não encontrado"}, status_code=404)
+            return JSONResponse(
+                content={"notificacao": False, "mensagem": "Aluno não encontrado"},
+                status_code=404
+            )
 
         doc = query[0]
         dados_aluno = doc.to_dict()
-        return JSONResponse(content={"notificacao": dados_aluno.get("notificacao", False)})
-    
+
+        notificacao = dados_aluno.get("notificacao", False)
+        professor_email = dados_aluno.get("professor", "")  # <-- pega o email do professor
+
+        return JSONResponse(content={
+            "notificacao": notificacao,
+            "professor_email": professor_email
+        })
+
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
