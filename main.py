@@ -1268,18 +1268,15 @@ async def ativar_notificacao(data: NotificacaoRequest):
     except Exception as e:
         return {"msg": f"Erro ao ativar notificação: {str(e)}"}
 
+class AlunoInfo(BaseModel):
+    aluno: str
+
 @app.post("/desativar-notificacao")
-def desativar_notificacao(alerta: Alerta):
-    db = firestore.client()
-    aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
-
-    if not aluno_ref:
-        return {"erro": "Aluno não encontrado"}
-
-    doc_id = aluno_ref[0].id
-    db.collection("alunos").document(doc_id).update({
-        "notificacao": False
-    })
-
-    return {"msg": f"Notificação desativada para {alerta.aluno}"}
-    
+async def desativar_notificacao(info: AlunoInfo):
+    aluno = info.aluno
+    query_ref = db.collection("alunos_professor").where("aluno", "==", aluno).limit(1)
+    docs = query_ref.stream()
+    for doc in docs:
+        doc.reference.update({"notificacao": False})
+        return {"status": "ok", "mensagem": "Notificação desativada"}
+    return {"status": "erro", "mensagem": "Aluno não encontrado"}
