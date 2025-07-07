@@ -1365,3 +1365,34 @@ async def registrar_chamada(request: Request):
 
     except Exception as e:
         return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/verificar-transmissao/{professor_email}/{aluno_nome}")
+def verificar_transmissao(professor_email: str, aluno_nome: str):
+    doc_ref = db.collection("chamadas_ao_vivo").document(aluno_nome)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Chamada não encontrada")
+
+    dados = doc.to_dict()
+    if dados.get("professor") != professor_email:
+        raise HTTPException(status_code=400, detail="Professor não corresponde")
+
+    status = dados.get("status", "")
+
+    if status == "aceito":
+        return {"status": "ok", "sala": f"{professor_email}-{aluno_nome}"}
+    elif status == "pendente":
+        return {"status": "aguardando"}
+    elif status == "rejeitado":
+        return {"status": "rejeitado"}
+    else:
+        return {"status": "desconhecido"}
