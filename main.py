@@ -1397,3 +1397,12 @@ def verificar_transmissao(professor_email: str, aluno_nome: str):
         return {"status": "rejeitado"}
     else:
         return {"status": "desconhecido"}
+
+@app.post("/definir-status-ok")
+def definir_status_ok(dados: dict):
+    aluno = dados.get("aluno")
+    if not aluno:
+        raise HTTPException(status_code=400, detail="Aluno não informado")
+    ref = db.collection("chamadas_ao_vivo").document(aluno)
+    ref.set({"status": "ok"}, merge=True)
+    return {"msg": "Status definido como ok"}
