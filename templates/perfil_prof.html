@@ -255,29 +255,38 @@
     alert("Erro ao enviar notificação.");
   }
 }
-  
-  async function iniciarChamada(aluno, professorEmail) {
-  try {
-    await enviarNotificacao(aluno);  // agora só passa o nome do aluno
-
-    await fetch("/iniciar-aula", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        aluno: aluno,
-        professor: professorEmail,
-        sala: `${professorEmail}-${aluno}`
-      })
-    });
-
-    window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
-  } catch (error) {
-    console.error("Erro ao iniciar chamada:", error);
-    alert("Erro ao iniciar a chamada.");
+ function slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/\s+/g, '-')       // espaços → hífens
+      .replace(/[^\w\-@.]+/g, '') // remove tudo que não for letra, número, hífen, underline, @ ou ponto
+      .replace(/\-\-+/g, '-')     // múltiplos hífens → um
+      .replace(/^-+/, '')         // remove hífens no início
+      .replace(/-+$/, '');        // remove hífens no fim
   }
-}
+
+  async function iniciarChamada(aluno, professorEmail) {
+    try {
+      await enviarNotificacao(aluno);  
+
+      await fetch("/iniciar-aula", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          aluno: aluno,
+          professor: professorEmail,
+          sala: `${slugify(professorEmail)}-${slugify(aluno)}`
+        })
+      });
+
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
+    } catch (error) {
+      console.error("Erro ao iniciar chamada:", error);
+      alert("Erro ao iniciar a chamada.");
+    }
+  }
   
   async function listarMeusAlunos() {
     const email = "{{ professor.email }}";
