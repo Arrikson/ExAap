@@ -193,7 +193,6 @@
     </button>
 
     <div id="notificacao-mensagem"></div>
-
     <div id="professor-nome"></div>
 
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
@@ -202,29 +201,15 @@
   </div>
 
 <script>
-  calcularMensalidade();
-
-  const accordions = document.querySelectorAll(".accordion");
-  accordions.forEach(btn => {
-    btn.addEventListener("click", function () {
-      this.classList.toggle("active");
-      const panel = this.nextElementSibling;
-      panel.style.display = (panel.style.display === "block") ? "none" : "block";
-    });
-  });
-
-  function calcularMensalidade() {
-    const aulas = parseInt(document.getElementById("aulas").value);
-    const custo = parseFloat(document.getElementById("custo").value);
-    const mensalidade = aulas * custo;
-    document.getElementById("mensalidade").value = mensalidade.toLocaleString('pt-PT') + " kz";
-  }
+  const nomeAluno = "{{ aluno.nome }}";
+  const notificacaoEl = document.getElementById("notificacao-mensagem");
+  const contadorAulas = document.getElementById("contador-aulas");
 
   function fazerLogout() {
     fetch("/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: "{{ aluno.nome }}" })
+      body: JSON.stringify({ nome: nomeAluno })
     })
     .then(() => window.location.href = "/")
     .catch(error => console.error("Erro ao fazer logout:", error));
@@ -246,14 +231,47 @@
   }
 
   function verNotificacao() {
-    // Esta função pode ser mantida ou descartada se estiveres usando somente o snapshot.
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js")
+      .then(({ initializeApp }) => {
+        return import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+          .then((firestore) => {
+            const firebaseConfig = {
+              apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+              authDomain: "exap-8a935.firebaseapp.com",
+              projectId: "exap-8a935",
+              storageBucket: "exap-8a935.appspot.com",
+              messagingSenderId: "664710895978",
+              appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = firestore.getFirestore(app);
+
+            const q = firestore.query(firestore.collection(db, "alunos_professor"), firestore.where("aluno", "==", nomeAluno));
+            firestore.getDocs(q).then((querySnapshot) => {
+              querySnapshot.forEach((docSnap) => {
+                const dados = docSnap.data();
+                if (dados.notificacao === true) {
+                  notificacaoEl.innerHTML = `
+                    A tua aula irá começar
+                    <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+                  `;
+                  notificacaoEl.style.display = "block";
+                  contadorAulas.innerText = "(1)";
+                } else {
+                  notificacaoEl.style.display = "none";
+                  contadorAulas.innerText = "";
+                }
+              });
+            });
+          });
+      });
   }
 
   function desativarNotificacao() {
     fetch("/desativar-notificacao", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: "{{ aluno.nome }}" })
+      body: JSON.stringify({ aluno: nomeAluno })
     })
     .then(() => {
       document.getElementById("notificacao-mensagem").style.display = "none";
@@ -263,12 +281,11 @@
   }
 </script>
 
-<!-- 🔄 Substituição da lógica anterior -->
+<!-- Chamada ao vivo -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getFirestore, collection, query, where,
-    onSnapshot
+    getFirestore, doc, onSnapshot, updateDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -283,32 +300,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const nomeAluno = "{{ aluno.nome }}";
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-
-  // 🔔 Verifica campo "notificacao" na coleção "alunos_professor"
-  const q = query(collection(db, "alunos_professor"), where("aluno", "==", nomeAluno));
-
-  onSnapshot(q, (snapshot) => {
-    snapshot.forEach((docSnap) => {
-      const dados = docSnap.data();
-      if (dados.notificacao === true) {
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    });
-  });
-
-  // 📞 Escuta chamada ao vivo (mantida)
-  import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
   onSnapshot(chamadaRef, (docSnap) => {
     if (docSnap.exists()) {
