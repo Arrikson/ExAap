@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Professor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
   <style>
     body {
       margin: 0;
@@ -164,25 +163,8 @@
     .notificar-btn:hover {
       background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
-  </style>
-
-  <!-- ✅ Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
-  <script>
-    const firebaseConfig = {
-    apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-    authDomain: "exap-8a935.firebaseapp.com",
-    projectId: "exap-8a935",
-    storageBucket: "exap-8a935.appspot.com",
-    messagingSenderId: "664710895978",
-    appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-  };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+ </style>
 </head>
-
 <body>
   <div class="top-bar">
     <img src="/static/logo.png" alt="Logo">
@@ -229,22 +211,22 @@
     </div>
 
     <div class="action-buttons">
-      <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-      <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
-      <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
-      <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
-    </div>
+  <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+  <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
+  <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
+  <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
+</div>
 
-    <div id="meus-alunos" style="display: none;"></div>
-    <div id="alunos-disponiveis" style="display: none;"></div>
-  </div>
+<div id="meus-alunos" style="display: none;"></div>
+<div id="alunos-disponiveis" style="display: none;"></div>
+</div>
 
-  <script>
-    function toggleDados() {
-      const div = document.getElementById('dadosSecretos');
-      div.style.display = div.style.display === 'block' ? 'none' : 'block';
-    }
+<script>
+  function toggleDados() {
+    const div = document.getElementById('dadosSecretos');
+    div.style.display = div.style.display === 'block' ? 'none' : 'block';
+  }
 
   function toggleSection(id, fetchFunction) {
     const section = document.getElementById(id);
@@ -261,23 +243,21 @@
     window.location.href = `/perfil/${encodeURIComponent(email)}?mensagem=Estou aqui`;
   }
 
-  // ✅ NOVA FUNÇÃO DIRETA PARA FIRESTORE
   async function notificarAluno(nomeAluno) {
     try {
-      const db = firebase.firestore();  // Firebase já deve estar inicializado
-      const q = db.collection("alunos_professor").where("aluno", "==", nomeAluno);
-      const snapshot = await q.get();
+      const resposta = await fetch("/ativar-notificacao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ aluno: nomeAluno })
+      });
 
-      if (!snapshot.empty) {
-        const docRef = snapshot.docs[0].ref;
-        await docRef.update({ notificacao: true });
-        alert("Notificação ativada");
-      } else {
-        alert("Aluno não encontrado");
-      }
+      const resultado = await resposta.json();
+      alert(resultado.msg || "Notificação enviada!");
     } catch (error) {
-      console.error("Erro ao ativar notificação:", error);
-      alert("Erro ao ativar notificação");
+      console.error("Erro ao notificar:", error);
+      alert("Falha ao enviar notificação");
     }
   }
 
@@ -443,4 +423,3 @@
 </script>
 </body>
 </html>
-
