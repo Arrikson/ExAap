@@ -267,8 +267,8 @@
       document.getElementById("notificacao-mensagem").style.display = "none";
       document.getElementById("contador-aulas").innerText = "";
       if (professorEmailAtual) {
-        // Redireciona o aluno para a sala virtual do professor
-        const sala = encodeURIComponent(professorEmailAtual);
+        // Redireciona o aluno para a sala virtual no formato esperado
+        const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
         window.location.href = `/sala_virtual_aluno/${sala}`;
       }
     })
