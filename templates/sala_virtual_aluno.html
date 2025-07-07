@@ -69,10 +69,18 @@
 
     const profEmail = document.body.dataset.profEmail;
     const profNome = document.body.dataset.profNome;
-    const safePeerId = profEmail.replace(/[@.]/g, "_"); // Mesma substituição usada no professor
+    const safePeerId = profEmail.replace(/[@.]/g, "_"); // ID do professor adaptado
 
-    async function conectarComProfessor() {
+    async function iniciarCameraEConexao() {
       try {
+        // Solicita acesso à câmera e microfone
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localVideo.onloadedmetadata = () => {
+          localVideo.play();
+        };
+
+        // Verifica se o professor iniciou a chamada
         const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
         const statusCheck = await check.json();
 
@@ -83,17 +91,11 @@
 
         statusDiv.textContent = `Conectando com o professor ${profNome}...`;
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localVideo.onloadedmetadata = () => {
-          localVideo.play();
-        };
-
         const peer = new Peer();
 
         peer.on("open", (id) => {
           console.log("ID do aluno:", id);
-          const call = peer.call(safePeerId, stream);  // Usando o ID corrigido
+          const call = peer.call(safePeerId, stream);
 
           call.on("stream", (profStream) => {
             console.log("Recebendo stream do professor...");
@@ -122,13 +124,14 @@
         });
 
       } catch (err) {
-        console.error("Erro ao conectar:", err);
-        alert("Erro ao conectar. Tente novamente.");
-        statusDiv.textContent = "Erro na conexão.";
+        console.error("Erro ao acessar câmera/mic ou conectar:", err);
+        alert("Erro ao acessar sua câmera e microfone. Verifique as permissões.");
+        statusDiv.textContent = "Permissão negada ou erro na conexão.";
       }
     }
 
-    conectarComProfessor();
+    // Iniciar tudo ao carregar
+    window.onload = iniciarCameraEConexao;
   </script>
 
 </body>
