@@ -230,41 +230,27 @@
       });
   }
 
-  function verNotificacao() {
-    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js")
-      .then(({ initializeApp }) => {
-        return import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
-          .then((firestore) => {
-            const firebaseConfig = {
-              apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-              authDomain: "exap-8a935.firebaseapp.com",
-              projectId: "exap-8a935",
-              storageBucket: "exap-8a935.appspot.com",
-              messagingSenderId: "664710895978",
-              appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-            };
-            const app = initializeApp(firebaseConfig);
-            const db = firestore.getFirestore(app);
-
-            const q = firestore.query(firestore.collection(db, "alunos_professor"), firestore.where("aluno", "==", nomeAluno));
-            firestore.getDocs(q).then((querySnapshot) => {
-              querySnapshot.forEach((docSnap) => {
-                const dados = docSnap.data();
-                if (dados.notificacao === true) {
-                  notificacaoEl.innerHTML = `
-                    A tua aula irá começar
-                    <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-                  `;
-                  notificacaoEl.style.display = "block";
-                  contadorAulas.innerText = "(1)";
-                } else {
-                  notificacaoEl.style.display = "none";
-                  contadorAulas.innerText = "";
-                }
-              });
-            });
-          });
-      });
+ function verNotificacao() {
+    fetch("/verificar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.notificacao === true) {
+        notificacaoEl.innerHTML = `
+          A tua aula irá começar
+          <button class="button" onclick="desativarNotificacao()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+        `;
+        notificacaoEl.style.display = "block";
+        contadorAulas.innerText = "(1)";
+      } else {
+        notificacaoEl.style.display = "none";
+        contadorAulas.innerText = "";
+      }
+    })
+    .catch(error => console.error("Erro ao verificar notificação:", error));
   }
 
   function desativarNotificacao() {
