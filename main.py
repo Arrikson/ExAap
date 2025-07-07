@@ -8,6 +8,7 @@ import shutil
 import os
 import json
 import uuid
+from urllib.parse import unquote
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from datetime import datetime
@@ -1327,7 +1328,34 @@ async def verificar_notificacao(request: Request):
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
 @app.post("/registrar-chamada")
+async def r@app.post("/registrar-chamada")
 async def registrar_chamada(request: Request):
+    dados = await request.json()
+    email = dados.get("email")        
+    aluno = dados.get("aluno")        
+
+    if not email or not aluno:
+        return JSONResponse(content={"erro": "Email ou aluno ausente"}, status_code=400)
+
+    try:
+        db_firestore = firestore.Client()
+
+        # Define o nome da sala como "<email-do-professor>-<nome-do-aluno>"
+        nome_sala = f"{email}-{aluno}"
+
+        # Grava no Firestore na coleção 'chamadas_ao_vivo' com o nome do aluno como ID do documento
+        doc_ref = db_firestore.collection("chamadas_ao_vivo").document(aluno)
+        doc_ref.set({
+            "aluno": aluno,
+            "professor": email,
+            "sala": nome_sala,
+            "status": "pendente"
+        })
+
+        return JSONResponse(content={"mensagem": "Chamada registrada com sucesso", "sala": nome_sala}, status_code=200)
+
+    except Exception as e:
+        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)egistrar_chamada(request: Request):
     dados = await request.json()
     aluno = dados.get("aluno")
     professor = dados.get("professor")
@@ -1342,7 +1370,7 @@ async def registrar_chamada(request: Request):
         doc_ref.set({
             "aluno": aluno,
             "professor": professor,
-            "sala": professor,  # Aqui usamos o email como nome da sala
+            "sala": professor,  
             "status": "pendente"
         })
         return JSONResponse(content={"mensagem": "Chamada registrada com sucesso"})
