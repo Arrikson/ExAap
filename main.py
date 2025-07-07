@@ -1248,23 +1248,25 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             content={"detail": "Erro interno ao verificar vínculo do aluno."}
         )
 
-class Alerta(BaseModel):
-    aluno: str 
+class NotificacaoRequest(BaseModel):
+    aluno: str
 
 @app.post("/ativar-notificacao")
-def ativar_notificacao(alerta: Alerta):
-    db = firestore.client()
-    aluno_ref = db.collection("alunos").where("nome", "==", alerta.aluno).limit(1).get()
+async def ativar_notificacao(data: NotificacaoRequest):
+    try:
+        aluno_nome = data.aluno
 
-    if not aluno_ref:
-        return {"erro": "Aluno não encontrado"}
+        # Buscar o documento do aluno na coleção alunos_professor
+        docs = db.collection("alunos_professor").where("aluno", "==", aluno_nome).limit(1).stream()
+        doc = next(docs, None)
 
-    doc_id = aluno_ref[0].id
-    db.collection("alunos").document(doc_id).update({
-        "notificacao": True
-    })
+        if not doc:
+            return {"msg": f"Aluno '{aluno_nome}' não encontrado."}
 
-    return {"msg": f"Notificação ativada para {alerta.aluno}"}
+        db.collection("alunos_professor").document(doc.id).update({"notificacao": True})
+        return {"msg": f"Notificação ativada para o aluno '{aluno_nome}'."}
+    except Exception as e:
+        return {"msg": f"Erro ao ativar notificação: {str(e)}"}
 
 @app.post("/desativar-notificacao")
 def desativar_notificacao(alerta: Alerta):
