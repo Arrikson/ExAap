@@ -238,49 +238,47 @@
     }
   }
 
-  async function enviarNotificacao(aluno, professorEmail) {
-    try {
-      const resposta = await fetch("/enviar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aluno_id: aluno,
-          professor: professorEmail,
-          mensagem: "A tua aula vai começar!"
-        })
-      });
+ async function enviarNotificacao(aluno) {
+  try {
+    const resposta = await fetch("/ativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        aluno: aluno
+      })
+    });
 
-      const resultado = await resposta.json();
-      alert(resultado.msg || "Notificação enviada");
-    } catch (error) {
-      console.error("Erro ao enviar notificação:", error);
-      alert("Erro ao enviar notificação.");
-    }
+    const resultado = await resposta.json();
+    alert(resultado.msg || "Notificação enviada!");
+  } catch (error) {
+    console.error("Erro ao enviar notificação:", error);
+    alert("Erro ao enviar notificação.");
   }
-
+}
+  
   async function iniciarChamada(aluno, professorEmail) {
-    try {
-      await enviarNotificacao(aluno, professorEmail);
+  try {
+    await enviarNotificacao(aluno);  // agora só passa o nome do aluno
 
-      await fetch("/iniciar-aula", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          aluno: aluno,
-          professor: professorEmail,
-          sala: `${professorEmail}-${aluno}`
-        })
-      });
+    await fetch("/iniciar-aula", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        aluno: aluno,
+        professor: professorEmail,
+        sala: `${professorEmail}-${aluno}`
+      })
+    });
 
-      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
-    } catch (error) {
-      console.error("Erro ao iniciar chamada:", error);
-      alert("Erro ao iniciar a chamada.");
-    }
+    window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
+  } catch (error) {
+    console.error("Erro ao iniciar chamada:", error);
+    alert("Erro ao iniciar a chamada.");
   }
-
+}
+  
   async function listarMeusAlunos() {
     const email = "{{ professor.email }}";
     try {
