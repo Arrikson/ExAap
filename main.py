@@ -8,6 +8,7 @@ import shutil
 import os
 import json
 import uuid
+from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
