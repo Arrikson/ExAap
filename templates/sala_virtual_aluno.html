@@ -69,18 +69,27 @@
 
     const profEmail = document.body.dataset.profEmail;
     const profNome = document.body.dataset.profNome;
-    const safePeerId = profEmail.replace(/[@.]/g, "_"); // ID do professor adaptado
+    const alunoNome = document.body.dataset.alunoNome;
+    const peerIdProfessor = profEmail.replace(/[@.]/g, "_"); // ex: aleixoemilio1_gmail_com
 
     async function iniciarCameraEConexao() {
       try {
-        // Solicita acesso à câmera e microfone
+        // 📷 Acessa câmera e microfone
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
-        localVideo.onloadedmetadata = () => {
-          localVideo.play();
-        };
+        localVideo.play();
 
-        // Verifica se o professor iniciou a chamada
+        // 🔄 Registra chamada no servidor
+        await fetch("/registrar-chamada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            aluno: alunoNome,
+            professor: profEmail
+          })
+        });
+
+        // ⏳ Verifica se o professor iniciou a transmissão
         const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
         const statusCheck = await check.json();
 
@@ -91,48 +100,47 @@
 
         statusDiv.textContent = `Conectando com o professor ${profNome}...`;
 
-        const peer = new Peer();
+        // 🚀 Inicializa PeerJS
+        const peer = new Peer(); // servidor público
 
         peer.on("open", (id) => {
-          console.log("ID do aluno:", id);
-          const call = peer.call(safePeerId, stream);
+          console.log("🎓 ID do aluno:", id);
+
+          const call = peer.call(peerIdProfessor, stream);
 
           call.on("stream", (profStream) => {
-            console.log("Recebendo stream do professor...");
+            console.log("🎥 Recebendo vídeo do professor...");
             remoteVideo.srcObject = profStream;
-            remoteVideo.onloadedmetadata = () => {
-              remoteVideo.play();
-            };
-            statusDiv.textContent = "Conectado com o professor!";
+            remoteVideo.play();
+            statusDiv.textContent = "✅ Conectado com o professor!";
             videoContainer.style.display = "flex";
           });
 
           call.on("close", () => {
-            alert("A chamada foi encerrada.");
+            alert("📴 A chamada foi encerrada.");
             statusDiv.textContent = "Chamada finalizada.";
           });
 
           call.on("error", (err) => {
-            console.error("Erro na chamada:", err);
+            console.error("❌ Erro na chamada:", err);
             statusDiv.textContent = "Erro na chamada.";
           });
         });
 
         peer.on("error", (err) => {
-          console.error("Erro no PeerJS:", err);
+          console.error("❌ Erro no PeerJS:", err);
           alert("Erro na conexão com o professor.");
         });
 
       } catch (err) {
-        console.error("Erro ao acessar câmera/mic ou conectar:", err);
+        console.error("🚫 Erro ao acessar câmera/mic ou conectar:", err);
         alert("Erro ao acessar sua câmera e microfone. Verifique as permissões.");
         statusDiv.textContent = "Permissão negada ou erro na conexão.";
       }
     }
 
-    // Iniciar tudo ao carregar
+    // ⏳ Inicia ao carregar a página
     window.onload = iniciarCameraEConexao;
   </script>
-
 </body>
 </html>
