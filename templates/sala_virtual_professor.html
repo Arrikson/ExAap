@@ -81,6 +81,7 @@
 
     let peer = null;
     let currentStream = null;
+    let activeCall = null;
 
     async function verificarChamadaAtiva() {
       const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
@@ -96,41 +97,36 @@
       try {
         await verificarChamadaAtiva();
 
-        // Captura vídeo e áudio do professor
+        // 🎥 Acessar câmera e microfone
         currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = currentStream;
-        localVideo.onloadedmetadata = () => localVideo.play();
-
+        localVideo.play();
         statusDiv.textContent = "Aguardando aluno entrar...";
 
         // 🔄 Registra a chamada no backend
-await fetch("/registrar-chamada", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    aluno: alunoNome,         // deve enviar "aluno"
-    professor: profEmail      // e "professor", não "ativa"
-  })
-});
-    // 🚀 Inicializa o PeerJS com servidor público
-     peer = new Peer(peerId);
-
-    // 🔔 Quando o PeerJS estiver pronto
-      peer.on("open", (id) => {
-        console.log("✅ PeerJS iniciado com ID:", id);
+        await fetch("/registrar-chamada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ aluno: alunoNome, professor: profEmail })
         });
 
+        // 🔌 Inicializa PeerJS
+        peer = new Peer(peerId);
 
-        // 🎥 Responde à chamada do outro peer (aluno chamando professor)
-         peer.on("call", (call) => {
-           console.log("📞 Recebendo chamada do aluno...");
-           call.answer(currentStream); // envia o stream de volta
-          });
+        // ✅ Quando o Peer estiver pronto
+        peer.on("open", (id) => {
+          console.log("✅ PeerJS iniciado com ID:", id);
+        });
+
+        // 📞 Quando o aluno ligar
+        peer.on("call", (call) => {
+          console.log("📞 Recebendo chamada do aluno...");
+          call.answer(currentStream); // Envia o vídeo do professor
 
           call.on("stream", (alunoStream) => {
             console.log("🎥 Vídeo do aluno recebido.");
             remoteVideo.srcObject = alunoStream;
-            remoteVideo.onloadedmetadata = () => remoteVideo.play();
+            remoteVideo.play();
             statusDiv.textContent = "Aluno conectado!";
           });
 
@@ -138,14 +134,21 @@ await fetch("/registrar-chamada", {
             console.log("🚫 Chamada encerrada pelo aluno.");
             statusDiv.textContent = "Aula encerrada pelo aluno.";
           });
+
+          call.on("error", (err) => {
+            console.error("❌ Erro na chamada:", err);
+            statusDiv.textContent = "Erro durante a chamada.";
+          });
+
+          activeCall = call;
         });
 
-        // Também permite que o professor chame o aluno caso ele entre depois
+        // 👇 Caso queira ligar pro aluno se ele já tiver aberto a sala
         if (alunoId) {
           const chamada = peer.call(alunoId, currentStream);
           chamada.on("stream", (stream) => {
             remoteVideo.srcObject = stream;
-            remoteVideo.onloadedmetadata = () => remoteVideo.play();
+            remoteVideo.play();
             statusDiv.textContent = "Aluno conectado!";
           });
         }
@@ -164,6 +167,7 @@ await fetch("/registrar-chamada", {
     }
 
     async function encerrarChamada() {
+      if (activeCall) activeCall.close();
       if (peer) peer.destroy();
       await fetch("/registrar-chamada", {
         method: "POST",
