@@ -76,7 +76,7 @@
 
     const profEmail = document.body.dataset.profEmail;
     const profNome = document.body.dataset.profNome;
-    const alunoNome = document.body.dataset.alunoNome;
+    const alunoNome = document.body.dataset.alunoNome.trim().toLowerCase().replace(/ /g, "_");
     const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
 
     let peer = null;
