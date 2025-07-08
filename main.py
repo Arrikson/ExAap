@@ -1335,23 +1335,26 @@ async def verificar_notificacao(request: Request):
 @app.post("/registrar-chamada")
 async def registrar_chamada(request: Request):
     dados = await request.json()
-    aluno = dados.get("aluno")
-    professor = dados.get("professor")
+    aluno_raw = dados.get("aluno")
+    professor_raw = dados.get("professor")
 
-    if not aluno or not professor:
+    if not aluno_raw or not professor_raw:
         return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
     try:
-        db_firestore = firestore.Client()
+        # ✅ Normaliza os nomes (sem espaços e lowercase)
+        aluno = aluno_raw.strip().lower().replace(" ", "_")
+        professor = professor_raw.strip().lower().replace(" ", "_")
 
         nome_sala = f"{professor}-{aluno}"
 
+        db_firestore = firestore.Client()
         doc_ref = db_firestore.collection("chamadas_ao_vivo").document(aluno)
         doc_ref.set({
-            "aluno": aluno,
-            "professor": professor,
+            "aluno": aluno_raw.strip(),
+            "professor": professor_raw.strip(),
             "sala": nome_sala
-        }, merge=True)  # ✅ merge=True preserva o status existente (ex: "aceito")
+        }, merge=True)  # merge=True preserva o campo 'status'
 
         return JSONResponse(
             content={
@@ -1362,7 +1365,10 @@ async def registrar_chamada(request: Request):
         )
 
     except Exception as e:
-        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
+        return JSONResponse(
+            content={"erro": f"Erro ao registrar chamada: {str(e)}"},
+            status_code=500
+        )
 
 app.add_middleware(
     CORSMiddleware,
