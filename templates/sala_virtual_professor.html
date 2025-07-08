@@ -3,58 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sala Virtual do Professor</title>
+  <title>Sala Virtual - Professor</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #007BFF, #00C6FF);
-      color: #fff;
-      text-align: center;
-      padding: 2rem;
-      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
     }
     h1 {
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
+      margin-bottom: 5px;
     }
     #videoContainer {
       display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-      margin-top: 2rem;
+      gap: 20px;
+      margin-top: 20px;
     }
     video {
-      width: 300px;
-      max-width: 90%;
-      border: 3px solid #fff;
-      border-radius: 10px;
-      background-color: black;
-    }
-    #status {
-      font-size: 1.2rem;
-      color: #ffc107;
-      margin-top: 1rem;
+      width: 320px;
+      height: 240px;
+      background: #000;
+      border: 2px solid #ccc;
+      border-radius: 8px;
     }
     .btn {
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      background-color: #dc3545;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #d9534f;
       color: white;
-      border-radius: 8px;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.3s ease;
+      font-size: 16px;
     }
     .btn:hover {
-      background-color: #c82333;
+      background: #c9302c;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
     }
   </style>
 </head>
+
 <body data-prof-email="{{ professor.email }}">
 
   <h1>Sala Virtual</h1>
@@ -80,7 +71,10 @@
 
   <script>
     const profEmail = document.body.dataset.profEmail;
-    const peerId = profEmail.replace(/[@.]/g, "_");  // ID seguro para o PeerJS
+    const alunoNome = new URLSearchParams(window.location.search).get("aluno");
+    const peerId = profEmail.replace(/[@.]/g, "_");  // ID seguro
+    const alunoId = alunoNome ? alunoNome.replace(/[@.]/g, "_") : null;
+
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
@@ -91,9 +85,8 @@
     async function verificarChamadaAtiva() {
       const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
       const result = await response.json();
-
       if (result.ativa) {
-        statusDiv.textContent = "Já existe uma aula em andamento nesse email.";
+        statusDiv.textContent = "Já existe uma aula em andamento com este e-mail.";
         alert("Você já está em uma aula ativa. Saia da outra sessão primeiro.");
         throw new Error("Chamada já ativa");
       }
@@ -106,56 +99,66 @@
         // Captura vídeo e áudio do professor
         currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = currentStream;
-        localVideo.onloadedmetadata = () => {
-          localVideo.play();
-        };
+        localVideo.onloadedmetadata = () => localVideo.play();
 
-        // Atualiza status na interface
         statusDiv.textContent = "Aguardando aluno entrar...";
 
-        // Marca a chamada como ativa no backend
-        await fetch("/registrar-chamada", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: profEmail, ativa: true })
+        // 🔄 Registra a chamada no backend
+await fetch("/registrar-chamada", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    aluno: alunoNome,         // deve enviar "aluno"
+    professor: profEmail      // e "professor", não "ativa"
+  })
+});
+    // 🚀 Inicializa o PeerJS com servidor público
+     peer = new Peer(peerId);
+
+    // 🔔 Quando o PeerJS estiver pronto
+      peer.on("open", (id) => {
+        console.log("✅ PeerJS iniciado com ID:", id);
         });
 
-        // Criação do peer com ID baseado no e-mail
-        peer = new Peer(peerId);
 
-        peer.on("open", (id) => {
-          console.log("PeerJS iniciado com ID:", id);
-        });
-
-        // Quando o aluno liga para o professor
-        peer.on("call", (call) => {
-          console.log("Recebendo chamada do aluno...");
-          call.answer(currentStream);  // Envia o vídeo do professor
+        // 🎥 Responde à chamada do outro peer (aluno chamando professor)
+         peer.on("call", (call) => {
+           console.log("📞 Recebendo chamada do aluno...");
+           call.answer(currentStream); // envia o stream de volta
+          });
 
           call.on("stream", (alunoStream) => {
-            console.log("Stream do aluno recebido.");
+            console.log("🎥 Vídeo do aluno recebido.");
             remoteVideo.srcObject = alunoStream;
-            remoteVideo.onloadedmetadata = () => {
-              remoteVideo.play();
-            };
+            remoteVideo.onloadedmetadata = () => remoteVideo.play();
             statusDiv.textContent = "Aluno conectado!";
           });
 
           call.on("close", () => {
-            console.log("Chamada encerrada pelo aluno.");
+            console.log("🚫 Chamada encerrada pelo aluno.");
             statusDiv.textContent = "Aula encerrada pelo aluno.";
           });
         });
 
+        // Também permite que o professor chame o aluno caso ele entre depois
+        if (alunoId) {
+          const chamada = peer.call(alunoId, currentStream);
+          chamada.on("stream", (stream) => {
+            remoteVideo.srcObject = stream;
+            remoteVideo.onloadedmetadata = () => remoteVideo.play();
+            statusDiv.textContent = "Aluno conectado!";
+          });
+        }
+
         peer.on("error", (err) => {
-          console.error("Erro no PeerJS:", err);
+          console.error("❌ Erro no PeerJS:", err);
           alert("Erro na conexão com o aluno.");
         });
 
       } catch (err) {
         if (err.message !== "Chamada já ativa") {
           statusDiv.textContent = "Erro ao acessar câmera/microfone.";
-          console.error("Erro ao iniciar chamada:", err);
+          console.error("⚠️ Erro ao iniciar chamada:", err);
         }
       }
     }
@@ -175,3 +178,4 @@
 
 </body>
 </html>
+
