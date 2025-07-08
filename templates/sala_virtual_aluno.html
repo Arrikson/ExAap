@@ -25,6 +25,9 @@
       border: 2px solid #ccc;
       border-radius: 8px;
     }
+    #remoteVideo {
+      display: none;
+    }
     .btn {
       margin-top: 20px;
       padding: 10px 20px;
@@ -52,7 +55,7 @@
 
   <div id="status">Conectando com o professor...</div>
 
-  <div id="videoContainer" style="display: none;">
+  <div id="videoContainer">
     <div>
       <h3>Seu Vídeo</h3>
       <video id="localVideo" autoplay muted playsinline></video>
@@ -88,6 +91,10 @@
         localVideo.srcObject = stream;
         localVideo.play();
 
+        // Exibe o container com o vídeo do aluno
+        videoContainer.style.display = "flex";
+        statusDiv.textContent = "Aguardando o professor iniciar a aula...";
+
         // 🔄 Registra chamada no servidor
         await fetch("/registrar-chamada", {
           method: "POST",
@@ -122,8 +129,8 @@
             console.log("🎥 Recebendo vídeo do professor...");
             remoteVideo.srcObject = profStream;
             remoteVideo.play();
+            remoteVideo.style.display = "block";
             statusDiv.textContent = "✅ Conectado com o professor!";
-            videoContainer.style.display = "flex";
           });
 
           call.on("close", () => {
@@ -160,3 +167,4 @@
   </script>
 </body>
 </html>
+
