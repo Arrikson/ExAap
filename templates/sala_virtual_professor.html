@@ -74,7 +74,6 @@
     const profEmail = document.body.dataset.profEmail;
     const alunoNome = new URLSearchParams(window.location.search).get("aluno");
     const peerId = profEmail.replace(/[@.]/g, "_");
-    const alunoId = alunoNome ? alunoNome.replace(/[@.]/g, "_") : null;
 
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
@@ -83,6 +82,8 @@
     let peer = null;
     let currentStream = null;
     let activeCall = null;
+
+    console.log("ID gerado no professor:", peerId); // ✅
 
     async function verificarChamadaAtiva() {
       const response = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
@@ -133,16 +134,6 @@
 
           activeCall = call;
         });
-
-        // Caso o aluno já esteja na sala
-        if (alunoId) {
-          const chamada = peer.call(alunoId, currentStream);
-          chamada.on("stream", (stream) => {
-            remoteVideo.srcObject = stream;
-            remoteVideo.play();
-            statusDiv.textContent = "Aluno conectado!";
-          });
-        }
 
         peer.on("error", (err) => {
           console.error("❌ Erro no PeerJS:", err);
