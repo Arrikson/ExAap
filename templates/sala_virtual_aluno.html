@@ -14,7 +14,7 @@
       margin-bottom: 5px;
     }
     #videoContainer {
-      display: flex;
+      display: none;
       gap: 20px;
       margin-top: 20px;
     }
@@ -24,9 +24,6 @@
       background: #000;
       border: 2px solid #ccc;
       border-radius: 8px;
-    }
-    #remoteVideo {
-      display: none;
     }
     .btn {
       margin-top: 20px;
@@ -53,7 +50,7 @@
   <h1>Sala Virtual</h1>
   <p>Aluno: {{ aluno.nome }}<br>Professor: {{ professor.nome_completo }}</p>
 
-  <div id="status">Conectando com o professor...</div>
+  <div id="status">Clique em "Aceitar Aula" para começar.</div>
 
   <div id="videoContainer">
     <div>
@@ -66,6 +63,7 @@
     </div>
   </div>
 
+  <button id="aceitarBtn" class="btn" onclick="iniciarCameraEConexao()">Aceitar Aula</button>
   <button class="btn" onclick="encerrarChamada()">Sair da Aula</button>
 
   <!-- PeerJS -->
@@ -79,23 +77,21 @@
     const profEmail = document.body.dataset.profEmail;
     const profNome = document.body.dataset.profNome;
     const alunoNome = document.body.dataset.alunoNome;
-    const peerIdProfessor = profEmail.replace(/[@.]/g, "_"); // ex: aleixoemilio1_gmail_com
+    const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
 
     let peer = null;
     let currentCall = null;
 
     async function iniciarCameraEConexao() {
+      document.getElementById("aceitarBtn").style.display = "none";
+
       try {
-        // 📷 Acessa câmera e microfone
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         localVideo.play();
-
-        // Exibe o container com o vídeo do aluno
         videoContainer.style.display = "flex";
         statusDiv.textContent = "Aguardando o professor iniciar a aula...";
 
-        // 🔄 Registra chamada no servidor
         await fetch("/registrar-chamada", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -105,7 +101,6 @@
           })
         });
 
-        // ⏳ Verifica se o professor iniciou a transmissão
         const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
         const statusCheck = await check.json();
 
@@ -116,7 +111,6 @@
 
         statusDiv.textContent = `Conectando com o professor ${profNome}...`;
 
-        // 🚀 Inicializa PeerJS
         peer = new Peer();
 
         peer.on("open", (id) => {
@@ -129,7 +123,6 @@
             console.log("🎥 Recebendo vídeo do professor...");
             remoteVideo.srcObject = profStream;
             remoteVideo.play();
-            remoteVideo.style.display = "block";
             statusDiv.textContent = "✅ Conectado com o professor!";
           });
 
@@ -161,10 +154,8 @@
       if (peer) peer.destroy();
       window.location.href = "/perfil_aluno";
     }
-
-    // ⏳ Inicia ao carregar a página
-    window.onload = iniciarCameraEConexao;
   </script>
 </body>
 </html>
+
 
