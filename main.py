@@ -1408,7 +1408,11 @@ def definir_status_ok(dados: dict):
 
 @app.get("/verificar-status/{aluno}")
 def verificar_status(aluno: str):
+    aluno = aluno.strip().lower()  # remove espaços e padroniza para minúsculas
     doc = db.collection("chamadas_ao_vivo").document(aluno).get()
+    
     if not doc.exists:
         return {"status": "indefinido"}
+    
     return {"status": doc.to_dict().get("status", "indefinido")}
+
