@@ -1403,6 +1403,8 @@ def definir_status_ok(dados: dict):
     aluno = dados.get("aluno")
     if not aluno:
         raise HTTPException(status_code=400, detail="Aluno não informado")
+
     ref = db.collection("chamadas_ao_vivo").document(aluno)
-    ref.set({"status": "ok"}, merge=True)
-    return {"msg": "Status definido como ok"}
+    ref.set({"status": "aceito"}, merge=True)
+
+    return {"msg": "Status definido como aceito"}
