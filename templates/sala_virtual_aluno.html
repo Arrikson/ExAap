@@ -67,94 +67,99 @@
   <button class="btn" onclick="encerrarChamada()">Sair da Aula</button>
 
   <!-- PeerJS -->
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-  <script>
-    const statusDiv = document.getElementById("status");
-    const videoContainer = document.getElementById("videoContainer");
-    const localVideo = document.getElementById("localVideo");
-    const remoteVideo = document.getElementById("remoteVideo");
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script>
+  const statusDiv = document.getElementById("status");
+  const videoContainer = document.getElementById("videoContainer");
+  const localVideo = document.getElementById("localVideo");
+  const remoteVideo = document.getElementById("remoteVideo");
 
-    const profEmail = document.body.dataset.profEmail;
-    const profNome = document.body.dataset.profNome;
-    const alunoNome = document.body.dataset.alunoNome;
-    const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
+  const profEmail = document.body.dataset.profEmail;
+  const profNome = document.body.dataset.profNome;
+  const alunoNome = document.body.dataset.alunoNome;
+  const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
 
-    let peer = null;
-    let currentCall = null;
+  console.log("ID do professor que o aluno vai tentar chamar:", peerIdProfessor); // ✅ Verificação de ID
 
-    async function iniciarCameraEConexao() {
-      document.getElementById("aceitarBtn").style.display = "none";
+  let peer = null;
+  let currentCall = null;
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localVideo.play();
-        videoContainer.style.display = "flex";
-        statusDiv.textContent = "Aguardando o professor iniciar a aula...";
+  async function iniciarCameraEConexao() {
+    document.getElementById("aceitarBtn").style.display = "none";
 
-        await fetch("/registrar-chamada", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            aluno: alunoNome,
-            professor: profEmail
-          })
-        });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = stream;
+      localVideo.play();
+      videoContainer.style.display = "flex";
+      statusDiv.textContent = "Aguardando o professor iniciar a aula...";
 
-        const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
-        const statusCheck = await check.json();
+      await fetch("/registrar-chamada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aluno: alunoNome,
+          professor: profEmail
+        })
+      });
 
-        if (!statusCheck.ativa) {
-          statusDiv.textContent = "O professor ainda não iniciou a aula.";
-          return;
-        }
+      const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
+      const statusCheck = await check.json();
 
-        statusDiv.textContent = `Conectando com o professor ${profNome}...`;
-
-        peer = new Peer();
-
-        peer.on("open", (id) => {
-          console.log("🎓 ID do aluno:", id);
-
-          const call = peer.call(peerIdProfessor, stream);
-          currentCall = call;
-
-          call.on("stream", (profStream) => {
-            console.log("🎥 Recebendo vídeo do professor...");
-            remoteVideo.srcObject = profStream;
-            remoteVideo.play();
-            statusDiv.textContent = "✅ Conectado com o professor!";
-          });
-
-          call.on("close", () => {
-            alert("📴 A chamada foi encerrada.");
-            statusDiv.textContent = "Chamada finalizada.";
-          });
-
-          call.on("error", (err) => {
-            console.error("❌ Erro na chamada:", err);
-            statusDiv.textContent = "Erro na chamada.";
-          });
-        });
-
-        peer.on("error", (err) => {
-          console.error("❌ Erro no PeerJS:", err);
-          alert("Erro na conexão com o professor.");
-        });
-
-      } catch (err) {
-        console.error("🚫 Erro ao acessar câmera/mic ou conectar:", err);
-        alert("Erro ao acessar sua câmera e microfone. Verifique as permissões.");
-        statusDiv.textContent = "Permissão negada ou erro na conexão.";
+      if (!statusCheck.ativa) {
+        statusDiv.textContent = "O professor ainda não iniciou a aula.";
+        return;
       }
-    }
 
-    function encerrarChamada() {
-      if (currentCall) currentCall.close();
-      if (peer) peer.destroy();
-      window.location.href = "/perfil_aluno";
+      statusDiv.textContent = `Conectando com o professor ${profNome}...`;
+
+      peer = new Peer();
+
+      peer.on("open", (id) => {
+        console.log("🎓 ID do aluno (PeerJS):", id);
+
+        const call = peer.call(peerIdProfessor, stream);
+        currentCall = call;
+
+        call.on("stream", (profStream) => {
+          console.log("🎥 Recebendo vídeo do professor...");
+          remoteVideo.srcObject = profStream;
+          remoteVideo.play();
+          remoteVideo.style.display = "block";
+          statusDiv.textContent = "✅ Conectado com o professor!";
+        });
+
+        call.on("close", () => {
+          alert("📴 A chamada foi encerrada.");
+          statusDiv.textContent = "Chamada finalizada.";
+        });
+
+        call.on("error", (err) => {
+          console.error("❌ Erro na chamada:", err);
+          statusDiv.textContent = "Erro na chamada.";
+        });
+      });
+
+      peer.on("error", (err) => {
+        console.error("❌ Erro no PeerJS:", err);
+        alert("Erro na conexão com o professor.");
+      });
+
+    } catch (err) {
+      console.error("🚫 Erro ao acessar câmera/mic ou conectar:", err);
+      alert("Erro ao acessar sua câmera e microfone. Verifique as permissões.");
+      statusDiv.textContent = "Permissão negada ou erro na conexão.";
     }
-  </script>
+  }
+
+  function encerrarChamada() {
+    if (currentCall) currentCall.close();
+    if (peer) peer.destroy();
+    window.location.href = "/perfil_aluno";
+  }
+
+  window.onload = iniciarCameraEConexao;
+</script>
 </body>
 </html>
 
