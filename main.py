@@ -1408,3 +1408,10 @@ def definir_status_ok(dados: dict):
     ref.set({"status": "aceito"}, merge=True)
 
     return {"msg": "Status definido como aceito"}
+
+@app.get("/verificar-status/{aluno}")
+def verificar_status(aluno: str):
+    doc = db.collection("chamadas_ao_vivo").document(aluno).get()
+    if not doc.exists:
+        return {"status": "indefinido"}
+    return {"status": doc.to_dict().get("status", "indefinido")}
