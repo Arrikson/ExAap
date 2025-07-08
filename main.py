@@ -1423,3 +1423,18 @@ def verificar_status(aluno_nome: str):
             return {"status": "nao_encontrado"}
     except Exception as e:
         return {"erro": str(e)}
+
+@app.get("/verificar-status")
+def verificar_status_query(aluno: str = ""):
+    try:
+        if not aluno:
+            return {"erro": "Aluno não especificado"}
+
+        doc = db.collection("chamadas_ao_vivo").document(aluno).get()
+        if doc.exists:
+            status = doc.to_dict().get("status", "pendente")
+            return {"status": status}
+        else:
+            return {"status": "nao_encontrado"}
+    except Exception as e:
+        return {"erro": str(e)}
