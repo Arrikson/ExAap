@@ -103,14 +103,15 @@
         })
       });
 
-      const check = await fetch(`/chamada-ativa?email=${encodeURIComponent(profEmail)}`);
+      // ⏳ Verifica se o professor iniciou a transmissão
+      const check = await fetch(`/verificar-transmissao/${profEmail}/${alunoNome}`);
       const statusCheck = await check.json();
 
-      if (!statusCheck.ativa) {
+      if (statusCheck.status !== "aceito") {
         statusDiv.textContent = "O professor ainda não iniciou a aula.";
         return;
       }
-
+      
       statusDiv.textContent = `Conectando com o professor ${profNome}...`;
 
       peer = new Peer();
