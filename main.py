@@ -1342,19 +1342,18 @@ async def registrar_chamada(request: Request):
         return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
     try:
-        # ✅ Normaliza os nomes (sem espaços e lowercase)
-        aluno = aluno_raw.strip().lower().replace(" ", "_")
-        professor = professor_raw.strip().lower().replace(" ", "_")
+        # Normalização dos nomes para uso interno (ID/sala)
+        aluno_id = aluno_raw.strip().lower().replace(" ", "_")
+        professor_id = professor_raw.strip().lower().replace(" ", "_")
+        nome_sala = f"{professor_id}-{aluno_id}"
 
-        nome_sala = f"{professor}-{aluno}"
-
-        db_firestore = firestore.Client()
-        doc_ref = db_firestore.collection("chamadas_ao_vivo").document(aluno)
+        db = firestore.Client()
+        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
         doc_ref.set({
-            "aluno": aluno_raw.strip(),
-            "professor": professor_raw.strip(),
+            "aluno": aluno_raw.strip(),         # Nome original
+            "professor": professor_raw.strip(), # Nome original
             "sala": nome_sala
-        }, merge=True)  # merge=True preserva o campo 'status'
+        }, merge=True)
 
         return JSONResponse(
             content={
