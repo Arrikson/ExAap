@@ -1406,13 +1406,14 @@ def definir_status_ok(dados: dict):
 
     return {"msg": "Status definido como aceito"}
 
-@app.get("/verificar-status/{aluno}")
-def verificar_status(aluno: str):
-    aluno = aluno.strip().lower()  # remove espaços e padroniza para minúsculas
-    doc = db.collection("chamadas_ao_vivo").document(aluno).get()
-    
-    if not doc.exists:
-        return {"status": "indefinido"}
-    
-    return {"status": doc.to_dict().get("status", "indefinido")}
-
+@app.get("/verificar-status/{aluno_nome}")
+def verificar_status(aluno_nome: str):
+    try:
+        doc = db.collection("chamadas_ao_vivo").document(aluno_nome).get()
+        if doc.exists:
+            status = doc.to_dict().get("status", "pendente")
+            return {"status": status}
+        else:
+            return {"status": "nao_encontrado"}
+    except Exception as e:
+        return {"erro": str(e)}
