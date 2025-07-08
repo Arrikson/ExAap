@@ -1344,17 +1344,14 @@ async def registrar_chamada(request: Request):
     try:
         db_firestore = firestore.Client()
 
-        # Nome da sala no formato "professor-aluno"
         nome_sala = f"{professor}-{aluno}"
 
-        # Documento com ID igual ao nome do aluno
         doc_ref = db_firestore.collection("chamadas_ao_vivo").document(aluno)
         doc_ref.set({
             "aluno": aluno,
             "professor": professor,
-            "sala": nome_sala,
-            "status": "pendente"
-        })
+            "sala": nome_sala
+        }, merge=True)  # ✅ merge=True preserva o status existente (ex: "aceito")
 
         return JSONResponse(
             content={
