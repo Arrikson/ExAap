@@ -293,7 +293,7 @@
       });
 
       // Redirecionar para a sala
-     window.location.href = `/sala_virtual_professor?professor=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
+    window.location.href = `/sala_virtual_professor?professor=${encodeURIComponent(professorEmail)}&aluno=${encodeURIComponent(aluno)}`;
     } catch (error) {
       console.error("Erro ao iniciar chamada:", error);
       alert("Erro ao iniciar a chamada.");
