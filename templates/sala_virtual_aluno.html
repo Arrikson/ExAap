@@ -105,7 +105,7 @@
 </head>
 <body data-aluno-nome="{{ aluno.nome }}" data-prof-email="{{ professor.email }}" data-prof-nome="{{ professor.nome_completo }}">
 
-  <div id="status">🔍 Verificando status da aula...</div>
+  <div id="status">👈 Digite o ID do professor para entrar na aula</div>
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
@@ -134,11 +134,6 @@
     firebase.initializeApp(firebaseConfig);
   </script>
 
-  <!-- Sala ID recebida do backend -->
-  <script>
-    let peerIdDoProfessor = "{{ sala_id }}";
-  </script>
-
   <script>
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
@@ -150,31 +145,12 @@
     let peer = null;
     let currentCall = null;
 
-    window.onload = verificarStatus;
-
-    async function verificarStatus() {
-      try {
-        const resposta = await fetch(`/verificar-status/${alunoNome}`);
-        const resultado = await resposta.json();
-
-        if (resultado.status === "aceito") {
-          statusDiv.textContent = "✅ Aula aceita! Conectando...";
-          iniciarCameraEConexao(peerIdDoProfessor);
-        } else {
-          statusDiv.textContent = "⏳ Aguardando professor aceitar a aula...";
-          setTimeout(verificarStatus, 3000);
-        }
-      } catch (err) {
-        console.error("Erro ao verificar status:", err);
-        statusDiv.textContent = "Erro ao verificar status.";
-      }
-    }
-
     async function iniciarCameraEConexao(professorId) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
+        // Registrar chamada (opcional)
         await fetch("/registrar-chamada", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -222,7 +198,7 @@
     function entrarNaAulaManual() {
       const idManual = document.getElementById("idProfessorManual").value.trim();
       if (idManual) {
-        statusDiv.textContent = "🔗 Conectando ao professor com ID manual...";
+        statusDiv.textContent = "🔗 Conectando ao professor...";
         iniciarCameraEConexao(idManual);
       } else {
         alert("Digite um ID válido do professor.");
@@ -237,3 +213,4 @@
   </script>
 </body>
 </html>
+
