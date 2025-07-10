@@ -677,6 +677,7 @@ def buscar_professor_por_email(email: str):
         return prof.to_dict()  # Retorna o dicionário com os dados do professor
     return None
 
+
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(
     request: Request,
@@ -684,16 +685,29 @@ async def get_sala_virtual_professor(
 ):
     if not email:
         return HTMLResponse("<h2 style='color:red'>Erro: email não fornecido na URL.</h2>", status_code=400)
-    
-    professor = buscar_professor_por_email(email)
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado.")
-    
-    return templates.TemplateResponse("sala_virtual_professor.html", {
-        "request": request,
-        "email": email,
-        "professor": professor
-    })
+
+    # Conectando ao Firestore
+    db = firestore.Client()
+
+    try:
+        # O documento tem como ID o e-mail do professor
+        doc_ref = db.collection("professores_online2").document(email)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Professor não encontrado.")
+
+        professor = doc.to_dict()
+
+        return templates.TemplateResponse("sala_virtual_professor.html", {
+            "request": request,
+            "email": email,
+            "professor": professor
+        })
+
+    except Exception as e:
+        return HTMLResponse(f"<h2 style='color:red'>Erro ao buscar professor: {str(e)}</h2>", status_code=500)
+
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
 async def get_sala_virtual_aluno(
