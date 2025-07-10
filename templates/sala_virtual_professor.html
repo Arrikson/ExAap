@@ -75,7 +75,7 @@
     let localStream, currentCall;
 
     // 1. Obter e-mail do professor via URL
-    const professorEmail = new URLSearchParams(window.location.search).get("professor");
+    const professorEmail = new URLSearchParams(window.location.search).get("email");
     if (!professorEmail) {
       alert("Professor não informado.");
       throw new Error("Professor não informado");
