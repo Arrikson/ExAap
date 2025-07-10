@@ -674,7 +674,8 @@ def buscar_professor_por_email(email: str):
         return prof.to_dict()
     return None
 
-# ✅ Rota da sala virtual do professor
+from slugify import slugify  # Certifique-se de que este módulo está instalado
+
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(
     request: Request,
@@ -693,11 +694,18 @@ async def get_sala_virtual_professor(
 
         professor = doc.to_dict()
 
+        # 🔑 Gera o ID da sala com base nos dados normalizados
+        def slug(texto):
+            return texto.strip().lower().replace(" ", "-").replace("@", "").replace(".", "")
+
+        sala_id = f"{slug(email)}-{slug(aluno)}" if aluno else slug(email)
+
         return templates.TemplateResponse("sala_virtual_professor.html", {
             "request": request,
             "email": email,
             "aluno": aluno,
-            "professor": professor
+            "professor": professor,
+            "sala_id": sala_id  # ← enviado ao HTML
         })
 
     except Exception as e:
