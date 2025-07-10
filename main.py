@@ -665,31 +665,26 @@ def professor_possui_alunos(prof_email: str) -> bool:
              .limit(1).stream()
     return next(docs, None) is not None
 
-
-from typing import Optional
-
+# ✅ Função para buscar o professor por e-mail
 def buscar_professor_por_email(email: str):
-    """
-    Busca o professor na coleção 'professores_online2' com base no campo 'email'.
-    """
-    professores = db.collection("professores_online2").where("email", "==", email).limit(1).stream()
+    professores = db.collection("professores_online2") \
+                    .where("email", "==", email) \
+                    .limit(1).stream()
     for prof in professores:
         return prof.to_dict()
     return None
 
+# ✅ Rota da sala virtual do professor
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(
     request: Request,
-    email: Optional[str] = Query(default=None)
+    email: Optional[str] = Query(default=None),
+    aluno: Optional[str] = Query(default=None)
 ):
     if not email:
         return HTMLResponse("<h2 style='color:red'>Erro: email não fornecido na URL.</h2>", status_code=400)
 
-    # Conectando ao Firestore
-    db = firestore.Client()
-
     try:
-        # O documento tem como ID o e-mail do professor
         doc_ref = db.collection("professores_online2").document(email)
         doc = doc_ref.get()
 
@@ -701,6 +696,7 @@ async def get_sala_virtual_professor(
         return templates.TemplateResponse("sala_virtual_professor.html", {
             "request": request,
             "email": email,
+            "aluno": aluno,
             "professor": professor
         })
 
