@@ -1350,7 +1350,41 @@ async def registrar_chamada(request: Request):
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
         doc_ref.set({
             "aluno": aluno_raw.strip(),
-            "professor": professor_raw.strip(),
+            "professor": professor_raw.strip(),@app.post("/registrar-chamada")
+async def registrar_chamada(request: Request):
+    dados = await request.json()
+    aluno_raw = dados.get("aluno")
+    professor_raw = dados.get("professor")
+
+    if not aluno_raw or not professor_raw:
+        return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+
+    try:
+        # 🔽 Normaliza nomes (minúsculo e com underscores)
+        aluno_id = aluno_raw.strip().lower().replace(" ", "_")
+        professor_id = professor_raw.strip().lower().replace(" ", "_")
+        nome_sala = f"{professor_id}-{aluno_id}"
+
+        db = firestore.Client()
+        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
+
+        doc_ref.set({
+            "aluno": aluno_id,           # ✅ agora salvo como "rafael_paulo"
+            "professor": professor_id,   # ✅ também normalizado
+            "sala": nome_sala,
+            "status": "pendente"
+        }, merge=True)
+
+        return JSONResponse(
+            content={
+                "mensagem": "Chamada registrada com sucesso",
+                "sala": nome_sala
+            },
+            status_code=200
+        )
+    except Exception as e:
+        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
+
             "sala": nome_sala,
             "status": "pendente"  # 👈 define status inicial
         }, merge=True)
@@ -1364,6 +1398,7 @@ async def registrar_chamada(request: Request):
         )
     except Exception as e:
         return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
+        
 
 app.add_middleware(
     CORSMiddleware,
