@@ -62,64 +62,6 @@
       gap: 10px;
     }
 
-    .accordion {
-      background-color: #ffffff22;
-      color: #fff;
-      cursor: pointer;
-      padding: 15px;
-      width: 100%;
-      border: none;
-      text-align: left;
-      outline: none;
-      font-size: 18px;
-      transition: 0.3s;
-      border-radius: 10px;
-      margin-top: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .accordion:hover {
-      background-color: #ffffff33;
-    }
-
-    .accordion:after {
-      content: "\f0da";
-      font-family: "Font Awesome 6 Free";
-      font-weight: 900;
-    }
-
-    .accordion.active:after {
-      content: "\f0d7";
-    }
-
-    .panel {
-      padding: 0 10px;
-      display: none;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-
-    input[readonly] {
-      background-color: #ddd;
-    }
-
     .button {
       padding: 12px 20px;
       background-color: #28a745;
@@ -155,10 +97,6 @@
       gap: 8px;
     }
 
-    .status-icon {
-      font-size: 18px;
-    }
-
     .logout-form {
       display: none;
     }
@@ -172,6 +110,20 @@
       border-radius: 10px;
       text-align: center;
       font-weight: bold;
+    }
+
+    /* NOVO BLOCO */
+    #info-aula {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff3;
+      border-radius: 10px;
+      text-align: center;
+    }
+    #info-aula p {
+      margin-bottom: 10px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -195,121 +147,135 @@
     <div id="notificacao-mensagem"></div>
     <div id="professor-nome"></div>
 
+    <!-- BLOCO ID DA SALA + BOTÃO -->
+    <div id="info-aula">
+      <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
+      <button class="button btn-enter" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    </div>
+
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
   </div>
 
-<!-- ... início do HTML e estilo permanecem iguais ... -->
+  <script>
+    const nomeAluno = "{{ aluno.nome }}";
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+    let professorEmailAtual = null;
 
-<script>
-  const nomeAluno = "{{ aluno.nome }}";
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-  let professorEmailAtual = null;
+    function fazerLogout() {
+      fetch("/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nomeAluno })
+      })
+      .then(() => window.location.href = "/")
+      .catch(error => console.error("Erro ao fazer logout:", error));
+    }
 
-  function fazerLogout() {
-    fetch("/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
-    })
-    .then(() => window.location.href = "/")
-    .catch(error => console.error("Erro ao fazer logout:", error));
-  }
+    function verProfessor(nome) {
+      const container = document.getElementById("professor-nome");
+      fetch(`/meu-professor-status/${nome}`)
+        .then(response => response.json())
+        .then(data => {
+          const statusIcon = data.online ? '🟢' : '⚪';
+          const statusText = data.online ? 'Online' : 'Offline';
+          container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+        })
+        .catch(err => {
+          container.innerHTML = "Professor não encontrado.";
+          console.error("Erro ao buscar professor:", err);
+        });
+    }
 
-  function verProfessor(nome) {
-    const container = document.getElementById("professor-nome");
-    fetch(`/meu-professor-status/${nome}`)
+    function verNotificacao() {
+      fetch("/verificar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
       .then(response => response.json())
       .then(data => {
-        const statusIcon = data.online ? '🟢' : '⚪';
-        const statusText = data.online ? 'Online' : 'Offline';
-        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-      })
-      .catch(err => {
-        container.innerHTML = "Professor não encontrado.";
-        console.error("Erro ao buscar professor:", err);
-      });
-  }
-
-  function verNotificacao() {
-    fetch("/verificar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.notificacao === true) {
-        professorEmailAtual = data.professor_email; // <-- necessário no backend
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    })
-    .catch(error => console.error("Erro ao verificar notificação:", error));
-  }
-
-  function desativarNotificacaoERedirecionar() {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(() => {
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      document.getElementById("contador-aulas").innerText = "";
-      if (professorEmailAtual) {
-        // Redireciona o aluno para a sala virtual no formato esperado
-        const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      }
-    })
-    .catch(error => console.error("Erro:", error));
-  }
-</script>
-
-<!-- Firebase chamada ao vivo permanece igual -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getFirestore, doc, onSnapshot, updateDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-    authDomain: "exap-8a935.firebaseapp.com",
-    projectId: "exap-8a935",
-    storageBucket: "exap-8a935.appspot.com",
-    messagingSenderId: "664710895978",
-    appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  onSnapshot(chamadaRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const dados = docSnap.data();
-      if (dados.status === "pendente") {
-        const aceitar = confirm(`O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-        updateDoc(chamadaRef, {
-          status: aceitar ? "aceito" : "rejeitado"
-        });
-        if (aceitar) {
-          window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+        if (data.notificacao === true) {
+          professorEmailAtual = data.professor_email;
+          notificacaoEl.innerHTML = `
+            A tua aula irá começar
+            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+          `;
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+        } else {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
         }
+      })
+      .catch(error => console.error("Erro ao verificar notificação:", error));
+    }
+
+    function desativarNotificacaoERedirecionar() {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
+      .then(() => {
+        document.getElementById("notificacao-mensagem").style.display = "none";
+        document.getElementById("contador-aulas").innerText = "";
+        if (professorEmailAtual) {
+          const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
+          window.location.href = `/sala_virtual_aluno/${sala}`;
+        }
+      })
+      .catch(error => console.error("Erro:", error));
+    }
+
+    function entrarNaAulaDireto() {
+      const salaId = document.getElementById("sala-id").textContent;
+      if (salaId) {
+        window.location.href = `/sala_virtual_aluno/${salaId}`;
       }
     }
-  });
-</script>
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.appspot.com",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+    const infoAulaDiv = document.getElementById("info-aula");
+    const salaIdSpan = document.getElementById("sala-id");
+
+    onSnapshot(chamadaRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        if (dados.status === "pendente") {
+          salaIdSpan.textContent = dados.sala;
+          infoAulaDiv.style.display = "block";
+          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+          updateDoc(chamadaRef, {
+            status: aceitar ? "aceito" : "rejeitado"
+          });
+          if (aceitar) {
+            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
