@@ -963,7 +963,7 @@ async def verificar_aluno(
 async def get_cadastro(request: Request):
     return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
 
-@app.post("/professores_online", response_class=HTMLResponse)
+@app.post("/professores_online", response_class=HTMLResponse) 
 async def post_cadastro(
     request: Request,
     nome_completo: str = Form(...),
@@ -1002,12 +1002,22 @@ async def post_cadastro(
         "ano_faculdade": ano_faculdade,
         "area_formacao": area_formacao,
         "senha": senha,
-        "online": True  
+        "online": True
     }
 
+    # ✅ Coleção original (mantém como está)
     db.collection("professores_online").add(dados)
+
+    # ✅ Nova coleção: professores_online2 com email como ID
+    try:
+        db.collection("professores_online2").document(email).set(dados)
+        print(f"✅ Salvo em professores_online2 com ID {email}")
+    except Exception as e:
+        print(f"❌ Erro ao salvar em professores_online2: {e}")
+
     return RedirectResponse(url="/login_prof", status_code=303)
-    
+
+
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
     return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
