@@ -445,6 +445,8 @@ async def listar_professores():
 async def listar_professores_firebase():
     return JSONResponse(content=carregar_professores_firebase())
 
+from firebase_admin import firestore
+
 @app.post("/registrar-professor", response_class=HTMLResponse)
 async def registrar_professor(
     request: Request,
@@ -457,24 +459,45 @@ async def registrar_professor(
     os.makedirs("static/docs", exist_ok=True)
     foto_path = f"static/docs/{doc_foto.filename}"
     pdf_path = f"static/docs/{doc_pdf.filename}"
-    with open(foto_path, "wb") as buff: shutil.copyfileobj(doc_foto.file, buff)
-    with open(pdf_path, "wb") as buff: shutil.copyfileobj(doc_pdf.file, buff)
+
+    with open(foto_path, "wb") as buff:
+        shutil.copyfileobj(doc_foto.file, buff)
+
+    with open(pdf_path, "wb") as buff:
+        shutil.copyfileobj(doc_pdf.file, buff)
 
     novo = {
-        "nome": nome, "idade": idade, "nome_pai": nome_pai, "nome_mae": nome_mae,
-        "morada_atual": morada_atual, "ponto_referencia": ponto_referencia, "bi": bi,
-        "disciplinas": disciplinas, "outras_disciplinas": outras_disciplinas,
-        "telefone": telefone, "email": email,
+        "nome": nome,
+        "idade": idade,
+        "nome_pai": nome_pai,
+        "nome_mae": nome_mae,
+        "morada_atual": morada_atual,
+        "ponto_referencia": ponto_referencia,
+        "bi": bi,
+        "disciplinas": disciplinas,
+        "outras_disciplinas": outras_disciplinas,
+        "telefone": telefone,
+        "email": email,
         "localizacao": f"Latitude: {latitude}, Longitude: {longitude}",
-        "doc_foto": "/" + foto_path, "doc_pdf": "/" + pdf_path
+        "doc_foto": "/" + foto_path,
+        "doc_pdf": "/" + pdf_path
     }
 
+    # Salvar localmente
     profs = carregar_professores_local()
     profs.append(novo)
     salvar_professores_local(profs)
     gerar_html_professores()
+
+    # Salvar na coleção antiga
     salvar_professor_firebase(novo)
+
+    # ✅ Também salvar na nova coleção "professores_online2"
+    db = firestore.client()
+    db.collection("professores_online2").document(email).set(novo)
+
     return RedirectResponse(url="/pro-info.html", status_code=303)
+
 
 @app.get("/gerar-pdf", response_class=FileResponse)
 async def gerar_pdf():
