@@ -70,6 +70,37 @@
     .btn-sair:hover {
       background: darkred;
     }
+
+    #manualJoin {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px;
+      border-radius: 12px;
+      z-index: 20;
+    }
+
+    #manualJoin input {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    #manualJoin button {
+      padding: 8px 12px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #manualJoin button:hover {
+      background: darkgreen;
+    }
   </style>
 </head>
 <body data-aluno-nome="{{ aluno.nome }}" data-prof-email="{{ professor.email }}" data-prof-nome="{{ professor.nome_completo }}">
@@ -78,6 +109,12 @@
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
+
+  <!-- Campo para entrada manual -->
+  <div id="manualJoin">
+    <input type="text" id="idProfessorManual" placeholder="ID do professor">
+    <button onclick="entrarNaAulaManual()">Entrar na aula</button>
+  </div>
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -94,13 +131,12 @@
       messagingSenderId: "664710895978",
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
-
     firebase.initializeApp(firebaseConfig);
   </script>
 
   <!-- Sala ID recebida do backend -->
   <script>
-    const peerIdDoProfessor = "{{ sala_id }}";
+    let peerIdDoProfessor = "{{ sala_id }}";
   </script>
 
   <script>
@@ -123,7 +159,7 @@
 
         if (resultado.status === "aceito") {
           statusDiv.textContent = "✅ Aula aceita! Conectando...";
-          iniciarCameraEConexao();
+          iniciarCameraEConexao(peerIdDoProfessor);
         } else {
           statusDiv.textContent = "⏳ Aguardando professor aceitar a aula...";
           setTimeout(verificarStatus, 3000);
@@ -134,7 +170,7 @@
       }
     }
 
-    async function iniciarCameraEConexao() {
+    async function iniciarCameraEConexao(professorId) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
@@ -153,7 +189,7 @@
         peer.on("open", (id) => {
           console.log("🎓 ID do aluno (PeerJS):", id);
 
-          const call = peer.call(peerIdDoProfessor, stream);
+          const call = peer.call(professorId, stream);
           currentCall = call;
 
           call.on("stream", (profStream) => {
@@ -180,6 +216,16 @@
       } catch (err) {
         console.error("Erro ao acessar câmera/mic:", err);
         statusDiv.textContent = "Permissão negada ou erro na câmera.";
+      }
+    }
+
+    function entrarNaAulaManual() {
+      const idManual = document.getElementById("idProfessorManual").value.trim();
+      if (idManual) {
+        statusDiv.textContent = "🔗 Conectando ao professor com ID manual...";
+        iniciarCameraEConexao(idManual);
+      } else {
+        alert("Digite um ID válido do professor.");
       }
     }
 
