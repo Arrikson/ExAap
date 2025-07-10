@@ -84,7 +84,7 @@
     const professorPeerId = professorEmail.replace(/[@.]/g, "_");
 
     // 2. Inicializar PeerJS
-    const peer = new Peer();
+    const peer = new Peer(professorPeerId);
 
     peer.on("open", async () => {
       try {
