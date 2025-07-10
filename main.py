@@ -670,13 +670,12 @@ from typing import Optional
 
 def buscar_professor_por_email(email: str):
     """
-    Busca o professor na coleção 'professores_online' com base no campo 'email'.
+    Busca o professor na coleção 'professores_online2' com base no campo 'email'.
     """
-    professores = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+    professores = db.collection("professores_online2").where("email", "==", email).limit(1).stream()
     for prof in professores:
-        return prof.to_dict()  # Retorna o dicionário com os dados do professor
+        return prof.to_dict()
     return None
-
 
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(
@@ -1382,28 +1381,32 @@ async def verificar_notificacao(request: Request):
 
 @app.post("/registrar-chamada")
 async def registrar_chamada(request: Request):
-    dados = await request.json()
-    aluno_raw = dados.get("aluno")
-    professor_raw = dados.get("professor")
-
-    if not aluno_raw or not professor_raw:
-        return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
-
     try:
-        aluno_id = aluno_raw.strip().lower().replace(" ", "_")
-        professor_id = professor_raw.strip().lower().replace(" ", "_")
+        dados = await request.json()
+        aluno_raw = dados.get("aluno")
+        professor_raw = dados.get("professor")
+
+        if not aluno_raw or not professor_raw:
+            return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+
+        aluno_id = str(aluno_raw).strip().lower().replace(" ", "_")
+        professor_id = str(professor_raw).strip().lower().replace(" ", "_")
         nome_sala = f"{professor_id}-{aluno_id}"
 
         db = firestore.Client()
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
-
         doc = doc_ref.get()
-        dados_atuais = doc.to_dict() if doc.exists else {}
 
+        if not doc.exists:
+            return JSONResponse(
+                content={"erro": "Documento de chamada não encontrado."},
+                status_code=404
+            )
+
+        dados_atuais = doc.to_dict() or {}
         status_atual = dados_atuais.get("status", "")
 
         if status_atual == "aceito":
-            # ✅ Apenas atualiza os dados da sala, sem alterar o status
             doc_ref.set({
                 "aluno": aluno_id,
                 "professor": professor_id,
@@ -1425,11 +1428,11 @@ async def registrar_chamada(request: Request):
             )
 
     except Exception as e:
+        print(f"❌ ERRO AO REGISTRAR CHAMADA: {str(e)}")  # Para debug no terminal
         return JSONResponse(
-            content={"erro": f"Erro ao registrar chamada: {str(e)}"},
+            content={"erro": f"Erro interno ao registrar chamada: {str(e)}"},
             status_code=500
         )
-
 
 app.add_middleware(
     CORSMiddleware,
