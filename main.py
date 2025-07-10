@@ -1426,16 +1426,26 @@ def verificar_status(aluno_nome: str):
     except Exception as e:
         return {"erro": str(e)}
 
+
 @app.get("/verificar-status")
 def verificar_status_query(aluno: str = ""):
     try:
         if not aluno:
             return {"erro": "Aluno não especificado"}
 
-        doc = db.collection("chamadas_ao_vivo").document(aluno).get()
+        ref = db.collection("chamadas_ao_vivo").document(aluno)
+        doc = ref.get()
+
         if doc.exists:
-            status = doc.to_dict().get("status", "pendente")
-            return {"status": status}
+            dados = doc.to_dict()
+            status_atual = dados.get("status", "pendente")
+
+            # ✅ Se ainda não estiver "aceito", atualiza
+            if status_atual != "aceito":
+                ref.set({"status": "aceito"}, merge=True)
+                status_atual = "aceito"
+
+            return {"status": status_atual}
         else:
             return {"status": "nao_encontrado"}
     except Exception as e:
