@@ -1458,13 +1458,14 @@ def verificar_status(aluno_nome: str):
         if doc.exists:
             status = doc.to_dict().get("status", "pendente")
 
-            # Se ainda não estiver como aceito, atualiza o status para "aceito"
-            if status != "aceito":
+            # Atualiza apenas se o status for exatamente "pendente"
+            if status == "pendente":
                 ref.update({"status": "aceito"})
                 status = "aceito"
 
             return {"status": status}
         else:
             return {"status": "nao_encontrado"}
+
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
