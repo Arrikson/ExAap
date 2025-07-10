@@ -81,26 +81,32 @@
 
     #manualJoin {
       position: absolute;
-      top: 50%;
+      bottom: 30px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       background: rgba(20, 20, 20, 0.95);
-      padding: 30px 40px;
+      padding: 20px 25px;
       border-radius: 15px;
       z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 320px;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     }
 
+    #manualJoin h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
     #manualJoin input {
-      padding: 12px 15px;
+      padding: 10px 15px;
       border-radius: 10px;
       border: none;
       font-size: 16px;
-      width: 260px;
-      margin-bottom: 15px;
+      width: 100%;
+      margin-bottom: 10px;
       text-align: center;
       background: #222;
       color: #fff;
@@ -112,7 +118,7 @@
     }
 
     #manualJoin button {
-      padding: 12px 25px;
+      padding: 10px 20px;
       background: #2ecc71;
       color: white;
       border: none;
@@ -120,6 +126,7 @@
       cursor: pointer;
       font-size: 16px;
       transition: background 0.3s ease;
+      width: 100%;
     }
 
     #manualJoin button:hover {
@@ -129,11 +136,17 @@
     @media (max-width: 600px) {
       #manualJoin {
         width: 90%;
-        padding: 20px;
+        bottom: 20px;
+        padding: 15px;
       }
 
-      #manualJoin input {
-        width: 100%;
+      #manualJoin h2 {
+        font-size: 16px;
+      }
+
+      #manualJoin input,
+      #manualJoin button {
+        font-size: 15px;
       }
 
       #localVideo {
@@ -151,7 +164,7 @@
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
 
   <div id="manualJoin">
-    <h2 style="margin-bottom: 15px; font-size: 20px;">Entrar manualmente</h2>
+    <h2>Entrar manualmente</h2>
     <input type="text" id="idProfessorManual" placeholder="ID do professor">
     <button onclick="entrarNaAulaManual()">Entrar na aula</button>
   </div>
