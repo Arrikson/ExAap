@@ -79,7 +79,25 @@
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
 
+  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.firebasestorage.app",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
   <script>
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
@@ -169,4 +187,3 @@
   </script>
 </body>
 </html>
-
