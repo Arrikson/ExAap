@@ -73,6 +73,7 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <script>
     // Configuração do Firebase
     const firebaseConfig = {
@@ -84,7 +85,6 @@
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
 
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
   </script>
 
@@ -94,17 +94,16 @@
     const status = document.getElementById('status');
     let localStream, currentCall;
 
-    // 1. Obter e-mail do professor via URL
-    const professorEmail = new URLSearchParams(window.location.search).get("email");
-    if (!professorEmail) {
-      alert("Professor não informado.");
-      throw new Error("Professor não informado");
+    // 🔑 Obter o ID da sala injetado pelo backend
+    const peerIdDoProfessor = "{{ sala_id }}";
+
+    if (!peerIdDoProfessor) {
+      alert("ID da sala não encontrado.");
+      throw new Error("ID da sala não encontrado");
     }
 
-    const professorPeerId = professorEmail.replace(/[@.]/g, "_");
-
-    // 2. Inicializar PeerJS
-    const peer = new Peer(professorPeerId);
+    // 🔗 Criar um Peer anônimo (aluno)
+    const peer = new Peer();
 
     peer.on("open", async () => {
       try {
@@ -113,7 +112,7 @@
 
         status.textContent = "Chamando o professor...";
 
-        const call = peer.call(professorPeerId, localStream);
+        const call = peer.call(peerIdDoProfessor, localStream);
         currentCall = call;
 
         call.on("stream", (stream) => {
