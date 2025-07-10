@@ -98,14 +98,18 @@
     firebase.initializeApp(firebaseConfig);
   </script>
 
+  <!-- Sala ID recebida do backend -->
+  <script>
+    const peerIdDoProfessor = "{{ sala_id }}";
+  </script>
+
   <script>
     const statusDiv = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    const profEmail = document.body.dataset.profEmail;
     const alunoNome = document.body.dataset.alunoNome.trim().toLowerCase().replace(/ /g, "_");
-    const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
+    const profEmail = document.body.dataset.profEmail;
 
     let peer = null;
     let currentCall = null;
@@ -122,7 +126,7 @@
           iniciarCameraEConexao();
         } else {
           statusDiv.textContent = "⏳ Aguardando professor aceitar a aula...";
-          setTimeout(verificarStatus, 3000);  // Verifica a cada 3 segundos
+          setTimeout(verificarStatus, 3000);
         }
       } catch (err) {
         console.error("Erro ao verificar status:", err);
@@ -149,7 +153,7 @@
         peer.on("open", (id) => {
           console.log("🎓 ID do aluno (PeerJS):", id);
 
-          const call = peer.call(peerIdProfessor, stream);
+          const call = peer.call(peerIdDoProfessor, stream);
           currentCall = call;
 
           call.on("stream", (profStream) => {
