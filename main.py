@@ -1406,7 +1406,10 @@ def definir_status_ok(dados: dict):
     if not aluno:
         raise HTTPException(status_code=400, detail="Aluno não informado")
 
-    ref = db.collection("chamadas_ao_vivo").document(aluno)
+    # ✅ Normalizar nome do aluno (igual aos outros lugares)
+    aluno_id = aluno.strip().lower().replace(" ", "_")
+
+    ref = db.collection("chamadas_ao_vivo").document(aluno_id)
     ref.set({"status": "aceito"}, merge=True)
 
     return {"msg": "Status definido como aceito"}
