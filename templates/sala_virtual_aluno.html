@@ -5,111 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sala Virtual - Aluno</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      margin-bottom: 5px;
-    }
-    #videoContainer {
-      display: none;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    video {
-      width: 320px;
-      height: 240px;
       background: #000;
-      border: 2px solid #ccc;
-      border-radius: 8px;
+      color: white;
+      overflow: hidden;
+      position: relative;
     }
-    .btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #d9534f;
+
+    #remoteVideo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: black;
+    }
+
+    #localVideo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      height: 110px;
+      border: 2px solid white;
+      border-radius: 10px;
+      object-fit: cover;
+      z-index: 10;
+    }
+
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 16px;
+      z-index: 20;
+    }
+
+    .btn-sair {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
       color: white;
       border: none;
-      border-radius: 6px;
+      padding: 10px 16px;
+      border-radius: 20px;
       cursor: pointer;
       font-size: 16px;
+      z-index: 20;
     }
-    .btn:hover {
-      background: #c9302c;
-    }
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #555;
+
+    .btn-sair:hover {
+      background: darkred;
     }
   </style>
 </head>
 <body data-aluno-nome="{{ aluno.nome }}" data-prof-email="{{ professor.email }}" data-prof-nome="{{ professor.nome_completo }}">
 
-  <h1>Sala Virtual</h1>
-  <p>Aluno: {{ aluno.nome }}<br>Professor: {{ professor.nome_completo }}</p>
+  <div id="status">🔍 Verificando status da aula...</div>
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
 
-  <div id="status">Clique em "Verificar Status" para iniciar a conexão.</div>
-
-  <div id="videoContainer">
-    <div>
-      <h3>Seu Vídeo</h3>
-      <video id="localVideo" autoplay muted playsinline></video>
-    </div>
-    <div>
-      <h3>Vídeo do Professor</h3>
-      <video id="remoteVideo" autoplay playsinline></video>
-    </div>
-  </div>
-
-  <button id="verificarStatusBtn" class="btn" onclick="verificarStatus()">Verificar Status</button>
-  <button class="btn" onclick="encerrarChamada()">Sair da Aula</button>
-
-  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const statusDiv = document.getElementById("status");
-    const videoContainer = document.getElementById("videoContainer");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
     const profEmail = document.body.dataset.profEmail;
-    const profNome = document.body.dataset.profNome;
     const alunoNome = document.body.dataset.alunoNome.trim().toLowerCase().replace(/ /g, "_");
     const peerIdProfessor = profEmail.replace(/[@.]/g, "_");
 
     let peer = null;
     let currentCall = null;
 
-    async function verificarStatus() {
-      statusDiv.textContent = "🔍 Verificando status da aula...";
+    window.onload = verificarStatus;
 
+    async function verificarStatus() {
       try {
         const resposta = await fetch(`/verificar-status/${alunoNome}`);
         const resultado = await resposta.json();
 
         if (resultado.status === "aceito") {
-          statusDiv.textContent = "✅ Aula aceita! Conectando com o professor...";
+          statusDiv.textContent = "✅ Aula aceita! Conectando...";
           iniciarCameraEConexao();
         } else {
-          statusDiv.textContent = "⏳ O professor ainda não aceitou a aula.";
+          statusDiv.textContent = "⏳ Aguardando professor aceitar a aula...";
+          setTimeout(verificarStatus, 3000);  // Verifica a cada 3 segundos
         }
       } catch (err) {
         console.error("Erro ao verificar status:", err);
-        statusDiv.textContent = "Erro ao verificar status da aula.";
+        statusDiv.textContent = "Erro ao verificar status.";
       }
     }
 
     async function iniciarCameraEConexao() {
-      document.getElementById("verificarStatusBtn").style.display = "none";
-
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
-        localVideo.play();
-        videoContainer.style.display = "flex";
-        statusDiv.textContent = "Conectando...";
 
         await fetch("/registrar-chamada", {
           method: "POST",
@@ -129,33 +135,29 @@
           currentCall = call;
 
           call.on("stream", (profStream) => {
-            console.log("🎥 Recebendo vídeo do professor...");
             remoteVideo.srcObject = profStream;
-            remoteVideo.play();
-            remoteVideo.style.display = "block";
             statusDiv.textContent = "✅ Conectado com o professor!";
           });
 
           call.on("close", () => {
-            alert("📴 A chamada foi encerrada.");
-            statusDiv.textContent = "Chamada finalizada.";
+            alert("📴 Chamada finalizada.");
+            statusDiv.textContent = "Chamada encerrada.";
           });
 
           call.on("error", (err) => {
-            console.error("❌ Erro na chamada:", err);
-            statusDiv.textContent = "Erro na chamada.";
+            console.error("Erro na chamada:", err);
+            statusDiv.textContent = "Erro durante a chamada.";
           });
         });
 
         peer.on("error", (err) => {
-          console.error("❌ Erro no PeerJS:", err);
+          console.error("Erro PeerJS:", err);
           alert("Erro na conexão com o professor.");
         });
 
       } catch (err) {
-        console.error("🚫 Erro ao acessar câmera/mic ou conectar:", err);
-        alert("Erro ao acessar sua câmera e microfone. Verifique as permissões.");
-        statusDiv.textContent = "Permissão negada ou erro na conexão.";
+        console.error("Erro ao acessar câmera/mic:", err);
+        statusDiv.textContent = "Permissão negada ou erro na câmera.";
       }
     }
 
@@ -167,5 +169,4 @@
   </script>
 </body>
 </html>
-
 
