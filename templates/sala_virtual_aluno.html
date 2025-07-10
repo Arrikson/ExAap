@@ -12,15 +12,10 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
       background: #000;
       color: white;
-      overflow: hidden;
       position: relative;
-    }
-
-    video {
-      background: black;
     }
 
     #remoteVideo {
@@ -30,129 +25,93 @@
       width: 100vw;
       height: 100vh;
       object-fit: cover;
+      background: black;
       z-index: 1;
+      pointer-events: none; /* Permite clicar no campo acima do vídeo */
     }
 
     #localVideo {
       position: absolute;
       bottom: 20px;
       right: 20px;
-      width: 160px;
-      height: 120px;
+      width: 150px;
+      height: 110px;
       border: 2px solid white;
       border-radius: 10px;
       object-fit: cover;
-      z-index: 3;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+      z-index: 10;
     }
 
     #status {
       position: absolute;
-      top: 20px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-weight: 600;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
       font-size: 16px;
-      z-index: 5;
-      box-shadow: 0 0 8px rgba(255,255,255,0.3);
+      z-index: 20;
     }
 
     .btn-sair {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      background: #e63946;
+      top: 10px;
+      right: 10px;
+      background: red;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
+      padding: 10px 16px;
+      border-radius: 20px;
       cursor: pointer;
       font-size: 16px;
-      z-index: 5;
-      transition: background 0.3s ease;
+      z-index: 20;
     }
 
     .btn-sair:hover {
-      background: #c02630;
+      background: darkred;
     }
 
     #manualJoin {
       position: absolute;
-      bottom: 30px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      background: rgba(20, 20, 20, 0.95);
-      padding: 20px 25px;
-      border-radius: 15px;
-      z-index: 10;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      border-radius: 12px;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
+      gap: 15px;
       align-items: center;
-      width: 320px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
-
-    #manualJoin h2 {
-      margin-bottom: 10px;
-      font-size: 18px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
 
     #manualJoin input {
-      padding: 10px 15px;
-      border-radius: 10px;
+      padding: 12px;
+      border-radius: 8px;
       border: none;
       font-size: 16px;
-      width: 100%;
-      margin-bottom: 10px;
+      width: 250px;
       text-align: center;
-      background: #222;
-      color: #fff;
-      box-shadow: inset 0 0 5px rgba(255,255,255,0.1);
-    }
-
-    #manualJoin input::placeholder {
-      color: #aaa;
+      outline: none;
     }
 
     #manualJoin button {
       padding: 10px 20px;
-      background: #2ecc71;
+      background: green;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
-      transition: background 0.3s ease;
-      width: 100%;
     }
 
     #manualJoin button:hover {
-      background: #27ae60;
-    }
-
-    @media (max-width: 600px) {
-      #manualJoin {
-        width: 90%;
-        bottom: 20px;
-        padding: 15px;
-      }
-
-      #manualJoin h2 {
-        font-size: 16px;
-      }
-
-      #manualJoin input,
-      #manualJoin button {
-        font-size: 15px;
-      }
-
-      #localVideo {
-        width: 120px;
-        height: 90px;
-      }
+      background: darkgreen;
     }
   </style>
 </head>
@@ -163,13 +122,16 @@
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
 
+  <!-- Campo para entrada manual -->
   <div id="manualJoin">
-    <h2>Entrar manualmente</h2>
     <input type="text" id="idProfessorManual" placeholder="ID do professor">
     <button onclick="entrarNaAulaManual()">Entrar na aula</button>
   </div>
 
+  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
@@ -263,4 +225,3 @@
   </script>
 </body>
 </html>
-
