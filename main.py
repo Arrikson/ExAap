@@ -1354,7 +1354,7 @@ async def registrar_chamada(request: Request):
             "aluno": aluno_id,           # ✅ agora salvo como "rafael_paulo"
             "professor": professor_id,   # ✅ também normalizado
             "sala": nome_sala,
-            "status": "pendente"
+            "status": "pendente"         # 👈 define status inicial
         }, merge=True)
 
         return JSONResponse(
@@ -1366,21 +1366,6 @@ async def registrar_chamada(request: Request):
         )
     except Exception as e:
         return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
-
-            "sala": nome_sala,
-            "status": "pendente"  # 👈 define status inicial
-        }, merge=True)
-
-        return JSONResponse(
-            content={
-                "mensagem": "Chamada registrada com sucesso",
-                "sala": nome_sala
-            },
-            status_code=200
-        )
-    except Exception as e:
-        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
-        
 
 app.add_middleware(
     CORSMiddleware,
