@@ -1332,6 +1332,7 @@ async def verificar_notificacao(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+
 @app.post("/registrar-chamada")
 async def registrar_chamada(request: Request):
     dados = await request.json()
@@ -1342,7 +1343,6 @@ async def registrar_chamada(request: Request):
         return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
     try:
-        # 🔽 Normaliza nomes (minúsculo e com underscores)
         aluno_id = aluno_raw.strip().lower().replace(" ", "_")
         professor_id = professor_raw.strip().lower().replace(" ", "_")
         nome_sala = f"{professor_id}-{aluno_id}"
@@ -1350,22 +1350,39 @@ async def registrar_chamada(request: Request):
         db = firestore.Client()
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
 
-        doc_ref.set({
-            "aluno": aluno_id,           # ✅ agora salvo como "rafael_paulo"
-            "professor": professor_id,   # ✅ também normalizado
-            "sala": nome_sala,
-            "status": "pendente"         # 👈 define status inicial
-        }, merge=True)
+        doc = doc_ref.get()
+        dados_atuais = doc.to_dict() if doc.exists else {}
 
-        return JSONResponse(
-            content={
-                "mensagem": "Chamada registrada com sucesso",
+        status_atual = dados_atuais.get("status", "")
+
+        if status_atual == "aceito":
+            # ✅ Apenas atualiza os dados da sala, sem alterar o status
+            doc_ref.set({
+                "aluno": aluno_id,
+                "professor": professor_id,
                 "sala": nome_sala
-            },
-            status_code=200
-        )
+            }, merge=True)
+
+            return JSONResponse(
+                content={
+                    "mensagem": "Conexão mantida com status aceito",
+                    "sala": nome_sala
+                },
+                status_code=200
+            )
+
+        else:
+            return JSONResponse(
+                content={"erro": f"A conexão não foi autorizada (status atual: {status_atual})"},
+                status_code=403
+            )
+
     except Exception as e:
-        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
+        return JSONResponse(
+            content={"erro": f"Erro ao registrar chamada: {str(e)}"},
+            status_code=500
+        )
+
 
 app.add_middleware(
     CORSMiddleware,
