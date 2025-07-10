@@ -1342,7 +1342,6 @@ async def registrar_chamada(request: Request):
         return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
     try:
-        # Normalização dos nomes para uso interno (ID/sala)
         aluno_id = aluno_raw.strip().lower().replace(" ", "_")
         professor_id = professor_raw.strip().lower().replace(" ", "_")
         nome_sala = f"{professor_id}-{aluno_id}"
@@ -1350,9 +1349,10 @@ async def registrar_chamada(request: Request):
         db = firestore.Client()
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
         doc_ref.set({
-            "aluno": aluno_raw.strip(),         # Nome original
-            "professor": professor_raw.strip(), # Nome original
-            "sala": nome_sala
+            "aluno": aluno_raw.strip(),
+            "professor": professor_raw.strip(),
+            "sala": nome_sala,
+            "status": "pendente"  # 👈 define status inicial
         }, merge=True)
 
         return JSONResponse(
@@ -1362,12 +1362,8 @@ async def registrar_chamada(request: Request):
             },
             status_code=200
         )
-
     except Exception as e:
-        return JSONResponse(
-            content={"erro": f"Erro ao registrar chamada: {str(e)}"},
-            status_code=500
-        )
+        return JSONResponse(content={"erro": f"Erro ao registrar chamada: {str(e)}"}, status_code=500)
 
 app.add_middleware(
     CORSMiddleware,
@@ -1417,36 +1413,23 @@ def definir_status_ok(dados: dict):
 @app.get("/verificar-status/{aluno_nome}")
 def verificar_status(aluno_nome: str):
     try:
-        doc = db.collection("chamadas_ao_vivo").document(aluno_nome).get()
+        if not aluno_nome:
+            return JSONResponse(content={"erro": "Aluno não especificado"}, status_code=400)
+
+        aluno_id = aluno_nome.strip().lower().replace(" ", "_")
+        ref = db.collection("chamadas_ao_vivo").document(aluno_id)
+        doc = ref.get()
+
         if doc.exists:
             status = doc.to_dict().get("status", "pendente")
+
+            # Se ainda não estiver como aceito, atualiza o status para "aceito"
+            if status != "aceito":
+                ref.update({"status": "aceito"})
+                status = "aceito"
+
             return {"status": status}
         else:
             return {"status": "nao_encontrado"}
     except Exception as e:
-        return {"erro": str(e)}
-
-
-@app.get("/verificar-status")
-def verificar_status_query(aluno: str = ""):
-    try:
-        if not aluno:
-            return {"erro": "Aluno não especificado"}
-
-        ref = db.collection("chamadas_ao_vivo").document(aluno)
-        doc = ref.get()
-
-        if doc.exists:
-            dados = doc.to_dict()
-            status_atual = dados.get("status", "pendente")
-
-            # ✅ Se ainda não estiver "aceito", atualiza
-            if status_atual != "aceito":
-                ref.set({"status": "aceito"}, merge=True)
-                status_atual = "aceito"
-
-            return {"status": status_atual}
-        else:
-            return {"status": "nao_encontrado"}
-    except Exception as e:
-        return {"erro": str(e)}
+        return JSONResponse(content={"erro": str(e)}, status_code=500)
