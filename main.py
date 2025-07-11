@@ -1540,3 +1540,16 @@ async def enviar_id_aula(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
+@app.get("/buscar-id-professor")
+async def buscar_id_professor(aluno: str):
+    try:
+        doc_ref = db.collection("alunos").document(aluno)
+        doc = doc_ref.get()
+        if doc.exists:
+            data = doc.to_dict()
+            return {"peer_id": data.get("id_chamada")}
+        else:
+            return {"peer_id": None}
+    except Exception as e:
+        return {"erro": str(e)}
+
