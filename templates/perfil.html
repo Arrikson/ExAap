@@ -112,7 +112,6 @@
       font-weight: bold;
     }
 
-    /* NOVO BLOCO */
     #info-aula {
       display: none;
       margin-top: 20px;
@@ -121,9 +120,18 @@
       border-radius: 10px;
       text-align: center;
     }
+
     #info-aula p {
       margin-bottom: 10px;
       font-size: 16px;
+    }
+
+    video {
+      width: 300px;
+      height: 220px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
     }
   </style>
 </head>
@@ -147,7 +155,6 @@
     <div id="notificacao-mensagem"></div>
     <div id="professor-nome"></div>
 
-    <!-- BLOCO ID DA SALA + BOTÃO -->
     <div id="info-aula">
       <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
       <button class="button btn-enter" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
@@ -156,6 +163,9 @@
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
+
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
   <script>
@@ -277,5 +287,63 @@
       }
     });
   </script>
+
+  <!-- ✅ ADIÇÃO DO PEERJS PARA CONEXÃO DIRETA COM PROFESSOR -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script>
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
+    let localStream, peer, currentCall;
+
+    async function startCamera() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
+        localVideo.style.display = "block";
+        remoteVideo.style.display = "block";
+      } catch (err) {
+        alert("Erro ao acessar a câmera");
+        console.error(err);
+      }
+    }
+
+    function conectarAoProfessor(remotePeerId) {
+      peer = new Peer();
+
+      peer.on("open", () => {
+        const call = peer.call(remotePeerId, localStream);
+
+        call.on("stream", (remoteStream) => {
+          remoteVideo.srcObject = remoteStream;
+        });
+
+        call.on("close", () => {
+          console.log("🔌 Chamada encerrada.");
+        });
+
+        call.on("error", (err) => {
+          console.error("Erro na chamada:", err);
+        });
+
+        currentCall = call;
+      });
+    }
+
+    async function buscarIdDoProfessor() {
+      const emailAluno = "{{ aluno.email }}"; // ← Pegue dinamicamente no render
+      const response = await fetch(`/buscar-id-professor?aluno=${emailAluno}`);
+      const data = await response.json();
+
+      if (data.peer_id) {
+        console.log("🎯 Conectando ao professor com ID:", data.peer_id);
+        conectarAoProfessor(data.peer_id);
+      } else {
+        console.log("❌ Nenhum ID de chamada encontrado.");
+      }
+    }
+
+    startCamera().then(buscarIdDoProfessor);
+  </script>
 </body>
 </html>
+
