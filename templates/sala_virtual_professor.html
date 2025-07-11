@@ -74,6 +74,7 @@
     .btn-sair:hover {
       background: darkred;
     }
+    
   </style>
 </head>
 <body>
@@ -83,10 +84,7 @@
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
 
-  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
@@ -107,24 +105,17 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    // Recebido do backend (via Jinja, etc.)
-    const alunoNome = "{{ aluno }}".trim().toLowerCase().replace(/ /g, "_");
     const professorEmail = "{{ email }}".trim().toLowerCase();
 
     let peer = null;
     let currentCall = null;
-
-    function getPeerIdFromEmail(email) {
-      return email.trim().toLowerCase().replace(/[@.]/g, "_");
-    }
 
     async function iniciarCameraEEsperarAluno() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        const professorPeerId = getPeerIdFromEmail(professorEmail);
-        peer = new Peer(professorPeerId);
+        peer = new Peer(professorEmail);
 
         peer.on("open", (id) => {
           console.log("🎓 ID do professor (PeerJS):", id);
@@ -133,8 +124,7 @@
 
         peer.on("call", (call) => {
           currentCall = call;
-          call.answer(stream); // responde com vídeo do professor
-
+          call.answer(stream);
           call.on("stream", (alunoStream) => {
             remoteVideo.srcObject = alunoStream;
             statusDiv.textContent = "✅ Aluno conectado!";
@@ -152,7 +142,7 @@
 
         peer.on("error", (err) => {
           console.error("Erro PeerJS:", err);
-          statusDiv.textContent = "Erro na conexão com PeerJS.";
+          statusDiv.textContent = "Erro na conexão PeerJS.";
         });
 
       } catch (err) {
@@ -167,10 +157,7 @@
       window.location.href = "/perfil_prof";
     }
 
-    // Inicia automaticamente ao carregar
     iniciarCameraEEsperarAluno();
   </script>
 </body>
 </html>
-
-
