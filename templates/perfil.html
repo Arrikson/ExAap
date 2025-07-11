@@ -315,7 +315,26 @@
     const infoAulaDiv = document.getElementById("info-aula");
     const salaIdSpan = document.getElementById("sala-id");
 
-    onSnapshot(chamadaRef, (docSnap) => {
+   onSnapshot(chamadaRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const dados = docSnap.data();
+
+    if (dados.status === "pendente") {
+      const confirmar = confirm(`📡 O aluno ${dados.aluno} está disponível para a aula. Deseja iniciar?`);
+      
+      updateDoc(chamadaRef, {
+        status: confirmar ? "aceito" : "rejeitado"
+      });
+
+      if (confirmar) {
+        const email = encodeURIComponent(dados.professor);
+        const aluno = encodeURIComponent(dados.aluno);
+        window.location.href = `/sala_virtual_professor?email=${email}&aluno=${aluno}`;
+      }
+    }
+  }
+});
+ onSnapshot(chamadaRef, (docSnap) => {
       if (docSnap.exists()) {
         const dados = docSnap.data();
         if (dados.status === "pendente") {
