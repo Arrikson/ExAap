@@ -112,6 +112,16 @@
       font-weight: bold;
     }
 
+    #notificacao-mensagem.chamando {
+      animation: piscar 1s infinite;
+    }
+
+    @keyframes piscar {
+      0% { background-color: #fffa; }
+      50% { background-color: #ff8080; }
+      100% { background-color: #fffa; }
+    }
+
     #info-aula {
       display: none;
       margin-top: 20px;
@@ -168,6 +178,12 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
+  <!-- 🔔 ÁUDIO DE CHAMADA -->
+  <audio id="ringtone" loop>
+    <source src="https://www.soundjay.com/phone/telephone-ring-01a.mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio.
+  </audio>
+
   <script>
     const nomeAluno = "{{ aluno.nome }}";
     const notificacaoEl = document.getElementById("notificacao-mensagem");
@@ -210,17 +226,41 @@
         if (data.notificacao === true) {
           professorEmailAtual = data.professor_email;
           notificacaoEl.innerHTML = `
-            A tua aula irá começar
-            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+            📞 O professor está a chamar para uma aula!
+            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #28a745;">Atender</button>
+            <button class="button" onclick="recusarChamada()" style="margin-top: 10px; background-color: #dc3545;">Recusar</button>
           `;
+          notificacaoEl.classList.add("chamando");
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
+          document.getElementById("ringtone").play();
         } else {
           notificacaoEl.style.display = "none";
+          notificacaoEl.classList.remove("chamando");
           contadorAulas.innerText = "";
+          const ringtone = document.getElementById("ringtone");
+          ringtone.pause();
+          ringtone.currentTime = 0;
         }
       })
       .catch(error => console.error("Erro ao verificar notificação:", error));
+    }
+
+    function recusarChamada() {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
+      .then(() => {
+        notificacaoEl.style.display = "none";
+        notificacaoEl.classList.remove("chamando");
+        contadorAulas.innerText = "";
+        const ringtone = document.getElementById("ringtone");
+        ringtone.pause();
+        ringtone.currentTime = 0;
+      })
+      .catch(error => console.error("Erro ao recusar chamada:", error));
     }
 
     function desativarNotificacaoERedirecionar() {
@@ -230,8 +270,13 @@
         body: JSON.stringify({ aluno: nomeAluno })
       })
       .then(() => {
-        document.getElementById("notificacao-mensagem").style.display = "none";
-        document.getElementById("contador-aulas").innerText = "";
+        notificacaoEl.style.display = "none";
+        notificacaoEl.classList.remove("chamando");
+        contadorAulas.innerText = "";
+        const ringtone = document.getElementById("ringtone");
+        ringtone.pause();
+        ringtone.currentTime = 0;
+
         if (professorEmailAtual) {
           const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
           window.location.href = `/sala_virtual_aluno/${sala}`;
@@ -288,7 +333,6 @@
     });
   </script>
 
-  <!-- ✅ ADIÇÃO DO PEERJS PARA CONEXÃO DIRETA COM PROFESSOR -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const localVideo = document.getElementById("localVideo");
@@ -309,31 +353,21 @@
 
     function conectarAoProfessor(remotePeerId) {
       peer = new Peer();
-
       peer.on("open", () => {
         const call = peer.call(remotePeerId, localStream);
-
         call.on("stream", (remoteStream) => {
           remoteVideo.srcObject = remoteStream;
         });
-
-        call.on("close", () => {
-          console.log("🔌 Chamada encerrada.");
-        });
-
-        call.on("error", (err) => {
-          console.error("Erro na chamada:", err);
-        });
-
+        call.on("close", () => console.log("🔌 Chamada encerrada."));
+        call.on("error", (err) => console.error("Erro na chamada:", err));
         currentCall = call;
       });
     }
 
     async function buscarIdDoProfessor() {
-      const emailAluno = "{{ aluno.email }}"; // ← Pegue dinamicamente no render
+      const emailAluno = "{{ aluno.email }}";
       const response = await fetch(`/buscar-id-professor?aluno=${emailAluno}`);
       const data = await response.json();
-
       if (data.peer_id) {
         console.log("🎯 Conectando ao professor com ID:", data.peer_id);
         conectarAoProfessor(data.peer_id);
@@ -346,4 +380,5 @@
   </script>
 </body>
 </html>
+
 
