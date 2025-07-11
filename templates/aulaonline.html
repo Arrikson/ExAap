@@ -3,117 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aula Online - Aluno</title>
+  <title>Chamada PeerJS</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-      background-color: #000;
-      touch-action: manipulation;
-    }
-
-    #videos {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-    }
-
-    #remoteVideo {
-      width: 100vw;
+      justify-content: center;
       height: 100vh;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
     }
 
-    #localVideo {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 10vw;
-      height: 10vh;
-      object-fit: cover;
+    video {
+      width: 300px;
+      height: 225px;
       border: 2px solid white;
-      border-radius: 8px;
-      z-index: 2;
-      cursor: grab;
-      touch-action: none;
+      border-radius: 10px;
+      margin: 10px;
+      object-fit: cover;
     }
 
-    #status {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(255,255,255,0.85);
-      padding: 10px;
-      border-radius: 10px;
-      z-index: 3;
-      font-weight: bold;
+    #info {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #connectArea {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input, button {
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: none;
+    }
+
+    button {
+      background-color: green;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: darkgreen;
     }
   </style>
 </head>
 <body>
-  <div id="videos">
+  <div id="info">
+    <div><strong>O seu ID:</strong> <span id="myId">Gerando...</span></div>
+    <div><strong>Status:</strong> <span id="status">Aguardando conexão...</span></div>
+  </div>
+
+  <div>
     <video id="localVideo" autoplay muted playsinline></video>
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <div id="status">Iniciando conexão com o professor...</div>
+  <div id="connectArea">
+    <input type="text" id="remoteIdInput" placeholder="Cole o ID do outro participante">
+    <button onclick="chamar()">Entrar</button>
+  </div>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const status = document.getElementById('status');
-    let localStream, currentCall;
+    const myIdSpan = document.getElementById("myId");
+    const statusSpan = document.getElementById("status");
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
 
-    // 1. Obter e-mail do professor via URL
-    const professorEmail = new URLSearchParams(window.location.search).get("email");
-    if (!professorEmail) {
-      alert("Professor não informado.");
-      throw new Error("Professor não informado");
-    }
+    let localStream;
+    let peer;
+    let currentCall;
 
-    const professorPeerId = professorEmail.replace(/[@.]/g, "_");
-
-    // 2. Inicializar PeerJS
-    const peer = new Peer(professorPeerId);
-
-    peer.on("open", async () => {
+    async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+      } catch (err) {
+        alert("Erro ao acessar a câmera e o microfone");
+        console.error(err);
+      }
+    }
 
-        status.textContent = "Chamando o professor...";
+    function initPeer() {
+      peer = new Peer();
 
-        const call = peer.call(professorPeerId, localStream);
-        currentCall = call;
+      peer.on("open", (id) => {
+        myIdSpan.textContent = id;
+        console.log("📡 Meu ID:", id);
+      });
 
-        call.on("stream", (stream) => {
-          remoteVideo.srcObject = stream;
-          status.textContent = "Conectado à aula!";
+      peer.on("call", (call) => {
+        statusSpan.textContent = "📞 Recebendo chamada...";
+        call.answer(localStream);
+
+        call.on("stream", (remoteStream) => {
+          remoteVideo.srcObject = remoteStream;
+          statusSpan.textContent = "✅ Conectado!";
         });
 
         call.on("close", () => {
-          status.textContent = "Aula encerrada pelo professor.";
+          statusSpan.textContent = "🔌 Conexão encerrada.";
         });
 
-        call.on("error", (err) => {
-          console.error("Erro na chamada:", err);
-          status.textContent = "Erro ao conectar com o professor.";
-        });
+        currentCall = call;
+      });
 
-      } catch (err) {
-        console.error("Erro ao acessar mídia:", err);
-        status.textContent = "Erro ao acessar câmera/microfone.";
+      peer.on("error", (err) => {
+        console.error("Erro PeerJS:", err);
+        alert("Erro no PeerJS: " + err.message);
+      });
+    }
+
+    function chamar() {
+      const remoteId = document.getElementById("remoteIdInput").value.trim();
+      if (!remoteId) {
+        alert("Digite um ID válido!");
+        return;
       }
+
+      statusSpan.textContent = "🔗 Conectando...";
+      const call = peer.call(remoteId, localStream);
+
+      call.on("stream", (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+        statusSpan.textContent = "✅ Conectado!";
+      });
+
+      call.on("close", () => {
+        statusSpan.textContent = "🔌 Conexão encerrada.";
+      });
+
+      call.on("error", (err) => {
+        console.error("Erro na chamada:", err);
+        statusSpan.textContent = "Erro na chamada.";
+      });
+
+      currentCall = call;
+    }
+
+    // Inicialização
+    startCamera().then(() => {
+      initPeer();
     });
   </script>
 </body>
