@@ -1517,3 +1517,26 @@ def verificar_status(aluno_nome: str):
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
+@app.post("/enviar-id-aula")
+async def enviar_id_aula(request: Request):
+    dados = await request.json()
+    peer_id = dados.get("peer_id")
+    email_professor = dados.get("email")
+    email_aluno = dados.get("aluno")
+
+    if not peer_id or not email_professor or not email_aluno:
+        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
+
+    try:
+        doc_ref = db.collection("alunos").document(email_aluno)
+        doc_ref.set({
+            "id_chamada": peer_id,
+            "professor_chamada": email_professor
+        }, merge=True)
+
+        return JSONResponse(content={"status": "ID enviado com sucesso"})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"erro": str(e)})
+
