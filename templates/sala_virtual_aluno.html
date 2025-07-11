@@ -5,43 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sala Virtual - Aluno</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: Arial, sans-serif;
-      background: #000;
+      margin: 0;
+      background-color: black;
       color: white;
-      height: 100vh;
+      font-family: Arial, sans-serif;
       overflow: hidden;
-      position: relative;
     }
 
-    #remoteVideo {
-      position: absolute;
-      top: 0;
-      left: 0;
+    video {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
       background: black;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    #localVideo {
-      position: absolute;
-      bottom: 100px;
-      right: 20px;
-      width: 150px;
-      height: 110px;
-      border: 2px solid white;
-      border-radius: 10px;
-      object-fit: cover;
-      z-index: 10;
     }
 
     #status {
@@ -70,72 +46,37 @@
       font-size: 16px;
       z-index: 20;
     }
-
-    .btn-sair:hover {
-      background: darkred;
-    }
   </style>
 </head>
 <body>
 
-  <div id="status">🔎 Conectando ao professor...</div>
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
-  <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
+  <div id="status">🔎 Conectando com o professor...</div>
+  <video id="video" autoplay playsinline></video>
+  <button class="btn-sair" onclick="encerrar()">Sair</button>
 
-  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-      authDomain: "exap-8a935.firebaseapp.com",
-      projectId: "exap-8a935",
-      storageBucket: "exap-8a935.appspot.com",
-      messagingSenderId: "664710895978",
-      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+    const professorEmail = "{{ professor.email }}".trim().toLowerCase();
+    const alunoNome = "{{ aluno.nome }}";
 
-  <script>
+    const video = document.getElementById("video");
     const statusDiv = document.getElementById("status");
-    const localVideo = document.getElementById("localVideo");
-    const remoteVideo = document.getElementById("remoteVideo");
 
-    // Recebido do backend (via Jinja ou outro mecanismo)
-    const alunoNome = "{{ aluno }}".trim().toLowerCase().replace(/ /g, "_");
-    const professorEmail = "{{ email_professor }}".trim().toLowerCase();
+    let peer;
+    let call;
 
-    function getPeerIdFromEmail(email) {
-      return email.trim().toLowerCase().replace(/[@.]/g, "_");
-    }
-
-    let peer = null;
-    let currentCall = null;
-
-    async function iniciarCameraEChamada() {
+    async function iniciar() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
 
-        peer = new Peer(); // aluno não precisa de ID fixo
+        peer = new Peer();
 
         peer.on("open", (id) => {
-          console.log("📚 ID do aluno (PeerJS):", id);
-          const professorPeerId = getPeerIdFromEmail(professorEmail);
-          console.log("🔔 Tentando ligar para:", professorPeerId);
+          call = peer.call(professorEmail, stream);
 
-          const call = peer.call(professorPeerId, stream);
-          currentCall = call;
-
-          call.on("stream", (professorStream) => {
-            remoteVideo.srcObject = professorStream;
-            statusDiv.textContent = "✅ Conectado ao professor!";
+          call.on("stream", (remoteStream) => {
+            video.srcObject = remoteStream;
+            statusDiv.textContent = "✅ Conectado ao professor.";
           });
 
           call.on("close", () => {
@@ -150,7 +91,7 @@
 
         peer.on("error", (err) => {
           console.error("Erro PeerJS:", err);
-          statusDiv.textContent = "Erro na conexão com PeerJS.";
+          statusDiv.textContent = "Erro na conexão PeerJS.";
         });
 
       } catch (err) {
@@ -159,15 +100,13 @@
       }
     }
 
-    function encerrarChamada() {
-      if (currentCall) currentCall.close();
+    function encerrar() {
+      if (call) call.close();
       if (peer) peer.destroy();
       window.location.href = "/perfil_aluno";
     }
 
-    // Inicia automaticamente ao carregar
-    iniciarCameraEChamada();
+    iniciar();
   </script>
 </body>
 </html>
-
