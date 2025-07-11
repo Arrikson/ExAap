@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sala Virtual - Aluno</title>
+  <title>Sala Virtual - Professor</title>
   <style>
     * {
       margin: 0;
@@ -74,56 +74,14 @@
     .btn-sair:hover {
       background: darkred;
     }
-
-    #manualJoin {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 15px;
-      border-radius: 10px;
-      z-index: 1000;
-    }
-
-    #manualJoin input {
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      width: 250px;
-      outline: none;
-    }
-
-    #manualJoin button {
-      padding: 10px 16px;
-      background: green;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    #manualJoin button:hover {
-      background: darkgreen;
-    }
   </style>
 </head>
-<body data-aluno-nome="{{ aluno.nome }}">
+<body>
 
-  <div id="status">🔎 Buscando professor...</div>
+  <div id="status">🔎 Aguardando conexão do aluno...</div>
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
   <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
-
-  <div id="manualJoin" style="display: none;">
-    <input type="text" id="idProfessorManual" placeholder="ID do professor">
-    <button onclick="entrarNaAulaManual()">Entrar na aula</button>
-  </div>
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -149,36 +107,35 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    const alunoNome = document.body.dataset.alunoNome.trim().toLowerCase().replace(/ /g, "_");
+    const alunoNome = "{{ aluno }}".trim().toLowerCase().replace(/ /g, "_");
+    const professorEmail = "{{ email }}".trim().toLowerCase();
+
     let peer = null;
     let currentCall = null;
 
-    async function iniciarCameraEConexao(professorEmail) {
+    async function iniciarCameraEEsperarAluno() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        await fetch("/registrar-chamada", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ aluno: alunoNome, professor: professorEmail })
-        });
-
-        peer = new Peer();
+        peer = new Peer(professorEmail);
 
         peer.on("open", (id) => {
-          console.log("🎓 ID do aluno (PeerJS):", id);
-          const call = peer.call(professorEmail, stream);
-          currentCall = call;
+          console.log("🎓 ID do professor (PeerJS):", id);
+          statusDiv.textContent = "🟢 Aguardando chamada do aluno...";
+        });
 
-          call.on("stream", (profStream) => {
-            remoteVideo.srcObject = profStream;
-            statusDiv.textContent = "✅ Conectado com o professor!";
+        peer.on("call", (call) => {
+          currentCall = call;
+          call.answer(stream); // responde com vídeo do professor
+
+          call.on("stream", (alunoStream) => {
+            remoteVideo.srcObject = alunoStream;
+            statusDiv.textContent = "✅ Aluno conectado!";
           });
 
           call.on("close", () => {
-            alert("📴 Chamada finalizada.");
-            statusDiv.textContent = "Chamada encerrada.";
+            statusDiv.textContent = "📴 Chamada encerrada.";
           });
 
           call.on("error", (err) => {
@@ -189,58 +146,25 @@
 
         peer.on("error", (err) => {
           console.error("Erro PeerJS:", err);
-          alert("Erro na conexão com o professor.");
+          alert("Erro na conexão PeerJS.");
         });
 
       } catch (err) {
         console.error("Erro ao acessar câmera/mic:", err);
-        statusDiv.textContent = "Permissão negada ou erro na câmera.";
-      }
-    }
-
-    async function buscarProfessorDoFirebase() {
-      try {
-        const snap = await firebase.firestore()
-          .collection("alunos_professor")
-          .where("aluno", "==", alunoNome)
-          .limit(1)
-          .get();
-
-        if (!snap.empty) {
-          const doc = snap.docs[0].data();
-          const emailProfessor = doc.professor;
-          statusDiv.textContent = "🔗 Conectando ao professor...";
-          iniciarCameraEConexao(emailProfessor);
-        } else {
-          statusDiv.textContent = "⚠️ Professor não encontrado. Insira manualmente.";
-          document.getElementById("manualJoin").style.display = "flex";
-        }
-      } catch (e) {
-        console.error("Erro ao buscar professor:", e);
-        statusDiv.textContent = "Erro ao buscar professor.";
-        document.getElementById("manualJoin").style.display = "flex";
-      }
-    }
-
-    function entrarNaAulaManual() {
-      const idManual = document.getElementById("idProfessorManual").value.trim();
-      if (idManual) {
-        statusDiv.textContent = "🔗 Conectando ao professor...";
-        iniciarCameraEConexao(idManual);
-      } else {
-        alert("Digite um ID válido do professor.");
+        statusDiv.textContent = "Erro na câmera ou microfone.";
       }
     }
 
     function encerrarChamada() {
       if (currentCall) currentCall.close();
       if (peer) peer.destroy();
-      window.location.href = "/perfil_aluno";
+      window.location.href = "/perfil_prof";
     }
 
-    // Inicia busca do professor ao carregar
-    buscarProfessorDoFirebase();
+    // Inicia automaticamente ao carregar
+    iniciarCameraEEsperarAluno();
   </script>
 </body>
 </html>
+
 
