@@ -178,7 +178,6 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <!-- 🔔 ÁUDIO DE CHAMADA -->
   <audio id="ringtone" loop>
     <source src="https://www.soundjay.com/phone/telephone-ring-01a.mp3" type="audio/mpeg">
     Seu navegador não suporta áudio.
@@ -207,12 +206,21 @@
         .then(data => {
           const statusIcon = data.online ? '🟢' : '⚪';
           const statusText = data.online ? 'Online' : 'Offline';
-          container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+          container.innerHTML = `
+            ${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>
+            <button class="button" style="margin-top:10px;" onclick="irParaSala('${data.professor}', nomeAluno)">Vista</button>
+          `;
         })
         .catch(err => {
           container.innerHTML = "Professor não encontrado.";
           console.error("Erro ao buscar professor:", err);
         });
+    }
+
+    function irParaSala(email, aluno) {
+      const encodedEmail = encodeURIComponent(email);
+      const encodedAluno = encodeURIComponent(aluno);
+      window.location.href = `/sala_virtual_professor?email=${encodedEmail}&aluno=${encodedAluno}`;
     }
 
     function verNotificacao() {
@@ -315,26 +323,7 @@
     const infoAulaDiv = document.getElementById("info-aula");
     const salaIdSpan = document.getElementById("sala-id");
 
-   onSnapshot(chamadaRef, (docSnap) => {
-  if (docSnap.exists()) {
-    const dados = docSnap.data();
-
-    if (dados.status === "pendente") {
-      const confirmar = confirm(`📡 O aluno ${dados.aluno} está disponível para a aula. Deseja iniciar?`);
-      
-      updateDoc(chamadaRef, {
-        status: confirmar ? "aceito" : "rejeitado"
-      });
-
-      if (confirmar) {
-        const email = encodeURIComponent(dados.professor);
-        const aluno = encodeURIComponent(dados.aluno);
-        window.location.href = `/sala_virtual_professor?email=${email}&aluno=${aluno}`;
-      }
-    }
-  }
-});
- onSnapshot(chamadaRef, (docSnap) => {
+    onSnapshot(chamadaRef, (docSnap) => {
       if (docSnap.exists()) {
         const dados = docSnap.data();
         if (dados.status === "pendente") {
@@ -384,8 +373,8 @@
     }
 
     async function buscarIdDoProfessor() {
-      const emailAluno = "{{ aluno.email }}";
-      const response = await fetch(`/buscar-id-professor?aluno=${emailAluno}`);
+      const nomeAluno = "{{ aluno.nome }}";
+      const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
       const data = await response.json();
       if (data.peer_id) {
         console.log("🎯 Conectando ao professor com ID:", data.peer_id);
@@ -399,5 +388,3 @@
   </script>
 </body>
 </html>
-
-
