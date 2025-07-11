@@ -92,10 +92,6 @@
     let currentCall;
     let meuPeerId = "";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const email = urlParams.get("email") || "";
-    const aluno = urlParams.get("aluno") || "";
-
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -165,11 +161,6 @@
     }
 
     function enviarIdAoPerfil() {
-      if (!email || !aluno) {
-        alert("Parâmetros de email ou aluno ausentes na URL.");
-        return;
-      }
-
       fetch("/enviar-id-aula", {
         method: "POST",
         headers: {
@@ -177,16 +168,15 @@
         },
         body: JSON.stringify({
           peer_id: meuPeerId,
-          professor: email,
-          aluno: aluno
+          email: "{{ email }}", // ← vem do backend
+          aluno: "{{ aluno }}"  // ← vem do backend
         })
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "ID enviado com sucesso") {
-          alert("✅ Aula enviada para o aluno!");
+      .then(res => {
+        if (res.ok) {
+          alert("✅ ID da aula enviado ao perfil do aluno!");
         } else {
-          alert("⚠️ Falha ao enviar ID: " + JSON.stringify(data));
+          alert("⚠️ Erro ao enviar ID.");
         }
       })
       .catch(err => {
