@@ -686,6 +686,7 @@ async def get_sala_virtual_professor(
         return HTMLResponse("<h2 style='color:red'>Erro: email não fornecido na URL.</h2>", status_code=400)
 
     try:
+        # 🔍 Busca o documento do professor
         doc_ref = db.collection("professores_online2").document(email)
         doc = doc_ref.get()
 
@@ -694,9 +695,18 @@ async def get_sala_virtual_professor(
 
         professor = doc.to_dict()
 
-        # 🔑 Gera o ID da sala com base nos dados normalizados
+        # 🧪 Valida vínculo com o aluno, se fornecido
+        if aluno:
+            vinculo = vinculo_existe(email, aluno)
+            if not vinculo:
+                return HTMLResponse(
+                    "<h2 style='color:red'>Vínculo entre professor e aluno não encontrado.</h2>",
+                    status_code=403
+                )
+
+        # 🔑 Gera sala_id padronizado
         def slug(texto):
-            return texto.strip().lower().replace(" ", "-").replace("@", "").replace(".", "")
+            return slugify(texto)
 
         sala_id = f"{slug(email)}-{slug(aluno)}" if aluno else slug(email)
 
@@ -705,11 +715,11 @@ async def get_sala_virtual_professor(
             "email": email,
             "aluno": aluno,
             "professor": professor,
-            "sala_id": sala_id  # ← enviado ao HTML
+            "sala_id": sala_id  # ← sala usada para conexão PeerJS
         })
 
     except Exception as e:
-        return HTMLResponse(f"<h2 style='color:red'>Erro ao buscar professor: {str(e)}</h2>", status_code=500)
+        return HTMLResponse(f"<h2 style='color:red'>Erro ao abrir sala do professor: {str(e)}</h2>", status_code=500)
 
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
