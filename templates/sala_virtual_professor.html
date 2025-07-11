@@ -92,6 +92,10 @@
     let currentCall;
     let meuPeerId = "";
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
+    const aluno = urlParams.get("aluno") || "";
+
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -161,21 +165,36 @@
     }
 
     function enviarIdAoPerfil() {
+      if (!email || !aluno) {
+        alert("Parâmetros de email ou aluno ausentes na URL.");
+        return;
+      }
+
       fetch("/enviar-id-aula", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ peer_id: meuPeerId })
+        body: JSON.stringify({
+          peer_id: meuPeerId,
+          professor: email,
+          aluno: aluno
+        })
       })
-      .then(res => {
-        if (res.ok) alert("ID da aula enviado ao perfil do aluno!");
-        else alert("Erro ao enviar ID.");
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "ID enviado com sucesso") {
+          alert("✅ Aula enviada para o aluno!");
+        } else {
+          alert("⚠️ Falha ao enviar ID: " + JSON.stringify(data));
+        }
       })
-      .catch(err => console.error("Erro ao chamar rota:", err));
+      .catch(err => {
+        console.error("Erro ao chamar rota:", err);
+        alert("Erro ao enviar ID.");
+      });
     }
 
-    // Inicializa
     startCamera().then(() => {
       initPeer();
     });
