@@ -1,280 +1,245 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aula Online com PeerJS</title>
+  <title>Sala Virtual - Aluno</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-      background-color: #000;
-      touch-action: manipulation;
+      box-sizing: border-box;
     }
 
-    #videos {
-      position: relative;
-      width: 100vw;
+    body {
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
       height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      overflow: hidden;
+      position: relative;
     }
 
     #remoteVideo {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
       position: absolute;
       top: 0;
       left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: black;
       z-index: 1;
+      pointer-events: none;
     }
 
     #localVideo {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 10vw;
-      height: 10vh;
-      object-fit: cover;
+      bottom: 100px;
+      right: 20px;
+      width: 150px;
+      height: 110px;
       border: 2px solid white;
-      border-radius: 8px;
-      z-index: 2;
-      cursor: grab;
-      touch-action: none;
-    }
-
-    #controles, #status {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(255,255,255,0.85);
-      padding: 10px;
       border-radius: 10px;
-      z-index: 3;
-      transition: opacity 0.5s ease;
+      object-fit: cover;
+      z-index: 10;
     }
 
-    #controles.oculto, #status.oculto {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    input, button {
-      padding: 8px;
-      margin: 5px;
-      font-size: 14px;
-    }
-
-    #botao-encerrar {
-      background-color: #ccc;
-      color: black;
-      border: 2px solid black;
-      border-radius: 6px;
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      padding: 8px 16px;
+      border-radius: 20px;
       font-weight: bold;
-      cursor: pointer;
+      font-size: 16px;
+      z-index: 20;
     }
 
-    #botao-encerrar:hover {
-      background-color: #bbb;
+    .btn-sair {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 20;
     }
 
-    .icone {
-      background-color: #ccc;
-      border: 2px solid black;
-      border-radius: 50%;
-      padding: 8px;
-      cursor: pointer;
-      color: black;
-      display: inline-flex;
+    .btn-sair:hover {
+      background: darkred;
+    }
+
+    #manualJoin {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
       align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    #manualJoin input {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      width: 250px;
+      outline: none;
+    }
+
+    #manualJoin button {
+      padding: 10px 16px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
       font-size: 16px;
     }
 
-    #copiar-id {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      z-index: 4;
-    }
-
-    #botao-trocar {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 4;
-    }
-
-    #meu-id {
-      display: none;
+    #manualJoin button:hover {
+      background: darkgreen;
     }
   </style>
 </head>
-<body>
+<body data-aluno-nome="{{ aluno.nome }}">
 
-  <div id="videos">
-    <video id="localVideo" autoplay muted playsinline></video>
-    <video id="remoteVideo" autoplay playsinline></video>
+  <div id="status">🔎 Buscando professor...</div>
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <button class="btn-sair" onclick="encerrarChamada()">Sair</button>
+
+  <div id="manualJoin" style="display: none;">
+    <input type="text" id="idProfessorManual" placeholder="ID do professor">
+    <button onclick="entrarNaAulaManual()">Entrar na aula</button>
   </div>
 
-  <!-- Ícones -->
-  <div id="botao-trocar" class="icone" title="Trocar câmera">🔄</div>
-  <div id="copiar-id" class="icone" title="Copiar ID">📋</div>
-
-  <div id="controles">
-    <input type="text" id="peer-id-alvo" placeholder="ID do outro usuário">
-    <button id="botao-chamar">Chamar</button>
-  </div>
-
-  <div id="status">Aguardando conexão...</div>
-  <span id="meu-id"></span>
-
+  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const status = document.getElementById('status');
-    const botaoChamar = document.getElementById('botao-chamar');
-    const inputID = document.getElementById('peer-id-alvo');
-    const meuIDSpan = document.getElementById('meu-id');
-    const copiarID = document.getElementById('copiar-id');
-    const trocarBtn = document.getElementById('botao-trocar');
-    const controles = document.getElementById('controles');
-
-    let localStream;
-    let currentFacingMode = 'user';
-    let currentCall;
-
-    const peer = new Peer();
-
-    peer.on('open', (id) => {
-      meuIDSpan.innerText = id;
-    });
-
-    copiarID.onclick = () => {
-      navigator.clipboard.writeText(meuIDSpan.innerText);
-      copiarID.innerText = "✅";
-      setTimeout(() => copiarID.innerText = "📋", 1500);
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.appspot.com",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 
-    async function startStream(facingMode = 'user') {
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
+  <script>
+    const statusDiv = document.getElementById("status");
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
 
+    const alunoNome = document.body.dataset.alunoNome.trim().toLowerCase().replace(/ /g, "_");
+    let peer = null;
+    let currentCall = null;
+
+    async function iniciarCameraEConexao(professorEmail) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
-          audio: true
-        });
-        localStream = stream;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        if (currentCall) {
-          const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
-          if (sender) {
-            sender.replaceTrack(stream.getVideoTracks()[0]);
-          }
-        }
+        await fetch("/registrar-chamada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ aluno: alunoNome, professor: professorEmail })
+        });
+
+        peer = new Peer();
+
+        peer.on("open", (id) => {
+          console.log("🎓 ID do aluno (PeerJS):", id);
+          const call = peer.call(professorEmail, stream);
+          currentCall = call;
+
+          call.on("stream", (profStream) => {
+            remoteVideo.srcObject = profStream;
+            statusDiv.textContent = "✅ Conectado com o professor!";
+          });
+
+          call.on("close", () => {
+            alert("📴 Chamada finalizada.");
+            statusDiv.textContent = "Chamada encerrada.";
+          });
+
+          call.on("error", (err) => {
+            console.error("Erro na chamada:", err);
+            statusDiv.textContent = "Erro durante a chamada.";
+          });
+        });
+
+        peer.on("error", (err) => {
+          console.error("Erro PeerJS:", err);
+          alert("Erro na conexão com o professor.");
+        });
+
       } catch (err) {
-        console.error(err);
-        alert('Erro ao acessar câmera/mic.');
-        status.innerText = "Permissão negada.";
+        console.error("Erro ao acessar câmera/mic:", err);
+        statusDiv.textContent = "Permissão negada ou erro na câmera.";
       }
     }
 
-    trocarBtn.onclick = () => {
-      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-      startStream(currentFacingMode);
-    };
+    async function buscarProfessorDoFirebase() {
+      try {
+        const snap = await firebase.firestore()
+          .collection("alunos_professor")
+          .where("aluno", "==", alunoNome)
+          .limit(1)
+          .get();
 
-    startStream(currentFacingMode);
-
-    peer.on('call', (call) => {
-      currentCall = call;
-      call.answer(localStream);
-      call.on('stream', (remoteStream) => {
-        remoteVideo.srcObject = remoteStream;
-        remoteVideo.play().catch((e) => console.warn("Erro ao dar play:", e));
-        status.innerText = "Conectado!";
-        botaoChamar.style.display = "none";
-        mostrarTerminar();
-      });
-    });
-
-    botaoChamar.onclick = () => {
-      const idRemoto = inputID.value;
-      if (!idRemoto) return alert("Digite o ID!");
-
-      const call = peer.call(idRemoto, localStream);
-      currentCall = call;
-      call.on('stream', (remoteStream) => {
-        remoteVideo.srcObject = remoteStream;
-        remoteVideo.play().catch((e) => console.warn("Erro ao dar play:", e));
-        status.innerText = "Conectado!";
-        botaoChamar.style.display = "none";
-        mostrarTerminar();
-      });
-    };
-
-    function mostrarTerminar() {
-      if (!document.getElementById('botao-encerrar')) {
-        const botaoEncerrar = document.createElement('button');
-        botaoEncerrar.id = 'botao-encerrar';
-        botaoEncerrar.innerText = 'Terminar aula';
-        botaoEncerrar.onclick = () => {
-          if (currentCall) {
-            currentCall.close();
-            remoteVideo.srcObject = null;
-            status.innerText = 'Aula encerrada.';
-            botaoEncerrar.remove();
-            botaoChamar.style.display = "inline-block";
-          }
-        };
-        controles.appendChild(botaoEncerrar);
+        if (!snap.empty) {
+          const doc = snap.docs[0].data();
+          const emailProfessor = doc.professor;
+          statusDiv.textContent = "🔗 Conectando ao professor...";
+          iniciarCameraEConexao(emailProfessor);
+        } else {
+          statusDiv.textContent = "⚠️ Professor não encontrado. Insira manualmente.";
+          document.getElementById("manualJoin").style.display = "flex";
+        }
+      } catch (e) {
+        console.error("Erro ao buscar professor:", e);
+        statusDiv.textContent = "Erro ao buscar professor.";
+        document.getElementById("manualJoin").style.display = "flex";
       }
     }
 
-    // Drag do localVideo
-    let isDragging = false, offsetX, offsetY;
-    localVideo.addEventListener('pointerdown', (e) => {
-      isDragging = true;
-      offsetX = e.clientX - localVideo.offsetLeft;
-      offsetY = e.clientY - localVideo.offsetTop;
-      localVideo.setPointerCapture(e.pointerId);
-    });
-    localVideo.addEventListener('pointermove', (e) => {
-      if (isDragging) {
-        localVideo.style.left = (e.clientX - offsetX) + 'px';
-        localVideo.style.top = (e.clientY - offsetY) + 'px';
+    function entrarNaAulaManual() {
+      const idManual = document.getElementById("idProfessorManual").value.trim();
+      if (idManual) {
+        statusDiv.textContent = "🔗 Conectando ao professor...";
+        iniciarCameraEConexao(idManual);
+      } else {
+        alert("Digite um ID válido do professor.");
       }
-    });
-    localVideo.addEventListener('pointerup', () => isDragging = false);
-
-    // esconder controles após inatividade
-    let timeout;
-    function mostrarControles() {
-      controles.classList.remove('oculto');
-      status.classList.remove('oculto');
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        controles.classList.add('oculto');
-        status.classList.add('oculto');
-      }, 5000);
     }
-    document.addEventListener('mousemove', mostrarControles);
-    document.addEventListener('touchstart', mostrarControles);
-    mostrarControles();
+
+    function encerrarChamada() {
+      if (currentCall) currentCall.close();
+      if (peer) peer.destroy();
+      window.location.href = "/perfil_aluno";
+    }
+
+    // Inicia busca do professor ao carregar
+    buscarProfessorDoFirebase();
   </script>
 </body>
 </html>
