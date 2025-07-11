@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
@@ -107,18 +107,24 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
+    // Recebido do backend (via Jinja, etc.)
     const alunoNome = "{{ aluno }}".trim().toLowerCase().replace(/ /g, "_");
     const professorEmail = "{{ email }}".trim().toLowerCase();
 
     let peer = null;
     let currentCall = null;
 
+    function getPeerIdFromEmail(email) {
+      return email.trim().toLowerCase().replace(/[@.]/g, "_");
+    }
+
     async function iniciarCameraEEsperarAluno() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
 
-        peer = new Peer(professorEmail);
+        const professorPeerId = getPeerIdFromEmail(professorEmail);
+        peer = new Peer(professorPeerId);
 
         peer.on("open", (id) => {
           console.log("🎓 ID do professor (PeerJS):", id);
@@ -146,7 +152,7 @@
 
         peer.on("error", (err) => {
           console.error("Erro PeerJS:", err);
-          alert("Erro na conexão PeerJS.");
+          statusDiv.textContent = "Erro na conexão com PeerJS.";
         });
 
       } catch (err) {
