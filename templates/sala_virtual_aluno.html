@@ -35,44 +35,66 @@
   <script>
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
-    let localStream, peer, currentCall;
+
+    let localStream = null;
+    let peer = null;
+    let currentCall = null;
 
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        console.log("📷 Câmera e microfone ativados.");
+        return true;
       } catch (err) {
         alert("Erro ao acessar a câmera");
-        console.error(err);
+        console.error("Erro no startCamera:", err);
+        return false;
       }
     }
 
     function conectarAoProfessor(remotePeerId) {
       peer = new Peer();
       peer.on("open", () => {
+        console.log("🔗 PeerJS iniciado com ID:", peer.id);
         const call = peer.call(remotePeerId, localStream);
         call.on("stream", (remoteStream) => {
+          console.log("📶 Recebendo stream do professor...");
           remoteVideo.srcObject = remoteStream;
         });
         call.on("close", () => console.log("🔌 Chamada encerrada."));
         call.on("error", (err) => console.error("Erro na chamada:", err));
         currentCall = call;
       });
+
+      peer.on("error", (err) => {
+        console.error("Erro no PeerJS:", err);
+      });
     }
 
     async function buscarIdDoProfessor() {
-      const nomeAluno = "{{ aluno.nome }}"; // Esse valor deve ser substituído dinamicamente pelo backend
-      const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
-      const data = await response.json();
-      if (data.peer_id) {
-        console.log("🎯 Conectando ao professor com ID:", data.peer_id);
-        conectarAoProfessor(data.peer_id);
-      } else {
-        console.log("❌ Nenhum ID de chamada encontrado.");
+      const nomeAluno = "{{ aluno.nome }}"; // Substituído pelo backend
+      try {
+        const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
+        const data = await response.json();
+        if (data.peer_id) {
+          console.log("🎯 Conectando ao professor com ID:", data.peer_id);
+          conectarAoProfessor(data.peer_id);
+        } else {
+          console.log("❌ Nenhum ID de chamada encontrado.");
+        }
+      } catch (err) {
+        console.error("Erro ao buscar ID do professor:", err);
       }
     }
 
-    startCamera().then(buscarIdDoProfessor);
+    // 👉 Início do processo
+    (async () => {
+      const cameraOk = await startCamera();
+      if (cameraOk) {
+        await buscarIdDoProfessor();
+      }
+    })();
   </script>
 </body>
 </html>
