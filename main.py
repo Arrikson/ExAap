@@ -739,12 +739,13 @@ async def get_sala_virtual_aluno(
     if not professor:
         return HTMLResponse("<h2 style='color:red'>Professor não encontrado.</h2>", status_code=404)
 
+    # 🔁 Envia apenas os nomes normalizados necessários para a conexão
     return templates.TemplateResponse("sala_virtual_aluno.html", {
         "request": request,
-        "aluno": aluno_data,
-        "professor": professor
+        "aluno": aluno.strip(),
+        "professor": email.strip()
     })
-    
+
 @app.get("/sala_virtual_aluno/{sala}")
 async def redirecionar_para_sala_aluno(sala: str):
     decoded = unquote(sala)
@@ -760,11 +761,10 @@ async def redirecionar_para_sala_aluno(sala: str):
     except Exception as e:
         return HTMLResponse(f"<h2 style='color:red'>Erro ao processar os dados da sala: {str(e)}</h2>", status_code=400)
 
-    # Redireciona com os parâmetros
     return RedirectResponse(
         url=f"/sala_virtual_aluno?email={professor_email}&aluno={aluno_nome}"
     )
-    
+
 def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
     docs = db.collection('alunos_professor') \
              .where('professor', '==', prof_email.strip()) \
@@ -772,7 +772,7 @@ def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
              .limit(1).stream()
 
     for doc in docs:
-        return doc.to_dict()  # Retorna os dados do aluno encontrado
+        return doc.to_dict()
 
     return None
 
