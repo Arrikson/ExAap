@@ -1523,13 +1523,17 @@ async def enviar_id_aula(request: Request):
     dados = await request.json()
     peer_id = dados.get("peer_id")
     email_professor = dados.get("email")
-    email_aluno = dados.get("aluno")
+    nome_aluno_raw = dados.get("aluno")  # aluno = nome
 
-    if not peer_id or not email_professor or not email_aluno:
+    if not peer_id or not email_professor or not nome_aluno_raw:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
 
     try:
-        doc_ref = db.collection("alunos").document(email_aluno)
+        # 🔧 Normaliza o nome do aluno como em outros lugares do sistema
+        nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
+        
+        # 📌 Atualiza os dados na coleção "alunos"
+        doc_ref = db.collection("alunos").document(nome_aluno)
         doc_ref.set({
             "id_chamada": peer_id,
             "professor_chamada": email_professor
@@ -1539,12 +1543,16 @@ async def enviar_id_aula(request: Request):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
-
+        
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     try:
-        doc_ref = db.collection("alunos").document(aluno)
+        # 🔧 Normaliza o nome como no restante do sistema
+        aluno_normalizado = aluno.strip().lower().replace(" ", "")
+        
+        doc_ref = db.collection("alunos").document(aluno_normalizado)
         doc = doc_ref.get()
+        
         if doc.exists:
             data = doc.to_dict()
             return {"peer_id": data.get("id_chamada")}
@@ -1552,4 +1560,3 @@ async def buscar_id_professor(aluno: str):
             return {"peer_id": None}
     except Exception as e:
         return {"erro": str(e)}
-
