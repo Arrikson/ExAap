@@ -29,6 +29,22 @@
     #status {
       margin-bottom: 20px;
       font-size: 16px;
+      text-align: center;
+    }
+
+    #retryBtn {
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 8px;
+      background-color: #444;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: none;
+    }
+
+    #retryBtn:hover {
+      background-color: #666;
     }
   </style>
 </head>
@@ -40,14 +56,17 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
+  <button id="retryBtn" onclick="tentarNovamente()">🔄 Tentar novamente</button>
+
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const statusEl = document.getElementById("status");
+    const retryBtn = document.getElementById("retryBtn");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
     const aluno = "{{ aluno }}";
-    const professor = "{{ professor }}";  // vindo do backend também
+    const professor = "{{ professor }}";
 
     let peer;
     let localStream;
@@ -65,7 +84,7 @@
     function initPeerAndConnect(peerIdDoProfessor) {
       peer = new Peer();
 
-      peer.on("open", (id) => {
+      peer.on("open", () => {
         statusEl.textContent = "🔗 Conectando ao professor...";
         const call = peer.call(peerIdDoProfessor, localStream);
 
@@ -119,18 +138,27 @@
 
     async function buscarPeerIdEDiscar() {
       try {
-        const res = await fetch(`/buscar-id-professor?aluno=${aluno}`);
+        const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
+        const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
         const data = await res.json();
 
         if (data.peer_id) {
           initPeerAndConnect(data.peer_id);
         } else {
           statusEl.textContent = "⚠️ ID do professor não encontrado.";
+          retryBtn.style.display = "inline-block";
         }
       } catch (err) {
         console.error("Erro ao buscar o ID do professor:", err);
         statusEl.textContent = "❌ Erro ao buscar ID.";
+        retryBtn.style.display = "inline-block";
       }
+    }
+
+    function tentarNovamente() {
+      statusEl.textContent = "🔄 Tentando novamente...";
+      retryBtn.style.display = "none";
+      buscarPeerIdEDiscar();
     }
 
     startCamera().then(() => {
