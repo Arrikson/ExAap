@@ -1,100 +1,93 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chamada de Vídeo</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #00C6FF, #007BFF);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    video {
-      width: 300px;
-      height: 220px;
-      border-radius: 10px;
-      margin: 10px;
-      background: #000;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Sala Virtual do Aluno</title>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
+  <h1>Sala Virtual do Aluno</h1>
+  <p>Aluno: <strong>{{ aluno }}</strong></p>
 
-  <video id="localVideo" autoplay muted playsinline></video>
-  <video id="remoteVideo" autoplay playsinline></video>
+  <button id="btnAtender">Atender</button>
+  <button id="btnRejeitar">Rejeitar</button>
 
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <div id="videoContainer">
+    <video id="videoLocal" autoplay muted></video>
+    <video id="videoRemoto" autoplay></video>
+  </div>
+
   <script>
-    const localVideo = document.getElementById("localVideo");
-    const remoteVideo = document.getElementById("remoteVideo");
+    const nomeAluno = "{{ aluno }}";
 
-    let localStream = null;
-    let peer = null;
-    let currentCall = null;
+    const peer = new Peer();
 
-    async function startCamera() {
+    peer.on('open', async function (meuId) {
+      console.log("🟢 Peer conectado com ID:", meuId);
+    });
+
+    document.getElementById("btnAtender").addEventListener("click", async () => {
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = localStream;
-        console.log("📷 Câmera e microfone ativados.");
-        return true;
-      } catch (err) {
-        alert("Erro ao acessar a câmera");
-        console.error("Erro no startCamera:", err);
-        return false;
-      }
-    }
-
-    function conectarAoProfessor(remotePeerId) {
-      peer = new Peer();
-      peer.on("open", () => {
-        console.log("🔗 PeerJS iniciado com ID:", peer.id);
-        const call = peer.call(remotePeerId, localStream);
-        call.on("stream", (remoteStream) => {
-          console.log("📶 Recebendo stream do professor...");
-          remoteVideo.srcObject = remoteStream;
+        // 1️⃣ Verificar se a chamada foi aceita
+        const respStatus = await fetch("/registrar-chamada", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            aluno: nomeAluno,
+            professor: ""  // Pode ser deixado vazio se só o aluno for passado no back
+          })
         });
-        call.on("close", () => console.log("🔌 Chamada encerrada."));
-        call.on("error", (err) => console.error("Erro na chamada:", err));
-        currentCall = call;
-      });
 
-      peer.on("error", (err) => {
-        console.error("Erro no PeerJS:", err);
-      });
-    }
-
-    async function buscarIdDoProfessor() {
-      const nomeAluno = "{{ aluno.nome }}"; // Substituído pelo backend
-      try {
-        const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
-        const data = await response.json();
-        if (data.peer_id) {
-          console.log("🎯 Conectando ao professor com ID:", data.peer_id);
-          conectarAoProfessor(data.peer_id);
-        } else {
-          console.log("❌ Nenhum ID de chamada encontrado.");
+        const statusData = await respStatus.json();
+        if (!respStatus.ok || !statusData.sala) {
+          alert(statusData.erro || "Chamada ainda não autorizada.");
+          return;
         }
-      } catch (err) {
-        console.error("Erro ao buscar ID do professor:", err);
-      }
-    }
 
-    // 👉 Início do processo
-    (async () => {
-      const cameraOk = await startCamera();
-      if (cameraOk) {
-        await buscarIdDoProfessor();
+        const salaNome = statusData.sala;
+
+        // 2️⃣ Buscar o ID do professor
+        const respId = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
+        const dados = await respId.json();
+        const idProfessor = dados.peer_id;
+
+        if (!idProfessor) {
+          alert("⚠️ O professor ainda não iniciou a chamada.");
+          return;
+        }
+
+        // 3️⃣ Conectar à chamada do professor
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then(stream => {
+            const videoLocal = document.getElementById("videoLocal");
+            videoLocal.srcObject = stream;
+
+            const chamada = peer.call(idProfessor, stream);
+
+            chamada.on('stream', remoteStream => {
+              const videoRemoto = document.getElementById("videoRemoto");
+              videoRemoto.srcObject = remoteStream;
+            });
+
+            chamada.on('error', err => {
+              console.error("❌ Erro na chamada:", err);
+              alert("Erro ao conectar com o professor.");
+            });
+
+          })
+          .catch(err => {
+            console.error("❌ Erro ao acessar câmera/microfone:", err);
+            alert("Erro ao acessar a câmera ou o microfone.");
+          });
+
+      } catch (erro) {
+        console.error("❌ Erro ao tentar atender:", erro);
       }
-    })();
+    });
+
+    document.getElementById("btnRejeitar").addEventListener("click", () => {
+      alert("📵 Chamada rejeitada.");
+    });
   </script>
 </body>
 </html>
