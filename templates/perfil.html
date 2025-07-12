@@ -5,175 +5,185 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #00C6FF, #007BFF);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      padding: 40px 20px;
-    }
+ <style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #00C6FF, #007BFF);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
 
-    .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 
-    .top-bar img {
-      height: 45px;
-    }
+  .top-bar img {
+    height: 45px;
+  }
 
-    .logout-icon {
-      position: absolute;
-      top: 12px;
-      right: 15px;
-      color: #dc3545;
-      font-size: 24px;
-      cursor: pointer;
-    }
+  .logout-icon {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    color: #dc3545;
+    font-size: 24px;
+    cursor: pointer;
+  }
 
-    .profile-container {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 100px 30px 30px;
-      border-radius: 20px;
-      width: 100%;
-      max-width: 700px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      position: relative;
-    }
+  .profile-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 100px 30px 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 700px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    position: relative;
+  }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
+  h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
 
-    .button {
-      padding: 12px 20px;
-      background-color: #28a745;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      color: #fff;
-      width: 100%;
-      margin-top: 10px;
-    }
+  .button {
+    padding: 12px 20px;
+    background-color: #28a745;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #fff;
+    width: 100%;
+    margin-top: 10px;
+  }
 
-    .button:hover {
-      background-color: #218838;
-    }
+  .button:hover {
+    background-color: #218838;
+  }
 
-    .btn-enter {
-      background-color: #ffc107;
-      color: #000;
-    }
+  .btn-enter {
+    background-color: #ffc107;
+    color: #000;
+  }
 
-    .btn-enter:hover {
-      background-color: #e0a800;
-    }
+  .btn-enter:hover {
+    background-color: #e0a800;
+  }
 
-    #professor-nome {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #fff;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+  #professor-nome {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-    .logout-form {
-      display: none;
-    }
+  .logout-form {
+    display: none;
+  }
 
-    #notificacao-mensagem {
-      margin-top: 10px;
-      display: none;
-      background: #fffa;
-      color: #000;
-      padding: 10px;
-      border-radius: 10px;
-      text-align: center;
-      font-weight: bold;
-    }
+  #notificacao-mensagem {
+    margin-top: 10px;
+    display: none;
+    background: #fffa;
+    color: #000;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
 
-    #notificacao-mensagem.chamando {
-      animation: piscar 1s infinite;
-    }
+  #notificacao-mensagem.chamando {
+    animation: piscar 1s infinite;
+  }
 
-    @keyframes piscar {
-      0% { background-color: #fffa; }
-      50% { background-color: #ff8080; }
-      100% { background-color: #fffa; }
-    }
+  @keyframes piscar {
+    0% { background-color: #fffa; }
+    50% { background-color: #ff8080; }
+    100% { background-color: #fffa; }
+  }
 
-    #info-aula {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #fff3;
-      border-radius: 10px;
-      text-align: center;
-    }
+  #info-aula {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff3;
+    border-radius: 10px;
+    text-align: center;
+  }
 
-    #info-aula p {
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
+  #info-aula p {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
 
-    #videoContainer {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1003;
-      gap: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      border-radius: 12px;
-      backdrop-filter: blur(8px);
-    }
+  #videoContainer {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1003;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
 
-    #videoContainer.mostrar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+  #videoContainer.mostrar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    #localVideo, #remoteVideo {
-      width: 300px;
-      height: 220px;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
+  #localVideo, #remoteVideo {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background-color: #000;
+  }
 
-    #localVideo.default {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 160px;
-      height: 120px;
-      z-index: 1002;
-    }
-  </style>
+  #remoteVideo {
+    position: fixed;
+    top: 20vh; /* 20% do topo livre */
+    left: 0;
+    width: 100vw;
+    height: 80vh;
+    object-fit: cover;
+    z-index: 1;
+    border-radius: 0;
+    cursor: default;
+  }
+
+  #localVideo.default {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 60px;
+    z-index: 1002;
+  }
+</style>
 </head>
 <body>
   <div class="top-bar">
