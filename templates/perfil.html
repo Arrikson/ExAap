@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sala Virtual - Aluno</title>
+  <title>Perfil do Aluno</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #0d1b2a;
+      background: linear-gradient(to right, #007bff, #00c6ff);
       color: #fff;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      padding-top: 70px;
+      display: flex;
+      justify-content: center;
     }
 
     .top-bar {
@@ -20,116 +26,119 @@
       top: 0;
       width: 100%;
       height: 60px;
-      background-color: #1b263b;
+      background: #ffffff;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
-      z-index: 100;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 1000;
     }
 
     .top-bar img {
-      height: 40px;
+      height: 45px;
     }
 
     .logout-icon {
-      color: #ff4d4f;
-      font-size: 22px;
+      position: absolute;
+      top: 12px;
+      right: 20px;
+      font-size: 24px;
+      color: #dc3545;
       cursor: pointer;
     }
 
-    .video-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 70px;
-      height: calc(100vh - 70px);
-      box-sizing: border-box;
-      position: relative;
+    .profile-container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 40px 30px;
+      border-radius: 16px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
     }
 
-    .remote-section {
-      flex: 1;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+      margin-bottom: 20px;
     }
 
-    .remote-section h2 {
-      margin-bottom: 10px;
-      font-size: 20px;
+    .button {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .button i {
+      margin-right: 8px;
+    }
+
+    .button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background-color: #28a745;
       color: #fff;
     }
 
-    .remote-video {
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-      background-color: #000;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    .local-section {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 250px;
-      background-color: rgba(0,0,0,0.7);
-      padding: 10px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      transition: all 0.3s ease;
-    }
-
-    .local-section.expanded {
-      position: static;
-      width: 50%;
-      margin: 20px;
-    }
-
-    .local-section h3 {
-      margin-bottom: 8px;
-      font-size: 16px;
-      color: #ffd700;
-    }
-
-    .local-video {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      background-color: #000;
-    }
-
-    .toggle-button {
-      margin-top: 10px;
-      padding: 6px 12px;
+    .btn-warning {
       background-color: #ffc107;
-      border: none;
-      border-radius: 6px;
       color: #000;
-      cursor: pointer;
-      font-size: 14px;
     }
 
-    .toggle-button:hover {
-      background-color: #e0a800;
+    .btn-danger {
+      background-color: #dc3545;
+      color: #fff;
     }
 
-    @media (max-width: 768px) {
-      .video-container {
-        flex-direction: column;
-      }
+    #professor-nome {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-      .local-section {
-        position: static;
-        width: 90%;
-        margin-top: 20px;
-      }
+    #notificacao-mensagem {
+      margin-top: 15px;
+      padding: 12px;
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      font-weight: bold;
+      display: none;
+    }
+
+    #notificacao-mensagem.chamando {
+      animation: piscar 1s infinite;
+    }
+
+    @keyframes piscar {
+      0%, 100% { background-color: #fff; }
+      50% { background-color: #ff8080; }
+    }
+
+    #info-aula {
+      margin-top: 20px;
+      background: #ffffff22;
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+    }
+
+    video {
+      width: 100%;
+      max-width: 340px;
+      height: auto;
+      border-radius: 10px;
+      margin-top: 15px;
+      display: none;
     }
   </style>
 </head>
@@ -139,38 +148,189 @@
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
 
-  <div class="video-container">
-    <div class="remote-section">
-      <h2>Professor</h2>
-      <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+  <div class="profile-container">
+    <h1>{{ aluno.nome }}</h1>
+
+    <button class="button btn-primary" onclick="verProfessor('{{ aluno.nome }}')">
+      <i class="fas fa-chalkboard-teacher"></i> Ver Professor
+    </button>
+
+    <button class="button btn-warning" id="botao-aulas" onclick="verNotificacao()">
+      <i class="fas fa-bell"></i> Aulas <span id="contador-aulas"></span>
+    </button>
+
+    <div id="notificacao-mensagem"></div>
+    <div id="professor-nome"></div>
+
+    <div id="info-aula">
+      <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
+      <button class="button btn-warning" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
     </div>
 
-    <div class="local-section" id="localContainer">
-      <h3>Aluno</h3>
-      <video id="localVideo" class="local-video" autoplay muted playsinline></video>
-      <button class="toggle-button" onclick="alternarVisualizacao()">Expandir</button>
-    </div>
+    <form method="post" action="/logout" id="logoutForm" style="display: none;">
+      <input type="hidden" name="nome" value="{{ aluno.nome }}">
+    </form>
+
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
+  <audio id="ringtone" loop>
+    <source src="https://www.soundjay.com/phone/telephone-ring-01a.mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio.
+  </audio>
+
+  <script>
+    const nomeAluno = "{{ aluno.nome }}";
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+    let professorEmailAtual = null;
+
+    function fazerLogout() {
+      fetch("/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nomeAluno })
+      })
+      .then(() => window.location.href = "/");
+    }
+
+    function verProfessor(nome) {
+      fetch(`/meu-professor-status/${nome}`)
+        .then(response => response.json())
+        .then(data => {
+          const status = data.online ? '🟢 Online' : '⚪ Offline';
+          document.getElementById("professor-nome").innerHTML = `
+            ${status} - Professor: ${data.professor}
+            <br><button class="button btn-primary" onclick="irParaSala('${data.professor}', nomeAluno)">Vista</button>
+          `;
+        });
+    }
+
+    function irParaSala(email, aluno) {
+      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}&aluno=${encodeURIComponent(aluno)}`;
+    }
+
+    function verNotificacao() {
+      fetch("/verificar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.notificacao) {
+          professorEmailAtual = data.professor_email;
+          notificacaoEl.innerHTML = `
+            📞 O professor está a chamar!
+            <br><br>
+            <button class="button btn-primary" onclick="desativarNotificacaoERedirecionar()">Atender</button>
+            <button class="button btn-danger" onclick="recusarChamada()">Recusar</button>
+          `;
+          notificacaoEl.classList.add("chamando");
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+          document.getElementById("ringtone").play();
+        } else {
+          notificacaoEl.style.display = "none";
+          notificacaoEl.classList.remove("chamando");
+          contadorAulas.innerText = "";
+          const ringtone = document.getElementById("ringtone");
+          ringtone.pause();
+          ringtone.currentTime = 0;
+        }
+      });
+    }
+
+    function recusarChamada() {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      }).then(() => {
+        notificacaoEl.style.display = "none";
+        notificacaoEl.classList.remove("chamando");
+        contadorAulas.innerText = "";
+        const ringtone = document.getElementById("ringtone");
+        ringtone.pause();
+        ringtone.currentTime = 0;
+      });
+    }
+
+    function desativarNotificacaoERedirecionar() {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      }).then(() => {
+        notificacaoEl.style.display = "none";
+        notificacaoEl.classList.remove("chamando");
+        contadorAulas.innerText = "";
+        document.getElementById("ringtone").pause();
+        if (professorEmailAtual) {
+          const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
+          window.location.href = `/sala_virtual_aluno/${sala}`;
+        }
+      });
+    }
+
+    function entrarNaAulaDireto() {
+      const salaId = document.getElementById("sala-id").textContent;
+      if (salaId) {
+        window.location.href = `/sala_virtual_aluno/${salaId}`;
+      }
+    }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.appspot.com",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+    const infoAulaDiv = document.getElementById("info-aula");
+    const salaIdSpan = document.getElementById("sala-id");
+
+    onSnapshot(chamadaRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        if (dados.status === "pendente") {
+          salaIdSpan.textContent = dados.sala;
+          infoAulaDiv.style.display = "block";
+          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando. Deseja entrar?`);
+          updateDoc(chamadaRef, { status: aceitar ? "aceito" : "rejeitado" });
+          if (aceitar) window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+        }
+      }
+    });
+  </script>
+
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
-    const localContainer = document.getElementById("localContainer");
-
     let localStream, peer, currentCall;
 
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        localVideo.style.display = "block";
+        remoteVideo.style.display = "block";
       } catch (err) {
-        alert("Erro ao acessar a câmera");
+        alert("Erro ao acessar a câmera.");
         console.error(err);
       }
-    }
-
-    function alternarVisualizacao() {
-      localContainer.classList.toggle("expanded");
     }
 
     function conectarAoProfessor(remotePeerId) {
@@ -180,37 +340,23 @@
         call.on("stream", (remoteStream) => {
           remoteVideo.srcObject = remoteStream;
         });
-        call.on("close", () => console.log("🔌 Chamada encerrada."));
-        call.on("error", (err) => console.error("Erro na chamada:", err));
+        call.on("close", () => console.log("Chamada encerrada."));
+        call.on("error", (err) => console.error("Erro:", err));
         currentCall = call;
       });
     }
 
     async function buscarIdDoProfessor() {
-      const aluno = "{{ aluno.nome }}";
-      const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
+      const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
       const data = await response.json();
       if (data.peer_id) {
         conectarAoProfessor(data.peer_id);
-      } else {
-        console.log("❌ Nenhum ID de chamada encontrado.");
       }
-    }
-
-    function fazerLogout() {
-      fetch("/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: "{{ aluno.nome }}" })
-      })
-      .then(() => window.location.href = "/")
-      .catch(error => console.error("Erro ao fazer logout:", error));
     }
 
     startCamera().then(buscarIdDoProfessor);
   </script>
-
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </body>
 </html>
+
 
