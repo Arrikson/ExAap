@@ -1407,7 +1407,6 @@ async def registrar_chamada(request: Request):
         professor_id = str(professor_raw).strip().lower().replace(" ", "_")
         nome_sala = f"{professor_id}-{aluno_id}"
 
-        db = firestore.Client()
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
         doc = doc_ref.get()
 
@@ -1434,7 +1433,6 @@ async def registrar_chamada(request: Request):
                 },
                 status_code=200
             )
-
         else:
             return JSONResponse(
                 content={"erro": f"A conexão não foi autorizada (status atual: {status_atual})"},
@@ -1442,11 +1440,12 @@ async def registrar_chamada(request: Request):
             )
 
     except Exception as e:
-        print(f"❌ ERRO AO REGISTRAR CHAMADA: {str(e)}")  # Para debug no terminal
+        print(f"❌ ERRO AO REGISTRAR CHAMADA: {str(e)}")
         return JSONResponse(
             content={"erro": f"Erro interno ao registrar chamada: {str(e)}"},
             status_code=500
         )
+
 
 app.add_middleware(
     CORSMiddleware,
