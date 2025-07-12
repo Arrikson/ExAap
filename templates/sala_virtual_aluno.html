@@ -51,62 +51,78 @@
 <body>
 
   <div id="status">🔎 Conectando com o professor...</div>
-  <video id="video" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
   <button class="btn-sair" onclick="encerrar()">Sair</button>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
-    const professorEmail = "{{ professor.email }}".trim().toLowerCase();
     const alunoNome = "{{ aluno.nome }}";
-
-    const video = document.getElementById("video");
+    const professorEmail = "{{ professor.email }}".trim().toLowerCase();
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
     const statusDiv = document.getElementById("status");
 
-    let peer;
-    let call;
+    let localStream, peer, currentCall;
 
-    async function iniciar() {
+    async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
-        peer = new Peer();
-
-        peer.on("open", (id) => {
-          call = peer.call(professorEmail, stream);
-
-          call.on("stream", (remoteStream) => {
-            video.srcObject = remoteStream;
-            statusDiv.textContent = "✅ Conectado ao professor.";
-          });
-
-          call.on("close", () => {
-            statusDiv.textContent = "📴 Chamada encerrada.";
-          });
-
-          call.on("error", (err) => {
-            console.error("Erro na chamada:", err);
-            statusDiv.textContent = "Erro durante a chamada.";
-          });
-        });
-
-        peer.on("error", (err) => {
-          console.error("Erro PeerJS:", err);
-          statusDiv.textContent = "Erro na conexão PeerJS.";
-        });
-
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
       } catch (err) {
-        console.error("Erro ao acessar câmera/mic:", err);
-        statusDiv.textContent = "Erro na câmera ou microfone.";
+        console.error("Erro ao acessar a câmera:", err);
+        statusDiv.textContent = "Erro ao acessar a câmera.";
+      }
+    }
+
+    function conectarAoProfessor(remotePeerId) {
+      peer = new Peer();
+      peer.on("open", () => {
+        const call = peer.call(remotePeerId, localStream);
+        call.on("stream", (remoteStream) => {
+          remoteVideo.srcObject = remoteStream;
+          remoteVideo.style.display = "block";
+          statusDiv.textContent = "✅ Conectado ao professor.";
+        });
+        call.on("close", () => {
+          statusDiv.textContent = "📴 Chamada encerrada.";
+        });
+        call.on("error", (err) => {
+          console.error("Erro na chamada:", err);
+          statusDiv.textContent = "Erro durante a chamada.";
+        });
+        currentCall = call;
+      });
+
+      peer.on("error", (err) => {
+        console.error("Erro no PeerJS:", err);
+        statusDiv.textContent = "Erro no PeerJS.";
+      });
+    }
+
+    async function buscarIdDoProfessor() {
+      try {
+        const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(alunoNome)}`);
+        const data = await response.json();
+        if (data.peer_id) {
+          conectarAoProfessor(data.peer_id);
+        } else {
+          statusDiv.textContent = "❌ Professor não disponível.";
+        }
+      } catch (err) {
+        console.error("Erro ao buscar ID do professor:", err);
+        statusDiv.textContent = "Erro ao conectar.";
       }
     }
 
     function encerrar() {
-      if (call) call.close();
+      if (currentCall) currentCall.close();
       if (peer) peer.destroy();
-      window.location.href = "/perfil_aluno";
+      window.location.href = "/perfil";
     }
 
-    iniciar();
+    startCamera().then(buscarIdDoProfessor);
   </script>
 </body>
 </html>
+
