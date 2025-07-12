@@ -112,16 +112,7 @@
       font-weight: bold;
     }
 
-    #notificacao-mensagem.chamando {
-      animation: piscar 1s infinite;
-    }
-
-    @keyframes piscar {
-      0% { background-color: #fffa; }
-      50% { background-color: #ff8080; }
-      100% { background-color: #fffa; }
-    }
-
+    /* NOVO BLOCO */
     #info-aula {
       display: none;
       margin-top: 20px;
@@ -130,7 +121,6 @@
       border-radius: 10px;
       text-align: center;
     }
-
     #info-aula p {
       margin-bottom: 10px;
       font-size: 16px;
@@ -157,6 +147,7 @@
     <div id="notificacao-mensagem"></div>
     <div id="professor-nome"></div>
 
+    <!-- BLOCO ID DA SALA + BOTÃO -->
     <div id="info-aula">
       <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
       <button class="button btn-enter" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
@@ -166,11 +157,6 @@
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
   </div>
-
-  <audio id="ringtone" loop>
-    <source src="https://www.soundjay.com/phone/telephone-ring-01a.mp3" type="audio/mpeg">
-    Seu navegador não suporta áudio.
-  </audio>
 
   <script>
     const nomeAluno = "{{ aluno.nome }}";
@@ -195,21 +181,12 @@
         .then(data => {
           const statusIcon = data.online ? '🟢' : '⚪';
           const statusText = data.online ? 'Online' : 'Offline';
-          container.innerHTML = `
-            ${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>
-            <button class="button" style="margin-top:10px;" onclick="irParaSala('${data.professor}', nomeAluno)">Vista</button>
-          `;
+          container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
         })
         .catch(err => {
           container.innerHTML = "Professor não encontrado.";
           console.error("Erro ao buscar professor:", err);
         });
-    }
-
-    function irParaSala(email, aluno) {
-      const encodedEmail = encodeURIComponent(email);
-      const encodedAluno = encodeURIComponent(aluno);
-      window.location.href = `/sala_virtual_professor?email=${encodedEmail}&aluno=${encodedAluno}`;
     }
 
     function verNotificacao() {
@@ -223,41 +200,17 @@
         if (data.notificacao === true) {
           professorEmailAtual = data.professor_email;
           notificacaoEl.innerHTML = `
-            📞 O professor está a chamar para uma aula!
-            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #28a745;">Atender</button>
-            <button class="button" onclick="recusarChamada()" style="margin-top: 10px; background-color: #dc3545;">Recusar</button>
+            A tua aula irá começar
+            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
           `;
-          notificacaoEl.classList.add("chamando");
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
-          document.getElementById("ringtone").play();
         } else {
           notificacaoEl.style.display = "none";
-          notificacaoEl.classList.remove("chamando");
           contadorAulas.innerText = "";
-          const ringtone = document.getElementById("ringtone");
-          ringtone.pause();
-          ringtone.currentTime = 0;
         }
       })
       .catch(error => console.error("Erro ao verificar notificação:", error));
-    }
-
-    function recusarChamada() {
-      fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      })
-      .then(() => {
-        notificacaoEl.style.display = "none";
-        notificacaoEl.classList.remove("chamando");
-        contadorAulas.innerText = "";
-        const ringtone = document.getElementById("ringtone");
-        ringtone.pause();
-        ringtone.currentTime = 0;
-      })
-      .catch(error => console.error("Erro ao recusar chamada:", error));
     }
 
     function desativarNotificacaoERedirecionar() {
@@ -267,13 +220,8 @@
         body: JSON.stringify({ aluno: nomeAluno })
       })
       .then(() => {
-        notificacaoEl.style.display = "none";
-        notificacaoEl.classList.remove("chamando");
-        contadorAulas.innerText = "";
-        const ringtone = document.getElementById("ringtone");
-        ringtone.pause();
-        ringtone.currentTime = 0;
-
+        document.getElementById("notificacao-mensagem").style.display = "none";
+        document.getElementById("contador-aulas").innerText = "";
         if (professorEmailAtual) {
           const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
           window.location.href = `/sala_virtual_aluno/${sala}`;
