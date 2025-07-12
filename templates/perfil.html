@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
- <style>
+  <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -136,50 +136,12 @@
       font-size: 16px;
     }
 
-    #videoContainer {
+    video {
+      width: 300px;
+      height: 220px;
+      border-radius: 10px;
+      margin-top: 20px;
       display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1003;
-      gap: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      border-radius: 12px;
-      backdrop-filter: blur(8px);
-    }
-
-    #videoContainer.mostrar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #remoteVideo {
-      position: fixed;
-      top: 20vh;
-      left: 0;
-      width: 100vw;
-      height: 80vh;
-      object-fit: cover;
-      z-index: 1;
-      background-color: #000;
-      border-radius: 0;
-      pointer-events: none;
-    }
-
-    #localVideo {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 80px;
-      height: 60px;
-      z-index: 1002;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      transition: all 0.3s ease;
-      background-color: #000;
     }
   </style>
 </head>
@@ -211,10 +173,7 @@
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
-  </div>
 
-  <!-- NOVO CONTAINER DE VÍDEOS -->
-  <div id="videoContainer">
     <video id="localVideo" autoplay muted playsinline></video>
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
@@ -344,7 +303,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getFirestore, doc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
@@ -384,15 +345,14 @@
   <script>
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
-    const videoContainer = document.getElementById("videoContainer");
     let localStream, peer, currentCall;
 
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-        localVideo.classList.add("default");
-        videoContainer.classList.add("mostrar");
+        localVideo.style.display = "block";
+        remoteVideo.style.display = "block";
       } catch (err) {
         alert("Erro ao acessar a câmera");
         console.error(err);
@@ -423,20 +383,6 @@
         console.log("❌ Nenhum ID de chamada encontrado.");
       }
     }
-
-    function toggleVideoSize(videoElement) {
-      const isExpanded = videoContainer.classList.contains("mostrar");
-      if (isExpanded) {
-        videoContainer.classList.remove("mostrar");
-        localVideo.classList.add("default");
-      } else {
-        videoContainer.classList.add("mostrar");
-        localVideo.classList.remove("default");
-      }
-    }
-
-    localVideo.addEventListener("click", () => toggleVideoSize(localVideo));
-    remoteVideo.addEventListener("click", () => toggleVideoSize(remoteVideo));
 
     startCamera().then(buscarIdDoProfessor);
   </script>
