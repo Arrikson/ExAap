@@ -205,8 +205,9 @@
     </form>
   </div>
 
+  <!-- NOVO CONTAINER DE VÍDEOS -->
   <div id="videoContainer">
-    <video id="localVideo" autoplay muted playsinline class="default"></video>
+    <video id="localVideo" autoplay muted playsinline></video>
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
@@ -335,9 +336,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, doc, onSnapshot, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
@@ -384,6 +383,8 @@
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        localVideo.classList.add("default");
+        videoContainer.classList.add("mostrar");
       } catch (err) {
         alert("Erro ao acessar a câmera");
         console.error(err);
@@ -404,6 +405,7 @@
     }
 
     async function buscarIdDoProfessor() {
+      const nomeAluno = "{{ aluno.nome }}";
       const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
       const data = await response.json();
       if (data.peer_id) {
@@ -416,7 +418,6 @@
 
     function toggleVideoSize(videoElement) {
       const isExpanded = videoContainer.classList.contains("mostrar");
-
       if (isExpanded) {
         videoContainer.classList.remove("mostrar");
         localVideo.classList.add("default");
@@ -433,4 +434,5 @@
   </script>
 </body>
 </html>
+
 
