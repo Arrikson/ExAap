@@ -6,32 +6,28 @@
   <title>Perfil do Aluno</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #007bff, #00c6ff);
+      background: linear-gradient(135deg, #00C6FF, #007BFF);
       color: #fff;
-      min-height: 100vh;
-      padding-top: 70px;
       display: flex;
       justify-content: center;
+      padding: 40px 20px;
     }
 
     .top-bar {
       position: fixed;
       top: 0;
+      left: 0;
       width: 100%;
       height: 60px;
-      background: #ffffff;
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
     .top-bar img {
@@ -41,78 +37,79 @@
     .logout-icon {
       position: absolute;
       top: 12px;
-      right: 20px;
-      font-size: 24px;
+      right: 15px;
       color: #dc3545;
+      font-size: 24px;
       cursor: pointer;
     }
 
     .profile-container {
       background-color: rgba(255, 255, 255, 0.1);
-      padding: 40px 30px;
-      border-radius: 16px;
-      max-width: 720px;
+      padding: 100px 30px 30px;
+      border-radius: 20px;
       width: 100%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      text-align: center;
+      max-width: 700px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      position: relative;
     }
 
     h1 {
-      margin-top: 0;
-      font-size: 28px;
-      margin-bottom: 20px;
+      text-align: center;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     .button {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      font-size: 16px;
-      font-weight: bold;
+      padding: 12px 20px;
+      background-color: #28a745;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
+      font-size: 16px;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .button i {
-      margin-right: 8px;
+      color: #fff;
+      width: 100%;
+      margin-top: 10px;
     }
 
     .button:hover {
-      opacity: 0.9;
+      background-color: #218838;
     }
 
-    .btn-primary {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    .btn-warning {
+    .btn-enter {
       background-color: #ffc107;
       color: #000;
     }
 
-    .btn-danger {
-      background-color: #dc3545;
-      color: #fff;
+    .btn-enter:hover {
+      background-color: #e0a800;
     }
 
     #professor-nome {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: 18px;
+      color: #fff;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-form {
+      display: none;
     }
 
     #notificacao-mensagem {
-      margin-top: 15px;
-      padding: 12px;
-      background: #fff;
-      color: #000;
-      border-radius: 10px;
-      font-weight: bold;
+      margin-top: 10px;
       display: none;
+      background: #fffa;
+      color: #000;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
     }
 
     #notificacao-mensagem.chamando {
@@ -120,16 +117,23 @@
     }
 
     @keyframes piscar {
-      0%, 100% { background-color: #fff; }
+      0% { background-color: #fffa; }
       50% { background-color: #ff8080; }
+      100% { background-color: #fffa; }
     }
 
     #info-aula {
-      margin-top: 20px;
-      background: #ffffff22;
-      padding: 20px;
-      border-radius: 12px;
       display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff3;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    #info-aula p {
+      margin-bottom: 10px;
+      font-size: 16px;
     }
 
     video {
@@ -138,7 +142,24 @@
       height: auto;
       border-radius: 10px;
       margin-top: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
       display: none;
+    }
+
+    video:hover {
+      max-width: 600px;
+      transform: scale(1.1);
+      z-index: 2;
+    }
+
+    video.expandido {
+      max-width: 90vw;
+      max-height: 90vh;
+      z-index: 1001;
+      position: relative;
+      border: 3px solid #fff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -151,12 +172,12 @@
   <div class="profile-container">
     <h1>{{ aluno.nome }}</h1>
 
-    <button class="button btn-primary" onclick="verProfessor('{{ aluno.nome }}')">
-      <i class="fas fa-chalkboard-teacher"></i> Ver Professor
+    <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
+      <i class="fas fa-chalkboard-teacher"></i> Professores
     </button>
 
-    <button class="button btn-warning" id="botao-aulas" onclick="verNotificacao()">
-      <i class="fas fa-bell"></i> Aulas <span id="contador-aulas"></span>
+    <button class="button btn-enter" id="botao-aulas" onclick="verNotificacao()">
+      <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
     </button>
 
     <div id="notificacao-mensagem"></div>
@@ -164,10 +185,10 @@
 
     <div id="info-aula">
       <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
-      <button class="button btn-warning" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+      <button class="button btn-enter" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
     </div>
 
-    <form method="post" action="/logout" id="logoutForm" style="display: none;">
+    <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
 
@@ -192,23 +213,32 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome: nomeAluno })
       })
-      .then(() => window.location.href = "/");
+      .then(() => window.location.href = "/")
+      .catch(error => console.error("Erro ao fazer logout:", error));
     }
 
     function verProfessor(nome) {
+      const container = document.getElementById("professor-nome");
       fetch(`/meu-professor-status/${nome}`)
         .then(response => response.json())
         .then(data => {
-          const status = data.online ? '🟢 Online' : '⚪ Offline';
-          document.getElementById("professor-nome").innerHTML = `
-            ${status} - Professor: ${data.professor}
-            <br><button class="button btn-primary" onclick="irParaSala('${data.professor}', nomeAluno)">Vista</button>
+          const statusIcon = data.online ? '🟢' : '⚪';
+          const statusText = data.online ? 'Online' : 'Offline';
+          container.innerHTML = `
+            ${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>
+            <button class="button" style="margin-top:10px;" onclick="irParaSala('${data.professor}', nomeAluno)">Vista</button>
           `;
+        })
+        .catch(err => {
+          container.innerHTML = "Professor não encontrado.";
+          console.error("Erro ao buscar professor:", err);
         });
     }
 
     function irParaSala(email, aluno) {
-      window.location.href = `/sala_virtual_professor?email=${encodeURIComponent(email)}&aluno=${encodeURIComponent(aluno)}`;
+      const encodedEmail = encodeURIComponent(email);
+      const encodedAluno = encodeURIComponent(aluno);
+      window.location.href = `/sala_virtual_professor?email=${encodedEmail}&aluno=${encodedAluno}`;
     }
 
     function verNotificacao() {
@@ -219,13 +249,12 @@
       })
       .then(response => response.json())
       .then(data => {
-        if (data.notificacao) {
+        if (data.notificacao === true) {
           professorEmailAtual = data.professor_email;
           notificacaoEl.innerHTML = `
-            📞 O professor está a chamar!
-            <br><br>
-            <button class="button btn-primary" onclick="desativarNotificacaoERedirecionar()">Atender</button>
-            <button class="button btn-danger" onclick="recusarChamada()">Recusar</button>
+            📞 O professor está a chamar para uma aula!
+            <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #28a745;">Atender</button>
+            <button class="button" onclick="recusarChamada()" style="margin-top: 10px; background-color: #dc3545;">Recusar</button>
           `;
           notificacaoEl.classList.add("chamando");
           notificacaoEl.style.display = "block";
@@ -239,7 +268,8 @@
           ringtone.pause();
           ringtone.currentTime = 0;
         }
-      });
+      })
+      .catch(error => console.error("Erro ao verificar notificação:", error));
     }
 
     function recusarChamada() {
@@ -247,14 +277,16 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ aluno: nomeAluno })
-      }).then(() => {
+      })
+      .then(() => {
         notificacaoEl.style.display = "none";
         notificacaoEl.classList.remove("chamando");
         contadorAulas.innerText = "";
         const ringtone = document.getElementById("ringtone");
         ringtone.pause();
         ringtone.currentTime = 0;
-      });
+      })
+      .catch(error => console.error("Erro ao recusar chamada:", error));
     }
 
     function desativarNotificacaoERedirecionar() {
@@ -262,16 +294,21 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ aluno: nomeAluno })
-      }).then(() => {
+      })
+      .then(() => {
         notificacaoEl.style.display = "none";
         notificacaoEl.classList.remove("chamando");
         contadorAulas.innerText = "";
-        document.getElementById("ringtone").pause();
+        const ringtone = document.getElementById("ringtone");
+        ringtone.pause();
+        ringtone.currentTime = 0;
+
         if (professorEmailAtual) {
           const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
           window.location.href = `/sala_virtual_aluno/${sala}`;
         }
-      });
+      })
+      .catch(error => console.error("Erro:", error));
     }
 
     function entrarNaAulaDireto() {
@@ -284,7 +321,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getFirestore, doc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
@@ -297,6 +336,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
     const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
     const infoAulaDiv = document.getElementById("info-aula");
     const salaIdSpan = document.getElementById("sala-id");
@@ -307,9 +347,13 @@
         if (dados.status === "pendente") {
           salaIdSpan.textContent = dados.sala;
           infoAulaDiv.style.display = "block";
-          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando. Deseja entrar?`);
-          updateDoc(chamadaRef, { status: aceitar ? "aceito" : "rejeitado" });
-          if (aceitar) window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+          updateDoc(chamadaRef, {
+            status: aceitar ? "aceito" : "rejeitado"
+          });
+          if (aceitar) {
+            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          }
         }
       }
     });
@@ -328,7 +372,7 @@
         localVideo.style.display = "block";
         remoteVideo.style.display = "block";
       } catch (err) {
-        alert("Erro ao acessar a câmera.");
+        alert("Erro ao acessar a câmera");
         console.error(err);
       }
     }
@@ -340,23 +384,33 @@
         call.on("stream", (remoteStream) => {
           remoteVideo.srcObject = remoteStream;
         });
-        call.on("close", () => console.log("Chamada encerrada."));
-        call.on("error", (err) => console.error("Erro:", err));
+        call.on("close", () => console.log("🔌 Chamada encerrada."));
+        call.on("error", (err) => console.error("Erro na chamada:", err));
         currentCall = call;
       });
     }
 
     async function buscarIdDoProfessor() {
+      const nomeAluno = "{{ aluno.nome }}";
       const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
       const data = await response.json();
       if (data.peer_id) {
+        console.log("🎯 Conectando ao professor com ID:", data.peer_id);
         conectarAoProfessor(data.peer_id);
+      } else {
+        console.log("❌ Nenhum ID de chamada encontrado.");
       }
     }
 
     startCamera().then(buscarIdDoProfessor);
+
+    // Expansão de vídeo ao clicar
+    function toggleVideoSize(videoElement) {
+      videoElement.classList.toggle("expandido");
+    }
+
+    localVideo.addEventListener("click", () => toggleVideoSize(localVideo));
+    remoteVideo.addEventListener("click", () => toggleVideoSize(remoteVideo));
   </script>
 </body>
 </html>
-
-
