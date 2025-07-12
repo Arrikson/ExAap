@@ -136,30 +136,42 @@
       font-size: 16px;
     }
 
-    video {
-      width: 100%;
-      max-width: 340px;
-      height: auto;
-      border-radius: 10px;
-      margin-top: 15px;
+    #videoContainer {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1003;
+      gap: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    #videoContainer.mostrar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #localVideo, #remoteVideo {
+      width: 300px;
+      height: 220px;
+      border-radius: 12px;
       transition: all 0.3s ease;
       cursor: pointer;
-      display: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
-    video:hover {
-      max-width: 600px;
-      transform: scale(1.1);
-      z-index: 2;
-    }
-
-    video.expandido {
-      max-width: 90vw;
-      max-height: 90vh;
-      z-index: 1001;
-      position: relative;
-      border: 3px solid #fff;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    #localVideo.default {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 160px;
+      height: 120px;
+      z-index: 1002;
     }
   </style>
 </head>
@@ -191,8 +203,10 @@
     <form method="post" action="/logout" class="logout-form" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
+  </div>
 
-    <video id="localVideo" autoplay muted playsinline></video>
+  <div id="videoContainer">
+    <video id="localVideo" autoplay muted playsinline class="default"></video>
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
@@ -363,14 +377,13 @@
   <script>
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
+    const videoContainer = document.getElementById("videoContainer");
     let localStream, peer, currentCall;
 
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-        localVideo.style.display = "block";
-        remoteVideo.style.display = "block";
       } catch (err) {
         alert("Erro ao acessar a câmera");
         console.error(err);
@@ -391,7 +404,6 @@
     }
 
     async function buscarIdDoProfessor() {
-      const nomeAluno = "{{ aluno.nome }}";
       const response = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(nomeAluno)}`);
       const data = await response.json();
       if (data.peer_id) {
@@ -402,15 +414,23 @@
       }
     }
 
-    startCamera().then(buscarIdDoProfessor);
-
-    // Expansão de vídeo ao clicar
     function toggleVideoSize(videoElement) {
-      videoElement.classList.toggle("expandido");
+      const isExpanded = videoContainer.classList.contains("mostrar");
+
+      if (isExpanded) {
+        videoContainer.classList.remove("mostrar");
+        localVideo.classList.add("default");
+      } else {
+        videoContainer.classList.add("mostrar");
+        localVideo.classList.remove("default");
+      }
     }
 
     localVideo.addEventListener("click", () => toggleVideoSize(localVideo));
     remoteVideo.addEventListener("click", () => toggleVideoSize(remoteVideo));
+
+    startCamera().then(buscarIdDoProfessor);
   </script>
 </body>
 </html>
+
