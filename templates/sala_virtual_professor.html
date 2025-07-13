@@ -5,61 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chamada PeerJS</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
+   body {
+  margin: 0;
+  background: #000;
+  font-family: "Roboto", sans-serif;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100vh;
+  padding-top: 20px;
+}
 
-    video {
-      width: 300px;
-      height: 225px;
-      border: 2px solid white;
-      border-radius: 10px;
-      margin: 10px;
-      object-fit: cover;
-    }
+video {
+  width: 90vw;
+  max-width: 400px;
+  height: 70vh;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  margin-bottom: 12px;
+  object-fit: cover;
+}
 
-    #info {
-      margin-bottom: 10px;
-      text-align: center;
-    }
+#localVideo {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 120px;
+  height: 90px;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  object-fit: cover;
+}
 
-    #connectArea {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
+#info {
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 16px;
+}
 
-    input, button {
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 14px;
-      border: none;
-    }
+#status {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
 
-    button {
-      background-color: green;
-      color: white;
-      cursor: pointer;
-    }
+#connectArea {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
 
-    button:hover {
-      background-color: darkgreen;
-    }
+input, button {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: none;
+  outline: none;
+}
 
-    #chamarAlunoBtn {
-      margin-top: 20px;
-      position: absolute;
-      left: 20px;
-      bottom: 20px;
-    }
+button {
+  background-color: green;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: darkgreen;
+}
+
+#retryBtn {
+  background: #e60023;
+  color: white;
+  padding: 8px 20px;
+  font-size: 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+#chamarAlunoBtn {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  background-color: #1e90ff;
+  color: white;
+  font-weight: bold;
+  padding: 10px 18px;
+  border-radius: 12px;
+  transition: background-color 0.3s ease;
+}
+
+#chamarAlunoBtn:hover {
+  background-color: #0f78d1;
+}
   </style>
 </head>
 <body>
