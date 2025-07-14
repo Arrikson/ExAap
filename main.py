@@ -1587,3 +1587,17 @@ async def buscar_id_professor(aluno: str):
             return {"peer_id": None}
     except Exception as e:
         return {"erro": str(e)}
+
+class HorarioEnvio(BaseModel):
+    aluno_nome: str
+    professor_email: str
+    horario: dict  # ex: {"Seg": ["07:30 - 08:30", "09:30 - 10:30"], "Ter": [...]}
+
+@app.post("/enviar-horario")
+async def enviar_horario(dados: HorarioEnvio):
+    try:
+        doc_ref = db.collection("alunos_professor").document(f"{dados.aluno_nome}_{dados.professor_email}")
+        doc_ref.update({"horario": dados.horario, "horario_pendente": True})
+        return {"msg": "Horário enviado com sucesso."}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
