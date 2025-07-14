@@ -1606,16 +1606,18 @@ async def enviar_horario(dados: HorarioEnvio):
 async def guardar_horario(request: Request):
     dados = await request.json()
     aluno = dados.get("aluno")
-    dias = dados.get("dias")  # Ex: ["Segunda", "Quarta"]
-    horarios = dados.get("horarios")  # Ex: ["10:30", "14:00"]
+    dias = dados.get("dias")      # Lista de dias ["Segunda-feira", "Quarta-feira"]
+    horarios = dados.get("horarios")  # Lista de horários ["10:30 - 11:30", "14:00 - 15:00"]
 
     if not aluno or not dias or not horarios:
         return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
-    dados_horario = {
-        "dias": dias,
-        "horarios": horarios
-    }
+    # Estrutura os horários por cada dia
+    dados_horario = {}
+    for dia in dias:
+        if dia not in dados_horario:
+            dados_horario[dia] = []
+        dados_horario[dia].extend(horarios)
 
     try:
         db.collection("horarios_alunos").document(aluno).set(dados_horario)
