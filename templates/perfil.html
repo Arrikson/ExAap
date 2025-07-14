@@ -2,152 +2,154 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil do Aluno - Modelo 1</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil do Aluno - Modelo 2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * {
       box-sizing: border-box;
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
-      color: white;
+      background: #f1f1f1;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      display: flex;
+      justify-content: center;
+      padding: 80px 20px 50px 20px;
     }
 
     .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background-color: #1e1e2f;
       padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 10;
     }
 
     .top-bar img {
-      width: 40px;
-      height: auto;
+      height: 40px;
     }
 
-    .logout-icon {
+    .top-bar .logout-icon {
+      margin-left: auto;
       font-size: 20px;
+      color: #333;
       cursor: pointer;
-      color: white;
     }
 
-    .container {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .profile-container {
-      background: #1e1e2f;
-      padding: 30px;
-      border-radius: 15px;
+    .card {
+      background: white;
       width: 100%;
       max-width: 600px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      padding: 30px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      border-radius: 12px;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #333;
+      margin-top: 0;
     }
 
-    button {
-      width: 100%;
-      background-color: #00b894;
+    .btn {
+      background: #007BFF;
       color: white;
-      padding: 12px;
-      margin-top: 10px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #00a084;
-    }
-
-    .content {
-      display: none;
-      background: #2d2d44;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 10px;
-    }
-
-    .content p {
-      margin: 5px 0;
-    }
-
-    .status-icon {
-      font-weight: bold;
-    }
-
-    #info-aula {
+      padding: 12px;
       margin-top: 15px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }
+
+    .info {
+      display: none;
+      margin-top: 10px;
+      padding: 15px;
+      background: #f0f8ff;
+      border-left: 4px solid #007BFF;
+      border-radius: 5px;
+    }
+
+    #notificacao-mensagem, #professor-nome, #info-aula {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
       display: none;
     }
 
     @media (max-width: 600px) {
-      .profile-container {
+      .card {
         padding: 20px;
       }
 
-      .top-bar img {
-        width: 30px;
+      .top-bar {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 8px 15px;
       }
 
-      .logout-icon {
-        font-size: 18px;
+      .top-bar img {
+        height: 30px;
+      }
+
+      .btn {
+        font-size: 14px;
+        padding: 10px;
       }
     }
   </style>
 </head>
 <body>
 
-<div class="top-bar">
-  <img src="/static/logo.png" alt="Logo">
-  <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
-</div>
+  <div class="top-bar">
+    <img src="/static/logo.png" alt="Logo">
+    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
+  </div>
 
-<div class="container">
-  <div class="profile-container">
+  <div class="card">
     <h1>{{ aluno.nome }}</h1>
 
-    <button onclick="toggle('aulas')">📚 Aulas Recebidas</button>
-    <div class="content" id="aulas">
-      <p>Total de Aulas: 18</p>
-      <p>Faltam: 6</p>
+    <button class="btn" onclick="toggle('sec-aula')">📚 Ver Aulas</button>
+    <div id="sec-aula" class="info">
+      <p>Já teve: 20</p>
+      <p>Faltam: 4</p>
     </div>
 
-    <button onclick="toggle('nivel')">🧭 Nível</button>
-    <div class="content" id="nivel">
-      <p>Iniciante</p>
-      <p>Intermediário</p>
-      <p>Avançado</p>
+    <button class="btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
+    <div id="sec-nivel" class="info">
+      <p>Nível Atual: Intermediário</p>
+      <p>Próximo: Avançado</p>
     </div>
 
-    <button onclick="toggle('notas')">📝 Notas</button>
-    <div class="content" id="notas">
-      <p>Inglês: 17</p>
-      <p>Matemática: 15</p>
-      <p>Física: 13</p>
+    <button class="btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
+    <div id="sec-notas" class="info">
+      <p>Português: 16</p>
+      <p>Biologia: 18</p>
+      <p>Química: 14</p>
     </div>
 
-    <button class="button" onclick="verProfessor('{{ aluno.nome }}')">
-      <i class="fas fa-chalkboard-teacher"></i> Professores
+    <button class="btn" onclick="verProfessor('{{ aluno.nome }}')">
+      <i class="fas fa-chalkboard-teacher"></i> Ver Professor
     </button>
 
-    <button class="button btn-enter" id="botao-aulas" onclick="verNotificacao()">
-      <i class="fas fa-bell"></i> AULAS <span id="contador-aulas"></span>
+    <button class="btn" onclick="verNotificacao()">
+      <i class="fas fa-bell"></i> Ver Notificação <span id="contador-aulas"></span>
     </button>
 
     <div id="notificacao-mensagem"></div>
@@ -155,138 +157,141 @@
 
     <div id="info-aula">
       <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
-      <button class="button btn-enter" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+      <button class="btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
     </div>
 
-    <form method="post" action="/logout" class="logout-form" id="logoutForm">
+    <form method="post" action="/logout" id="logoutForm">
       <input type="hidden" name="nome" value="{{ aluno.nome }}">
     </form>
   </div>
-</div>
 
-<script>
-  function toggle(id) {
-    const el = document.getElementById(id);
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
-  }
+  <script>
+    const nomeAluno = "{{ aluno.nome }}";
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+    let professorEmailAtual = null;
 
-  const nomeAluno = "{{ aluno.nome }}";
-  const notificacaoEl = document.getElementById("notificacao-mensagem");
-  const contadorAulas = document.getElementById("contador-aulas");
-  let professorEmailAtual = null;
+    function toggle(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
 
-  function fazerLogout() {
-    fetch("/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
-    })
-    .then(() => window.location.href = "/")
-    .catch(error => console.error("Erro ao fazer logout:", error));
-  }
+    function fazerLogout() {
+      fetch("/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nomeAluno })
+      })
+      .then(() => window.location.href = "/")
+      .catch(error => console.error("Erro ao fazer logout:", error));
+    }
 
-  function verProfessor(nome) {
-    const container = document.getElementById("professor-nome");
-    fetch(`/meu-professor-status/${nome}`)
+    function verProfessor(nome) {
+      const container = document.getElementById("professor-nome");
+      fetch(`/meu-professor-status/${nome}`)
+        .then(response => response.json())
+        .then(data => {
+          const statusIcon = data.online ? '🟢' : '⚪';
+          const statusText = data.online ? 'Online' : 'Offline';
+          container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+          container.style.display = "block";
+        })
+        .catch(err => {
+          container.innerHTML = "Professor não encontrado.";
+          container.style.display = "block";
+        });
+    }
+
+    function verNotificacao() {
+      fetch("/verificar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
       .then(response => response.json())
       .then(data => {
-        const statusIcon = data.online ? '🟢' : '⚪';
-        const statusText = data.online ? 'Online' : 'Offline';
-        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+        if (data.notificacao === true) {
+          professorEmailAtual = data.professor_email;
+          notificacaoEl.innerHTML = `
+            A tua aula irá começar
+            <button class="btn" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+          `;
+          notificacaoEl.style.display = "block";
+          contadorAulas.innerText = "(1)";
+        } else {
+          notificacaoEl.style.display = "none";
+          contadorAulas.innerText = "";
+        }
       })
-      .catch(err => {
-        container.innerHTML = "Professor não encontrado.";
-        console.error("Erro ao buscar professor:", err);
-      });
-  }
+      .catch(error => console.error("Erro ao verificar notificação:", error));
+    }
 
-  function verNotificacao() {
-    fetch("/verificar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.notificacao === true) {
-        professorEmailAtual = data.professor_email;
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="button" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
+    function desativarNotificacaoERedirecionar() {
+      fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      })
+      .then(() => {
         notificacaoEl.style.display = "none";
         contadorAulas.innerText = "";
-      }
-    })
-    .catch(error => console.error("Erro ao verificar notificação:", error));
-  }
-
-  function desativarNotificacaoERedirecionar() {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(() => {
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      document.getElementById("contador-aulas").innerText = "";
-      if (professorEmailAtual) {
-        const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      }
-    })
-    .catch(error => console.error("Erro:", error));
-  }
-
-  function entrarNaAulaDireto() {
-    const salaId = document.getElementById("sala-id").textContent;
-    if (salaId) {
-      window.location.href = `/sala_virtual_aluno/${salaId}`;
+        if (professorEmailAtual) {
+          const sala = encodeURIComponent(`${professorEmailAtual}-${nomeAluno}`);
+          window.location.href = `/sala_virtual_aluno/${sala}`;
+        }
+      })
+      .catch(error => console.error("Erro:", error));
     }
-  }
-</script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    function entrarNaAulaDireto() {
+      const salaId = document.getElementById("sala-id").textContent;
+      if (salaId) {
+        window.location.href = `/sala_virtual_aluno/${salaId}`;
+      }
+    }
+  </script>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-    authDomain: "exap-8a935.firebaseapp.com",
-    projectId: "exap-8a935",
-    storageBucket: "exap-8a935.appspot.com",
-    messagingSenderId: "664710895978",
-    appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-  };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.appspot.com",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+    };
 
-  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  const infoAulaDiv = document.getElementById("info-aula");
-  const salaIdSpan = document.getElementById("sala-id");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  onSnapshot(chamadaRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const dados = docSnap.data();
-      if (dados.status === "pendente") {
-        salaIdSpan.textContent = dados.sala;
-        infoAulaDiv.style.display = "block";
-        const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-        updateDoc(chamadaRef, {
-          status: aceitar ? "aceito" : "rejeitado"
-        });
-        if (aceitar) {
-          window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+    const infoAulaDiv = document.getElementById("info-aula");
+    const salaIdSpan = document.getElementById("sala-id");
+
+    onSnapshot(chamadaRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        if (dados.status === "pendente") {
+          salaIdSpan.textContent = dados.sala;
+          infoAulaDiv.style.display = "block";
+          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+          updateDoc(chamadaRef, {
+            status: aceitar ? "aceito" : "rejeitado"
+          });
+          if (aceitar) {
+            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          }
         }
       }
-    }
-  });
-</script>
+    });
+  </script>
 
 </body>
 </html>
+
 
