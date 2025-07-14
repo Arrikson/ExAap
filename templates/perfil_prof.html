@@ -165,50 +165,83 @@
     }
 
       .calendar-container {
-      margin-top: 20px;
-      background: #f9f9f9;
-      border-radius: 12px;
-      padding: 20px;
-      display: none;
-    }
-    .day-selector, .time-selector {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .day, .time {
-      padding: 10px 15px;
-      background-color: #eee;
-      border-radius: 8px;
-      cursor: pointer;
-      user-select: none;
-      transition: 0.2s;
-    }
-    .day:hover, .time:hover {
-      background-color: #ddd;
-    }
-    .day.active, .time.active {
-      background-color: #00c9ff;
-      color: white;
-    }
-    .calendar-actions {
-      margin-top: 20px;
-      display: flex;
-      gap: 15px;
-    }
-    .calendar-actions button {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 10px;
-      background: #28a745;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .calendar-actions button:last-child {
-      background: #007bff;
-    }
+  margin-top: 30px;
+  background: #1e1e2f;
+  border-radius: 16px;
+  padding: 25px;
+  color: #fff;
+  display: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.day-selector,
+.time-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.day,
+.time {
+  padding: 12px 20px;
+  background-color: #2d2d40;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  color: #ccc;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+
+.day:hover,
+.time:hover {
+  background-color: #3d3d5c;
+  color: #fff;
+}
+
+.day.active,
+.time.active {
+  background-color: #00c9ff;
+  color: #fff;
+  border-color: #00a9e0;
+}
+
+.calendar-actions {
+  margin-top: 25px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.calendar-actions button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #28a745, #00c853);
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-actions button:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, #1f9440, #009c4e);
+}
+
+.calendar-actions button:last-child {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.calendar-actions button:last-child:hover {
+  background: linear-gradient(135deg, #005ecb, #00449c);
+}
+    
     .status-dot {
       width: 10px;
       height: 10px;
