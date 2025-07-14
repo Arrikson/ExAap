@@ -688,7 +688,18 @@ function abrirCalendario() {
 }
 
 function guardarHorario() {
-  alert("Horário guardado localmente (não enviado ainda)");
+  const aluno = nomeAlunoSelecionado; // ou defina isso dinamicamente
+  const dias = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
+  const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
+
+  fetch("/guardar-horario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ aluno, dias, horarios })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.mensagem || data.erro))
+  .catch(err => alert("Erro ao guardar horário: " + err));
 }
 
 async function enviarHorario() {
