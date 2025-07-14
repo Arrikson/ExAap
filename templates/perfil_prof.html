@@ -8,162 +8,156 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #007BFF, #00C6FF);
-      color: #fff;
+      font-family: "Helvetica Neue", sans-serif;
+      background: #f9f9f9;
+      color: #333;
       padding: 0;
     }
+
     .top-bar {
       background: #fff;
-      color: #000;
       padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border-bottom: 1px solid #ddd;
     }
+
     .top-bar img {
       height: 40px;
     }
-    .professor-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 20px;
-      font-size: 18px;
-    }
-    .professor-header i {
-      font-size: 28px;
-    }
+
     .logout-btn {
-      background-color: transparent;
-      color: #000;
+      background-color: #f44336;
+      color: white;
       border: none;
-      font-size: 18px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
       cursor: pointer;
     }
-    .profile-container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+
+    .logout-btn i {
+      margin-right: 5px;
     }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 10px;
     }
+
     h1 img {
       height: 40px;
     }
-    .info label {
-      display: block;
-      font-weight: bold;
-      margin-top: 10px;
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
     }
-    .info input {
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, p {
       width: 100%;
+      background: #f1f1f1;
+      border: none;
       padding: 10px;
       border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      margin-top: 5px;
       box-sizing: border-box;
-      background-color: #e2e8f0;
-      color: #333;
-    }
-    .action-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .action-buttons button {
-      padding: 14px;
-      background: linear-gradient(135deg, #4e54c8, #8f94fb);
-      border: none;
-      border-radius: 12px;
       font-size: 15px;
+    }
+
+    .buttons {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .buttons button {
+      padding: 12px 18px;
+      border: none;
+      background: #222;
+      color: white;
+      border-radius: 8px;
       cursor: pointer;
-      color: #fff;
-      transition: transform 0.2s ease-in-out;
     }
-    .action-buttons button:hover {
-      transform: scale(1.05);
+
+    .buttons button:hover {
+      background: #000;
     }
+
     .dados-secretos {
       display: none;
-      background: rgba(255,255,255,0.2);
-      padding: 20px;
-      border-radius: 10px;
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
     }
+
     .toggle-btn {
       background-color: #ffc107;
       color: #000;
-      margin-top: 20px;
       padding: 10px 15px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin-top: 20px;
     }
+
     .toggle-btn:hover {
       background-color: #e0a800;
     }
-    #meus-alunos, #alunos-disponiveis {
-      margin-top: 30px;
-    }
+
     .aluno-card {
-      background: #fff;
+      background: #e9e9e9;
       color: #000;
       margin-bottom: 10px;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
     }
-    .aluno-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .status span {
-      font-weight: bold;
-    }
+
     .status-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       display: inline-block;
     }
-    .online {
-      background-color: #28a745;
+
+    .online { background-color: #28a745; }
+    .offline { background-color: #dc3545; }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
     }
-    .offline {
-      background-color: #dc3545;
-    }
-    .notificar-btn {
-      margin-top: 10px;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #000;
-    }
-    .notificar-btn:hover {
-      background: linear-gradient(135deg, #00a0c9, #7cd77b);
-    }
- </style>
+  </style>
 </head>
 <body>
   <div class="top-bar">
@@ -176,51 +170,53 @@
     </form>
   </div>
 
-  <div class="professor-header">
-    <i class="fas fa-graduation-cap"></i>
-    <span>{{professor.nome_completo}}</span>
-  </div>
-
-  <div class="profile-container">
-    <h1>
-      <img src="/static/professor.png" alt="Ícone Professor">
-      Meu Perfil
-    </h1>
+  <div class="container">
+    <h1><img src="/static/professor.png" alt="Professor"> Meu Perfil</h1>
 
     {% if mensagem %}
-      <p style="text-align:center; color: yellow; font-size: 18px;">{{ mensagem }}</p>
+      <p style="text-align:center; color: #ff9800; font-size: 18px;">{{ mensagem }}</p>
     {% endif %}
 
-    <div class="info">
-      <label>Meu nome completo</label>
-      <input type="text" value="{{professor.nome_completo}}" readonly>
-      <label>Meu nível de Ensino</label>
-      <input type="text" value="{{professor.nivel_ensino}}" readonly>
+    <div class="grid">
+      <div>
+        <label>Nome Completo</label>
+        <input type="text" value="{{professor.nome_completo}}" readonly>
+
+        <label>Nível de Ensino</label>
+        <input type="text" value="{{professor.nivel_ensino}}" readonly>
+
+        <label>Área de Formação</label>
+        <input type="text" value="{{professor.area_formacao}}" readonly>
+      </div>
+      <div>
+        <label>Telefone</label>
+        <input type="text" value="{{professor.telefone}}" readonly>
+
+        <label>Localização</label>
+        <input type="text" value="{{professor.localizacao}}" readonly>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="toggleDados()">Meus Dados</button>
-    <div class="dados-secretos" id="dadosSecretos">
+    <button class="toggle-btn" onclick="toggleDados()">Ver mais dados</button>
+    <div id="dadosSecretos" class="dados-secretos">
       <p><strong>Email:</strong> {{professor.email}}</p>
-      <p><strong>Formado em:</strong> {{professor.area_formacao}}</p>
-      <p><strong>Telefone:</strong> {{professor.telefone}}</p>
-      <p><strong>Nome da mãe:</strong> {{professor.nome_mae}}</p>
-      <p><strong>Nome do pai:</strong> {{professor.nome_pai}}</p>
+      <p><strong>Nome da Mãe:</strong> {{professor.nome_mae}}</p>
+      <p><strong>Nome do Pai:</strong> {{professor.nome_pai}}</p>
       <p><strong>Bilhete:</strong> {{professor.bilhete}}</p>
-      <p><strong>Localização:</strong> {{professor.localizacao}}</p>
       <p><strong>Senha:</strong> ••••••••••</p>
     </div>
 
-    <div class="action-buttons">
-  <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
-  <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
-  <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-  <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
-</div>
+    <div class="buttons">
+      <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+      <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+      <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
+      <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
+      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
+    </div>
 
-<div id="meus-alunos" style="display: none;"></div>
-<div id="alunos-disponiveis" style="display: none;"></div>
-</div>
+    <div id="meus-alunos" style="margin-top: 30px; display: none;"></div>
+    <div id="alunos-disponiveis" style="margin-top: 30px; display: none;"></div>
+  </div>
 
 <script>
   function toggleDados() {
