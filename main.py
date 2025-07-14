@@ -1601,3 +1601,24 @@ async def enviar_horario(dados: HorarioEnvio):
         return {"msg": "Horário enviado com sucesso."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.post("/guardar-horario")
+async def guardar_horario(request: Request):
+    dados = await request.json()
+    aluno = dados.get("aluno")
+    dias = dados.get("dias")  # Ex: ["Segunda", "Quarta"]
+    horarios = dados.get("horarios")  # Ex: ["10:30", "14:00"]
+
+    if not aluno or not dias or not horarios:
+        return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+
+    dados_horario = {
+        "dias": dias,
+        "horarios": horarios
+    }
+
+    try:
+        db.collection("horarios_alunos").document(aluno).set(dados_horario)
+        return JSONResponse(content={"mensagem": "Horário guardado com sucesso!"})
+    except Exception as e:
+        return JSONResponse(content={"erro": str(e)}, status_code=500)
