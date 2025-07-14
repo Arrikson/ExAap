@@ -4,23 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Professor</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
     body {
       margin: 0;
-      font-family: "Helvetica Neue", sans-serif;
-      background: #f9f9f9;
+      font-family: 'Nunito', sans-serif;
+      background: #f4f4f8;
       color: #333;
       padding: 0;
     }
 
     .top-bar {
-      background: #fff;
-      padding: 10px 20px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #ddd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     .top-bar img {
@@ -32,9 +38,15 @@
       color: white;
       border: none;
       padding: 8px 12px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background-color: #d32f2f;
     }
 
     .logout-btn i {
@@ -42,22 +54,22 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 30px auto;
-      background: #fff;
-      border: 1px solid #ddd;
+      background: white;
       border-radius: 16px;
       padding: 30px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 10px;
+      font-size: 26px;
     }
 
     h1 img {
@@ -80,8 +92,8 @@
       width: 100%;
       background: #f1f1f1;
       border: none;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 10px;
       box-sizing: border-box;
       font-size: 15px;
     }
@@ -90,39 +102,53 @@
       margin-top: 30px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       justify-content: center;
     }
 
     .buttons button {
-      padding: 12px 18px;
+      padding: 14px 20px;
       border: none;
-      background: #222;
-      color: white;
-      border-radius: 8px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      color: #000;
+      border-radius: 12px;
       cursor: pointer;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, background 0.3s ease;
     }
 
     .buttons button:hover {
-      background: #000;
+      transform: translateY(-5px);
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
+    }
+
+    .buttons button:last-child {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: #fff;
+    }
+
+    .buttons button:last-child:hover {
+      background: linear-gradient(135deg, #e03b5e, #e24220);
     }
 
     .dados-secretos {
       display: none;
       background: #f3f3f3;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 20px;
+      padding: 20px;
+      border-radius: 16px;
+      margin-top: 25px;
     }
 
     .toggle-btn {
       background-color: #ffc107;
       color: #000;
-      padding: 10px 15px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .toggle-btn:hover {
@@ -134,8 +160,8 @@
       color: #000;
       margin-bottom: 10px;
       padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
     .status-dot {
@@ -211,7 +237,7 @@
       <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
       <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
       <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
-      <button style="background: linear-gradient(135deg, #ff416c, #ff4b2b);" onclick="comecarAula()">Começar Aula</button>
+      <button onclick="comecarAula()">Começar Aula</button>
     </div>
 
     <div id="meus-alunos" style="margin-top: 30px; display: none;"></div>
