@@ -8,7 +8,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Bootstrap CSS e ícones -->
+  <!-- Bootstrap CSS e Ícones -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -17,22 +17,37 @@
     body {
       font-family: 'Nunito', sans-serif;
       background: #f4f4f8;
+      margin: 0;
+      padding: 0;
     }
 
     .hero-section {
-      height: 100vh;
+      min-height: 100vh;
       background: linear-gradient(rgba(24, 29, 56, 0.8), rgba(24, 29, 56, 0.8)), url('https://images.unsplash.com/photo-1584697964403-b65c1d1c1d3c') center/cover no-repeat;
       display: flex;
       flex-direction: column;
     }
 
-    .navbar-brand h2 {
-      font-size: 28px;
-      color: #fff;
+    .navbar {
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      padding: 15px 20px;
     }
 
-    .navbar {
-      background: transparent !important;
+    .navbar-brand h2 {
+      font-size: 28px;
+      color: #000;
+      font-weight: 700;
+    }
+
+    .navbar-nav .nav-link {
+      color: #000 !important;
+      font-weight: bold;
+      margin-left: 15px;
+      transition: color 0.3s ease;
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: #444 !important;
     }
 
     .main-buttons {
@@ -40,36 +55,40 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 30px 15px;
     }
 
     .btn-boxes {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 30px;
-      max-width: 1000px;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 25px;
       width: 100%;
+      max-width: 1100px;
     }
 
     .btn-box {
       background: white;
-      border-radius: 15px;
+      border-radius: 16px;
       padding: 30px;
       text-align: center;
       text-decoration: none;
-      color: #181d38;
       font-weight: 600;
+      color: #000;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, background 0.3s ease;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
     }
 
     .btn-box:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
 
     .btn-box h2 {
       font-size: 18px;
+      color: #000;
+      margin: 0;
     }
 
     .footer {
@@ -79,12 +98,29 @@
       padding: 20px 0;
       font-size: 14px;
     }
+
+    /* Responsividade específica */
+    @media (max-width: 768px) {
+      .navbar-brand h2 {
+        font-size: 22px;
+      }
+
+      .btn-box h2 {
+        font-size: 16px;
+      }
+    }
+
+    @media (min-width: 992px) {
+      .btn-boxes {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
 
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark sticky-top px-4">
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top shadow-sm">
     <a class="navbar-brand" href="#">
       <h2><i class="bi bi-mortarboard-fill me-2"></i>SabApp</h2>
     </a>
@@ -103,7 +139,7 @@
     </div>
   </nav>
 
-  <!-- Hero e Botões -->
+  <!-- Seção principal com botões -->
   <div class="hero-section">
     <div class="main-buttons container">
       <div class="btn-boxes">
@@ -120,7 +156,7 @@
     </div>
   </div>
 
-  <!-- Bootstrap Scripts -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
