@@ -407,27 +407,47 @@
         `;
 
         if (aluno.online) {
-          const iniciarBtn = document.createElement('button');
-          iniciarBtn.textContent = 'Dar Aula';
-          iniciarBtn.className = 'notificar-btn';
-          iniciarBtn.onclick = () => iniciarChamada(aluno.nome, email);
-          card.appendChild(iniciarBtn);
-        }
+  const iniciarBtn = document.createElement('button');
+  iniciarBtn.textContent = 'Dar Aula';
+  iniciarBtn.className = 'notificar-btn';
+  iniciarBtn.onclick = () => iniciarChamada(aluno.nome, email);
+  card.appendChild(iniciarBtn);
+}
 
-        const desvincularBtn = document.createElement('button');
-        desvincularBtn.textContent = 'Desvincular';
-        desvincularBtn.style.marginLeft = '10px';
-        desvincularBtn.onclick = () => desvincularAluno(aluno.nome, email);
-        card.appendChild(desvincularBtn);
+const desvincularBtn = document.createElement('button');
+desvincularBtn.textContent = 'Desvincular';
+desvincularBtn.style.marginLeft = '10px';
+desvincularBtn.onclick = () => desvincularAluno(aluno.nome, email);
+card.appendChild(desvincularBtn);
 
-        container.appendChild(card);
-      });
-    } catch (error) {
-      console.error("Erro ao buscar alunos:", error);
-      alert("Erro ao buscar alunos.");
+container.appendChild(card);
+
+// Função para desvincular aluno
+async function desvincularAluno(aluno, professor) {
+  const confirmacao = confirm(`Tens a certeza que queres desvincular o aluno "${aluno}"?`);
+  if (!confirmacao) return;
+
+  try {
+    const resposta = await fetch('/desvincular-aluno', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ aluno, professor })
+    });
+
+    if (resposta.ok) {
+      alert(`Aluno "${aluno}" desvinculado com sucesso.`);
+      location.reload();
+    } else {
+      const erro = await resposta.text();
+      alert("Erro ao desvincular aluno: " + erro);
     }
+  } catch (erro) {
+    console.error("Erro ao desvincular aluno:", erro);
+    alert("Erro ao desvincular aluno.");
   }
-
+}
  const horariosPorAluno = {}; // temporário
 
   async function buscarAlunosDisponiveis() {
