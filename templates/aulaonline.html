@@ -3,65 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chamada PeerJS</title>
+  <title>SabApp - Chamada PeerJS</title>
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: white;
+      background: #f9f9f9;
+      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 22px;
+      color: #222;
+    }
+
+    #info {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+      text-align: center;
+      margin-bottom: 20px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    #info div {
+      margin-bottom: 8px;
+    }
+
+    .video-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
       justify-content: center;
-      height: 100vh;
+      margin-bottom: 20px;
     }
 
     video {
       width: 300px;
       height: 225px;
-      border: 2px solid white;
-      border-radius: 10px;
-      margin: 10px;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      background: black;
       object-fit: cover;
     }
 
-    #info {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
     #connectArea {
-      margin-top: 20px;
       display: flex;
       gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
-    input, button {
-      padding: 8px;
+    input {
+      padding: 10px;
       border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 14px;
-      border: none;
+      width: 260px;
     }
 
     button {
-      background-color: green;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #28a745;
       color: white;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: darkgreen;
+      background: #218838;
+    }
+
+    .back-button {
+      margin-top: 10px;
+      background-color: #555;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .back-button:hover {
+      background-color: #333;
+    }
+
+    @media (max-width: 700px) {
+      video {
+        width: 100%;
+        height: auto;
+      }
+
+      input {
+        width: 100%;
+      }
+
+      #connectArea {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
 <body>
+  <h1>Chamada por Vídeo - SabApp</h1>
+
   <div id="info">
     <div><strong>O seu ID:</strong> <span id="myId">Gerando...</span></div>
     <div><strong>Status:</strong> <span id="status">Aguardando conexão...</span></div>
   </div>
 
-  <div>
+  <div class="video-area">
     <video id="localVideo" autoplay muted playsinline></video>
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
@@ -70,6 +139,8 @@
     <input type="text" id="remoteIdInput" placeholder="Cole o ID do outro participante">
     <button onclick="chamar()">Entrar</button>
   </div>
+
+  <a href="/" class="back-button">Voltar ao Início</a>
 
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
   <script>
@@ -156,3 +227,4 @@
   </script>
 </body>
 </html>
+
