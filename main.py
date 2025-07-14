@@ -144,6 +144,34 @@ async def vincular_aluno(item: VinculoIn):
         )
 
 
+@app.post('/desvincular-aluno')
+async def desvincular_aluno(item: VinculoIn):
+    try:
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', item.professor_email.strip()) \
+                 .where('aluno', '==', item.aluno_nome.strip()) \
+                 .stream()
+
+        encontrados = list(docs)
+
+        if not encontrados:
+            raise HTTPException(status_code=404, detail='Vínculo não encontrado')
+
+        for doc in encontrados:
+            doc.reference.delete()
+
+        return {'message': 'Vínculo removido com sucesso'}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print('Erro interno ao desvincular aluno:', e)
+        return JSONResponse(
+            status_code=500,
+            content={'detail': 'Erro interno ao remover vínculo. Tente novamente.'}
+        )
+
+
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
     """
