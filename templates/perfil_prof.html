@@ -322,7 +322,7 @@
     }
   }
 
-  async function listarMeusAlunos() {
+ async function listarMeusAlunos() {
     const email = "{{ professor.email }}";
     try {
       const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
@@ -343,7 +343,7 @@
         const statusText = aluno.online ? 'Online' : 'Offline';
 
         card.innerHTML = `
-          <div class="aluno-header">
+          <div class="aluno-header" style="display: flex; justify-content: space-between; align-items: center;">
             <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
             <div class="status">
               <span>${statusText}</span>
@@ -359,6 +359,12 @@
           iniciarBtn.onclick = () => iniciarChamada(aluno.nome, email);
           card.appendChild(iniciarBtn);
         }
+
+        const desvincularBtn = document.createElement('button');
+        desvincularBtn.textContent = 'Desvincular';
+        desvincularBtn.style.marginLeft = '10px';
+        desvincularBtn.onclick = () => desvincularAluno(aluno.nome, email);
+        card.appendChild(desvincularBtn);
 
         container.appendChild(card);
       });
@@ -423,6 +429,7 @@
       if (res.ok) {
         alert(`Aluno "${nomeAluno}" vinculado com sucesso!`);
         buscarAlunosDisponiveis();
+        listarMeusAlunos();
       } else {
         const erro = await res.json();
         alert(`Erro: ${erro.detail}`);
@@ -430,6 +437,33 @@
     } catch (error) {
       console.error('Erro ao vincular aluno:', error);
       alert('Erro interno ao tentar vincular o aluno.');
+    }
+  }
+
+  async function desvincularAluno(nomeAluno, professorEmail) {
+    if (!confirm(`Tem certeza que deseja desvincular o aluno "${nomeAluno}"?`)) return;
+    try {
+      const res = await fetch('/desvincular-aluno', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          professor_email: professorEmail,
+          aluno_nome: nomeAluno
+        })
+      });
+
+      const resposta = await res.json();
+      if (res.ok) {
+        alert('Aluno desvinculado com sucesso!');
+        listarMeusAlunos();
+      } else {
+        alert(resposta.detail || 'Erro ao desvincular.');
+      }
+    } catch (error) {
+      console.error('Erro ao desvincular aluno:', error);
+      alert('Erro interno ao tentar desvincular o aluno.');
     }
   }
 </script>
