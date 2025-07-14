@@ -131,7 +131,7 @@
       <button class="notificar-btn" onclick="toggle('sec-aula')">📚 Ver Aulas</button>
       <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
       <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
-      <button class="notificar-btn" onclick="verProfessor('{{ aluno.nome }}')">👨‍🏫 Ver Professor</button>
+      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
       <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
     </div>
 
@@ -169,6 +169,7 @@
     const notificacaoEl = document.getElementById("notificacao-mensagem");
     const contadorAulas = document.getElementById("contador-aulas");
     let professorEmailAtual = null;
+    let professorVisivel = false;
 
     function toggle(id) {
       const el = document.getElementById(id);
@@ -185,9 +186,13 @@
       .catch(error => console.error("Erro ao fazer logout:", error));
     }
 
-    function verProfessor(nome) {
+    function toggleProfessor() {
       const container = document.getElementById("professor-nome");
-      fetch(`/meu-professor-status/${nome}`)
+      if (container.style.display === "block") {
+        container.style.display = "none";
+        return;
+      }
+      fetch(`/meu-professor-status/${nomeAluno}`)
         .then(response => response.json())
         .then(data => {
           const statusIcon = data.online ? '🟢' : '⚪';
@@ -292,4 +297,5 @@
 
 </body>
 </html>
+
 
