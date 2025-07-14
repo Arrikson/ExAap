@@ -2,133 +2,97 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Perfil do Aluno - Responsivo</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil do Aluno</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      background: #f1f1f1;
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      padding: 80px 20px 50px 20px;
+      font-family: "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 80px 20px 30px;
     }
-
     .top-bar {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
+      right: 0;
+      height: 60px;
       background: white;
       display: flex;
       align-items: center;
-      padding: 10px 20px;
+      justify-content: space-between;
+      padding: 0 20px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 10;
+      z-index: 999;
     }
-
     .top-bar img {
-      height: 40px;
+      height: 35px;
     }
-
     .top-bar .logout-icon {
-      margin-left: auto;
       font-size: 20px;
-      color: #333;
+      color: #444;
       cursor: pointer;
     }
-
     .card {
       background: white;
-      width: 100%;
-      max-width: 800px;
+      max-width: 700px;
+      margin: auto;
       padding: 30px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      border-radius: 12px;
-      margin-top: 60px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
-
     h1 {
       text-align: center;
-      color: #333;
-      margin-top: 0;
-      font-size: 2em;
+      margin-bottom: 30px;
+      font-size: 1.8em;
     }
-
     .btn {
       background: #007BFF;
       color: white;
       border: none;
-      padding: 14px;
-      margin-top: 15px;
+      padding: 12px 18px;
+      margin: 10px 0;
       width: 100%;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 17px;
+      font-size: 16px;
       transition: background 0.3s ease;
     }
-
     .btn:hover {
       background: #0056b3;
     }
-
     .info {
       display: none;
       margin-top: 10px;
       padding: 15px;
       background: #f0f8ff;
       border-left: 4px solid #007BFF;
-      border-radius: 5px;
+      border-radius: 10px;
     }
-
     #notificacao-mensagem, #professor-nome, #info-aula {
-      margin-top: 20px;
+      display: none;
+      margin-top: 15px;
       padding: 15px;
       background: #fff;
       border-radius: 10px;
-      display: none;
+      border-left: 4px solid #007BFF;
     }
-
-    @media (min-width: 1024px) {
-      body {
-        padding: 100px;
-      }
-
-      .card {
-        padding: 40px;
-      }
-
-      .btn {
-        font-size: 18px;
-        padding: 16px;
-      }
-
-      h1 {
-        font-size: 2.4em;
-      }
+    form {
+      margin-top: 20px;
+      text-align: center;
     }
 
     @media (max-width: 600px) {
       .card {
         padding: 20px;
       }
-
-      .btn {
-        font-size: 15px;
-        padding: 12px;
-      }
-
-      .top-bar img {
-        height: 30px;
+      h1 {
+        font-size: 1.5em;
       }
     }
   </style>
+  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -160,18 +124,18 @@
     </div>
 
     <button class="btn" onclick="verProfessor('{{ aluno.nome }}')">
-      <i class="fas fa-chalkboard-teacher"></i> Ver Professor
+      👨‍🏫 Ver Professor
     </button>
 
     <button class="btn" onclick="verNotificacao()">
-      <i class="fas fa-bell"></i> Ver Notificação <span id="contador-aulas"></span>
+      🔔 Ver Notificação <span id="contador-aulas"></span>
     </button>
 
     <div id="notificacao-mensagem"></div>
     <div id="professor-nome"></div>
 
     <div id="info-aula">
-      <p><strong>ID da Sala:</strong> <span id="sala-id"></span></p>
+      <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
       <button class="btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
     </div>
 
