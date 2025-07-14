@@ -7,10 +7,10 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #2196F3, #21CBF3);
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
       margin: 0;
       padding: 0;
-      color: #fff;
+      color: #333;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -18,25 +18,28 @@
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
+      color: #000;
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 20px;
-      color: #fff;
+      margin-bottom: 25px;
+      font-size: 22px;
+      color: #181d38;
     }
 
     label {
       display: block;
       margin-top: 15px;
       font-weight: 500;
+      font-size: 15px;
     }
 
     input, select {
@@ -44,8 +47,16 @@
       padding: 12px;
       margin-top: 6px;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      background: #f9f9f9;
+      transition: 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      background: #ffffff;
+      border: 1px solid #00c9ff;
     }
 
     button {
@@ -53,33 +64,34 @@
       padding: 14px;
       width: 100%;
       border: none;
-      border-radius: 8px;
-      background: #fff;
-      color: #2196F3;
-      font-weight: 600;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      color: #000;
+      font-weight: 700;
       font-size: 16px;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
       cursor: pointer;
     }
 
     button:hover {
-      background: #e0f0ff;
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
     }
 
     .logo {
       display: block;
       margin: 0 auto 20px;
       max-width: 120px;
-      filter: drop-shadow(0 0 5px rgba(0,0,0,0.2));
+      filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.15));
     }
 
     @media (max-width: 500px) {
       .container {
-        padding: 20px;
+        padding: 25px;
         margin: 10px;
       }
     }
   </style>
+
   <script>
     function capturarLocalizacao() {
       if (navigator.geolocation) {
@@ -95,10 +107,12 @@
     }
   </script>
 </head>
+
 <body onload="capturarLocalizacao()">
   <div class="container">
     <img src="/static/logo.png" alt="Logo da Escola" class="logo">
     <h2>Cadastro de Aluno</h2>
+
     <form method="post" action="/cadastro-aluno">
       <label for="nome">Nome Completo</label>
       <input type="text" name="nome" required>
