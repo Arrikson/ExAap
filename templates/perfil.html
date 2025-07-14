@@ -19,7 +19,7 @@
       left: 0;
       right: 0;
       height: 60px;
-      background: white;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -34,7 +34,7 @@
 
     .top-bar .logout-icon {
       font-size: 20px;
-      color: #444;
+      color: #000;
       cursor: pointer;
     }
 
@@ -61,6 +61,7 @@
     }
 
     .notificar-btn {
+      margin-top: 10px;
       background: linear-gradient(135deg, #00c9ff, #92fe9d);
       border: none;
       padding: 14px;
@@ -112,6 +113,14 @@
 
       h1 {
         font-size: 1.5em;
+      }
+
+      .top-bar img {
+        height: 30px;
+      }
+
+      .top-bar .logout-icon {
+        font-size: 18px;
       }
     }
   </style>
@@ -169,7 +178,6 @@
     const notificacaoEl = document.getElementById("notificacao-mensagem");
     const contadorAulas = document.getElementById("contador-aulas");
     let professorEmailAtual = null;
-    let professorVisivel = false;
 
     function toggle(id) {
       const el = document.getElementById(id);
@@ -218,7 +226,7 @@
           professorEmailAtual = data.professor_email;
           notificacaoEl.innerHTML = `
             A tua aula irá começar
-            <button class="btn" onclick="desativarNotificacaoERedirecionar()" style="margin-top: 10px; background-color: #dc3545;">Vista</button>
+            <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
           `;
           notificacaoEl.style.display = "block";
           contadorAulas.innerText = "(1)";
@@ -297,5 +305,4 @@
 
 </body>
 </html>
-
 
