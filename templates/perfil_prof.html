@@ -321,7 +321,7 @@
     <div id="meus-alunos" style="margin-top: 30px; display: none;"></div>
     <div id="alunos-disponiveis" style="margin-top: 30px; display: none;"></div>
 
-    <!-- NOVO CALENDÁRIO ADICIONADO -->
+<!-- NOVO CALENDÁRIO ADICIONADO -->
 <div id="calendarContainer" style="display:none; padding: 20px; margin-top: 20px; background: #111; color: #fff; border-radius: 10px;">
   <h3>Selecione os horários</h3>
   <div id="daySelector" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;"></div>
@@ -331,6 +331,7 @@
     <button onclick="enviarHorario()" style="padding: 5px 15px; background: #28a745; color: #fff; border: none; border-radius: 5px;">Enviar o horário</button>
   </div>
 </div>
+
 
 <script>
  
@@ -582,8 +583,8 @@ function gerarHorarios(diaSelecionado) {
   const fim = 20.5;
 
   for (let h = inicio; h < fim; h++) {
-    const horaInicial = `${Math.floor(h)}:${h%1 ? '30' : '00'}`;
-    const horaFinal = `${Math.floor(h+1)}:${(h+1)%1 ? '30' : '00'}`;
+    const horaInicial = `${Math.floor(h)}:${h % 1 ? '30' : '00'}`;
+    const horaFinal = `${Math.floor(h + 1)}:${(h + 1) % 1 ? '30' : '00'}`;
     const texto = `${horaInicial} - ${horaFinal}`;
     const div = document.createElement('div');
     div.textContent = texto;
@@ -600,14 +601,25 @@ function abrirCalendario() {
 }
 
 function guardarHorario() {
-  const aluno = nomeAlunoSelecionado; // ou defina isso dinamicamente
-  const dias = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
+  const aluno = typeof nomeAlunoSelecionado !== "undefined" ? nomeAlunoSelecionado : null;
+  const diaSelecionado = document.querySelector(".day.active");
   const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
+
+  if (!aluno || !diaSelecionado || horarios.length === 0) {
+    alert("Selecione o aluno, o dia e pelo menos um horário.");
+    return;
+  }
+
+  const dados = {
+    aluno,
+    dias: [diaSelecionado.textContent],
+    horarios
+  };
 
   fetch("/guardar-horario", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ aluno, dias, horarios })
+    body: JSON.stringify(dados)
   })
   .then(res => res.json())
   .then(data => alert(data.mensagem || data.erro))
@@ -621,7 +633,7 @@ async function enviarHorario() {
     alert("Selecione um dia e pelo menos um horário");
     return;
   }
-
+  
   const aluno = prompt("Para qual aluno você quer enviar?");
   if (!aluno) return;
 
