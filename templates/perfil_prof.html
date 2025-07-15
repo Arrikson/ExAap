@@ -659,14 +659,33 @@ async function enviarHorario() {
     return;
   }
 
-  const aluno = alunoSelecionado;
   const professorEmail = typeof emailProfessorLogado !== "undefined" ? emailProfessorLogado : null;
 
-  if (!aluno || !professorEmail) {
-    alert("Selecione um aluno da sua lista antes de enviar o horário.");
+  if (!professorEmail) {
+    alert("Erro: professor não identificado.");
     return;
   }
 
+  // Buscar o aluno vinculado e online
+  let aluno = null;
+  try {
+    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(professorEmail)}`);
+    const lista = await res.json();
+    const alunoOnline = lista.find(a => a.online);
+
+    if (alunoOnline) {
+      aluno = alunoOnline.nome;
+    } else {
+      alert("Nenhum aluno online vinculado encontrado.");
+      return;
+    }
+  } catch (err) {
+    alert("Erro ao buscar alunos online.");
+    console.error(err);
+    return;
+  }
+
+  // Mapeamento do nome dos dias
   const mapaDias = {
     "Segunda-feira": "Seg",
     "Terça-feira": "Ter",
@@ -705,6 +724,7 @@ async function enviarHorario() {
     console.error(e);
   }
 }
+
 // INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
 const observer = new MutationObserver(() => {
   document.querySelectorAll('.aluno-card').forEach(card => {
