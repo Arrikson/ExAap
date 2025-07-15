@@ -438,15 +438,14 @@ async function listarMeusAlunos() {
       const statusClass = aluno.online ? 'online' : 'offline';
       const statusText = aluno.online ? 'Online' : 'Offline';
 
-      // Criação dos elementos internos separadamente
       const header = document.createElement('div');
       header.className = 'aluno-header';
       header.style.display = 'flex';
       header.style.justifyContent = 'space-between';
       header.style.alignItems = 'center';
 
-      const nomeDisciplina = document.createElement('span');
-      nomeDisciplina.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
+      const info = document.createElement('span');
+      info.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
 
       const status = document.createElement('div');
       status.className = 'status';
@@ -455,7 +454,10 @@ async function listarMeusAlunos() {
         <span class="status-dot ${statusClass}"></span>
       `;
 
-      // Botão Horário
+      header.appendChild(info);
+      header.appendChild(status);
+
+      // Botão Horário funcional
       const horarioBtn = document.createElement('button');
       horarioBtn.textContent = 'Horário';
       horarioBtn.style.marginTop = '10px';
@@ -465,8 +467,6 @@ async function listarMeusAlunos() {
         abrirCalendario();
       };
 
-      header.appendChild(nomeDisciplina);
-      header.appendChild(status);
       card.appendChild(header);
       card.appendChild(horarioBtn);
       container.appendChild(card);
