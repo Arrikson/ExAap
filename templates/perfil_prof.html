@@ -241,6 +241,10 @@
 .calendar-actions button:last-child:hover {
   background: linear-gradient(135deg, #005ecb, #00449c);
 }
+  .aluno-card.selecionado {
+  border: 2px solid #28a745;
+  background-color: #1f1f1f;
+}
     
     .status-dot {
       width: 10px;
@@ -649,21 +653,20 @@ function guardarHorario() {
 async function enviarHorario() {
   const diaSelecionado = document.querySelector('.day.active');
   const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
-  
+
   if (!diaSelecionado || horariosSelecionados.length === 0) {
     alert("Selecione um dia e pelo menos um horário");
     return;
   }
 
-  const aluno = typeof nomeAlunoSelecionado !== "undefined" ? nomeAlunoSelecionado : null;
+  const aluno = alunoSelecionado;
   const professorEmail = typeof emailProfessorLogado !== "undefined" ? emailProfessorLogado : null;
 
   if (!aluno || !professorEmail) {
-    alert("Erro: aluno ou professor não identificado.");
+    alert("Selecione um aluno da sua lista antes de enviar o horário.");
     return;
   }
 
-  // Mapeia o dia para abreviado
   const mapaDias = {
     "Segunda-feira": "Seg",
     "Terça-feira": "Ter",
