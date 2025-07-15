@@ -591,8 +591,7 @@ function gerarCalendario() {
     div.textContent = dia;
     div.className = 'day';
     div.onclick = () => {
-      document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
-      div.classList.add('active');
+      div.classList.toggle('active'); // Seleciona ou desseleciona o dia
       gerarHorarios(dia);
     };
     daySelector.appendChild(div);
@@ -613,7 +612,7 @@ function gerarHorarios(diaSelecionado) {
     const div = document.createElement('div');
     div.textContent = texto;
     div.className = 'time';
-    div.onclick = () => div.classList.toggle('active');
+    div.onclick = () => div.classList.toggle('active'); // Seleciona/desseleciona horário
     timeSelector.appendChild(div);
   }
 }
@@ -626,17 +625,17 @@ function abrirCalendario() {
 
 function guardarHorario() {
   const aluno = typeof nomeAlunoSelecionado !== "undefined" ? nomeAlunoSelecionado : null;
-  const diaSelecionado = document.querySelector(".day.active");
+  const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
   const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
 
-  if (!aluno || !diaSelecionado || horarios.length === 0) {
-    alert("Selecione o aluno, o dia e pelo menos um horário.");
+  if (!aluno || diasSelecionados.length === 0 || horarios.length === 0) {
+    alert("Selecione o aluno, os dias e pelo menos um horário.");
     return;
   }
 
   const dados = {
     aluno,
-    dias: [diaSelecionado.textContent],
+    dias: diasSelecionados,
     horarios
   };
 
@@ -651,11 +650,11 @@ function guardarHorario() {
 }
 
 async function enviarHorario() {
-  const diaSelecionado = document.querySelector('.day.active');
+  const diasSelecionados = Array.from(document.querySelectorAll('.day.active')).map(d => d.textContent);
   const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
 
-  if (!diaSelecionado || horariosSelecionados.length === 0) {
-    alert("Selecione um dia e pelo menos um horário");
+  if (diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
+    alert("Selecione pelo menos um dia e um horário");
     return;
   }
 
@@ -666,7 +665,6 @@ async function enviarHorario() {
     return;
   }
 
-  // Buscar o aluno vinculado e online
   let aluno = null;
   try {
     const res = await fetch(`/meus-alunos-status/${encodeURIComponent(professorEmail)}`);
@@ -685,7 +683,6 @@ async function enviarHorario() {
     return;
   }
 
-  // Mapeamento do nome dos dias
   const mapaDias = {
     "Segunda-feira": "Seg",
     "Terça-feira": "Ter",
@@ -696,14 +693,16 @@ async function enviarHorario() {
     "Domingo": "Dom"
   };
 
-  const diaAbreviado = mapaDias[diaSelecionado.textContent] || diaSelecionado.textContent;
+  const horario = {};
+  diasSelecionados.forEach(dia => {
+    const abreviado = mapaDias[dia] || dia;
+    horario[abreviado] = horariosSelecionados;
+  });
 
   const payload = {
     aluno_nome: aluno,
     professor_email: professorEmail,
-    horario: {
-      [diaAbreviado]: horariosSelecionados
-    }
+    horario
   };
 
   try {
@@ -724,7 +723,6 @@ async function enviarHorario() {
     console.error(e);
   }
 }
-
 // INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
 const observer = new MutationObserver(() => {
   document.querySelectorAll('.aluno-card').forEach(card => {
