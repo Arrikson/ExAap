@@ -1594,13 +1594,26 @@ class HorarioEnvio(BaseModel):
     horario: dict  # Ex: {"Seg": ["07:30 - 08:30", "09:30 - 10:30"]}
 
 @app.post("/enviar-horario")
-async def enviar_horario(dados: HorarioEnvio):
+async def enviar_horario(request: Request):
     try:
-        doc_ref = db.collection("alunos_professor").document(f"{dados.aluno_nome}_{dados.professor_email}")
-        doc_ref.update({"horario": dados.horario, "horario_pendente": True})
-        return {"msg": "Horário enviado com sucesso."}
+        dados = await request.json()
+        aluno_nome = dados.get("aluno_nome")
+        professor_email = dados.get("professor_email")
+        horario = dados.get("horario")
+
+        if not aluno_nome or not professor_email or not horario:
+            return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
+
+        doc_ref = db.collection("alunos_professor").document(f"{aluno_nome}_{professor_email}")
+        doc_ref.set({
+            "horario": horario,
+            "horario_pendente": True
+        }, merge=True)  # <-- cria o doc se não existir
+
+        return {"mensagem": "Horário enviado com sucesso."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+        
 
 @app.post("/guardar-horario") 
 async def guardar_horario(request: Request):
