@@ -1591,7 +1591,7 @@ async def buscar_id_professor(aluno: str):
 class HorarioEnvio(BaseModel):
     aluno_nome: str
     professor_email: str
-    horario: dict  # ex: {"Seg": ["07:30 - 08:30", "09:30 - 10:30"], "Ter": [...]}
+    horario: dict  # Ex: {"Seg": ["07:30 - 08:30", "09:30 - 10:30"]}
 
 @app.post("/enviar-horario")
 async def enviar_horario(dados: HorarioEnvio):
@@ -1602,25 +1602,21 @@ async def enviar_horario(dados: HorarioEnvio):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.post("/guardar-horario")
+@app.post("/guardar-horario") 
 async def guardar_horario(request: Request):
     dados = await request.json()
     aluno = dados.get("aluno")
-    dias = dados.get("dias")      # Lista de dias ["Segunda-feira", "Quarta-feira"]
-    horarios = dados.get("horarios")  # Lista de horários ["10:30 - 11:30", "14:00 - 15:00"]
+    dias = dados.get("dias")      # Espera-se apenas 1 dia
+    horarios = dados.get("horarios")
 
-    if not aluno or not dias or not horarios:
-        return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+    if not aluno or not dias or not horarios or len(dias) != 1:
+        return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário"}, status_code=400)
 
-    # Estrutura os horários por cada dia
-    dados_horario = {}
-    for dia in dias:
-        if dia not in dados_horario:
-            dados_horario[dia] = []
-        dados_horario[dia].extend(horarios)
+    dia = dias[0]  # pega o único dia selecionado
+    dados_horario = {dia: horarios}
 
     try:
-        db.collection("horarios_alunos").document(aluno).set(dados_horario)
+        db.collection("horarios_alunos").document(aluno).set(dados_horario, merge=True)
         return JSONResponse(content={"mensagem": "Horário guardado com sucesso!"})
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
