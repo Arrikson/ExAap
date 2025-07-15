@@ -658,7 +658,9 @@ async function enviarHorario() {
     return;
   }
 
-  const professorEmail = typeof emailProfessorLogado !== "undefined" ? emailProfessorLogado : null;
+  const professorEmail = typeof emailProfessorLogado !== "undefined"
+    ? emailProfessorLogado
+    : "{{ professor.email }}"; // fallback em caso de uso direto no template
 
   if (!professorEmail) {
     alert("Erro: professor não identificado.");
@@ -666,19 +668,19 @@ async function enviarHorario() {
   }
 
   let aluno = null;
-  try {
-    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(professorEmail)}`);
-    const lista = await res.json();
-    const alunoOnline = lista.find(a => a.online);
 
-    if (alunoOnline) {
-      aluno = alunoOnline.nome;
-    } else {
-      alert("Nenhum aluno online vinculado encontrado.");
+  try {
+    const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(professorEmail)}`);
+    const lista = await res.json();
+
+    if (lista.length === 0) {
+      alert("Nenhum aluno disponível para receber o horário.");
       return;
     }
+
+    aluno = lista[0].nome; // Podes mudar a lógica se quiser selecionar por critério diferente
   } catch (err) {
-    alert("Erro ao buscar alunos online.");
+    alert("Erro ao buscar alunos disponíveis.");
     console.error(err);
     return;
   }
@@ -714,12 +716,12 @@ async function enviarHorario() {
 
     const data = await response.json();
     if (response.ok) {
-      alert("Horário enviado com sucesso!");
+      alert(`Horário enviado com sucesso para ${aluno}!`);
     } else {
       alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido"));
     }
   } catch (e) {
-    alert("Erro ao enviar o horário");
+    alert("Erro ao enviar o horário.");
     console.error(e);
   }
 }
