@@ -629,31 +629,59 @@ function guardarHorario() {
 async function enviarHorario() {
   const diaSelecionado = document.querySelector('.day.active');
   const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
+  
   if (!diaSelecionado || horariosSelecionados.length === 0) {
     alert("Selecione um dia e pelo menos um horário");
     return;
   }
-  
-  const aluno = prompt("Para qual aluno você quer enviar?");
-  if (!aluno) return;
+
+  const aluno = typeof nomeAlunoSelecionado !== "undefined" ? nomeAlunoSelecionado : null;
+  const professorEmail = typeof emailProfessorLogado !== "undefined" ? emailProfessorLogado : null;
+
+  if (!aluno || !professorEmail) {
+    alert("Erro: aluno ou professor não identificado.");
+    return;
+  }
+
+  // Mapeia o dia para abreviado
+  const mapaDias = {
+    "Segunda-feira": "Seg",
+    "Terça-feira": "Ter",
+    "Quarta-feira": "Qua",
+    "Quinta-feira": "Qui",
+    "Sexta-feira": "Sex",
+    "Sábado": "Sáb",
+    "Domingo": "Dom"
+  };
+
+  const diaAbreviado = mapaDias[diaSelecionado.textContent] || diaSelecionado.textContent;
+
+  const payload = {
+    aluno_nome: aluno,
+    professor_email: professorEmail,
+    horario: {
+      [diaAbreviado]: horariosSelecionados
+    }
+  };
 
   try {
-    await fetch('/enviar-horario', {
+    const response = await fetch('/enviar-horario', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        aluno: aluno,
-        dia: diaSelecionado.textContent,
-        horarios: horariosSelecionados
-      })
+      body: JSON.stringify(payload)
     });
-    alert("Horário enviado com sucesso!");
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Horário enviado com sucesso!");
+    } else {
+      alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido"));
+    }
   } catch (e) {
     alert("Erro ao enviar o horário");
     console.error(e);
   }
 }
-
 // INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
 const observer = new MutationObserver(() => {
   document.querySelectorAll('.aluno-card').forEach(card => {
