@@ -421,7 +421,7 @@ let emailProfessorLogado = "{{ professor.email }}";
 
 async function listarMeusAlunos() {
   try {
-    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(emailProfessorLogado)}`);
+    const res = await fetch(/meus-alunos-status/${encodeURIComponent(emailProfessorLogado)});
     const lista = await res.json();
     const container = document.getElementById('meus-alunos');
     container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -438,44 +438,15 @@ async function listarMeusAlunos() {
       const statusClass = aluno.online ? 'online' : 'offline';
       const statusText = aluno.online ? 'Online' : 'Offline';
 
-      const header = document.createElement('div');
-      header.className = 'aluno-header';
-      header.style.display = 'flex';
-      header.style.justifyContent = 'space-between';
-      header.style.alignItems = 'center';
-
-      const info = document.createElement('span');
-      info.innerHTML = `<strong>${aluno.nome}</strong> - ${aluno.disciplina}`;
-
-      const status = document.createElement('div');
-      status.className = 'status';
-      status.innerHTML = `
-        <span>${statusText}</span>
-        <span class="status-dot ${statusClass}"></span>
-      `;
-
-      header.appendChild(info);
-      header.appendChild(status);
-
-      // Botão Horário funcional
-      const horarioBtn = document.createElement('button');
-      horarioBtn.textContent = 'Horário';
-      horarioBtn.style.marginTop = '10px';
-      horarioBtn.onclick = (e) => {
-        e.stopPropagation();
-        alunoSelecionado = aluno.nome;
-        abrirCalendario();
-      };
-
-      card.appendChild(header);
-      card.appendChild(horarioBtn);
-      container.appendChild(card);
-    });
-  } catch (err) {
-    console.error("Erro ao listar alunos:", err);
-    alert("Erro ao carregar os alunos.");
-  }
-}
+      card.innerHTML = 
+        <div class="aluno-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
+          <div class="status">
+            <span>${statusText}</span>
+            <span class="status-dot ${statusClass}"></span>
+          </div>
+        </div>
+      ;
       // Botão Dar Aula
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
