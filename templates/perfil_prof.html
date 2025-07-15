@@ -417,13 +417,11 @@
   }
 
 let alunoSelecionado = null;
+let emailProfessorLogado = "{{ professor.email }}";
 
 async function listarMeusAlunos() {
-  const email = "{{ professor.email }}";
-  window.emailProfessorLogado = email;
-
   try {
-    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
+    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(emailProfessorLogado)}`);
     const lista = await res.json();
     const container = document.getElementById('meus-alunos');
     container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -436,7 +434,6 @@ async function listarMeusAlunos() {
     lista.forEach(aluno => {
       const card = document.createElement('div');
       card.className = 'aluno-card';
-      card.style.cursor = 'pointer';
 
       const statusClass = aluno.online ? 'online' : 'offline';
       const statusText = aluno.online ? 'Online' : 'Offline';
@@ -451,34 +448,38 @@ async function listarMeusAlunos() {
         </div>
       `;
 
-      // Botão "Dar Aula" (apenas se online)
+      // Botão Dar Aula
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
         iniciarBtn.textContent = 'Dar Aula';
         iniciarBtn.className = 'notificar-btn';
         iniciarBtn.onclick = (e) => {
-          e.stopPropagation(); // Impede que o clique selecione o card
-          iniciarChamada(aluno.nome, email);
+          e.stopPropagation();
+          iniciarChamada(aluno.nome, emailProfessorLogado);
         };
         card.appendChild(iniciarBtn);
       }
 
-      // Botão "Desvincular"
+      // Botão Desvincular
       const desvincularBtn = document.createElement('button');
       desvincularBtn.textContent = 'Desvincular';
       desvincularBtn.style.marginLeft = '10px';
       desvincularBtn.onclick = (e) => {
-        e.stopPropagation(); // Impede que o clique selecione o card
-        desvincularAluno(aluno.nome, email);
+        e.stopPropagation();
+        desvincularAluno(aluno.nome, emailProfessorLogado);
       };
       card.appendChild(desvincularBtn);
 
-      // Selecionar aluno ao clicar no card
-      card.onclick = () => {
-        document.querySelectorAll('.aluno-card').forEach(c => c.classList.remove('selecionado'));
-        card.classList.add('selecionado');
+      // Botão Horário
+      const horarioBtn = document.createElement('button');
+      horarioBtn.textContent = 'Horário';
+      horarioBtn.style.marginLeft = '10px';
+      horarioBtn.onclick = (e) => {
+        e.stopPropagation();
         alunoSelecionado = aluno.nome;
+        abrirCalendario();
       };
+      card.appendChild(horarioBtn);
 
       container.appendChild(card);
     });
@@ -488,80 +489,13 @@ async function listarMeusAlunos() {
   }
 }
 
-async function buscarAlunosDisponiveis() {
-  const email = "{{ professor.email }}";
-  try {
-    const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-    const lista = await res.json();
-    const container = document.getElementById('alunos-disponiveis');
-    container.innerHTML = '<h2>Alunos Disponíveis</h2>';
-
-    if (lista.length === 0) {
-      container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
-      return;
-    }
-
-    lista.forEach(aluno => {
-      const card = document.createElement('div');
-      card.className = 'aluno-card';
-
-      const nomeAluno = aluno.nome;
-      const disciplina = aluno.disciplina;
-
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong>${nomeAluno}</strong> - ${disciplina}
-          </div>
-          <button class="notificar-btn" onclick="vincularAluno('${nomeAluno}', '{{ professor.email }}')">
-            Vincular
-          </button>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-  } catch (error) {
-    console.error("Erro ao buscar alunos disponíveis:", error);
-    alert("Erro ao buscar alunos disponíveis.");
-  }
-}
-
-async function vincularAluno(nomeAluno, professorEmail) {
-  try {
-    const res = await fetch('/vincular-aluno', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        professor_email: professorEmail,
-        aluno_nome: nomeAluno
-      })
-    });
-
-    if (res.ok) {
-      alert(`Aluno "${nomeAluno}" vinculado com sucesso!`);
-      buscarAlunosDisponiveis();
-      listarMeusAlunos();
-    } else {
-      const erro = await res.json();
-      alert(`Erro: ${erro.detail}`);
-    }
-  } catch (error) {
-    console.error('Erro ao vincular aluno:', error);
-    alert('Erro interno ao tentar vincular o aluno.');
-  }
-}
-
 async function desvincularAluno(nomeAluno, professorEmail) {
   if (!confirm(`Tem certeza que deseja desvincular o aluno "${nomeAluno}"?`)) return;
   try {
     const res = await fetch('/desvincular-aluno', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        professor_email: professorEmail,
-        aluno_nome: nomeAluno
-      })
+      body: JSON.stringify({ professor_email: professorEmail, aluno_nome: nomeAluno })
     });
 
     const resposta = await res.json();
@@ -577,8 +511,8 @@ async function desvincularAluno(nomeAluno, professorEmail) {
   }
 }
 
-// CALENDÁRIO DE HORÁRIOS
-function gerarCalendario() { 
+// =============== CALENDÁRIO =============== //
+function gerarCalendario() {
   const dias = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
   const daySelector = document.getElementById('daySelector');
   const timeSelector = document.getElementById('timeSelector');
@@ -591,14 +525,14 @@ function gerarCalendario() {
     div.textContent = dia;
     div.className = 'day';
     div.onclick = () => {
-      div.classList.toggle('active'); // Seleciona ou desseleciona o dia
+      div.classList.toggle('active');
       gerarHorarios(dia);
     };
     daySelector.appendChild(div);
   });
 }
 
-function gerarHorarios(diaSelecionado) {
+function gerarHorarios() {
   const timeSelector = document.getElementById('timeSelector');
   timeSelector.innerHTML = '';
 
@@ -612,7 +546,7 @@ function gerarHorarios(diaSelecionado) {
     const div = document.createElement('div');
     div.textContent = texto;
     div.className = 'time';
-    div.onclick = () => div.classList.toggle('active'); // Seleciona/desseleciona horário
+    div.onclick = () => div.classList.toggle('active');
     timeSelector.appendChild(div);
   }
 }
@@ -624,7 +558,7 @@ function abrirCalendario() {
 }
 
 function guardarHorario() {
-  const aluno = typeof nomeAlunoSelecionado !== "undefined" ? nomeAlunoSelecionado : null;
+  const aluno = alunoSelecionado;
   const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
   const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
 
@@ -653,35 +587,13 @@ async function enviarHorario() {
   const diasSelecionados = Array.from(document.querySelectorAll('.day.active')).map(d => d.textContent);
   const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
 
+  if (!alunoSelecionado) {
+    alert("Nenhum aluno selecionado.");
+    return;
+  }
+
   if (diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
-    alert("Selecione pelo menos um dia e um horário");
-    return;
-  }
-
-  const professorEmail = typeof emailProfessorLogado !== "undefined"
-    ? emailProfessorLogado
-    : "{{ professor.email }}"; // fallback em caso de uso direto no template
-
-  if (!professorEmail) {
-    alert("Erro: professor não identificado.");
-    return;
-  }
-
-  let aluno = null;
-
-  try {
-    const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(professorEmail)}`);
-    const lista = await res.json();
-
-    if (lista.length === 0) {
-      alert("Nenhum aluno disponível para receber o horário.");
-      return;
-    }
-
-    aluno = lista[0].nome; // Podes mudar a lógica se quiser selecionar por critério diferente
-  } catch (err) {
-    alert("Erro ao buscar alunos disponíveis.");
-    console.error(err);
+    alert("Selecione pelo menos um dia e um horário.");
     return;
   }
 
@@ -702,8 +614,8 @@ async function enviarHorario() {
   });
 
   const payload = {
-    aluno_nome: aluno,
-    professor_email: professorEmail,
+    aluno_nome: alunoSelecionado,
+    professor_email: emailProfessorLogado,
     horario
   };
 
@@ -716,7 +628,7 @@ async function enviarHorario() {
 
     const data = await response.json();
     if (response.ok) {
-      alert(`Horário enviado com sucesso para ${aluno}!`);
+      alert(`Horário enviado com sucesso para ${alunoSelecionado}!`);
     } else {
       alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido"));
     }
