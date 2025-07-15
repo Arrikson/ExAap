@@ -448,6 +448,25 @@ async function listarMeusAlunos() {
         </div>
       `;
 
+      // Botão Horário
+      const horarioBtn = document.createElement('button');
+      horarioBtn.textContent = 'Horário';
+      horarioBtn.style.marginTop = '10px';
+      horarioBtn.onclick = (e) => {
+        e.stopPropagation(); // Impede conflito de seleção
+        alunoSelecionado = aluno.nome; // Define o aluno ativo
+        abrirCalendario(); // Abre o calendário
+      };
+
+      card.appendChild(horarioBtn);
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Erro ao listar alunos:", err);
+    alert("Erro ao carregar os alunos.");
+  }
+}
+
       // Botão Dar Aula
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
@@ -587,13 +606,17 @@ async function enviarHorario() {
   const diasSelecionados = Array.from(document.querySelectorAll('.day.active')).map(d => d.textContent);
   const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
 
-  if (!alunoSelecionado) {
-    alert("Nenhum aluno selecionado.");
+  if (diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
+    alert("Selecione pelo menos um dia e um horário");
     return;
   }
 
-  if (diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
-    alert("Selecione pelo menos um dia e um horário.");
+  const professorEmail = typeof emailProfessorLogado !== "undefined"
+    ? emailProfessorLogado
+    : "{{ professor.email }}";
+
+  if (!professorEmail || !alunoSelecionado) {
+    alert("Erro: aluno ou professor não identificados.");
     return;
   }
 
@@ -615,7 +638,7 @@ async function enviarHorario() {
 
   const payload = {
     aluno_nome: alunoSelecionado,
-    professor_email: emailProfessorLogado,
+    professor_email: professorEmail,
     horario
   };
 
@@ -637,6 +660,7 @@ async function enviarHorario() {
     console.error(e);
   }
 }
+  
 // INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
 const observer = new MutationObserver(() => {
   document.querySelectorAll('.aluno-card').forEach(card => {
