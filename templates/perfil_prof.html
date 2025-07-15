@@ -412,8 +412,12 @@
     }
   }
 
+let alunoSelecionado = null;
+
 async function listarMeusAlunos() {
   const email = "{{ professor.email }}";
+  window.emailProfessorLogado = email;
+
   try {
     const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
     const lista = await res.json();
@@ -428,6 +432,7 @@ async function listarMeusAlunos() {
     lista.forEach(aluno => {
       const card = document.createElement('div');
       card.className = 'aluno-card';
+      card.style.cursor = 'pointer';
 
       const statusClass = aluno.online ? 'online' : 'offline';
       const statusText = aluno.online ? 'Online' : 'Offline';
@@ -442,19 +447,34 @@ async function listarMeusAlunos() {
         </div>
       `;
 
+      // Botão "Dar Aula" (apenas se online)
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
         iniciarBtn.textContent = 'Dar Aula';
         iniciarBtn.className = 'notificar-btn';
-        iniciarBtn.onclick = () => iniciarChamada(aluno.nome, email);
+        iniciarBtn.onclick = (e) => {
+          e.stopPropagation(); // Impede que o clique selecione o card
+          iniciarChamada(aluno.nome, email);
+        };
         card.appendChild(iniciarBtn);
       }
 
+      // Botão "Desvincular"
       const desvincularBtn = document.createElement('button');
       desvincularBtn.textContent = 'Desvincular';
       desvincularBtn.style.marginLeft = '10px';
-      desvincularBtn.onclick = () => desvincularAluno(aluno.nome, email);
+      desvincularBtn.onclick = (e) => {
+        e.stopPropagation(); // Impede que o clique selecione o card
+        desvincularAluno(aluno.nome, email);
+      };
       card.appendChild(desvincularBtn);
+
+      // Selecionar aluno ao clicar no card
+      card.onclick = () => {
+        document.querySelectorAll('.aluno-card').forEach(c => c.classList.remove('selecionado'));
+        card.classList.add('selecionado');
+        alunoSelecionado = aluno.nome;
+      };
 
       container.appendChild(card);
     });
