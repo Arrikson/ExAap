@@ -416,12 +416,10 @@
     }
   }
 
-let alunoSelecionado = null;
-let emailProfessorLogado = "{{ professor.email }}";
-
 async function listarMeusAlunos() {
+  const email = "{{ professor.email }}";
   try {
-    const res = await fetch(/meus-alunos-status/${encodeURIComponent(emailProfessorLogado)});
+    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
     const lista = await res.json();
     const container = document.getElementById('meus-alunos');
     container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -438,7 +436,7 @@ async function listarMeusAlunos() {
       const statusClass = aluno.online ? 'online' : 'offline';
       const statusText = aluno.online ? 'Online' : 'Offline';
 
-      card.innerHTML = 
+      card.innerHTML = `
         <div class="aluno-header" style="display: flex; justify-content: space-between; align-items: center;">
           <span><strong>${aluno.nome}</strong> - ${aluno.disciplina}</span>
           <div class="status">
@@ -446,7 +444,7 @@ async function listarMeusAlunos() {
             <span class="status-dot ${statusClass}"></span>
           </div>
         </div>
-      ;
+      `;
       // Botão Dar Aula
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
