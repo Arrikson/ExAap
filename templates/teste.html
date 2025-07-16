@@ -1,22 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="utf-8">
   <title>eLEARNING - Página Principal</title>
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Fontes e ícones -->
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bibliotecas CSS -->
   <link href="/static/lib/animate/animate.min.css" rel="stylesheet">
   <link href="/static/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
   <link href="/static/css/bootstrap.min.css" rel="stylesheet">
   <link href="/static/css/style.css" rel="stylesheet">
+
+  <style>
+    .header-carousel .owl-nav {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 25px;
+      transform: translateY(-50%);
+    }
+    .header-carousel .owl-nav button {
+      background: rgba(0,0,0,0.3);
+      color: white;
+      border: none;
+      font-size: 2rem;
+      padding: 5px 15px;
+      border-radius: 50%;
+    }
+    .carousel-item {
+      height: 80vh;
+      background-size: cover;
+      background-position: center;
+    }
+    .carousel-caption {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
+
 <body>
-  <!-- Aqui está a estrutura principal do HTML que você enviou, resumida para exemplo -->
-  <div class="container">
-    <h1 class="text-center mt-5">Bem-vindo à eLEARNING</h1>
+  <!-- Carrossel -->
+  <div class="container-fluid p-0">
+    <div class="owl-carousel header-carousel">
+      <div class="carousel-item" style="background-image: url('/static/img/carousel-1.jpg');">
+        <div class="d-flex align-items-center justify-content-center h-100">
+          <div class="carousel-caption text-center text-white">
+            <h1 class="display-4 fw-bold">Aprenda com os Melhores</h1>
+            <p class="lead">Explicações com professores experientes em diversas áreas</p>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item" style="background-image: url('/static/img/carousel-2.jpg');">
+        <div class="d-flex align-items-center justify-content-center h-100">
+          <div class="carousel-caption text-center text-white">
+            <h1 class="display-4 fw-bold">Plataforma Moderna</h1>
+            <p class="lead">Estude onde e quando quiser com qualidade</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensagem de boas-vindas -->
+  <div class="container mt-5">
+    <h2 class="text-center">Bem-vindo à eLEARNING</h2>
     <p class="text-center">Esta será a nova página principal.</p>
   </div>
+
+  <!-- JS Libraries -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/static/lib/owlcarousel/owl.carousel.min.js"></script>
+
+  <!-- OwlCarousel Init -->
+  <script>
+    $(document).ready(function(){
+      $(".header-carousel").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1000,
+        items: 1,
+        loop: true,
+        nav: true,
+        dots: false,
+        navText: [
+          '<i class="bi bi-chevron-left"></i>',
+          '<i class="bi bi-chevron-right"></i>'
+        ]
+      });
+    });
+  </script>
 </body>
 </html>
