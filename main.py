@@ -1633,3 +1633,7 @@ async def guardar_horario(request: Request):
         return JSONResponse(content={"mensagem": "Horário guardado com sucesso!"})
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
+@app.get("/teste", response_class=HTMLResponse)
+async def exibir_teste(request: Request):
+    return templates.TemplateResponse("teste.html", {"request": request})
