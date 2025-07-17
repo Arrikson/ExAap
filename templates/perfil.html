@@ -134,6 +134,7 @@
 
   <div class="card">
     <h1>{{ aluno.nome }}</h1>
+    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
     <div class="btn-grid">
       <button class="notificar-btn" onclick="toggle('sec-aula')">📚 Ver Aulas</button>
       <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
@@ -215,10 +216,12 @@
 
  async function verHorario() {
   try {
+    const alunoId = document.getElementById("aluno-id").value;
+
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: "{{ aluno.id }}" })  // ID real do aluno usado como chave
+      body: JSON.stringify({ nome: alunoId })  // Agora sim envia corretamente
     });
 
     const data = await response.json();
