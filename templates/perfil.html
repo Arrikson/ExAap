@@ -213,36 +213,31 @@
       }
     });
 
-    async function verHorario() {
-      const hoje = new Date();
-      const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-      const diaAtual = dias[hoje.getDay()];
+   async function verHorario() {
+    try {
+      const response = await fetch("/obter-horario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: "{{ aluno.nome }}" })  // Aluno vindo via Jinja
+      });
 
-      const horarioRef = doc(db, "horarios_alunos", nomeAluno);
-      const snap = await getDoc(horarioRef);
-      if (snap.exists()) {
-        const dados = snap.data();
-        const horariosHoje = dados[diaAtual];
-        const agora = hoje.getHours() + ":" + hoje.getMinutes().toString().padStart(2, "0");
-        let mensagens = [];
+      const data = await response.json();
+      const divHorario = document.getElementById("horario-aulas");
 
-        if (Array.isArray(horariosHoje)) {
-          mensagens = horariosHoje.filter(h => {
-            const [hora] = h.split(" - ");
-            return hora >= agora;
-          });
-        }
-
-        document.getElementById("horario-aulas").innerHTML = mensagens.length
-          ? "<b>Horários de hoje:</b><br>" + mensagens.join("<br>")
-          : "<b>Nenhuma aula restante hoje.</b>";
-
-        document.getElementById("horario-aulas").style.display = "block";
+      if (data.horarios && data.horarios.length > 0) {
+        divHorario.innerHTML = "<b>Horários de hoje:</b><br>" + data.horarios.join("<br>");
       } else {
-        document.getElementById("horario-aulas").innerHTML = "<b>Horário não encontrado.</b>";
-        document.getElementById("horario-aulas").style.display = "block";
+        divHorario.innerHTML = "<b>Nenhuma aula restante hoje.</b>";
       }
+
+      divHorario.style.display = "block";
+    } catch (err) {
+      console.error("Erro ao buscar horário:", err);
+      const divHorario = document.getElementById("horario-aulas");
+      divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
+      divHorario.style.display = "block";
     }
+  }
   </script>
   <script>
     const notificacaoEl = document.getElementById("notificacao-mensagem");
