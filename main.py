@@ -1637,11 +1637,11 @@ async def guardar_horario(request: Request):
 @app.get("/teste", response_class=HTMLResponse)
 async def exibir_teste(request: Request):
     return templates.TemplateResponse("teste.html", {"request": request})
-
-@app.post("/obter-horario")  
+    
+@app.post("/obter-horario")
 async def obter_horario(request: Request):
     dados = await request.json()
-    nome = dados.get("nome", "").strip()  # <-- Adiciona .strip() para limpar espaços
+    nome = dados.get("nome", "").strip()
 
     if not nome:
         return JSONResponse(content={"erro": "Nome do aluno é obrigatório."}, status_code=400)
@@ -1651,35 +1651,11 @@ async def obter_horario(request: Request):
         doc_snap = doc_ref.get()
 
         if not doc_snap.exists:
-            return JSONResponse(content={"horarios": [], "mensagem": "Nenhum horário encontrado."})
+            return JSONResponse(content={"horarios": {}, "mensagem": "Nenhum horário encontrado."})
 
         dados_horario = doc_snap.to_dict()
 
-        # Dia da semana atual
-        dia_semana = datetime.datetime.now().strftime('%A')
-        dias_pt = {
-            "Monday": "Segunda-feira",
-            "Tuesday": "Terça-feira",
-            "Wednesday": "Quarta-feira",
-            "Thursday": "Quinta-feira",
-            "Friday": "Sexta-feira",
-            "Saturday": "Sábado",
-            "Sunday": "Domingo"
-        }
-        dia_hoje = dias_pt[dia_semana]
-
-        horarios_do_dia = dados_horario.get(dia_hoje, [])
-
-        # Filtrar apenas horários futuros
-        agora = datetime.datetime.now().time()
-        horarios_futuros = []
-        for h in horarios_do_dia:
-            hora_fim = h.split(" - ")[1]  # Ex: "13:30"
-            fim = datetime.datetime.strptime(hora_fim, "%H:%M").time()
-            if fim > agora:
-                horarios_futuros.append(h)
-
-        return JSONResponse(content={"horarios": horarios_futuros})
+        return JSONResponse(content={"horarios": dados_horario})  # Retorna tudo
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
