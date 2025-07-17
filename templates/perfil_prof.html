@@ -416,10 +416,13 @@
     }
   }
 
+let alunoSelecionado = null;
+
 async function listarMeusAlunos() {
-  const email = "{{ professor.email }}";
+  const emailProfessorLogado = "{{ professor.email }}";
+
   try {
-    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(email)}`);
+    const res = await fetch(`/meus-alunos-status/${encodeURIComponent(emailProfessorLogado)}`);
     const lista = await res.json();
     const container = document.getElementById('meus-alunos');
     container.innerHTML = '<h2>Meus Alunos</h2>';
@@ -445,7 +448,7 @@ async function listarMeusAlunos() {
           </div>
         </div>
       `;
-      // Botão Dar Aula
+
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
         iniciarBtn.textContent = 'Dar Aula';
@@ -457,7 +460,6 @@ async function listarMeusAlunos() {
         card.appendChild(iniciarBtn);
       }
 
-      // Botão Desvincular
       const desvincularBtn = document.createElement('button');
       desvincularBtn.textContent = 'Desvincular';
       desvincularBtn.style.marginLeft = '10px';
@@ -467,7 +469,6 @@ async function listarMeusAlunos() {
       };
       card.appendChild(desvincularBtn);
 
-      // Botão Horário
       const horarioBtn = document.createElement('button');
       horarioBtn.textContent = 'Horário';
       horarioBtn.style.marginLeft = '10px';
@@ -486,29 +487,12 @@ async function listarMeusAlunos() {
   }
 }
 
-async function desvincularAluno(nomeAluno, professorEmail) {
-  if (!confirm(`Tem certeza que deseja desvincular o aluno "${nomeAluno}"?`)) return;
-  try {
-    const res = await fetch('/desvincular-aluno', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ professor_email: professorEmail, aluno_nome: nomeAluno })
-    });
-
-    const resposta = await res.json();
-    if (res.ok) {
-      alert('Aluno desvinculado com sucesso!');
-      listarMeusAlunos();
-    } else {
-      alert(resposta.detail || 'Erro ao desvincular.');
-    }
-  } catch (error) {
-    console.error('Erro ao desvincular aluno:', error);
-    alert('Erro interno ao tentar desvincular o aluno.');
-  }
+function abrirCalendario() {
+  const container = document.getElementById('calendarContainer');
+  container.style.display = 'block';
+  gerarCalendario();
 }
 
-// =============== CALENDÁRIO =============== //
 function gerarCalendario() {
   const dias = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
   const daySelector = document.getElementById('daySelector');
@@ -522,8 +506,9 @@ function gerarCalendario() {
     div.textContent = dia;
     div.className = 'day';
     div.onclick = () => {
-      div.classList.toggle('active');
-      gerarHorarios(dia);
+      document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
+      div.classList.add('active');
+      gerarHorarios();
     };
     daySelector.appendChild(div);
   });
@@ -532,7 +517,6 @@ function gerarCalendario() {
 function gerarHorarios() {
   const timeSelector = document.getElementById('timeSelector');
   timeSelector.innerHTML = '';
-
   const inicio = 7.5;
   const fim = 20.5;
 
@@ -548,24 +532,17 @@ function gerarHorarios() {
   }
 }
 
-function abrirCalendario() {
-  const container = document.getElementById('calendarContainer');
-  container.style.display = container.style.display === 'block' ? 'none' : 'block';
-  gerarCalendario();
-}
-
 function guardarHorario() {
-  const aluno = alunoSelecionado;
   const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
   const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
 
-  if (!aluno || diasSelecionados.length === 0 || horarios.length === 0) {
-    alert("Selecione o aluno, os dias e pelo menos um horário.");
+  if (!alunoSelecionado || diasSelecionados.length !== 1 || horarios.length === 0) {
+    alert("Selecione um único dia e pelo menos um horário.");
     return;
   }
 
   const dados = {
-    aluno,
+    aluno: alunoSelecionado,
     dias: diasSelecionados,
     horarios
   };
@@ -575,28 +552,21 @@ function guardarHorario() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dados)
   })
-  .then(res => res.json())
-  .then(data => alert(data.mensagem || data.erro))
-  .catch(err => alert("Erro ao guardar horário: " + err));
+    .then(res => res.json())
+    .then(data => alert(data.mensagem || data.erro))
+    .catch(err => alert("Erro ao guardar horário: " + err));
 }
 
 async function enviarHorario() {
-  const diasSelecionados = Array.from(document.querySelectorAll('.day.active')).map(d => d.textContent);
-  const horariosSelecionados = Array.from(document.querySelectorAll('.time.active')).map(t => t.textContent);
+  const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
+  const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
 
-  if (diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
-    alert("Selecione pelo menos um dia e um horário");
+  if (!alunoSelecionado || diasSelecionados.length === 0 || horarios.length === 0) {
+    alert("Selecione pelo menos um dia e um horário.");
     return;
   }
 
-  const professorEmail = typeof emailProfessorLogado !== "undefined"
-    ? emailProfessorLogado
-    : "{{ professor.email }}";
-
-  if (!professorEmail || !alunoSelecionado) {
-    alert("Erro: aluno ou professor não identificados.");
-    return;
-  }
+  const professorEmail = "{{ professor.email }}";
 
   const mapaDias = {
     "Segunda-feira": "Seg",
@@ -611,7 +581,7 @@ async function enviarHorario() {
   const horario = {};
   diasSelecionados.forEach(dia => {
     const abreviado = mapaDias[dia] || dia;
-    horario[abreviado] = horariosSelecionados;
+    horario[abreviado] = horarios;
   });
 
   const payload = {
@@ -621,9 +591,9 @@ async function enviarHorario() {
   };
 
   try {
-    const response = await fetch('/enviar-horario', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/enviar-horario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
@@ -631,14 +601,13 @@ async function enviarHorario() {
     if (response.ok) {
       alert(`Horário enviado com sucesso para ${alunoSelecionado}!`);
     } else {
-      alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido"));
+      alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido."));
     }
   } catch (e) {
     alert("Erro ao enviar o horário.");
     console.error(e);
   }
-}
-  
+} 
 // INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
 const observer = new MutationObserver(() => {
   document.querySelectorAll('.aluno-card').forEach(card => {
