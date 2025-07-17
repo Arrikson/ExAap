@@ -1638,10 +1638,11 @@ async def guardar_horario(request: Request):
 async def exibir_teste(request: Request):
     return templates.TemplateResponse("teste.html", {"request": request})
 
-@app.post("/obter-horario")
+@app.post("/obter-horario")  
 async def obter_horario(request: Request):
     dados = await request.json()
-    nome = dados.get("nome")
+    nome = dados.get("nome", "").strip()  # <-- Adiciona .strip() para limpar espaços
+
     if not nome:
         return JSONResponse(content={"erro": "Nome do aluno é obrigatório."}, status_code=400)
 
@@ -1654,7 +1655,8 @@ async def obter_horario(request: Request):
 
         dados_horario = doc_snap.to_dict()
 
-        dia_semana = datetime.datetime.now().strftime('%A')  # Monday, Tuesday...
+        # Dia da semana atual
+        dia_semana = datetime.datetime.now().strftime('%A')
         dias_pt = {
             "Monday": "Segunda-feira",
             "Tuesday": "Terça-feira",
