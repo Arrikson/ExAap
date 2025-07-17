@@ -228,38 +228,45 @@
     });
 
     window.verHorario = async function () {
-      try {
-        const response = await fetch("/obter-horario", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome: nomeAluno })
+  const divHorario = document.getElementById("horario-aulas");
+
+  // Se já estiver visível, esconda
+  if (divHorario.style.display === "block") {
+    divHorario.style.display = "none";
+    return;
+  }
+
+  // Caso contrário, busca os dados e mostra
+  try {
+    const response = await fetch("/obter-horario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: nomeAluno })
+    });
+
+    const data = await response.json();
+
+    if (data.horarios && Object.keys(data.horarios).length > 0) {
+      let conteudo = "<b>Horários:</b><br><br>";
+      for (const [dia, lista] of Object.entries(data.horarios)) {
+        conteudo += `<b>${dia}:</b><br>`;
+        lista.forEach(h => {
+          conteudo += `&nbsp;&nbsp;• ${h}<br>`;
         });
-
-        const data = await response.json();
-        const divHorario = document.getElementById("horario-aulas");
-
-        if (data.horarios && Object.keys(data.horarios).length > 0) {
-          let conteudo = "<b>Horários:</b><br><br>";
-          for (const [dia, lista] of Object.entries(data.horarios)) {
-            conteudo += `<b>${dia}:</b><br>`;
-            lista.forEach(h => {
-              conteudo += `&nbsp;&nbsp;• ${h}<br>`;
-            });
-            conteudo += "<br>";
-          }
-          divHorario.innerHTML = conteudo;
-        } else {
-          divHorario.innerHTML = "<b>Sem horários registrados.</b>";
-        }
-
-        divHorario.style.display = "block";
-      } catch (err) {
-        const divHorario = document.getElementById("horario-aulas");
-        divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
-        divHorario.style.display = "block";
+        conteudo += "<br>";
       }
-    };
+      divHorario.innerHTML = conteudo;
+    } else {
+      divHorario.innerHTML = "<b>Sem horários registrados.</b>";
+    }
 
+    divHorario.style.display = "block";
+  } catch (err) {
+    divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
+    divHorario.style.display = "block";
+  }
+};
+    
     window.toggleProfessor = function () {
       const container = document.getElementById("professor-nome");
       if (container.style.display === "block") {
