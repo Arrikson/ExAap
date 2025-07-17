@@ -213,33 +213,31 @@
       }
     });
 
-   async function verHorario() {
-    try {
-      const response = await fetch("/obter-horario", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: "{{ aluno.nome }}" })  // Aluno vindo via Jinja
-      });
+ async function verHorario() {
+  try {
+    const response = await fetch("/obter-horario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: "{{ aluno.id }}" })  // ID real do aluno usado como chave
+    });
 
-      const data = await response.json();
-      const divHorario = document.getElementById("horario-aulas");
+    const data = await response.json();
+    const divHorario = document.getElementById("horario-aulas");
 
-      if (data.horarios && data.horarios.length > 0) {
-        divHorario.innerHTML = "<b>Horários de hoje:</b><br>" + data.horarios.join("<br>");
-      } else {
-        divHorario.innerHTML = "<b>Nenhuma aula restante hoje.</b>";
-      }
-
-      divHorario.style.display = "block";
-    } catch (err) {
-      console.error("Erro ao buscar horário:", err);
-      const divHorario = document.getElementById("horario-aulas");
-      divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
-      divHorario.style.display = "block";
+    if (data.horarios && data.horarios.length > 0) {
+      divHorario.innerHTML = "<b>Horários de hoje:</b><br>" + data.horarios.join("<br>");
+    } else {
+      divHorario.innerHTML = "<b>Nenhuma aula restante hoje.</b>";
     }
+
+    divHorario.style.display = "block";
+  } catch (err) {
+    console.error("Erro ao buscar horário:", err);
+    const divHorario = document.getElementById("horario-aulas");
+    divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
+    divHorario.style.display = "block";
   }
-  </script>
-  <script>
+}
     const notificacaoEl = document.getElementById("notificacao-mensagem");
     const contadorAulas = document.getElementById("contador-aulas");
     let professorEmailAtual = null;
