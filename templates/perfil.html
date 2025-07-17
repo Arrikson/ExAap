@@ -88,7 +88,7 @@
       border-radius: 10px;
     }
 
-    #notificacao-mensagem, #professor-nome, #info-aula {
+    #notificacao-mensagem, #professor-nome, #info-aula, #horario-aulas {
       display: none;
       margin-top: 15px;
       padding: 15px;
@@ -127,7 +127,6 @@
   <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
 </head>
 <body>
-
   <div class="top-bar">
     <img src="/static/logo.png" alt="Logo">
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
@@ -135,13 +134,13 @@
 
   <div class="card">
     <h1>{{ aluno.nome }}</h1>
-
     <div class="btn-grid">
       <button class="notificar-btn" onclick="toggle('sec-aula')">📚 Ver Aulas</button>
       <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
       <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
       <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
       <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
+      <button class="notificar-btn" onclick="verHorario()">📅 Horário</button>
     </div>
 
     <div id="sec-aula" class="info">
@@ -162,6 +161,7 @@
 
     <div id="notificacao-mensagem"></div>
     <div id="professor-nome"></div>
+    <div id="horario-aulas"></div>
 
     <div id="info-aula">
       <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
@@ -173,8 +173,78 @@
     </form>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, onSnapshot, updateDoc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+      authDomain: "exap-8a935.firebaseapp.com",
+      projectId: "exap-8a935",
+      storageBucket: "exap-8a935.appspot.com",
+      messagingSenderId: "664710895978",
+      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
     const nomeAluno = "{{ aluno.nome }}";
+
+    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+    const infoAulaDiv = document.getElementById("info-aula");
+    const salaIdSpan = document.getElementById("sala-id");
+
+    onSnapshot(chamadaRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        if (dados.status === "pendente") {
+          salaIdSpan.textContent = dados.sala;
+          infoAulaDiv.style.display = "block";
+          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+          updateDoc(chamadaRef, {
+            status: aceitar ? "aceito" : "rejeitado"
+          });
+          if (aceitar) {
+            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          }
+        }
+      }
+    });
+
+    async function verHorario() {
+      const hoje = new Date();
+      const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+      const diaAtual = dias[hoje.getDay()];
+
+      const horarioRef = doc(db, "horarios_alunos", nomeAluno);
+      const snap = await getDoc(horarioRef);
+      if (snap.exists()) {
+        const dados = snap.data();
+        const horariosHoje = dados[diaAtual];
+        const agora = hoje.getHours() + ":" + hoje.getMinutes().toString().padStart(2, "0");
+        let mensagens = [];
+
+        if (Array.isArray(horariosHoje)) {
+          mensagens = horariosHoje.filter(h => {
+            const [hora] = h.split(" - ");
+            return hora >= agora;
+          });
+        }
+
+        document.getElementById("horario-aulas").innerHTML = mensagens.length
+          ? "<b>Horários de hoje:</b><br>" + mensagens.join("<br>")
+          : "<b>Nenhuma aula restante hoje.</b>";
+
+        document.getElementById("horario-aulas").style.display = "block";
+      } else {
+        document.getElementById("horario-aulas").innerHTML = "<b>Horário não encontrado.</b>";
+        document.getElementById("horario-aulas").style.display = "block";
+      }
+    }
+  </script>
+  <script>
     const notificacaoEl = document.getElementById("notificacao-mensagem");
     const contadorAulas = document.getElementById("contador-aulas");
     let professorEmailAtual = null;
@@ -262,47 +332,5 @@
       }
     }
   </script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, doc, onSnapshot, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-      authDomain: "exap-8a935.firebaseapp.com",
-      projectId: "exap-8a935",
-      storageBucket: "exap-8a935.appspot.com",
-      messagingSenderId: "664710895978",
-      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-    const infoAulaDiv = document.getElementById("info-aula");
-    const salaIdSpan = document.getElementById("sala-id");
-
-    onSnapshot(chamadaRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const dados = docSnap.data();
-        if (dados.status === "pendente") {
-          salaIdSpan.textContent = dados.sala;
-          infoAulaDiv.style.display = "block";
-          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-          updateDoc(chamadaRef, {
-            status: aceitar ? "aceito" : "rejeitado"
-          });
-          if (aceitar) {
-            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
-          }
-        }
-      }
-    });
-  </script>
-
 </body>
 </html>
-
