@@ -227,11 +227,12 @@
 
   async function verHorario() {
   try {
-    const alunoId = document.getElementById("aluno-id").value;
+    const nomeAluno = "{{ aluno.nome }}";  // já está definido acima no script
+
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: alunoId })
+      body: JSON.stringify({ nome: nomeAluno }) 
     });
 
     const data = await response.json();
