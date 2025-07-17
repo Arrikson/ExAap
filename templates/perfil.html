@@ -226,31 +226,39 @@
   });
 
   async function verHorario() {
-    try {
-      const alunoId = document.getElementById("aluno-id").value;
-      const response = await fetch("/obter-horario", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: alunoId })
-      });
+  try {
+    const alunoId = document.getElementById("aluno-id").value;
+    const response = await fetch("/obter-horario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: alunoId })
+    });
 
-      const data = await response.json();
-      const divHorario = document.getElementById("horario-aulas");
+    const data = await response.json();
+    const divHorario = document.getElementById("horario-aulas");
 
-      if (data.horarios && data.horarios.length > 0) {
-        divHorario.innerHTML = "<b>Horários de hoje:</b><br>" + data.horarios.join("<br>");
-      } else {
-        divHorario.innerHTML = "<b>Nenhuma aula restante hoje.</b>";
+    if (data.horarios && Object.keys(data.horarios).length > 0) {
+      let conteudo = "<b>Horários:</b><br><br>";
+      for (const [dia, lista] of Object.entries(data.horarios)) {
+        conteudo += `<b>${dia}:</b><br>`;
+        lista.forEach(h => {
+          conteudo += `&nbsp;&nbsp;• ${h}<br>`;
+        });
+        conteudo += "<br>";
       }
-
-      divHorario.style.display = "block";
-    } catch (err) {
-      console.error("Erro ao buscar horário:", err);
-      const divHorario = document.getElementById("horario-aulas");
-      divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
-      divHorario.style.display = "block";
+      divHorario.innerHTML = conteudo;
+    } else {
+      divHorario.innerHTML = "<b>Sem horários registrados.</b>";
     }
+
+    divHorario.style.display = "block";
+  } catch (err) {
+    console.error("Erro ao buscar horário:", err);
+    const divHorario = document.getElementById("horario-aulas");
+    divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
+    divHorario.style.display = "block";
   }
+}
 
   const notificacaoEl = document.getElementById("notificacao-mensagem");
   const contadorAulas = document.getElementById("contador-aulas");
