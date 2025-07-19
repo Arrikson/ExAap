@@ -316,14 +316,14 @@
 
     <div class="buttons">
       <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-      <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+      <button onclick="toggleSection('alunos-disponiveis', listarAlunosDisponiveis)">Alunos Disponíveis</button>
       <button onclick="alert('Aulas do Dia')">Aulas do Dia</button>
       <button onclick="alert('Aulas da Semana')">Aulas da Semana</button>
       <button onclick="comecarAula()">Começar Aula</button>
     </div>
 
     <div id="meus-alunos" style="margin-top: 30px; display: none;"></div>
-    <div id="alunos-disponiveis" style="margin-top: 30px; display: none;"></div>
+   <div id="alunos-disponiveis" class="section" style="margin-top: 30px; display: none;"></div>
 
 <!-- NOVO CALENDÁRIO ADICIONADO -->
 <div id="calendarContainer" style="display:none; padding: 20px; margin-top: 20px; background: #111; color: #fff; border-radius: 10px;">
@@ -353,6 +353,19 @@
       fetchFunction();
     }
   }
+
+  function toggleSection(id, callback) {
+  const section = document.getElementById(id);
+  const isVisible = section.style.display === 'block';
+
+  // Oculta todas as seções antes
+  document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+
+  if (!isVisible) {
+    section.style.display = 'block';
+    if (callback) callback(); // chama listarAlunosDisponiveis
+  }
+}
   async function listarAlunosDisponiveis() {
     const emailProfessorLogado = "{{ professor.email }}";
 
