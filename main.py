@@ -219,6 +219,7 @@ async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
                   .where('email', '==', prof_email.strip()).limit(1).stream()
     prof = next(prof_docs, None)
+
     if not prof:
         raise HTTPException(status_code=404, detail='Professor não encontrado')
 
@@ -227,18 +228,28 @@ async def alunos_disponiveis(prof_email: str):
     if not area:
         return []
 
+    # Lista todos os alunos com a disciplina correspondente
     alunos = db.collection('alunos') \
                .where('disciplina', '==', area).stream()
 
     disponiveis = []
     for aluno in alunos:
         aluno_data = aluno.to_dict()
-        nome = aluno_data.get('nome', '').strip()
-        if nome and not vinculo_existe(prof_email.strip(), nome):
+        nome_aluno = aluno_data.get('nome', '').strip()
+
+        if not nome_aluno:
+            continue
+
+        # Verifica se o aluno JÁ ESTÁ na coleção alunos_professor
+        doc_ref = db.collection('alunos_professor').document(nome_aluno)
+        doc = doc_ref.get()
+
+        if not doc.exists:  # Só adiciona se não houver vínculo com nenhum professor
             disponiveis.append({
-                'nome': nome,
+                'nome': nome_aluno,
                 'disciplina': aluno_data.get('disciplina', '').strip()
             })
+
     return disponiveis
 
 @app.get('/meus-alunos/{prof_email}')
