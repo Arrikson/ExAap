@@ -228,7 +228,6 @@ async def alunos_disponiveis(prof_email: str):
     if not area:
         return []
 
-    # Lista todos os alunos com a disciplina correspondente
     alunos = db.collection('alunos') \
                .where('disciplina', '==', area).stream()
 
@@ -240,18 +239,25 @@ async def alunos_disponiveis(prof_email: str):
         if not nome_aluno:
             continue
 
-        # Verifica se o aluno JÁ ESTÁ na coleção alunos_professor
+        # Verifica se o aluno já está vinculado a um professor
         doc_ref = db.collection('alunos_professor').document(nome_aluno)
         doc = doc_ref.get()
 
-        if not doc.exists:
+        if not doc.exists:  # ainda não está vinculado
             disponiveis.append({
                 'nome': nome_aluno,
                 'disciplina': aluno_data.get('disciplina', '').strip()
             })
+        else:
+            dados = doc.to_dict()
+            # Se estiver vinculado, só exibe se estiver sem email de professor (erro ou dado vazio)
+            if not dados.get('email_professor'):
+                disponiveis.append({
+                    'nome': nome_aluno,
+                    'disciplina': aluno_data.get('disciplina', '').strip()
+                })
 
     return disponiveis
-
 
 @app.get('/meus-alunos/{prof_email}')
 async def meus_alunos(prof_email: str):
