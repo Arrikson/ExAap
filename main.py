@@ -214,6 +214,11 @@ async def post_perfil_prof(
     # Redireciona de volta ao perfil com confirmação
     return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
 
+doc_ref = db.collection('alunos_professor').document(nome_aluno)
+doc = doc_ref.get()
+
+if not doc.exists: 
+
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
