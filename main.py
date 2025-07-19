@@ -1748,3 +1748,7 @@ async def calcular_lucro():
         "total_custos": total_custos,
         "lucro": lucro
     }
+
+@app.get("/registro", response_class=HTMLResponse)
+async def exibir_registro(request: Request):
+    return templates.TemplateResponse("registro.html", {"request": request})
