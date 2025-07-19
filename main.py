@@ -1673,3 +1673,78 @@ async def obter_horario(request: Request):
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
+app.get("/registro", response_class=HTMLResponse)
+async def exibir_registro(request: Request):
+    return templates.TemplateResponse("registro.html", {"request": request})
+
+class EntradaItem(BaseModel):
+    nome: str
+    preco: float
+    quantidade: int
+
+class CustoItem(BaseModel):
+    nome: str
+    valor: float
+
+class VendaItem(BaseModel):
+    nome: str
+    preco: float
+    quantidade: int
+
+@app.post("/registrar-entrada")
+async def registrar_entrada(itens: List[EntradaItem]):
+    total = 0
+    for item in itens:
+        subtotal = item.preco * item.quantidade
+        total += subtotal
+        db.collection("entradas").add({
+            "nome": item.nome,
+            "preco": item.preco,
+            "quantidade": item.quantidade,
+            "subtotal": subtotal
+        })
+    return {"status": "sucesso", "total_entrada": total}
+
+@app.post("/registrar-custo")
+async def registrar_custo(custos: List[CustoItem]):
+    total = 0
+    for custo in custos:
+        total += custo.valor
+        db.collection("custos").add({
+            "nome": custo.nome,
+            "valor": custo.valor
+        })
+    return {"status": "sucesso", "total_custos": total}
+
+@app.post("/registrar-venda")
+async def registrar_venda(vendas: List[VendaItem]):
+    total = 0
+    for venda in vendas:
+        subtotal = venda.preco * venda.quantidade
+        total += subtotal
+        db.collection("vendas").add({
+            "nome": venda.nome,
+            "preco": venda.preco,
+            "quantidade": venda.quantidade,
+            "subtotal": subtotal
+        })
+    return {"status": "sucesso", "total_vendas": total}
+
+@app.get("/calcular-lucro")
+async def calcular_lucro():
+    entradas = db.collection("entradas").stream()
+    vendas = db.collection("vendas").stream()
+    custos = db.collection("custos").stream()
+
+    total_entrada = sum(e.to_dict().get("subtotal", 0) for e in entradas)
+    total_venda = sum(v.to_dict().get("subtotal", 0) for v in vendas)
+    total_custos = sum(c.to_dict().get("valor", 0) for c in custos)
+
+    lucro = (total_venda + total_entrada) - total_custos
+    return {
+        "total_entrada": total_entrada,
+        "total_vendas": total_venda,
+        "total_custos": total_custos,
+        "lucro": lucro
+    }
