@@ -353,7 +353,64 @@
       fetchFunction();
     }
   }
+  async function listarAlunosDisponiveis() {
+    const emailProfessorLogado = "{{ professor.email }}";
 
+    try {
+      const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(emailProfessorLogado)}`);
+      const lista = await res.json();
+      const container = document.getElementById('alunos-disponiveis');
+      container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+
+      if (lista.length === 0) {
+        container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+        return;
+      }
+
+      lista.forEach(aluno => {
+        const card = document.createElement('div');
+        card.className = 'aluno-card';
+
+        card.innerHTML = `
+          <strong>${aluno.nome}</strong> - ${aluno.disciplina}
+        `;
+
+        const vincularBtn = document.createElement('button');
+        vincularBtn.textContent = 'Vincular Aluno';
+        vincularBtn.className = 'notificar-btn';
+        vincularBtn.onclick = async () => {
+          try {
+            const response = await fetch("/vincular-aluno", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                aluno: aluno.nome,
+                professor: emailProfessorLogado
+              })
+            });
+
+            const resultado = await response.json();
+            alert(resultado.mensagem || "Aluno vinculado com sucesso!");
+            listarAlunosDisponiveis(); // atualiza lista
+            listarMeusAlunos(); // atualiza lista de vinculados
+          } catch (error) {
+            console.error("Erro ao vincular aluno:", error);
+            alert("Erro ao vincular aluno.");
+          }
+        };
+
+        card.appendChild(vincularBtn);
+        container.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error("Erro ao buscar alunos disponíveis:", error);
+      alert("Erro ao buscar alunos disponíveis.");
+    }
+  }
+  
   async function enviarNotificacao(aluno) {
     try {
       const resposta = await fetch("/ativar-notificacao", {
