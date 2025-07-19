@@ -677,19 +677,6 @@ async function enviarHorario() {
     console.error(e);
   }
 } 
-// INSERIR BOTÃO "HORÁRIO" AO LADO DO "DESVINCULAR"
-const observer = new MutationObserver(() => {
-  document.querySelectorAll('.aluno-card').forEach(card => {
-    if (!card.querySelector('.btn-horario')) {
-      const btn = document.createElement('button');
-      btn.textContent = 'Horário';
-      btn.className = 'btn-horario';
-      btn.style.marginLeft = '10px';
-      btn.onclick = abrirCalendario;
-      const desvincular = card.querySelector('button:nth-of-type(2)');
-      desvincular.insertAdjacentElement('afterend', btn);
-    }
-  });
 });
 observer.observe(document.getElementById('meus-alunos'), { childList: true, subtree: true });
 </script>
