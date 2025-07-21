@@ -3,111 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chamada PeerJS</title>
+  <title>Sala Virtual - Professor</title>
   <style>
-   body {
-  margin: 0;
-  background: #000;
-  font-family: "Roboto", sans-serif;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100vh;
-  padding-top: 20px;
-}
+    body {
+      margin: 0;
+      background: #000;
+      font-family: "Roboto", sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding-top: 20px;
+    }
 
-video {
-  width: 90vw;
-  max-width: 400px;
-  height: 70vh;
-  border-radius: 0px;
-  border: 3px solid #fff;
-  margin-bottom: 12px;
-  object-fit: cover;
-}
+    video {
+      width: 90vw;
+      max-width: 400px;
+      height: 70vh;
+      border-radius: 0px;
+      border: 3px solid #fff;
+      margin-bottom: 12px;
+      object-fit: cover;
+    }
 
-#localVideo {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 120px;
-  height: 90px;
-  border: 2px solid #fff;
-  border-radius: 0px;
-  object-fit: cover;
-}
+    #localVideo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      height: 90px;
+      border: 2px solid #fff;
+      border-radius: 0px;
+      object-fit: cover;
+    }
 
-#info {
-  margin-bottom: 10px;
-  text-align: center;
-  font-size: 16px;
-}
+    #info {
+      margin-bottom: 10px;
+      text-align: center;
+      font-size: 16px;
+    }
 
-#status {
-  margin-bottom: 12px;
-  font-size: 16px;
-}
+    #status {
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
 
-#connectArea {
-  margin-top: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
+    #connectArea {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
 
-input, button {
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  border: none;
-  outline: none;
-}
+    input, button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      border: none;
+      outline: none;
+    }
 
-button {
-  background-color: green;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
+    button {
+      background-color: green;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
 
-button:hover {
-  background-color: darkgreen;
-}
+    button:hover {
+      background-color: darkgreen;
+    }
 
-#retryBtn {
-  background: #e60023;
-  color: white;
-  padding: 8px 20px;
-  font-size: 14px;
-  border-radius: 0px;
-  border: none;
-  cursor: pointer;
-}
+    #chamarAlunoBtn {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      background-color: #1e90ff;
+      color: white;
+      font-weight: bold;
+      padding: 10px 18px;
+      border-radius: 0px;
+    }
 
-#chamarAlunoBtn {
-  position: absolute;
-  left: 20px;
-  bottom: 20px;
-  background-color: #1e90ff;
-  color: white;
-  font-weight: bold;
-  padding: 10px 18px;
-  border-radius: 0px;
-  transition: background-color 0.3s ease;
-}
+    #chamarAlunoBtn:hover {
+      background-color: #0f78d1;
+    }
 
-#chamarAlunoBtn:hover {
-  background-color: #0f78d1;
-}
+    #cronometro {
+      font-size: 26px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div id="info">
     <div><strong>O seu ID:</strong> <span id="myId">Gerando...</span></div>
     <div><strong>Status:</strong> <span id="status">Aguardando conexão...</span></div>
+    <div id="cronometro" style="display: none;">01:00</div>
   </div>
 
   <div>
@@ -117,18 +114,17 @@ button:hover {
 
   <div id="connectArea">
     <input type="text" id="remoteIdInput" placeholder="Cole o ID do outro participante">
-    <button onclick="chamar()">Entrar</button>
+    <button onclick="chamar()">Iniciar Aula</button>
   </div>
 
   <button id="chamarAlunoBtn" onclick="enviarIdAoPerfil()">Chamar o Aluno</button>
 
-  <!-- ✅ Scripts Firebase + PeerJS -->
+  <!-- ✅ Firebase + PeerJS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
   <script>
-    // ✅ Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
       authDomain: "exap-8a935.firebaseapp.com",
@@ -138,7 +134,6 @@ button:hover {
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
 
-    // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
   </script>
 
@@ -147,18 +142,20 @@ button:hover {
     const statusSpan = document.getElementById("status");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
+    const cronometro = document.getElementById("cronometro");
 
     let localStream;
     let peer;
     let currentCall;
     let meuPeerId = "";
+    let tempoRestante = 60; // segundos
 
     async function startCamera() {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
       } catch (err) {
-        alert("Erro ao acessar a câmera e o microfone");
+        alert("Erro ao acessar câmera e microfone");
         console.error(err);
       }
     }
@@ -169,29 +166,36 @@ button:hover {
       peer.on("open", (id) => {
         meuPeerId = id;
         myIdSpan.textContent = id;
-        console.log("📡 Meu ID:", id);
       });
 
       peer.on("call", (call) => {
         statusSpan.textContent = "📞 Recebendo chamada...";
         call.answer(localStream);
-
-        call.on("stream", (remoteStream) => {
-          remoteVideo.srcObject = remoteStream;
-          statusSpan.textContent = "✅ Conectado!";
-        });
-
-        call.on("close", () => {
-          statusSpan.textContent = "🔌 Conexão encerrada.";
-        });
-
-        currentCall = call;
+        handleCallEvents(call);
       });
 
       peer.on("error", (err) => {
         console.error("Erro PeerJS:", err);
         alert("Erro no PeerJS: " + err.message);
       });
+    }
+
+    function handleCallEvents(call) {
+      call.on("stream", (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+        statusSpan.textContent = "✅ Conectado!";
+        iniciarCronometro();
+      });
+
+      call.on("close", () => {
+        statusSpan.textContent = "🔌 Conexão encerrada.";
+      });
+
+      call.on("error", (err) => {
+        console.error("Erro na chamada:", err);
+      });
+
+      currentCall = call;
     }
 
     function chamar() {
@@ -203,52 +207,69 @@ button:hover {
 
       statusSpan.textContent = "🔗 Conectando...";
       const call = peer.call(remoteId, localStream);
-
-      call.on("stream", (remoteStream) => {
-        remoteVideo.srcObject = remoteStream;
-        statusSpan.textContent = "✅ Conectado!";
-      });
-
-      call.on("close", () => {
-        statusSpan.textContent = "🔌 Conexão encerrada.";
-      });
-
-      call.on("error", (err) => {
-        console.error("Erro na chamada:", err);
-        statusSpan.textContent = "Erro na chamada.";
-      });
-
-      currentCall = call;
+      handleCallEvents(call);
     }
 
     function enviarIdAoPerfil() {
       fetch("/enviar-id-aula", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           peer_id: meuPeerId,
-          email: "{{ email }}", // ← vem do backend
-          aluno: "{{ aluno }}"  // ← vem do backend
+          email: "{{ email }}",
+          aluno: "{{ aluno }}"
         })
       })
       .then(res => {
-        if (res.ok) {
-          alert("✅ ID da aula enviado ao perfil do aluno!");
-        } else {
-          alert("⚠️ Erro ao enviar ID.");
-        }
+        if (res.ok) alert("✅ ID da aula enviado!");
+        else alert("⚠️ Erro ao enviar ID.");
       })
       .catch(err => {
-        console.error("Erro ao chamar rota:", err);
+        console.error("Erro:", err);
         alert("Erro ao enviar ID.");
       });
     }
 
-    startCamera().then(() => {
-      initPeer();
-    });
+    function iniciarCronometro() {
+      cronometro.style.display = "block";
+      let intervalo = setInterval(() => {
+        tempoRestante--;
+        let minutos = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+        let segundos = (tempoRestante % 60).toString().padStart(2, '0');
+        cronometro.textContent = `${minutos}:${segundos}`;
+
+        if (tempoRestante <= 0) {
+          clearInterval(intervalo);
+          encerrarChamada();
+        }
+      }, 1000);
+    }
+
+    function encerrarChamada() {
+      if (currentCall) {
+        currentCall.close();
+        remoteVideo.srcObject = null;
+        statusSpan.textContent = "⏱️ Aula encerrada";
+
+        // ✅ Registrar aula no Firebase via FastAPI
+        fetch("/registrar-aula", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            professor: "{{ email }}",
+            aluno: "{{ aluno }}"
+          })
+        }).then(res => {
+          if (res.ok) {
+            console.log("✅ Aula registrada no Firebase");
+          } else {
+            console.warn("⚠️ Aula não registrada");
+          }
+        });
+      }
+    }
+
+    startCamera().then(initPeer);
   </script>
 </body>
 </html>
