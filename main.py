@@ -1648,6 +1648,42 @@ async def guardar_horario(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+from fastapi import Body
+
+@app.post("/registrar-aula")
+async def registrar_aula(data: dict = Body(...)):
+    try:
+        professor = data.get("professor", "").strip()
+        aluno = data.get("aluno", "").strip()
+
+        if not professor or not aluno:
+            raise HTTPException(status_code=400, detail="Dados incompletos")
+
+        # Localiza o vínculo
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", professor) \
+                  .where("aluno", "==", aluno) \
+                  .limit(1).stream()
+
+        doc = next(query, None)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+
+        doc_id = doc.id
+        dados = doc.to_dict()
+        aulas_atual = dados.get("aulas_dadas", 0)
+
+        db.collection("alunos_professor").document(doc_id).update({
+            "aulas_dadas": aulas_atual + 1
+        })
+
+        return {"mensagem": "✅ Aula registrada com sucesso"}
+
+    except Exception as e:
+        print("Erro ao registrar aula:", e)
+        raise HTTPException(status_code=500, detail="Erro ao registrar aula")
+
 @app.get("/teste", response_class=HTMLResponse)
 async def exibir_teste(request: Request):
     return templates.TemplateResponse("teste.html", {"request": request})
