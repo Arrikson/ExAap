@@ -1,91 +1,75 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Conexão com o Professor</title>
   <style>
-   body {
-  margin: 0;
-  background: #000;
-  font-family: "Roboto", sans-serif;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100vh;
-  padding-top: 20px;
-}
+    body {
+      margin: 0;
+      background: #000;
+      font-family: "Roboto", sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding-top: 20px;
+    }
 
-video {
-  width: 90vw;
-  max-width: 400px;
-  height: 70vh;
-  border-radius: 0px;
-  border: 3px solid #fff;
-  margin-bottom: 12px;
-  object-fit: cover;
-}
+    video {
+      width: 90vw;
+      max-width: 400px;
+      height: 70vh;
+      border-radius: 0px;
+      border: 3px solid #fff;
+      margin-bottom: 12px;
+      object-fit: cover;
+    }
 
-#localVideo {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 120px;
-  height: 90px;
-  border: 2px solid #fff;
-  border-radius: 0px;
-}
+    #localVideo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      height: 90px;
+      border: 2px solid #fff;
+      border-radius: 0px;
+    }
 
-#status {
-  margin-bottom: 12px;
-  font-size: 16px;
-}
-
-#retryBtn {
-  background: #e60023;
-  color: white;
-  padding: 8px 20px;
-  font-size: 14px;
-  border-radius: 0px;
-  border: none;
-  cursor: pointer;
-}
+    #status {
+      margin-bottom: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="status">🔎 Buscando chamada do professor...</div>
 
-  <div>
-    <video id="localVideo" autoplay muted playsinline></video>
-    <video id="remoteVideo" autoplay playsinline></video>
-  </div>
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
 
-  <button id="retryBtn" onclick="tentarNovamente()">🔄 Tentar novamente</button>
-
+  <!-- Firebase + PeerJS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
   <script>
-    // ✅ Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
       authDomain: "exap-8a935.firebaseapp.com",
       projectId: "exap-8a935",
-      storageBucket: "exap-8a935.firebasestorage.app",
+      storageBucket: "exap-8a935.appspot.com",
       messagingSenderId: "664710895978",
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
-
-    // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
   </script>
 
   <script>
     const statusEl = document.getElementById("status");
-    const retryBtn = document.getElementById("retryBtn");
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
@@ -99,9 +83,11 @@ video {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        return true;
       } catch (err) {
         console.error("Erro ao acessar a câmera e microfone:", err);
         statusEl.textContent = "❌ Erro ao acessar a câmera/microfone";
+        return false;
       }
     }
 
@@ -170,24 +156,19 @@ video {
           initPeerAndConnect(data.peer_id);
         } else {
           statusEl.textContent = "⚠️ ID do professor não encontrado.";
-          retryBtn.style.display = "inline-block";
         }
       } catch (err) {
         console.error("Erro ao buscar o ID do professor:", err);
         statusEl.textContent = "❌ Erro ao buscar ID.";
-        retryBtn.style.display = "inline-block";
       }
     }
 
-    function tentarNovamente() {
-      statusEl.textContent = "🔄 Tentando novamente...";
-      retryBtn.style.display = "none";
-      buscarPeerIdEDiscar();
-    }
-
-    startCamera().then(() => {
-      verificarPermissaoEConectar();
+    startCamera().then((ok) => {
+      if (ok) {
+        verificarPermissaoEConectar();
+      }
     });
   </script>
 </body>
 </html>
+
