@@ -98,6 +98,18 @@
       color: #fff;
       margin-bottom: 20px;
     }
+
+    #confirmarAulaBtn {
+      display: none;
+      margin-top: 12px;
+      background-color: #ffa500;
+      color: black;
+      font-weight: bold;
+    }
+
+    #confirmarAulaBtn:hover {
+      background-color: #ff8800;
+    }
   </style>
 </head>
 <body>
@@ -118,6 +130,7 @@
   </div>
 
   <button id="chamarAlunoBtn" onclick="enviarIdAoPerfil()">Chamar o Aluno</button>
+  <button id="confirmarAulaBtn" onclick="confirmarAula()">Confirmar aula dada?</button>
 
   <!-- ✅ Firebase + PeerJS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -143,12 +156,14 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     const cronometro = document.getElementById("cronometro");
+    const confirmarAulaBtn = document.getElementById("confirmarAulaBtn");
 
     let localStream;
     let peer;
     let currentCall;
     let meuPeerId = "";
-    let tempoRestante = 60; // segundos
+    let tempoRestante = 60;
+    let intervalo;
 
     async function startCamera() {
       try {
@@ -232,16 +247,20 @@
 
     function iniciarCronometro() {
       cronometro.style.display = "block";
-      let intervalo = setInterval(() => {
+      tempoRestante = 60;
+
+      intervalo = setInterval(() => {
+        if (tempoRestante <= 0) {
+          clearInterval(intervalo);
+          cronometro.textContent = "00:00";
+          encerrarChamada();
+          return;
+        }
+
         tempoRestante--;
         let minutos = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
         let segundos = (tempoRestante % 60).toString().padStart(2, '0');
         cronometro.textContent = `${minutos}:${segundos}`;
-
-        if (tempoRestante <= 0) {
-          clearInterval(intervalo);
-          encerrarChamada();
-        }
       }, 1000);
     }
 
@@ -250,23 +269,29 @@
         currentCall.close();
         remoteVideo.srcObject = null;
         statusSpan.textContent = "⏱️ Aula encerrada";
-
-        // ✅ Registrar aula no Firebase via FastAPI
-        fetch("/registrar-aula", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            professor: "{{ email }}",
-            aluno: "{{ aluno }}"
-          })
-        }).then(res => {
-          if (res.ok) {
-            console.log("✅ Aula registrada no Firebase");
-          } else {
-            console.warn("⚠️ Aula não registrada");
-          }
-        });
+        confirmarAulaBtn.style.display = "block";
       }
+    }
+
+    function confirmarAula() {
+      fetch("/registrar-aula", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor: "{{ email }}",
+          aluno: "{{ aluno }}"
+        })
+      }).then(res => {
+        if (res.ok) {
+          alert("✅ Aula registrada com sucesso!");
+          confirmarAulaBtn.style.display = "none";
+        } else {
+          alert("⚠️ Erro ao registrar aula.");
+        }
+      }).catch(err => {
+        console.error("Erro:", err);
+        alert("Erro ao registrar aula.");
+      });
     }
 
     startCamera().then(initPeer);
