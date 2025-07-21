@@ -1659,26 +1659,29 @@ async def registrar_aula(data: dict = Body(...)):
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
 
-        # Localiza o vínculo
+        # Busca o documento na coleção alunos_professor
         query = db.collection("alunos_professor") \
                   .where("professor", "==", professor) \
                   .where("aluno", "==", aluno) \
                   .limit(1).stream()
 
         doc = next(query, None)
-
         if not doc:
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
-        doc_id = doc.id
-        dados = doc.to_dict()
-        aulas_atual = dados.get("aulas_dadas", 0)
+        doc_ref = db.collection("alunos_professor").document(doc.id)
+        doc_data = doc.to_dict()
 
-        db.collection("alunos_professor").document(doc_id).update({
-            "aulas_dadas": aulas_atual + 1
+        # Se o campo 'aulas_dadas' não existir, começa em 1
+        aulas_anteriores = doc_data.get("aulas_dadas", 0)
+        novas_aulas = aulas_anteriores + 1
+
+        # Atualiza ou cria o campo 'aulas_dadas'
+        doc_ref.update({
+            "aulas_dadas": novas_aulas
         })
 
-        return {"mensagem": "✅ Aula registrada com sucesso"}
+        return {"mensagem": f"✅ Aula registrada com sucesso (total: {novas_aulas})"}
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
