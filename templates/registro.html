@@ -52,8 +52,10 @@
         <input type="number" id="preco-produto" placeholder="Preço unitário (Kz)" />
         <input type="number" id="quantidade-produto" placeholder="Quantidade" />
       </div>
+      <input type="number" id="preco-venda-produto" placeholder="Preço de venda (Kz)" />
       <div class="input-group">
-        <strong>Total: <span id="total-produto">0</span> Kz</strong>
+        <strong>Custo Total: <span id="total-produto">0</span> Kz</strong><br/>
+        <strong>Previsão de Faturamento: <span id="previsao-faturamento">0</span> Kz</strong>
       </div>
     </div>
     <button class="add-btn" onclick="registrarProdutoFirebase()">Registrar</button>
@@ -141,7 +143,7 @@
         <div class="input-group">
           <input type="text" placeholder="Produto" id="venda-produto-${id}" />
           <input type="number" placeholder="Qtd vendida" id="venda-qtd-${id}" />
-          <input type="number" placeholder="Preço unitário" id="venda-preco-${id}" />
+          <input type="number" placeholder="Preço venda" id="venda-preco-${id}" />
           <button class="add-btn" onclick="salvarVenda('${id}')">Adicionar</button>
         </div>
       `;
@@ -153,34 +155,42 @@
       const qtd = parseInt(document.getElementById(`venda-qtd-${id}`).value || 0);
       const preco = parseFloat(document.getElementById(`venda-preco-${id}`).value || 0);
       const total = qtd * preco;
-      vendas.push({ nome, qtd, preco, total });
+      for (let i = 0; i < qtd; i++) {
+        vendas.push({ nome, qtd: 1, preco, total: preco });
+      }
+      const entrada = entradas.find(e => e.nome === nome);
+      if (entrada) entrada.qtd -= qtd;
       atualizarLucro();
     }
 
     function atualizarLucro() {
-      const totalEntradas = entradas.reduce((s, e) => s + e.total, 0);
       const totalVendas = vendas.reduce((s, v) => s + v.total, 0);
-      const totalCustos = custos.reduce((s, c) => s + c.valor, 0);
-      const lucro = (totalVendas + totalEntradas) - totalCustos;
+      const custoProdutosVendidos = vendas.reduce((s, v) => {
+        const entrada = entradas.find(e => e.nome === v.nome);
+        return entrada ? s + entrada.valor : s;
+      }, 0);
+      const lucro = totalVendas - custoProdutosVendidos;
       document.getElementById("lucro-display").textContent = `Lucro: ${lucro.toFixed(2)} Kz`;
     }
 
-    function atualizarTotalProduto() {
+    function atualizarTotais() {
       const preco = parseFloat(document.getElementById("preco-produto").value || 0);
+      const venda = parseFloat(document.getElementById("preco-venda-produto").value || 0);
       const qtd = parseInt(document.getElementById("quantidade-produto").value || 0);
-      const total = preco * qtd;
-      document.getElementById("total-produto").textContent = total.toFixed(2);
+      document.getElementById("total-produto").textContent = (preco * qtd).toFixed(2);
+      document.getElementById("previsao-faturamento").textContent = (venda * qtd).toFixed(2);
     }
 
     async function registrarProdutoFirebase() {
       const nome = document.getElementById("nome-produto-compra").value;
       const preco = parseFloat(document.getElementById("preco-produto").value);
+      const venda = parseFloat(document.getElementById("preco-venda-produto").value);
       const quantidade = parseInt(document.getElementById("quantidade-produto").value);
-      if (!nome || isNaN(preco) || isNaN(quantidade)) return alert("Preencha todos os campos.");
+      if (!nome || isNaN(preco) || isNaN(quantidade) || isNaN(venda)) return alert("Preencha todos os campos.");
       const resposta = await fetch("/registrar-entrada", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([{ nome, preco, quantidade }])
+        body: JSON.stringify([{ nome, preco, preco_venda: venda, quantidade }])
       });
       const dados = await resposta.json();
       alert("Produto registrado com sucesso! Total: " + dados.total_entrada + " Kz");
@@ -193,8 +203,9 @@
       document.getElementById("lucro-display").textContent = `Lucro: ${data.lucro.toFixed(2)} Kz`;
     }
 
-    document.getElementById("preco-produto").addEventListener("input", atualizarTotalProduto);
-    document.getElementById("quantidade-produto").addEventListener("input", atualizarTotalProduto);
+    document.getElementById("preco-produto").addEventListener("input", atualizarTotais);
+    document.getElementById("quantidade-produto").addEventListener("input", atualizarTotais);
+    document.getElementById("preco-venda-produto").addEventListener("input", atualizarTotais);
   </script>
 </body>
 </html>
