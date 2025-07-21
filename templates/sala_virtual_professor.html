@@ -50,48 +50,6 @@
       font-size: 16px;
     }
 
-    #connectArea {
-      margin-top: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    input, button {
-      padding: 10px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      background-color: green;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: darkgreen;
-    }
-
-    #chamarAlunoBtn {
-      position: absolute;
-      left: 20px;
-      bottom: 20px;
-      background-color: #1e90ff;
-      color: white;
-      font-weight: bold;
-      padding: 10px 18px;
-      border-radius: 0px;
-    }
-
-    #chamarAlunoBtn:hover {
-      background-color: #0f78d1;
-    }
-
     #cronometro {
       font-size: 26px;
       font-weight: bold;
@@ -114,6 +72,25 @@
     #confirmarAulaBtn:hover {
       background-color: #ff8800;
     }
+
+    #chamarAlunoBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: green;
+      color: white;
+      font-weight: bold;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #chamarAlunoBtn:hover {
+      background-color: darkgreen;
+    }
   </style>
 </head>
 <body>
@@ -128,13 +105,7 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <div id="connectArea">
-    <input type="text" id="remoteIdInput" placeholder="Cole o ID do outro participante">
-    <button onclick="chamar()">Iniciar Aula</button>
-  </div>
-
   <button id="chamarAlunoBtn" onclick="enviarIdAoPerfil()">Chamar o Aluno</button>
-
   <button id="confirmarAulaBtn" onclick="registrarAula()">Confirmar aula dada?</button>
 
   <!-- Firebase + PeerJS -->
@@ -151,7 +122,6 @@
       messagingSenderId: "664710895978",
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
-
     firebase.initializeApp(firebaseConfig);
   </script>
 
@@ -162,6 +132,7 @@
     const remoteVideo = document.getElementById("remoteVideo");
     const cronometro = document.getElementById("cronometro");
     const confirmarAulaBtn = document.getElementById("confirmarAulaBtn");
+    const chamarAlunoBtn = document.getElementById("chamarAlunoBtn");
 
     let localStream;
     let peer;
@@ -218,19 +189,9 @@
       currentCall = call;
     }
 
-    function chamar() {
-      const remoteId = document.getElementById("remoteIdInput").value.trim();
-      if (!remoteId) {
-        alert("Digite um ID válido!");
-        return;
-      }
-
-      statusSpan.textContent = "🔗 Conectando...";
-      const call = peer.call(remoteId, localStream);
-      handleCallEvents(call);
-    }
-
     function enviarIdAoPerfil() {
+      chamarAlunoBtn.style.display = "none"; // esconde o botão após o clique
+
       fetch("/enviar-id-aula", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -306,5 +267,4 @@
   </script>
 </body>
 </html>
-
 
