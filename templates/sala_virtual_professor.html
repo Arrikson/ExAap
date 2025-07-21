@@ -101,10 +101,14 @@
 
     #confirmarAulaBtn {
       display: none;
-      margin-top: 12px;
+      margin-top: 16px;
       background-color: #ffa500;
       color: black;
       font-weight: bold;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     #confirmarAulaBtn:hover {
@@ -130,9 +134,10 @@
   </div>
 
   <button id="chamarAlunoBtn" onclick="enviarIdAoPerfil()">Chamar o Aluno</button>
-  <button id="confirmarAulaBtn" onclick="confirmarAula()">Confirmar aula dada?</button>
 
-  <!-- ✅ Firebase + PeerJS -->
+  <button id="confirmarAulaBtn" onclick="registrarAula()">Confirmar aula dada?</button>
+
+  <!-- Firebase + PeerJS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -142,7 +147,7 @@
       apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
       authDomain: "exap-8a935.firebaseapp.com",
       projectId: "exap-8a935",
-      storageBucket: "exap-8a935.firebasestorage.app",
+      storageBucket: "exap-8a935.appspot.com",
       messagingSenderId: "664710895978",
       appId: "1:664710895978:web:304790f37d7561d9b1ed13"
     };
@@ -269,11 +274,12 @@
         currentCall.close();
         remoteVideo.srcObject = null;
         statusSpan.textContent = "⏱️ Aula encerrada";
-        confirmarAulaBtn.style.display = "block";
       }
+
+      confirmarAulaBtn.style.display = "inline-block";
     }
 
-    function confirmarAula() {
+    function registrarAula() {
       fetch("/registrar-aula", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,16 +287,18 @@
           professor: "{{ email }}",
           aluno: "{{ aluno }}"
         })
-      }).then(res => {
+      })
+      .then(res => {
         if (res.ok) {
           alert("✅ Aula registrada com sucesso!");
           confirmarAulaBtn.style.display = "none";
         } else {
-          alert("⚠️ Erro ao registrar aula.");
+          alert("⚠️ Falha ao registrar aula.");
         }
-      }).catch(err => {
-        console.error("Erro:", err);
-        alert("Erro ao registrar aula.");
+      })
+      .catch(err => {
+        console.error("Erro ao registrar aula:", err);
+        alert("Erro de conexão ao registrar aula.");
       });
     }
 
@@ -298,3 +306,5 @@
   </script>
 </body>
 </html>
+
+
