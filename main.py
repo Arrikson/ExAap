@@ -94,7 +94,7 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
     
 
-class VinculoIn(BaseModel):
+class VinculoIn(BaseModel): 
     professor_email: str
     aluno_nome: str
 
@@ -129,7 +129,8 @@ async def vincular_aluno(item: VinculoIn):
             'dados_aluno': dados_aluno,
             'vinculado_em': datetime.now(timezone.utc).isoformat(),
             'online': True,
-            'notificacao': False  # ✅ Novo campo adicionado aqui
+            'notificacao': False,
+            'aulas_dadas': 0   # ✅ Novo campo adicionado aqui para rastrear as aulas
         })
 
         return {'message': 'Vínculo criado com sucesso'}
@@ -142,7 +143,6 @@ async def vincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
-
 
 @app.post('/desvincular-aluno')
 async def desvincular_aluno(item: VinculoIn):
