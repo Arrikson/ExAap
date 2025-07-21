@@ -1674,10 +1674,6 @@ async def obter_horario(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
-app.get("/registro", response_class=HTMLResponse)
-async def exibir_registro(request: Request):
-    return templates.TemplateResponse("registro.html", {"request": request})
-
 class EntradaItem(BaseModel):
     nome: str
     preco: float
@@ -1689,23 +1685,50 @@ class CustoItem(BaseModel):
 
 class VendaItem(BaseModel):
     nome: str
-    preco: float
+    preco: float  # Preço de venda
     quantidade: int
 
+# ROTA HTML
+@app.get("/registro", response_class=HTMLResponse)
+async def exibir_registro(request: Request):
+    return templates.TemplateResponse("registro.html", {"request": request})
+
+# ENTRADA DE PRODUTOS
 @app.post("/registrar-entrada")
 async def registrar_entrada(itens: List[EntradaItem]):
     total = 0
     for item in itens:
         subtotal = item.preco * item.quantidade
         total += subtotal
+
+        # Verificar se o produto já existe
+        produtos = db.collection("estoque").where("nome", "==", item.nome).limit(1).stream()
+        produto_existente = next(produtos, None)
+
+        if produto_existente:
+            dados = produto_existente.to_dict()
+            nova_qtd = dados["quantidade"] + item.quantidade
+            db.collection("estoque").document(produto_existente.id).update({
+                "quantidade": nova_qtd,
+                "preco": item.preco  # Atualiza preço de custo se for diferente
+            })
+        else:
+            db.collection("estoque").add({
+                "nome": item.nome,
+                "preco": item.preco,
+                "quantidade": item.quantidade
+            })
+
         db.collection("entradas").add({
             "nome": item.nome,
             "preco": item.preco,
             "quantidade": item.quantidade,
             "subtotal": subtotal
         })
+
     return {"status": "sucesso", "total_entrada": total}
 
+# CUSTOS OPERACIONAIS
 @app.post("/registrar-custo")
 async def registrar_custo(custos: List[CustoItem]):
     total = 0
@@ -1717,20 +1740,52 @@ async def registrar_custo(custos: List[CustoItem]):
         })
     return {"status": "sucesso", "total_custos": total}
 
+# VENDA DE PRODUTOS
 @app.post("/registrar-venda")
 async def registrar_venda(vendas: List[VendaItem]):
-    total = 0
+    total_lucro = 0
+    total_vendas = 0
+
     for venda in vendas:
-        subtotal = venda.preco * venda.quantidade
-        total += subtotal
+        produto_ref = db.collection("estoque").where("nome", "==", venda.nome).limit(1).stream()
+        produto = next(produto_ref, None)
+
+        if not produto:
+            return JSONResponse(status_code=404, content={"erro": f"Produto '{venda.nome}' não encontrado no estoque."})
+
+        dados = produto.to_dict()
+        preco_compra = dados["preco"]
+        qtd_estoque = dados["quantidade"]
+
+        if venda.quantidade > qtd_estoque:
+            return JSONResponse(status_code=400, content={"erro": f"Quantidade insuficiente para o produto '{venda.nome}'."})
+
+        lucro_unitario = venda.preco - preco_compra
+        lucro_total = lucro_unitario * venda.quantidade
+        total_lucro += lucro_total
+        total_vendas += venda.preco * venda.quantidade
+
+        # Subtrair do estoque
+        nova_qtd = qtd_estoque - venda.quantidade
+        db.collection("estoque").document(produto.id).update({
+            "quantidade": nova_qtd
+        })
+
+        # Registrar venda
         db.collection("vendas").add({
             "nome": venda.nome,
-            "preco": venda.preco,
+            "preco_venda": venda.preco,
             "quantidade": venda.quantidade,
-            "subtotal": subtotal
+            "lucro_total": lucro_total
         })
-    return {"status": "sucesso", "total_vendas": total}
 
+    return {
+        "status": "sucesso",
+        "total_vendas": total_vendas,
+        "lucro_total": total_lucro
+    }
+
+# LUCRO GERAL
 @app.get("/calcular-lucro")
 async def calcular_lucro():
     entradas = db.collection("entradas").stream()
@@ -1738,17 +1793,16 @@ async def calcular_lucro():
     custos = db.collection("custos").stream()
 
     total_entrada = sum(e.to_dict().get("subtotal", 0) for e in entradas)
-    total_venda = sum(v.to_dict().get("subtotal", 0) for v in vendas)
+    total_venda = sum(v.to_dict().get("preco_venda", 0) * v.to_dict().get("quantidade", 0) for v in vendas)
+    total_lucro = sum(v.to_dict().get("lucro_total", 0) for v in vendas)
     total_custos = sum(c.to_dict().get("valor", 0) for c in custos)
 
-    lucro = (total_venda + total_entrada) - total_custos
+    lucro_liquido = total_lucro - total_custos
+
     return {
         "total_entrada": total_entrada,
         "total_vendas": total_venda,
+        "total_lucro_bruto": total_lucro,
         "total_custos": total_custos,
-        "lucro": lucro
+        "lucro_liquido": lucro_liquido
     }
-
-@app.get("/registro", response_class=HTMLResponse)
-async def exibir_registro(request: Request):
-    return templates.TemplateResponse("registro.html", {"request": request})
