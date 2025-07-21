@@ -20,52 +20,17 @@
     .flex { display: flex; gap: 10px; align-items: center; }
     .total { font-weight: bold; font-size: 18px; color: green; text-align: center; }
     @media (max-width: 768px) {
-  .tabs {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .flex {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .input-group input, .input-group textarea {
-    font-size: 16px;
-  }
-
-  .tab-btn {
-    width: 100%;
-    font-size: 16px;
-  }
-
-  .add-btn {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .add-field {
-    display: inline-block;
-    font-size: 24px;
-    margin-top: 10px;
-  }
-
-  h1 {
-    font-size: 22px;
-  }
-
-  .total {
-    font-size: 20px;
-  }
-
-  body {
-    margin: 10px;
-  }
-
-  .section {
-    padding: 10px;
-  }
-}
+      .tabs { flex-direction: column; gap: 5px; }
+      .flex { flex-direction: column; align-items: stretch; }
+      .input-group input, .input-group textarea { font-size: 16px; }
+      .tab-btn { width: 100%; font-size: 16px; }
+      .add-btn { width: 100%; margin-top: 10px; }
+      .add-field { display: inline-block; font-size: 24px; margin-top: 10px; }
+      h1 { font-size: 22px; }
+      .total { font-size: 20px; }
+      body { margin: 10px; }
+      .section { padding: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -76,6 +41,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="mostrarSecao('entrada')">Entrada</button>
     <button class="tab-btn" onclick="mostrarSecao('saida')">Saída</button>
+    <button class="tab-btn" onclick="mostrarSecao('vendas')">Vendas</button>
   </div>
 
   <div id="entrada" class="section active">
@@ -90,6 +56,7 @@
         <strong>Total: <span id="total-produto">0</span> Kz</strong>
       </div>
     </div>
+    <button class="add-btn" onclick="registrarProdutoFirebase()">Registrar</button>
     <span class="add-field" onclick="adicionarEntradaExtra()">➕</span>
     <div id="entradas-extra"></div>
   </div>
@@ -194,20 +161,40 @@
       const totalEntradas = entradas.reduce((s, e) => s + e.total, 0);
       const totalVendas = vendas.reduce((s, v) => s + v.total, 0);
       const totalCustos = custos.reduce((s, c) => s + c.valor, 0);
-
       const lucro = (totalVendas + totalEntradas) - totalCustos;
       document.getElementById("lucro-display").textContent = `Lucro: ${lucro.toFixed(2)} Kz`;
     }
 
-    // Atualiza total do produto comprado automaticamente
-    document.getElementById("preco-produto").addEventListener("input", atualizarTotalProduto);
-    document.getElementById("quantidade-produto").addEventListener("input", atualizarTotalProduto);
     function atualizarTotalProduto() {
       const preco = parseFloat(document.getElementById("preco-produto").value || 0);
       const qtd = parseInt(document.getElementById("quantidade-produto").value || 0);
       const total = preco * qtd;
       document.getElementById("total-produto").textContent = total.toFixed(2);
     }
+
+    async function registrarProdutoFirebase() {
+      const nome = document.getElementById("nome-produto-compra").value;
+      const preco = parseFloat(document.getElementById("preco-produto").value);
+      const quantidade = parseInt(document.getElementById("quantidade-produto").value);
+      if (!nome || isNaN(preco) || isNaN(quantidade)) return alert("Preencha todos os campos.");
+      const resposta = await fetch("/registrar-entrada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([{ nome, preco, quantidade }])
+      });
+      const dados = await resposta.json();
+      alert("Produto registrado com sucesso! Total: " + dados.total_entrada + " Kz");
+      atualizarLucroFirebase();
+    }
+
+    async function atualizarLucroFirebase() {
+      const res = await fetch("/calcular-lucro");
+      const data = await res.json();
+      document.getElementById("lucro-display").textContent = `Lucro: ${data.lucro.toFixed(2)} Kz`;
+    }
+
+    document.getElementById("preco-produto").addEventListener("input", atualizarTotalProduto);
+    document.getElementById("quantidade-produto").addEventListener("input", atualizarTotalProduto);
   </script>
 </body>
 </html>
