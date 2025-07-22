@@ -664,20 +664,44 @@ async def exibir_login(request: Request, sucesso: int = 0):
 @app.post("/login")
 async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
     db = firestore.client()
+    
+    # Normalização dos dados para evitar erros de comparação
+    nome_normalizado = nome.strip().lower()
+    senha_normalizada = senha.strip()
+
     alunos_ref = db.collection("alunos")
-    query = alunos_ref.where("nome", "==", nome).where("senha", "==", senha).stream()
+    
+    try:
+        # Corrigido: nome e senha normalizados para busca correta
+        query = alunos_ref \
+            .where("nome", "==", nome_normalizado) \
+            .where("senha", "==", senha_normalizada) \
+            .stream()
 
-    for aluno in query:
-        # Aluno encontrado – atualizar status para online
-        aluno.reference.update({"online": True})
-        return RedirectResponse(url=f"/perfil/{nome}", status_code=HTTP_303_SEE_OTHER)
+        aluno_doc = next(query, None)
 
-    # Nenhum aluno encontrado
-    return templates.TemplateResponse("login.html", {
-        "request": request,
-        "erro": "Nome de usuário ou senha inválidos",
-        "sucesso": 0
-    })
+        if aluno_doc:
+            # Atualiza status para online
+            aluno_doc.reference.update({"online": True})
+
+            # Redireciona para o perfil
+            return RedirectResponse(url=f"/perfil/{nome_normalizado}", status_code=HTTP_303_SEE_OTHER)
+
+        # Se não encontrado, retorna erro
+        return templates.TemplateResponse("login.html", {
+            "request": request,
+            "erro": "Nome de usuário ou senha inválidos",
+            "sucesso": 0
+        })
+
+    except Exception as e:
+        print("Erro ao tentar fazer login:", e)
+        return templates.TemplateResponse("login.html", {
+            "request": request,
+            "erro": "Erro interno ao tentar fazer login.",
+            "sucesso": 0
+        })
+
 
 from starlette.status import HTTP_303_SEE_OTHER
 
