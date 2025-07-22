@@ -22,7 +22,6 @@
       width: 90vw;
       max-width: 400px;
       height: 70vh;
-      border-radius: 0px;
       border: 3px solid #fff;
       margin-bottom: 12px;
       object-fit: cover;
@@ -35,8 +34,6 @@
       width: 120px;
       height: 90px;
       border: 2px solid #fff;
-      border-radius: 0px;
-      object-fit: cover;
     }
 
     #info {
@@ -67,6 +64,7 @@
       border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
+      border: none;
     }
 
     #confirmarAulaBtn:hover {
@@ -134,6 +132,9 @@
     const confirmarAulaBtn = document.getElementById("confirmarAulaBtn");
     const chamarAlunoBtn = document.getElementById("chamarAlunoBtn");
 
+    const email = "{{ email }}";
+    const aluno = "{{ aluno }}";
+
     let localStream;
     let peer;
     let currentCall;
@@ -180,25 +181,27 @@
 
       call.on("close", () => {
         statusSpan.textContent = "🔌 Conexão encerrada.";
+        confirmarAulaBtn.style.display = "inline-block"; // Garante visibilidade
       });
 
       call.on("error", (err) => {
         console.error("Erro na chamada:", err);
+        confirmarAulaBtn.style.display = "inline-block";
       });
 
       currentCall = call;
     }
 
     function enviarIdAoPerfil() {
-      chamarAlunoBtn.style.display = "none"; // esconde o botão após o clique
+      chamarAlunoBtn.style.display = "none";
 
       fetch("/enviar-id-aula", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           peer_id: meuPeerId,
-          email: "{{ email }}",
-          aluno: "{{ aluno }}"
+          email: email.trim().toLowerCase(),
+          aluno: aluno.trim().toLowerCase()
         })
       })
       .then(res => {
@@ -237,6 +240,7 @@
         statusSpan.textContent = "⏱️ Aula encerrada";
       }
 
+      // Mostrar botão após fim da chamada
       confirmarAulaBtn.style.display = "inline-block";
     }
 
@@ -245,8 +249,8 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          professor: "{{ email }}",
-          aluno: "{{ aluno }}"
+          professor: email.trim().toLowerCase(),
+          aluno: aluno.trim().toLowerCase()
         })
       })
       .then(res => {
@@ -267,4 +271,3 @@
   </script>
 </body>
 </html>
-
