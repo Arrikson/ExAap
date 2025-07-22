@@ -100,84 +100,42 @@ class VinculoIn(BaseModel):
 
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
     docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip().lower()) \
-             .where('aluno', '==', aluno_nome.strip().lower()) \
+             .where(field_path="professor", op_string=="==", value=prof_email.strip().lower()) \
+             .where(field_path="aluno", op_string=="==", value=aluno_nome.strip().lower()) \
              .limit(1).stream()
     return next(docs, None) is not None
 
 @app.post('/vincular-aluno', status_code=201)
 async def vincular_aluno(item: VinculoIn):
-    try:
-        aluno_nome_normalizado = item.aluno_nome.strip().lower()
-        professor_email_normalizado = item.professor_email.strip().lower()
+    prof = item.professor_email.strip().lower()
+    aluno_nome = item.aluno_nome.strip().lower()
 
-        if vinculo_existe(professor_email_normalizado, aluno_nome_normalizado):
-            raise HTTPException(status_code=409, detail='Vínculo já existe')
+    if vinculo_existe(prof, aluno_nome):
+        raise HTTPException(status_code=409, detail="Vínculo já existe")
 
-        # 🔍 Busca aluno com nome normalizado
-        aluno_docs = db.collection('alunos') \
-                       .where('nome', '==', aluno_nome_normalizado) \
-                       .limit(1).stream()
-        aluno_doc = next(aluno_docs, None)
+    aluno_docs = db.collection("alunos") \
+                   .where(field_path="nome", op_string=="==", value=aluno_nome) \
+                   .limit(1).stream()
+    aluno_doc = next(aluno_docs, None)
 
-        if not aluno_doc:
-            raise HTTPException(status_code=404, detail='Aluno não encontrado')
+    if not aluno_doc:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-        dados_aluno = aluno_doc.to_dict()
-        for campo in ['senha', 'telefone', 'localizacao']:
-            dados_aluno.pop(campo, None)
+    dados_aluno = aluno_doc.to_dict()
+    for campo in ['senha', 'telefone', 'localizacao']:
+        dados_aluno.pop(campo, None)
 
-        # ✅ Criação do vínculo com campos adicionais
-        db.collection('alunos_professor').add({
-            'professor': professor_email_normalizado,
-            'aluno': aluno_nome_normalizado,
-            'dados_aluno': dados_aluno,
-            'vinculado_em': datetime.now(timezone.utc).isoformat(),
-            'online': True,
-            'notificacao': False,
-            'aulas_dadas': 0  # Campo necessário para rastrear aulas
-        })
+    db.collection('alunos_professor').add({
+        'professor': prof,
+        'aluno': aluno_nome,
+        'dados_aluno': dados_aluno,
+        'vinculado_em': datetime.now(timezone.utc).isoformat(),
+        'online': True,
+        'notificacao': False,
+        'aulas_dadas': 0
+    })
 
-        return {'message': 'Vínculo criado com sucesso'}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        print('Erro interno ao vincular aluno:', e)
-        return JSONResponse(
-            status_code=500,
-            content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
-        )
-
-@app.post('/desvincular-aluno')
-async def desvincular_aluno(item: VinculoIn):
-    try:
-        aluno_nome_normalizado = item.aluno_nome.strip().lower()
-        professor_email_normalizado = item.professor_email.strip().lower()
-
-        docs = db.collection('alunos_professor') \
-                 .where('professor', '==', professor_email_normalizado) \
-                 .where('aluno', '==', aluno_nome_normalizado) \
-                 .stream()
-
-        encontrados = list(docs)
-
-        if not encontrados:
-            raise HTTPException(status_code=404, detail='Vínculo não encontrado')
-
-        for doc in encontrados:
-            doc.reference.delete()
-
-        return {'message': 'Vínculo removido com sucesso'}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        print('Erro interno ao desvincular aluno:', e)
-        return JSONResponse(
-            status_code=500,
-            content={'detail': 'Erro interno ao remover vínculo. Tente novamente.'}
-        )
+    return {"message": "Vínculo criado com sucesso"}
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
@@ -670,44 +628,23 @@ async def exibir_login(request: Request, sucesso: int = 0):
 
 @app.post("/login")
 async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
-    db = firestore.client()
-    
-    # Normalização dos dados para evitar erros de comparação
-    nome_normalizado = nome.strip().lower()
-    senha_normalizada = senha.strip()
-
     alunos_ref = db.collection("alunos")
-    
-    try:
-        # Corrigido: nome e senha normalizados para busca correta
-        query = alunos_ref \
-            .where("nome", "==", nome_normalizado) \
-            .where("senha", "==", senha_normalizada) \
-            .stream()
+    nome_normalizado = nome.strip().lower()
+    senha_normalizada = senha.strip().lower()
 
-        aluno_doc = next(query, None)
+    query = alunos_ref.where(field_path="nome", op_string=="==", value=nome_normalizado) \
+                      .where(field_path="senha", op_string=="==", value=senha_normalizada)
+    docs = query.stream()
 
-        if aluno_doc:
-            # Atualiza status para online
-            aluno_doc.reference.update({"online": True})
+    for aluno in docs:
+        aluno.reference.update({"online": True})
+        return RedirectResponse(url=f"/perfil/{nome_normalizado}", status_code=303)
 
-            # Redireciona para o perfil
-            return RedirectResponse(url=f"/perfil/{nome_normalizado}", status_code=HTTP_303_SEE_OTHER)
-
-        # Se não encontrado, retorna erro
-        return templates.TemplateResponse("login.html", {
-            "request": request,
-            "erro": "Nome de usuário ou senha inválidos",
-            "sucesso": 0
-        })
-
-    except Exception as e:
-        print("Erro ao tentar fazer login:", e)
-        return templates.TemplateResponse("login.html", {
-            "request": request,
-            "erro": "Erro interno ao tentar fazer login.",
-            "sucesso": 0
-        })
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "erro": "Nome de usuário ou senha inválidos",
+        "sucesso": 0
+    })
 
 
 from starlette.status import HTTP_303_SEE_OTHER
