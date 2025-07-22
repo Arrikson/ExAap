@@ -148,7 +148,7 @@
     <h1>{{ aluno.nome }}</h1>
     <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
     <div class="btn-grid">
-      <button class="notificar-btn" onclick="toggle('sec-aula')">📚 Ver Aulas</button>
+      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
       <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
       <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
       <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
@@ -157,8 +157,8 @@
     </div>
 
     <div id="sec-aula" class="info">
-      <p>Já teve: 20</p>
-      <p>Faltam: 4</p>
+      <p id="aulas-dadas"></p>
+      <p id="aulas-restantes"></p>
     </div>
 
     <div id="sec-nivel" class="info">
@@ -266,7 +266,39 @@
     divHorario.style.display = "block";
   }
 };
-    
+
+window.toggleAulas = async function () {
+  const div = document.getElementById("sec-aula");
+  const aulasDadas = document.getElementById("aulas-dadas");
+  const aulasRestantes = document.getElementById("aulas-restantes");
+
+  if (div.style.display === "block") {
+    div.style.display = "none";
+    return;
+  }
+
+  try {
+    const response = await fetch("/ver-aulas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+
+    const data = await response.json();
+    if (data.sucesso) {
+      aulasDadas.textContent = `Já teve: ${data.aulas_dadas}`;
+      aulasRestantes.textContent = `Faltam: ${data.restantes}`;
+    } else {
+      aulasDadas.textContent = "Erro ao carregar as aulas.";
+      aulasRestantes.textContent = "";
+    }
+  } catch (err) {
+    aulasDadas.textContent = "Erro ao buscar dados.";
+    aulasRestantes.textContent = "";
+  }
+
+  div.style.display = "block";
+};    
     window.toggleProfessor = function () {
       const container = document.getElementById("professor-nome");
       if (container.style.display === "block") {
