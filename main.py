@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROFESSORES_JSON = os.path.join(BASE_DIR, "professores.json")
 ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
@@ -694,14 +695,23 @@ async def perfil(request: Request, nome: str):
         "aluno": aluno,
     })
 
+from slugify import slugify
+
+
+def slug(texto):
+    return slugify(texto.strip().lower())
+
+
 def professor_possui_alunos(prof_email: str) -> bool:
+    prof_email = prof_email.strip().lower()
     docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip()) \
+             .where('professor', '==', prof_email) \
              .limit(1).stream()
     return next(docs, None) is not None
 
-# ✅ Função para buscar o professor por e-mail
+
 def buscar_professor_por_email(email: str):
+    email = email.strip().lower()
     professores = db.collection("professores_online2") \
                     .where("email", "==", email) \
                     .limit(1).stream()
@@ -709,7 +719,17 @@ def buscar_professor_por_email(email: str):
         return prof.to_dict()
     return None
 
-from slugify import slugify  # Certifique-se de que este módulo está instalado
+# ✅ Verifica se o vínculo entre aluno e professor existe
+def vinculo_existe(prof_email: str, aluno_nome: str) -> Optional[dict]:
+    prof_email = prof_email.strip().lower()
+    aluno_nome = aluno_nome.strip().lower()
+
+    docs = db.collection("alunos_professor") \
+             .where("professor", "==", prof_email) \
+             .where("aluno", "==", aluno_nome) \
+             .limit(1).stream()
+    return next(docs, None)
+
 
 @app.get("/sala_virtual_professor", response_class=HTMLResponse)
 async def get_sala_virtual_professor(
@@ -721,6 +741,9 @@ async def get_sala_virtual_professor(
         return HTMLResponse("<h2 style='color:red'>Erro: email não fornecido na URL.</h2>", status_code=400)
 
     try:
+        email = email.strip().lower()
+        aluno_formatado = aluno.strip().lower().replace(" ", "_") if aluno else None
+
         # 🔍 Busca o documento do professor
         doc_ref = db.collection("professores_online2").document(email)
         doc = doc_ref.get()
@@ -732,16 +755,11 @@ async def get_sala_virtual_professor(
 
         # 🧪 Valida vínculo com o aluno, se fornecido
         if aluno:
-            vinculo = vinculo_existe(email, aluno)
-            if not vinculo:
+            if not vinculo_existe(email, aluno):
                 return HTMLResponse(
                     "<h2 style='color:red'>Vínculo entre professor e aluno não encontrado.</h2>",
                     status_code=403
                 )
-
-        # 🔑 Gera sala_id padronizado
-        def slug(texto):
-            return slugify(texto)
 
         sala_id = f"{slug(email)}-{slug(aluno)}" if aluno else slug(email)
 
@@ -750,7 +768,7 @@ async def get_sala_virtual_professor(
             "email": email,
             "aluno": aluno,
             "professor": professor,
-            "sala_id": sala_id  # ← sala usada para conexão PeerJS
+            "sala_id": sala_id
         })
 
     except Exception as e:
@@ -766,6 +784,9 @@ async def get_sala_virtual_aluno(
     if not email or not aluno:
         return HTMLResponse("<h2 style='color:red'>Erro: Parâmetros faltando.</h2>", status_code=400)
 
+    email = email.strip().lower()
+    aluno = aluno.strip().lower()
+
     aluno_data = vinculo_existe(email, aluno)
     if not aluno_data:
         return HTMLResponse("<h2 style='color:red'>Aluno não encontrado ou não vinculado ao professor.</h2>", status_code=404)
@@ -774,12 +795,12 @@ async def get_sala_virtual_aluno(
     if not professor:
         return HTMLResponse("<h2 style='color:red'>Professor não encontrado.</h2>", status_code=404)
 
-    # 🔁 Envia apenas os nomes normalizados necessários para a conexão
     return templates.TemplateResponse("sala_virtual_aluno.html", {
         "request": request,
-        "aluno": aluno.strip(),
-        "professor": email.strip()
+        "aluno": aluno,
+        "professor": email
     })
+
 
 @app.get("/sala_virtual_aluno/{sala}")
 async def redirecionar_para_sala_aluno(sala: str):
