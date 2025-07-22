@@ -1819,7 +1819,7 @@ async def ver_aulas(request: Request):
         if not nome_aluno:
             return JSONResponse(content={"erro": "Nome do aluno ausente"}, status_code=400)
 
-        db_firestore = firestore.client()
+        db_firestore = firestore.Client()
         doc_ref = db_firestore.collection("alunos_professor").document(nome_aluno)
         doc = doc_ref.get()
 
@@ -1827,18 +1827,13 @@ async def ver_aulas(request: Request):
             return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
 
         dados_aluno = doc.to_dict()
-        aulas_dadas = dados_aluno.get("aulas_dadas", 0)
-        total_aulas = dados_aluno.get("total_aulas", 24)  # valor padrão
-        restantes = max(0, total_aulas - aulas_dadas)
+        aulas_dadas_lista = dados_aluno.get("lista_aulas", [])  # Supondo que seja uma lista de dicionários com data e horário
 
-        return JSONResponse(content={
-            "sucesso": True,
-            "aulas_dadas": aulas_dadas,
-            "restantes": restantes
-        })
+        return JSONResponse(content=aulas_dadas_lista)
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+        
 
 class EntradaItem(BaseModel):
     nome: str
