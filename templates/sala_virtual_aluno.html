@@ -17,6 +17,7 @@
       height: 100vh;
       padding-top: 20px;
     }
+
     video {
       width: 90vw;
       max-width: 400px;
@@ -26,6 +27,7 @@
       margin-bottom: 12px;
       object-fit: cover;
     }
+
     #localVideo {
       position: absolute;
       bottom: 20px;
@@ -35,6 +37,7 @@
       border: 2px solid #fff;
       border-radius: 0px;
     }
+
     #status {
       margin-bottom: 12px;
       font-size: 16px;
@@ -48,6 +51,7 @@
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay muted playsinline></video>
 
+  <!-- Firebase + PeerJS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -69,13 +73,8 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
 
-    // Dados vindos do servidor (Jinja2)
-    const alunoOriginal = "{{ aluno }}";
-    const professorOriginal = "{{ professor }}";
-
-    // Normalização
-    const aluno = alunoOriginal.trim().toLowerCase();
-    const professor = professorOriginal.trim().toLowerCase();
+    const aluno = "{{ aluno }}";
+    const professor = "{{ professor }}";
 
     let peer;
     let localStream;
@@ -149,7 +148,7 @@
 
     async function buscarPeerIdEDiscar() {
       try {
-        const alunoNormalizado = aluno.replace(/\s+/g, "_");
+        const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
         const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
         const data = await res.json();
 
