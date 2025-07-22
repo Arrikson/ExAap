@@ -1361,63 +1361,84 @@ class NotificacaoRequest(BaseModel):
 @app.post("/ativar-notificacao")
 async def ativar_notificacao(data: NotificacaoRequest):
     try:
-        aluno_nome = data.aluno
+        aluno_nome = data.aluno.strip().lower()
 
         # Buscar o documento do aluno na coleção alunos_professor
-        docs = db.collection("alunos_professor").where("aluno", "==", aluno_nome).limit(1).stream()
+        docs = db.collection("alunos_professor") \
+                 .where("aluno", "==", aluno_nome) \
+                 .limit(1).stream()
         doc = next(docs, None)
 
         if not doc:
-            return {"msg": f"Aluno '{aluno_nome}' não encontrado."}
+            return JSONResponse(
+                content={"msg": f"Aluno '{aluno_nome}' não encontrado."},
+                status_code=404
+            )
 
         db.collection("alunos_professor").document(doc.id).update({"notificacao": True})
         return {"msg": f"Notificação ativada para o aluno '{aluno_nome}'."}
+
     except Exception as e:
-        return {"msg": f"Erro ao ativar notificação: {str(e)}"}
+        return JSONResponse(
+            content={"msg": f"Erro ao ativar notificação: {str(e)}"},
+            status_code=500
+        )
+
 
 class AlunoInfo(BaseModel):
     aluno: str
 
 @app.post("/desativar-notificacao")
 async def desativar_notificacao(info: AlunoInfo):
-    aluno = info.aluno
-    query_ref = db.collection("alunos_professor").where("aluno", "==", aluno).limit(1)
-    docs = query_ref.stream()
-    for doc in docs:
+    try:
+        aluno = info.aluno.strip().lower()
+
+        docs = db.collection("alunos_professor") \
+                 .where("aluno", "==", aluno) \
+                 .limit(1).stream()
+
+        doc = next(docs, None)
+
+        if not doc:
+            return JSONResponse(
+                content={"status": "erro", "mensagem": "Aluno não encontrado"},
+                status_code=404
+            )
+
         doc.reference.update({"notificacao": False})
         return {"status": "ok", "mensagem": "Notificação desativada"}
-    return {"status": "erro", "mensagem": "Aluno não encontrado"}
-    
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": "erro", "mensagem": f"Erro ao desativar notificação: {str(e)}"},
+            status_code=500
+        )
+
 
 @app.post("/verificar-notificacao")
 async def verificar_notificacao(request: Request):
-    dados = await request.json()
-    nome_aluno = dados.get("aluno")
-
-    if not nome_aluno:
-        return JSONResponse(content={"erro": "Nome do aluno não fornecido"}, status_code=400)
-
-    db_firestore = firestore.client()
-
     try:
-        query = (
-            db_firestore.collection("alunos_professor")
-            .where("aluno", "==", nome_aluno)
-            .limit(1)
-            .get()
-        )
+        dados = await request.json()
+        nome_aluno = str(dados.get("aluno", "")).strip().lower()
 
-        if not query:
+        if not nome_aluno:
+            return JSONResponse(content={"erro": "Nome do aluno não fornecido"}, status_code=400)
+
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", nome_aluno) \
+                  .limit(1).stream()
+
+        doc = next(query, None)
+
+        if not doc:
             return JSONResponse(
                 content={"notificacao": False, "mensagem": "Aluno não encontrado"},
                 status_code=404
             )
 
-        doc = query[0]
         dados_aluno = doc.to_dict()
-
         notificacao = dados_aluno.get("notificacao", False)
-        professor_email = dados_aluno.get("professor", "")  # <-- pega o email do professor
+        professor_email = dados_aluno.get("professor", "")
 
         return JSONResponse(content={
             "notificacao": notificacao,
@@ -1438,11 +1459,26 @@ async def registrar_chamada(request: Request):
         if not aluno_raw or not professor_raw:
             return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
-        aluno_id = str(aluno_raw).strip().lower().replace(" ", "_")
-        professor_id = str(professor_raw).strip().lower().replace(" ", "_")
-        nome_sala = f"{professor_id}-{aluno_id}"
+        # Normalização segura dos dados
+        aluno_normalizado = str(aluno_raw).strip().lower()
+        professor_normalizado = str(professor_raw).strip().lower()
+        nome_sala = f"{professor_normalizado.replace(' ', '_')}-{aluno_normalizado.replace(' ', '_')}"
 
-        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
+        # Verificar se o vínculo existe (com nome normalizado)
+        vinculo = db.collection("alunos_professor") \
+                    .where("aluno", "==", aluno_normalizado) \
+                    .where("professor", "==", professor_normalizado) \
+                    .limit(1).stream()
+
+        vinculo_doc = next(vinculo, None)
+        if not vinculo_doc:
+            return JSONResponse(
+                content={"erro": "Vínculo entre professor e aluno não encontrado."},
+                status_code=404
+            )
+
+        # Verificar status da chamada
+        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_normalizado)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -1456,8 +1492,8 @@ async def registrar_chamada(request: Request):
 
         if status_atual == "aceito":
             doc_ref.set({
-                "aluno": aluno_id,
-                "professor": professor_id,
+                "aluno": aluno_normalizado,
+                "professor": professor_normalizado,
                 "sala": nome_sala
             }, merge=True)
 
@@ -1481,7 +1517,6 @@ async def registrar_chamada(request: Request):
             status_code=500
         )
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -1492,20 +1527,22 @@ app.add_middleware(
 
 @app.get("/verificar-transmissao/{professor_email}/{aluno_nome}")
 def verificar_transmissao(professor_email: str, aluno_nome: str):
-    doc_ref = db.collection("chamadas_ao_vivo").document(aluno_nome)
+    professor_id = professor_email.strip().lower()
+    aluno_id = aluno_nome.strip().lower().replace(" ", "_")
+
+    doc_ref = db.collection("chamadas_ao_vivo").document(aluno_id)
     doc = doc_ref.get()
 
     if not doc.exists:
         raise HTTPException(status_code=404, detail="Chamada não encontrada")
 
     dados = doc.to_dict()
-    if dados.get("professor") != professor_email:
+    if dados.get("professor") != professor_id:
         raise HTTPException(status_code=400, detail="Professor não corresponde")
 
     status = dados.get("status", "")
-
     if status == "aceito":
-        return {"status": "ok", "sala": f"{professor_email}-{aluno_nome}"}
+        return {"status": "ok", "sala": f"{professor_id}-{aluno_id}"}
     elif status == "pendente":
         return {"status": "aguardando"}
     elif status == "rejeitado":
@@ -1519,9 +1556,7 @@ def definir_status_ok(dados: dict):
     if not aluno:
         raise HTTPException(status_code=400, detail="Aluno não informado")
 
-    # ✅ Normalizar nome do aluno (igual aos outros lugares)
     aluno_id = aluno.strip().lower().replace(" ", "_")
-
     ref = db.collection("chamadas_ao_vivo").document(aluno_id)
     ref.set({"status": "aceito"}, merge=True)
 
@@ -1539,12 +1574,9 @@ def verificar_status(aluno_nome: str):
 
         if doc.exists:
             status = doc.to_dict().get("status", "pendente")
-
-            # Atualiza apenas se o status for exatamente "pendente"
             if status == "pendente":
                 ref.update({"status": "aceito"})
                 status = "aceito"
-
             return {"status": status}
         else:
             return {"status": "nao_encontrado"}
@@ -1557,36 +1589,31 @@ async def enviar_id_aula(request: Request):
     dados = await request.json()
     peer_id = dados.get("peer_id")
     email_professor = dados.get("email")
-    nome_aluno_raw = dados.get("aluno")  # aluno = nome
+    nome_aluno_raw = dados.get("aluno")
 
     if not peer_id or not email_professor or not nome_aluno_raw:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
 
     try:
-        # 🔧 Normaliza o nome do aluno como em outros lugares do sistema
         nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
-        
-        # 📌 Atualiza os dados na coleção "alunos"
         doc_ref = db.collection("alunos").document(nome_aluno)
         doc_ref.set({
             "id_chamada": peer_id,
-            "professor_chamada": email_professor
+            "professor_chamada": email_professor.strip().lower()
         }, merge=True)
 
         return JSONResponse(content={"status": "ID enviado com sucesso"})
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
-        
+
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     try:
-        # 🔧 Normaliza o nome como no restante do sistema
         aluno_normalizado = aluno.strip().lower().replace(" ", "")
-        
         doc_ref = db.collection("alunos").document(aluno_normalizado)
         doc = doc_ref.get()
-        
+
         if doc.exists:
             data = doc.to_dict()
             return {"peer_id": data.get("id_chamada")}
@@ -1598,14 +1625,14 @@ async def buscar_id_professor(aluno: str):
 class HorarioEnvio(BaseModel):
     aluno_nome: str
     professor_email: str
-    horario: dict  # Ex: {"Seg": ["07:30 - 08:30", "09:30 - 10:30"]}
+    horario: dict
 
 @app.post("/enviar-horario")
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
-        aluno_nome = dados.get("aluno_nome")
-        professor_email = dados.get("professor_email")
+        aluno_nome = dados.get("aluno_nome").strip().lower()
+        professor_email = dados.get("professor_email").strip().lower()
         horario = dados.get("horario")
 
         if not aluno_nome or not professor_email or not horario:
@@ -1615,24 +1642,23 @@ async def enviar_horario(request: Request):
         doc_ref.set({
             "horario": horario,
             "horario_pendente": True
-        }, merge=True)  # <-- cria o doc se não existir
+        }, merge=True)
 
         return {"mensagem": "Horário enviado com sucesso."}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-        
 
 @app.post("/guardar-horario") 
 async def guardar_horario(request: Request):
     dados = await request.json()
-    aluno = dados.get("aluno")
-    dias = dados.get("dias")      # Espera-se apenas 1 dia
+    aluno = dados.get("aluno").strip().lower()
+    dias = dados.get("dias")
     horarios = dados.get("horarios")
 
     if not aluno or not dias or not horarios or len(dias) != 1:
         return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário"}, status_code=400)
 
-    dia = dias[0]  # pega o único dia selecionado
+    dia = dias[0]
     dados_horario = {dia: horarios}
 
     try:
@@ -1641,18 +1667,15 @@ async def guardar_horario(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
-from fastapi import Body
-
 @app.post("/registrar-aula")
 async def registrar_aula(data: dict = Body(...)):
     try:
-        professor = data.get("professor", "").strip()
-        aluno = data.get("aluno", "").strip()
+        professor = data.get("professor", "").strip().lower()
+        aluno = data.get("aluno", "").strip().lower()
 
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
 
-        # Busca o documento na coleção alunos_professor
         query = db.collection("alunos_professor") \
                   .where("professor", "==", professor) \
                   .where("aluno", "==", aluno) \
@@ -1664,17 +1687,13 @@ async def registrar_aula(data: dict = Body(...)):
 
         doc_ref = db.collection("alunos_professor").document(doc.id)
         doc_data = doc.to_dict()
-
-        # Se o campo 'aulas_dadas' não existir, começa em 1
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
-        novas_aulas = aulas_anteriores + 1
 
-        # Atualiza ou cria o campo 'aulas_dadas'
         doc_ref.update({
-            "aulas_dadas": novas_aulas
+            "aulas_dadas": aulas_anteriores + 1
         })
 
-        return {"mensagem": f"✅ Aula registrada com sucesso (total: {novas_aulas})"}
+        return {"mensagem": f"✅ Aula registrada com sucesso (total: {aulas_anteriores + 1})"}
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
