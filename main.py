@@ -99,28 +99,37 @@ class VinculoIn(BaseModel):
     aluno_nome: str
 
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
+    prof_normalizado = prof_email.strip().lower()
+    aluno_normalizado = aluno_nome.strip().lower()
+
     docs = db.collection('alunos_professor') \
-             .where("professor", "==", prof_email.strip().lower()) \
-             .where("aluno", "==", aluno_nome.strip().lower()) \
+             .where("professor", "==", prof_normalizado) \
+             .where("aluno", "==", aluno_normalizado) \
              .limit(1).stream()
+
     return next(docs, None) is not None
 
 @app.post('/vincular-aluno', status_code=201)
 async def vincular_aluno(item: VinculoIn):
     try:
         prof = item.professor_email.strip().lower()
-        aluno_nome = item.aluno_nome.strip().lower()
+        aluno_nome_input = item.aluno_nome.strip().lower()
 
-        if vinculo_existe(prof, aluno_nome):
-            raise HTTPException(status_code=409, detail="Vínculo já existe")
-
-        aluno_docs = db.collection("alunos") \
-                       .where("nome", "==", aluno_nome) \
-                       .limit(1).stream()
-        aluno_doc = next(aluno_docs, None)
+        # Buscar todos os alunos e comparar nome normalizado
+        alunos = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == aluno_nome_input:
+                aluno_doc = doc
+                break
 
         if not aluno_doc:
             raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+        if vinculo_existe(prof, aluno_nome_input):
+            raise HTTPException(status_code=409, detail="Vínculo já existe")
 
         dados_aluno = aluno_doc.to_dict()
         for campo in ['senha', 'telefone', 'localizacao']:
@@ -128,7 +137,7 @@ async def vincular_aluno(item: VinculoIn):
 
         db.collection('alunos_professor').add({
             'professor': prof,
-            'aluno': aluno_nome,
+            'aluno': aluno_nome_input,
             'dados_aluno': dados_aluno,
             'vinculado_em': datetime.now(timezone.utc).isoformat(),
             'online': True,
@@ -639,16 +648,22 @@ async def exibir_login(request: Request, sucesso: int = 0):
 @app.post("/login")
 async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
     alunos_ref = db.collection("alunos")
-    nome_normalizado = nome.strip().lower()
-    senha_normalizada = senha.strip().lower()
 
-    query = alunos_ref.where(field_path="nome", op_string=="==", value=nome_normalizado) \
-                      .where(field_path="senha", op_string=="==", value=senha_normalizada)
-    docs = query.stream()
+    # Normaliza os valores digitados
+    nome_digitado = nome.strip().lower()
+    senha_digitada = senha.strip().lower()
 
-    for aluno in docs:
-        aluno.reference.update({"online": True})
-        return RedirectResponse(url=f"/perfil/{nome_normalizado}", status_code=303)
+    # Busca todos os alunos para fazer comparação segura
+    alunos = alunos_ref.stream()
+
+    for aluno in alunos:
+        dados = aluno.to_dict()
+        nome_banco = dados.get("nome", "").strip().lower()
+        senha_banco = dados.get("senha", "").strip().lower()
+
+        if nome_banco == nome_digitado and senha_banco == senha_digitada:
+            aluno.reference.update({"online": True})
+            return RedirectResponse(url=f"/perfil/{dados.get('nome')}", status_code=303)
 
     return templates.TemplateResponse("login.html", {
         "request": request,
