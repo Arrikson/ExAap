@@ -800,21 +800,23 @@ async def get_sala_virtual_aluno(
     if not email or not aluno:
         return HTMLResponse("<h2 style='color:red'>Erro: Parâmetros faltando.</h2>", status_code=400)
 
-    email = email.strip().lower()
+    email_normalizado = email.strip().lower()
     aluno_normalizado = aluno.strip().lower()
 
-    aluno_data = vinculo_existe(email, aluno_normalizado)
+    # Verifica se o aluno está vinculado ao professor
+    aluno_data = vinculo_existe(email_normalizado, aluno_normalizado)
     if not aluno_data:
-        return HTMLResponse("<h2 style='color:red'>Aluno não encontrado ou não vinculado ao professor.</h2>", status_code=404)
+        return HTMLResponse("<h2 style='color:red'>Aluno não encontrado ou não vinculado ao professor.</h2>", status_code=403)
 
-    professor = buscar_professor_por_email(email)
+    # Verifica se o professor existe
+    professor = buscar_professor_por_email(email_normalizado)
     if not professor:
         return HTMLResponse("<h2 style='color:red'>Professor não encontrado.</h2>", status_code=404)
 
     return templates.TemplateResponse("sala_virtual_aluno.html", {
         "request": request,
-        "aluno": aluno,
-        "professor": email
+        "aluno": aluno.strip(),  # Mantemos o nome original para exibir corretamente no HTML
+        "professor": email_normalizado
     })
 
 
@@ -839,12 +841,16 @@ async def redirecionar_para_sala_aluno(sala: str):
 
 
 def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
+    """
+    Verifica se o aluno está vinculado ao professor (normalizando os dados dos dois lados).
+    """
     prof_email = prof_email.strip().lower()
     aluno_nome = aluno_nome.strip().lower()
 
     try:
         docs = db.collection("alunos_professor") \
-                 .where("professor", "==", prof_email).stream()
+                 .where("professor", "==", prof_email) \
+                 .stream()
 
         for doc in docs:
             data = doc.to_dict()
@@ -855,7 +861,7 @@ def vinculo_existe(prof_email: str, aluno_nome: str) -> dict:
 
         return None
     except Exception as e:
-        print(f"Erro ao verificar vínculo: {e}")
+        print(f"❌ Erro ao verificar vínculo: {e}")
         return None
 
 @app.post("/solicitar_entrada")
