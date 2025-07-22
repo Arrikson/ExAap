@@ -100,42 +100,52 @@ class VinculoIn(BaseModel):
 
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
     docs = db.collection('alunos_professor') \
-             .where(field_path="professor", op_string=="==", value=prof_email.strip().lower()) \
-             .where(field_path="aluno", op_string=="==", value=aluno_nome.strip().lower()) \
+             .where("professor", "==", prof_email.strip().lower()) \
+             .where("aluno", "==", aluno_nome.strip().lower()) \
              .limit(1).stream()
     return next(docs, None) is not None
 
 @app.post('/vincular-aluno', status_code=201)
 async def vincular_aluno(item: VinculoIn):
-    prof = item.professor_email.strip().lower()
-    aluno_nome = item.aluno_nome.strip().lower()
+    try:
+        prof = item.professor_email.strip().lower()
+        aluno_nome = item.aluno_nome.strip().lower()
 
-    if vinculo_existe(prof, aluno_nome):
-        raise HTTPException(status_code=409, detail="Vínculo já existe")
+        if vinculo_existe(prof, aluno_nome):
+            raise HTTPException(status_code=409, detail="Vínculo já existe")
 
-    aluno_docs = db.collection("alunos") \
-                   .where(field_path="nome", op_string=="==", value=aluno_nome) \
-                   .limit(1).stream()
-    aluno_doc = next(aluno_docs, None)
+        aluno_docs = db.collection("alunos") \
+                       .where("nome", "==", aluno_nome) \
+                       .limit(1).stream()
+        aluno_doc = next(aluno_docs, None)
 
-    if not aluno_doc:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    dados_aluno = aluno_doc.to_dict()
-    for campo in ['senha', 'telefone', 'localizacao']:
-        dados_aluno.pop(campo, None)
+        dados_aluno = aluno_doc.to_dict()
+        for campo in ['senha', 'telefone', 'localizacao']:
+            dados_aluno.pop(campo, None)
 
-    db.collection('alunos_professor').add({
-        'professor': prof,
-        'aluno': aluno_nome,
-        'dados_aluno': dados_aluno,
-        'vinculado_em': datetime.now(timezone.utc).isoformat(),
-        'online': True,
-        'notificacao': False,
-        'aulas_dadas': 0
-    })
+        db.collection('alunos_professor').add({
+            'professor': prof,
+            'aluno': aluno_nome,
+            'dados_aluno': dados_aluno,
+            'vinculado_em': datetime.now(timezone.utc).isoformat(),
+            'online': True,
+            'notificacao': False,
+            'aulas_dadas': 0
+        })
 
-    return {"message": "Vínculo criado com sucesso"}
+        return {"message": "Vínculo criado com sucesso"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print('Erro interno ao vincular aluno:', e)
+        return JSONResponse(
+            status_code=500,
+            content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
+        )
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
