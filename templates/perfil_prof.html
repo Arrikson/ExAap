@@ -483,19 +483,19 @@ async function listarMeusAlunos() {
       };
       card.appendChild(horarioBtn);
 
-      container.appendChild(card);
+      // ✅ Botão "Aulas dadas"
+      const aulasBtn = document.createElement('button');
+      aulasBtn.textContent = 'Aulas dadas';
+      aulasBtn.style.marginLeft = '10px';
+      aulasBtn.onclick = (e) => {
+        e.stopPropagation();
+        verAulasDadas(aluno.nome);
+      };
+      card.appendChild(aulasBtn);
+
+      container.appendChild(card); // ✅ Isso deve vir depois de todos os appendChilds
     });
 
-const aulasBtn = document.createElement('button');
-aulasBtn.textContent = 'Aulas dadas';
-aulasBtn.style.marginLeft = '10px';
-aulasBtn.onclick = (e) => {
-  e.stopPropagation();
-  verAulasDadas(aluno.nome);
-};
-card.appendChild(aulasBtn);
-
-    
   } catch (error) {
     console.error("Erro ao buscar alunos:", error);
     alert("Erro ao buscar alunos.");
