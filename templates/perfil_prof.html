@@ -504,7 +504,12 @@ async function listarMeusAlunos() {
 
 async function verAulasDadas(nomeAluno) {
   try {
-    const response = await fetch(`/ver-aulas?aluno=${encodeURIComponent(nomeAluno)}`);
+    const response = await fetch("/ver-aulas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+
     const data = await response.json();
     let mensagem = `Aulas dadas para ${nomeAluno}:\n\n`;
 
