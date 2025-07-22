@@ -1852,8 +1852,15 @@ async def ver_aulas(request: Request):
             return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
 
         aulas = aluno_encontrado.get("aulas", [])
+        total_dadas = aluno_encontrado.get("aulas_dadas", 0)
+        total_previstas = aluno_encontrado.get("total_aulas", 24)
+        restantes = max(0, total_previstas - total_dadas)
 
-        return JSONResponse(content=aulas)
+        return JSONResponse(content={
+            "aulas_dadas": total_dadas,
+            "restantes": restantes,
+            "aulas": aulas
+        })
 
     except Exception as e:
         print("Erro ao buscar aulas:", e)
