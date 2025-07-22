@@ -1499,6 +1499,9 @@ async def verificar_notificacao(request: Request):
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
 @app.post("/registrar-chamada")
 async def registrar_chamada(request: Request):
     try:
@@ -1509,12 +1512,12 @@ async def registrar_chamada(request: Request):
         if not aluno_raw or not professor_raw:
             return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
-        # Normalização dos dados
-        aluno_normalizado = str(aluno_raw).strip().lower()
+        # Normalização
+        aluno_normalizado = str(aluno_raw).strip().lower().replace(" ", "")
         professor_normalizado = str(professor_raw).strip().lower()
-        nome_sala = f"{professor_normalizado.replace(' ', '_')}-{aluno_normalizado.replace(' ', '_')}"
+        nome_sala = f"{professor_normalizado.replace(' ', '_')}-{aluno_normalizado}"
 
-        # ✅ Verificar vínculo com o aluno (sem depender de igualdade exata)
+        # Verificar vínculo
         vinculo_docs = db.collection("alunos_professor") \
                          .where("professor", "==", professor_normalizado) \
                          .stream()
@@ -1522,7 +1525,7 @@ async def registrar_chamada(request: Request):
         vinculo_encontrado = False
         for doc in vinculo_docs:
             data = doc.to_dict()
-            aluno_db = data.get("aluno", "").strip().lower()
+            aluno_db = data.get("aluno", "").strip().lower().replace(" ", "")
             if aluno_db == aluno_normalizado:
                 vinculo_encontrado = True
                 break
@@ -1533,16 +1536,28 @@ async def registrar_chamada(request: Request):
                 status_code=403
             )
 
-        # ✅ Verificar o status da chamada
+        # Verificar ou criar o documento de chamada
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_normalizado)
         doc = doc_ref.get()
 
         if not doc.exists:
+            # 🔧 Se não existir, cria automaticamente com status 'aceito'
+            doc_ref.set({
+                "aluno": aluno_normalizado,
+                "professor": professor_normalizado,
+                "status": "aceito",
+                "sala": nome_sala
+            }, merge=True)
+
             return JSONResponse(
-                content={"erro": "Documento de chamada não encontrado."},
-                status_code=404
+                content={
+                    "mensagem": "Conexão autorizada - documento criado.",
+                    "sala": nome_sala
+                },
+                status_code=200
             )
 
+        # Verificar status existente
         dados_atuais = doc.to_dict() or {}
         status_atual = dados_atuais.get("status", "")
 
