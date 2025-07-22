@@ -1810,6 +1810,36 @@ async def obter_horario(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+@app.post("/ver-aulas")
+async def ver_aulas(request: Request):
+    try:
+        dados = await request.json()
+        nome_aluno = dados.get("aluno")
+
+        if not nome_aluno:
+            return JSONResponse(content={"erro": "Nome do aluno ausente"}, status_code=400)
+
+        db_firestore = firestore.client()
+        doc_ref = db_firestore.collection("alunos_professor").document(nome_aluno)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
+
+        dados_aluno = doc.to_dict()
+        aulas_dadas = dados_aluno.get("aulas_dadas", 0)
+        total_aulas = dados_aluno.get("total_aulas", 24)  # valor padrão
+        restantes = max(0, total_aulas - aulas_dadas)
+
+        return JSONResponse(content={
+            "sucesso": True,
+            "aulas_dadas": aulas_dadas,
+            "restantes": restantes
+        })
+
+    except Exception as e:
+        return JSONResponse(content={"erro": str(e)}, status_code=500)
+
 class EntradaItem(BaseModel):
     nome: str
     preco: float
