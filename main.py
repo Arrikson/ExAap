@@ -1265,11 +1265,10 @@ async def meu_professor_status(nome_aluno: str):
 
 @app.post("/iniciar-aula")
 async def iniciar_aula(payload: dict):
-    aluno = payload.get("aluno")
-    professor = payload.get("professor")
-    sala = payload.get("sala")
+    aluno = payload.get("aluno", "").strip().lower()
+    professor = payload.get("professor", "").strip().lower()
+    sala = payload.get("sala", "")
 
-    # Aqui é onde a coleção "chamadas_ao_vivo" será criada automaticamente
     db.collection("chamadas_ao_vivo").document(aluno).set({
         "aluno": aluno,
         "professor": professor,
@@ -1280,14 +1279,14 @@ async def iniciar_aula(payload: dict):
 
     return {"mensagem": "Chamada enviada ao aluno"}
 
+# 🔸 Verificar vínculo do aluno com o professor
 @app.post('/verificar-vinculo')
 async def verificar_vinculo(dados: dict):
-    prof_email = dados.get('professor_email', '').strip()
-    aluno_nome = dados.get('aluno_nome', '').strip()
+    prof_email = dados.get('professor_email', '').strip().lower()
+    aluno_nome = dados.get('aluno_nome', '').strip().lower()
     senha = dados.get('senha', '').strip()
 
     try:
-        # Buscar todos os alunos vinculados ao professor
         docs = db.collection('alunos_professor') \
                  .where('professor', '==', prof_email).stream()
 
@@ -1295,14 +1294,14 @@ async def verificar_vinculo(dados: dict):
         for doc in docs:
             data = doc.to_dict()
             dados_aluno = data.get('dados_aluno', {})
-            if dados_aluno.get('nome', '').strip().lower() == aluno_nome.lower():
+            nome_salvo = dados_aluno.get('nome', '').strip().lower()
+            if nome_salvo == aluno_nome:
                 aluno_encontrado = True
                 break
 
         if not aluno_encontrado:
             raise HTTPException(status_code=404, detail="Vínculo com este aluno não encontrado.")
 
-        # Verifica se a senha está correta na base de alunos
         aluno_docs = db.collection('alunos') \
                        .where('nome', '==', aluno_nome) \
                        .where('senha', '==', senha) \
@@ -1319,6 +1318,7 @@ async def verificar_vinculo(dados: dict):
         print("Erro ao verificar vínculo:", e)
         raise HTTPException(status_code=500, detail="Erro interno.")
 
+# 🔸 Verificar vínculo e professor do aluno
 class VerificarAlunoInput(BaseModel):
     aluno_nome: str
     senha: str
@@ -1326,9 +1326,11 @@ class VerificarAlunoInput(BaseModel):
 @app.post("/verificar-aluno-vinculo")
 async def verificar_aluno_vinculo(data: VerificarAlunoInput):
     try:
-        # 1. Verifica se o aluno existe e valida a senha
+        aluno_nome = data.aluno_nome.strip().lower()
+        senha = data.senha.strip()
+
         aluno_docs = db.collection('alunos') \
-            .where('nome', '==', data.aluno_nome.strip()) \
+            .where('nome', '==', aluno_nome) \
             .limit(1).stream()
 
         aluno_doc = next(aluno_docs, None)
@@ -1336,12 +1338,11 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             raise HTTPException(status_code=404, detail="Aluno não encontrado.")
 
         aluno_data = aluno_doc.to_dict()
-        if aluno_data.get("senha") != data.senha:
+        if aluno_data.get("senha") != senha:
             raise HTTPException(status_code=401, detail="Senha incorreta.")
 
-        # 2. Busca o professor vinculado na coleção alunos_professor
         vinculo_docs = db.collection('alunos_professor') \
-            .where('aluno', '==', data.aluno_nome.strip()) \
+            .where('aluno', '==', aluno_nome) \
             .limit(1).stream()
 
         vinculo_doc = next(vinculo_docs, None)
@@ -1349,18 +1350,14 @@ async def verificar_aluno_vinculo(data: VerificarAlunoInput):
             raise HTTPException(status_code=404, detail="Nenhum vínculo encontrado com professor.")
 
         vinculo_data = vinculo_doc.to_dict()
-        professor_email = vinculo_data.get("professor")
+        professor_email = vinculo_data.get("professor", "").strip().lower()
 
-        # 3. Busca nome completo do professor na coleção 'professores_online'
         prof_docs = db.collection('professores_online') \
             .where('email', '==', professor_email) \
             .limit(1).stream()
 
         prof_doc = next(prof_docs, None)
-        if not prof_doc:
-            professor_nome = "Professor"
-        else:
-            professor_nome = prof_doc.to_dict().get("nome_completo", "Professor")
+        professor_nome = prof_doc.to_dict().get("nome_completo", "Professor") if prof_doc else "Professor"
 
         return {
             "professor_email": professor_email,
