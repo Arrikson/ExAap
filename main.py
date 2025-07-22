@@ -94,25 +94,29 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
     
 
-class VinculoIn(BaseModel): 
+class VinculoIn(BaseModel):
     professor_email: str
     aluno_nome: str
 
 def vinculo_existe(prof_email: str, aluno_nome: str) -> bool:
     docs = db.collection('alunos_professor') \
-             .where('professor', '==', prof_email.strip()) \
-             .where('aluno', '==', aluno_nome.strip()) \
+             .where('professor', '==', prof_email.strip().lower()) \
+             .where('aluno', '==', aluno_nome.strip().lower()) \
              .limit(1).stream()
     return next(docs, None) is not None
 
 @app.post('/vincular-aluno', status_code=201)
 async def vincular_aluno(item: VinculoIn):
     try:
-        if vinculo_existe(item.professor_email, item.aluno_nome):
+        aluno_nome_normalizado = item.aluno_nome.strip().lower()
+        professor_email_normalizado = item.professor_email.strip().lower()
+
+        if vinculo_existe(professor_email_normalizado, aluno_nome_normalizado):
             raise HTTPException(status_code=409, detail='Vínculo já existe')
 
+        # 🔍 Busca aluno com nome normalizado
         aluno_docs = db.collection('alunos') \
-                       .where('nome', '==', item.aluno_nome.strip()) \
+                       .where('nome', '==', aluno_nome_normalizado) \
                        .limit(1).stream()
         aluno_doc = next(aluno_docs, None)
 
@@ -123,14 +127,15 @@ async def vincular_aluno(item: VinculoIn):
         for campo in ['senha', 'telefone', 'localizacao']:
             dados_aluno.pop(campo, None)
 
+        # ✅ Criação do vínculo com campos adicionais
         db.collection('alunos_professor').add({
-            'professor': item.professor_email.strip(),
-            'aluno': item.aluno_nome.strip(),
+            'professor': professor_email_normalizado,
+            'aluno': aluno_nome_normalizado,
             'dados_aluno': dados_aluno,
             'vinculado_em': datetime.now(timezone.utc).isoformat(),
             'online': True,
             'notificacao': False,
-            'aulas_dadas': 0   # ✅ Novo campo adicionado aqui para rastrear as aulas
+            'aulas_dadas': 0  # Campo necessário para rastrear aulas
         })
 
         return {'message': 'Vínculo criado com sucesso'}
@@ -147,9 +152,12 @@ async def vincular_aluno(item: VinculoIn):
 @app.post('/desvincular-aluno')
 async def desvincular_aluno(item: VinculoIn):
     try:
+        aluno_nome_normalizado = item.aluno_nome.strip().lower()
+        professor_email_normalizado = item.professor_email.strip().lower()
+
         docs = db.collection('alunos_professor') \
-                 .where('professor', '==', item.professor_email.strip()) \
-                 .where('aluno', '==', item.aluno_nome.strip()) \
+                 .where('professor', '==', professor_email_normalizado) \
+                 .where('aluno', '==', aluno_nome_normalizado) \
                  .stream()
 
         encontrados = list(docs)
@@ -170,7 +178,6 @@ async def desvincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao remover vínculo. Tente novamente.'}
         )
-
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
