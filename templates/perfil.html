@@ -159,6 +159,7 @@
     <div id="sec-aula" class="info">
       <p id="aulas-dadas"></p>
       <p id="aulas-restantes"></p>
+      <ul id="lista-aulas" style="padding-left: 20px;"></ul>
     </div>
 
     <div id="sec-nivel" class="info">
@@ -186,7 +187,7 @@
     </form>
   </div>
 
-  <!-- Firebase script separado -->
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -230,13 +231,13 @@
     window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
 
-  // Se já estiver visível, esconda
+
   if (divHorario.style.display === "block") {
     divHorario.style.display = "none";
     return;
   }
 
-  // Caso contrário, busca os dados e mostra
+
   try {
     const response = await fetch("/obter-horario", {
       method: "POST",
@@ -271,6 +272,7 @@ window.toggleAulas = async function () {
   const div = document.getElementById("sec-aula");
   const aulasDadas = document.getElementById("aulas-dadas");
   const aulasRestantes = document.getElementById("aulas-restantes");
+  const listaAulas = document.getElementById("lista-aulas"); // Você pode adicionar esta <ul> no HTML
 
   if (div.style.display === "block") {
     div.style.display = "none";
@@ -285,20 +287,36 @@ window.toggleAulas = async function () {
     });
 
     const data = await response.json();
-    if (data.sucesso) {
-      aulasDadas.textContent = `Já teve: ${data.aulas_dadas}`;
-      aulasRestantes.textContent = `Faltam: ${data.restantes}`;
-    } else {
+
+    if (data.erro) {
       aulasDadas.textContent = "Erro ao carregar as aulas.";
       aulasRestantes.textContent = "";
+      if (listaAulas) listaAulas.innerHTML = "";
+      return;
     }
+
+    aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
+    aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
+
+    if (listaAulas && Array.isArray(data.aulas)) {
+      listaAulas.innerHTML = "";
+      data.aulas.forEach((aula, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
+        listaAulas.appendChild(li);
+      });
+    }
+
   } catch (err) {
-    aulasDadas.textContent = "Erro ao buscar dados.";
+    console.error("Erro ao buscar dados das aulas:", err);
+    aulasDadas.textContent = "❌ Erro ao buscar dados.";
     aulasRestantes.textContent = "";
+    if (listaAulas) listaAulas.innerHTML = "";
   }
 
   div.style.display = "block";
-};    
+};
+
     window.toggleProfessor = function () {
       const container = document.getElementById("professor-nome");
       if (container.style.display === "block") {
