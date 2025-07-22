@@ -136,6 +136,7 @@ async def vincular_aluno(item: VinculoIn):
         for campo in ['senha', 'telefone', 'localizacao']:
             dados_aluno.pop(campo, None)
 
+        # Criação do documento com campos completos
         db.collection('alunos_professor').add({
             'professor': prof,
             'aluno': aluno_nome_input,
@@ -143,7 +144,9 @@ async def vincular_aluno(item: VinculoIn):
             'vinculado_em': datetime.now(timezone.utc).isoformat(),
             'online': True,
             'notificacao': False,
-            'aulas_dadas': 0
+            'aulas_dadas': 0,
+            'total_aulas': 24,      # opcional, se quiser sempre definir 24
+            'aulas': []             # lista para guardar data e horário de cada aula
         })
 
         return {"message": "Vínculo criado com sucesso"}
@@ -1752,6 +1755,9 @@ async def guardar_horario(request: Request):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+from datetime import datetime
+from fastapi import Body, HTTPException
+
 @app.post("/registrar-aula")
 async def registrar_aula(data: dict = Body(...)):
     try:
@@ -1773,12 +1779,23 @@ async def registrar_aula(data: dict = Body(...)):
         doc_ref = db.collection("alunos_professor").document(doc.id)
         doc_data = doc.to_dict()
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
+        lista_aulas = doc_data.get("aulas", [])
+
+        agora = datetime.now()
+        nova_aula = {
+            "data": agora.strftime("%Y-%m-%d"),
+            "horario": agora.strftime("%H:%M")
+        }
 
         doc_ref.update({
-            "aulas_dadas": aulas_anteriores + 1
+            "aulas_dadas": aulas_anteriores + 1,
+            "aulas": lista_aulas + [nova_aula]
         })
 
-        return {"mensagem": f"✅ Aula registrada com sucesso (total: {aulas_anteriores + 1})"}
+        return {
+            "mensagem": f"✅ Aula registrada com sucesso (total: {aulas_anteriores + 1})",
+            "nova_aula": nova_aula
+        }
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
