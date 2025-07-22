@@ -485,12 +485,44 @@ async function listarMeusAlunos() {
 
       container.appendChild(card);
     });
+
+const aulasBtn = document.createElement('button');
+aulasBtn.textContent = 'Aulas dadas';
+aulasBtn.style.marginLeft = '10px';
+aulasBtn.onclick = (e) => {
+  e.stopPropagation();
+  verAulasDadas(aluno.nome);
+};
+card.appendChild(aulasBtn);
+
+    
   } catch (error) {
     console.error("Erro ao buscar alunos:", error);
     alert("Erro ao buscar alunos.");
   }
 }
 
+async function verAulasDadas(nomeAluno) {
+  try {
+    const response = await fetch(`/ver-aulas?aluno=${encodeURIComponent(nomeAluno)}`);
+    const data = await response.json();
+    let mensagem = `Aulas dadas para ${nomeAluno}:\n\n`;
+
+    if (!data || data.length === 0) {
+      mensagem += "Nenhuma aula registrada ainda.";
+    } else {
+      data.forEach((aula, index) => {
+        mensagem += `${index + 1}. ${aula.data} - ${aula.horario}\n`;
+      });
+    }
+
+    alert(mensagem);
+  } catch (error) {
+    console.error("Erro ao buscar aulas dadas:", error);
+    alert("Erro ao buscar aulas dadas.");
+  }
+}
+  
  async function buscarAlunosDisponiveis() {
     const email = "{{ professor.email }}";
     try {
