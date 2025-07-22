@@ -511,15 +511,15 @@ async function verAulasDadas(nomeAluno) {
     });
 
     const data = await response.json();
-    let mensagem = `Aulas dadas para ${nomeAluno}:\n\n`;
 
-    if (!data || data.length === 0) {
-      mensagem += "Nenhuma aula registrada ainda.";
-    } else {
-      data.forEach((aula, index) => {
-        mensagem += `${index + 1}. ${aula.data} - ${aula.horario}\n`;
-      });
+    if (data.erro) {
+      alert("Erro: " + data.erro);
+      return;
     }
+
+    let mensagem = `Aulas dadas para ${nomeAluno}:\n\n`;
+    mensagem += `Total de aulas dadas: ${data.aulas_dadas}\n`;
+    mensagem += `Aulas restantes: ${data.restantes}`;
 
     alert(mensagem);
   } catch (error) {
@@ -527,7 +527,7 @@ async function verAulasDadas(nomeAluno) {
     alert("Erro ao buscar aulas dadas.");
   }
 }
-  
+
  async function buscarAlunosDisponiveis() {
     const email = "{{ professor.email }}";
     try {
