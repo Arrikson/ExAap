@@ -1503,25 +1503,31 @@ async def registrar_chamada(request: Request):
         if not aluno_raw or not professor_raw:
             return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
 
-        # Normalização segura dos dados
+        # Normalização dos dados
         aluno_normalizado = str(aluno_raw).strip().lower()
         professor_normalizado = str(professor_raw).strip().lower()
         nome_sala = f"{professor_normalizado.replace(' ', '_')}-{aluno_normalizado.replace(' ', '_')}"
 
-        # Verificar se o vínculo existe (com nome normalizado)
-        vinculo = db.collection("alunos_professor") \
-                    .where("aluno", "==", aluno_normalizado) \
-                    .where("professor", "==", professor_normalizado) \
-                    .limit(1).stream()
+        # ✅ Verificar vínculo com o aluno (sem depender de igualdade exata)
+        vinculo_docs = db.collection("alunos_professor") \
+                         .where("professor", "==", professor_normalizado) \
+                         .stream()
 
-        vinculo_doc = next(vinculo, None)
-        if not vinculo_doc:
+        vinculo_encontrado = False
+        for doc in vinculo_docs:
+            data = doc.to_dict()
+            aluno_db = data.get("aluno", "").strip().lower()
+            if aluno_db == aluno_normalizado:
+                vinculo_encontrado = True
+                break
+
+        if not vinculo_encontrado:
             return JSONResponse(
                 content={"erro": "Vínculo entre professor e aluno não encontrado."},
-                status_code=404
+                status_code=403
             )
 
-        # Verificar status da chamada
+        # ✅ Verificar o status da chamada
         doc_ref = db.collection("chamadas_ao_vivo").document(aluno_normalizado)
         doc = doc_ref.get()
 
@@ -1543,14 +1549,27 @@ async def registrar_chamada(request: Request):
 
             return JSONResponse(
                 content={
-                    "mensagem": "Conexão mantida com status aceito",
+                    "mensagem": "Conexão autorizada com status 'aceito'.",
                     "sala": nome_sala
                 },
                 status_code=200
             )
+
+        elif status_atual == "pendente":
+            return JSONResponse(
+                content={"erro": "Aguardando o aluno aceitar a chamada..."},
+                status_code=403
+            )
+
+        elif status_atual == "recusado":
+            return JSONResponse(
+                content={"erro": "O aluno recusou a chamada."},
+                status_code=403
+            )
+
         else:
             return JSONResponse(
-                content={"erro": f"A conexão não foi autorizada (status atual: {status_atual})"},
+                content={"erro": f"Status de chamada desconhecido: '{status_atual}'"},
                 status_code=403
             )
 
@@ -1560,6 +1579,7 @@ async def registrar_chamada(request: Request):
             content={"erro": f"Erro interno ao registrar chamada: {str(e)}"},
             status_code=500
         )
+
 
 app.add_middleware(
     CORSMiddleware,
