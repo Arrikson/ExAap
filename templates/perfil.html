@@ -147,6 +147,8 @@
   <div class="card">
     <h1>{{ aluno.nome }}</h1>
     <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
+    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+    <input type="hidden" id="professor-email" value="{{ professor_email }}">
     <div class="btn-grid">
       <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
       <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
