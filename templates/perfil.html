@@ -228,7 +228,7 @@
       }
     });
 
-   window.verHorario = async function () {
+  window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
 
   if (divHorario.style.display === "block") {
@@ -237,23 +237,15 @@
   }
 
   try {
-    // Primeiro, vamos obter o email do professor vinculado a este aluno
-    const respostaProf = await fetch(`/meu-professor-status/${nomeAluno}`);
-    const dadosProf = await respostaProf.json();
-    const emailProf = dadosProf.professor_email || "";
-
-    if (!emailProf) {
-      divHorario.innerHTML = "<b>Professor não vinculado ou email ausente.</b>";
-      divHorario.style.display = "block";
-      return;
-    }
+    const alunoNome = document.getElementById("aluno-nome").value;
+    const professorEmail = document.getElementById("professor-email").value;
 
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        aluno_nome: nomeAluno,
-        professor_email: emailProf
+        aluno: alunoNome,
+        professor: professorEmail
       })
     });
 
