@@ -1267,30 +1267,46 @@ async def obter_professor_do_aluno(nome_aluno: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-        
+
 
 @app.get("/meu-professor-status/{nome_aluno}")
 async def meu_professor_status(nome_aluno: str):
     try:
-        # Normaliza o nome do aluno
-        nome_aluno_normalizado = nome_aluno.strip().lower().replace(" ", "")
+        # Normalizar nome do aluno (como em /vincular-aluno)
+        nome_aluno_input = nome_aluno.strip().lower()
 
+        # Procurar o aluno na coleção "alunos"
+        alunos_ref = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos_ref:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == nome_aluno_input:
+                aluno_doc = doc
+                break
+
+        if not aluno_doc:
+            return JSONResponse(content={
+                "professor": "Aluno não encontrado",
+                "online": False
+            }, status_code=404)
+
+        # Verificar vínculo na coleção "alunos_professor"
         vinculo_ref = db.collection("alunos_professor") \
-                        .where("aluno", "==", nome_aluno_normalizado) \
+                        .where("aluno", "==", nome_aluno_input) \
                         .limit(1) \
                         .stream()
         vinculo_doc = next(vinculo_ref, None)
 
         if not vinculo_doc:
             return JSONResponse(content={
-                "professor": "Nenhum professor encontrado",
+                "professor": "Nenhum professor vinculado",
                 "online": False
-            }, status_code=200)
+            }, status_code=404)
 
-        data = vinculo_doc.to_dict() or {}
-
-        professor_nome = data.get("professor", "Não especificado")
-        online_status = data.get("online", False)
+        dados_vinculo = vinculo_doc.to_dict()
+        professor_nome = dados_vinculo.get("professor", "Professor não especificado")
+        online_status = dados_vinculo.get("online", False)
 
         return JSONResponse(content={
             "professor": professor_nome,
@@ -1298,6 +1314,7 @@ async def meu_professor_status(nome_aluno: str):
         }, status_code=200)
 
     except Exception as e:
+        print("Erro ao obter status do professor:", e)
         return JSONResponse(content={
             "erro": f"Erro interno: {str(e)}"
         }, status_code=500)
@@ -1812,26 +1829,44 @@ async def exibir_teste(request: Request):
     
 @app.post("/obter-horario")
 async def obter_horario(request: Request):
-    dados = await request.json()
-    nome_aluno = dados.get("aluno", "").strip().lower()
-    email_professor = dados.get("professor", "").strip().lower()
-
-    if not nome_aluno or not email_professor:
-        return JSONResponse(content={"erro": "Nome do aluno e email do professor são obrigatórios."}, status_code=400)
-
     try:
-        doc_ref = db.collection("alunos_professor").document(f"{nome_aluno}_{email_professor}")
-        doc_snap = doc_ref.get()
+        dados = await request.json()
+        nome_aluno_input = dados.get("aluno", "").strip().lower()
 
-        if not doc_snap.exists:
-            return JSONResponse(content={"horarios": {}, "mensagem": "Nenhum horário encontrado."})
+        if not nome_aluno_input:
+            return JSONResponse(content={"erro": "Nome do aluno é obrigatório."}, status_code=400)
 
-        dados_horario = doc_snap.to_dict().get("horario", {})
+        # Buscar aluno pelo nome normalizado na coleção "alunos"
+        alunos = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos:
+            nome_banco = doc.to_dict().get("nome", "").strip().lower()
+            if nome_banco == nome_aluno_input:
+                aluno_doc = doc
+                break
 
-        return JSONResponse(content={"horarios": dados_horario})
+        if not aluno_doc:
+            return JSONResponse(content={"erro": "Aluno não encontrado."}, status_code=404)
+
+        # Buscar vínculo na coleção "alunos_professor"
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("aluno", "==", nome_aluno_input) \
+                        .limit(1) \
+                        .stream()
+        vinculo_doc = next(vinculo_ref, None)
+
+        if not vinculo_doc:
+            return JSONResponse(content={"erro": "Vínculo não encontrado para este aluno."}, status_code=404)
+
+        # Obter os dados de horário se existirem
+        dados_vinculo = vinculo_doc.to_dict()
+        horarios = dados_vinculo.get("horario", {})
+
+        return JSONResponse(content={"horarios": horarios})
 
     except Exception as e:
-        return JSONResponse(content={"erro": str(e)}, status_code=500)
+        print("Erro ao obter horário:", e)
+        return JSONResponse(content={"erro": "Erro interno ao obter horário."}, status_code=500)
 
 
 @app.post("/ver-aulas")
