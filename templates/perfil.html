@@ -230,7 +230,7 @@
       }
     });
 
-  window.verHorario = async function () {
+ window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
 
   if (divHorario.style.display === "block") {
@@ -240,14 +240,12 @@
 
   try {
     const alunoNome = document.getElementById("aluno-nome").value;
-    const professorEmail = document.getElementById("professor-email").value;
 
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        aluno: alunoNome,
-        professor: professorEmail
+        aluno: alunoNome
       })
     });
 
