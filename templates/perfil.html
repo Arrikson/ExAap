@@ -228,21 +228,33 @@
       }
     });
 
-    window.verHorario = async function () {
+   window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
-
 
   if (divHorario.style.display === "block") {
     divHorario.style.display = "none";
     return;
   }
 
-
   try {
+    // Primeiro, vamos obter o email do professor vinculado a este aluno
+    const respostaProf = await fetch(`/meu-professor-status/${nomeAluno}`);
+    const dadosProf = await respostaProf.json();
+    const emailProf = dadosProf.professor_email || "";
+
+    if (!emailProf) {
+      divHorario.innerHTML = "<b>Professor não vinculado ou email ausente.</b>";
+      divHorario.style.display = "block";
+      return;
+    }
+
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
+      body: JSON.stringify({
+        aluno_nome: nomeAluno,
+        professor_email: emailProf
+      })
     });
 
     const data = await response.json();
@@ -263,6 +275,7 @@
 
     divHorario.style.display = "block";
   } catch (err) {
+    console.error("Erro ao buscar horário:", err);
     divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
     divHorario.style.display = "block";
   }
