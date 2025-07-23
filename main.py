@@ -228,20 +228,24 @@ async def alunos_disponiveis(prof_email: str):
         if not nome_aluno:
             continue
 
-        # Verifica se o aluno está VINCULADO a algum professor
+        # Verifica se o aluno está vinculado a algum professor
         doc_ref = db.collection('alunos_professor').document(nome_aluno)
         doc = doc_ref.get()
+
         if doc.exists:
             dados = doc.to_dict()
-            if dados.get("email_professor"):  # Já está vinculado a alguém
-                continue  # Pula esse aluno
-        # Se não existe ou se não tem professor, pode ser listado
+            # Se tiver um campo 'email_professor' com qualquer valor, ignora
+            if dados.get("email_professor"):
+                continue
+
+        # Só entra na lista se não estiver vinculado
         disponiveis.append({
             'nome': nome_aluno,
             'disciplina': aluno_data.get('disciplina', '').strip()
         })
 
     return disponiveis
+
 
 @app.get('/meus-alunos/{prof_email}')
 async def meus_alunos(prof_email: str):
