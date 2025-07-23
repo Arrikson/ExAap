@@ -1826,27 +1826,25 @@ async def registrar_aula(data: dict = Body(...)):
 @app.get("/teste", response_class=HTMLResponse)
 async def exibir_teste(request: Request):
     return templates.TemplateResponse("teste.html", {"request": request})
+    
 @app.post("/obter-horario")
 async def obter_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno", "").strip().lower()
-        professor_email = dados.get("professor", "").strip().lower()
 
-        if not aluno_nome or not professor_email:
-            return JSONResponse(content={"erro": "Nome do aluno e email do professor são obrigatórios."}, status_code=400)
+        if not aluno_nome:
+            return JSONResponse(content={"erro": "Nome do aluno é obrigatório."}, status_code=400)
 
-        doc_id = f"{aluno_nome}_{professor_email}"
-        doc_ref = db.collection("alunos_professor").document(doc_id)
+        doc_ref = db.collection("horarios_alunos").document(aluno_nome)
         doc_snap = doc_ref.get()
 
         if not doc_snap.exists:
             return JSONResponse(content={"erro": "Horário não encontrado."}, status_code=404)
 
         dados_doc = doc_snap.to_dict()
-        horario = dados_doc.get("horario", {})
-
-        return JSONResponse(content={"horarios": horario})
+        # Como o horário está salvo diretamente no documento, retornamos todos os dias
+        return JSONResponse(content={"horarios": dados_doc})
 
     except Exception as e:
         print("Erro ao obter horário:", e)
