@@ -216,7 +216,15 @@ async def alunos_disponiveis(prof_email: str):
     if not area:
         return []
 
-    # Lista todos os alunos com a disciplina correspondente
+    # Busca todos os alunos já vinculados (qualquer professor)
+    alunos_vinculados_docs = db.collection('alunos_professor') \
+                                .where('email_professor', '!=', '').stream()
+
+    alunos_vinculados = set()
+    for doc in alunos_vinculados_docs:
+        alunos_vinculados.add(doc.id.strip().lower().replace(" ", ""))
+
+    # Agora lista todos os alunos com a disciplina igual à do professor
     alunos = db.collection('alunos') \
                .where('disciplina', '==', area).stream()
 
@@ -224,29 +232,20 @@ async def alunos_disponiveis(prof_email: str):
     for aluno in alunos:
         aluno_data = aluno.to_dict()
         nome_aluno = aluno_data.get('nome', '').strip()
-
         if not nome_aluno:
             continue
 
-        # Normaliza o nome do aluno para comparar com os documentos
         nome_normalizado = nome_aluno.lower().replace(" ", "")
+        if nome_normalizado in alunos_vinculados:
+            continue  # já vinculado
 
-        # Verifica se o aluno está vinculado a algum professor
-        doc_ref = db.collection('alunos_professor').document(nome_normalizado)
-        doc = doc_ref.get()
-
-        if doc.exists:
-            dados = doc.to_dict()
-            if dados.get("email_professor"):
-                continue  # Já vinculado, pula
-
-        # Aluno está disponível
+        # Aluno disponível
         disponiveis.append({
             'nome': nome_aluno,
             'disciplina': aluno_data.get('disciplina', '').strip()
         })
 
-    return disponiveis  # Pode retornar lista vazia, e o frontend exibe "Nenhum aluno disponível"
+    return disponiveis
 
 
 @app.get('/meus-alunos/{prof_email}')
