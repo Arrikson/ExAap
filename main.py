@@ -1804,24 +1804,26 @@ async def exibir_teste(request: Request):
 @app.post("/obter-horario")
 async def obter_horario(request: Request):
     dados = await request.json()
-    nome = dados.get("nome", "").strip()
+    nome_aluno = dados.get("aluno", "").strip().lower()
+    email_professor = dados.get("professor", "").strip().lower()
 
-    if not nome:
-        return JSONResponse(content={"erro": "Nome do aluno é obrigatório."}, status_code=400)
+    if not nome_aluno or not email_professor:
+        return JSONResponse(content={"erro": "Nome do aluno e email do professor são obrigatórios."}, status_code=400)
 
     try:
-        doc_ref = db.collection("horarios_alunos").document(nome)
+        doc_ref = db.collection("alunos_professor").document(f"{nome_aluno}_{email_professor}")
         doc_snap = doc_ref.get()
 
         if not doc_snap.exists:
             return JSONResponse(content={"horarios": {}, "mensagem": "Nenhum horário encontrado."})
 
-        dados_horario = doc_snap.to_dict()
+        dados_horario = doc_snap.to_dict().get("horario", {})
 
-        return JSONResponse(content={"horarios": dados_horario})  # Retorna tudo
+        return JSONResponse(content={"horarios": dados_horario})
 
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
 
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
