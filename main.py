@@ -136,7 +136,7 @@ async def vincular_aluno(item: VinculoIn):
         for campo in ['senha', 'telefone', 'localizacao']:
             dados_aluno.pop(campo, None)
 
-        # Criação do documento com campos completos
+        # Criação do documento com os dados do vínculo
         db.collection('alunos_professor').add({
             'professor': prof,
             'aluno': aluno_nome_input,
@@ -145,8 +145,13 @@ async def vincular_aluno(item: VinculoIn):
             'online': True,
             'notificacao': False,
             'aulas_dadas': 0,
-            'total_aulas': 24,      # opcional, se quiser sempre definir 24
-            'aulas': []             # lista para guardar data e horário de cada aula
+            'total_aulas': 24,
+            'aulas': []
+        })
+
+        # Atualiza o campo vinculado = True no documento do aluno
+        db.collection("alunos").document(aluno_doc.id).update({
+            "vinculado": True
         })
 
         return {"message": "Vínculo criado com sucesso"}
@@ -159,6 +164,7 @@ async def vincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
+
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
@@ -215,30 +221,20 @@ async def alunos_disponiveis(prof_email: str):
     if not area:
         return []
 
-    # Obtem todos os alunos já vinculados
-    docs_vinculo = db.collection('alunos_professor').stream()
-    nomes_vinculados = {doc.id.strip().lower().replace(" ", "") for doc in docs_vinculo}
-
-    # Filtra os alunos que estudam a disciplina do professor
+    # Lista apenas os alunos que ainda não estão vinculados
     alunos = db.collection('alunos') \
-               .where('disciplina', '==', area).stream()
+               .where('disciplina', '==', area) \
+               .where('vinculado', '==', False).stream()
 
     disponiveis = []
     for aluno in alunos:
         aluno_data = aluno.to_dict()
-        nome_aluno = aluno_data.get('nome', '').strip()
-        nome_normalizado = nome_aluno.lower().replace(" ", "")
-
-        if nome_normalizado in nomes_vinculados:
-            continue  # já está vinculado a algum professor
-
         disponiveis.append({
-            'nome': nome_aluno,
+            'nome': aluno_data.get('nome', ''),
             'disciplina': aluno_data.get('disciplina', '')
         })
 
     return disponiveis
-
 
 @app.get('/meus-alunos/{prof_email}')
 async def meus_alunos(prof_email: str):
