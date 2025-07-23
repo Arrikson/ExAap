@@ -228,23 +228,25 @@ async def alunos_disponiveis(prof_email: str):
         if not nome_aluno:
             continue
 
+        # Normaliza o nome do aluno para comparar com os documentos
+        nome_normalizado = nome_aluno.lower().replace(" ", "")
+
         # Verifica se o aluno está vinculado a algum professor
-        doc_ref = db.collection('alunos_professor').document(nome_aluno)
+        doc_ref = db.collection('alunos_professor').document(nome_normalizado)
         doc = doc_ref.get()
 
         if doc.exists:
             dados = doc.to_dict()
-            # Se tiver um campo 'email_professor' com qualquer valor, ignora
             if dados.get("email_professor"):
-                continue
+                continue  # Já vinculado, pula
 
-        # Só entra na lista se não estiver vinculado
+        # Aluno está disponível
         disponiveis.append({
             'nome': nome_aluno,
             'disciplina': aluno_data.get('disciplina', '').strip()
         })
 
-    return disponiveis
+    return disponiveis  # Pode retornar lista vazia, e o frontend exibe "Nenhum aluno disponível"
 
 
 @app.get('/meus-alunos/{prof_email}')
