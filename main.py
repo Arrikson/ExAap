@@ -202,52 +202,6 @@ async def post_perfil_prof(
     # Redireciona de volta ao perfil com confirmação
     return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
 
-@app.get('/alunos-disponiveis/{prof_email}')
-async def alunos_disponiveis(prof_email: str):
-    prof_docs = db.collection('professores_online') \
-                  .where('email', '==', prof_email.strip()).limit(1).stream()
-    prof = next(prof_docs, None)
-
-    if not prof:
-        raise HTTPException(status_code=404, detail='Professor não encontrado')
-
-    prof_data = prof.to_dict()
-    area = prof_data.get('area_formacao', '').strip()
-    if not area:
-        return []
-
-    # Busca todos os alunos já vinculados (qualquer professor)
-    alunos_vinculados_docs = db.collection('alunos_professor') \
-                                .where('email_professor', '!=', '').stream()
-
-    alunos_vinculados = set()
-    for doc in alunos_vinculados_docs:
-        alunos_vinculados.add(doc.id.strip().lower().replace(" ", ""))
-
-    # Agora lista todos os alunos com a disciplina igual à do professor
-    alunos = db.collection('alunos') \
-               .where('disciplina', '==', area).stream()
-
-    disponiveis = []
-    for aluno in alunos:
-        aluno_data = aluno.to_dict()
-        nome_aluno = aluno_data.get('nome', '').strip()
-        if not nome_aluno:
-            continue
-
-        nome_normalizado = nome_aluno.lower().replace(" ", "")
-        if nome_normalizado in alunos_vinculados:
-            continue  # já vinculado
-
-        # Aluno disponível
-        disponiveis.append({
-            'nome': nome_aluno,
-            'disciplina': aluno_data.get('disciplina', '').strip()
-        })
-
-    return disponiveis
-
-
 @app.get('/meus-alunos/{prof_email}')
 async def meus_alunos(prof_email: str):
     try:
