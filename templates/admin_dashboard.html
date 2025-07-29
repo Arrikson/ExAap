@@ -6,9 +6,7 @@
   <title>Login do Administrador</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Nunito', sans-serif;
       margin: 0;
@@ -38,9 +36,7 @@
       margin: 10px 0;
       border-radius: 8px;
     }
-    .login-form input {
-      border: 1px solid #ccc;
-    }
+    .login-form input { border: 1px solid #ccc; }
     .login-form button {
       background: linear-gradient(135deg, #0078d7, #00bcf2);
       color: white;
@@ -66,10 +62,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 20px;
     }
-    .card h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
+    .card h2 { font-size: 18px; margin-bottom: 10px; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -80,9 +73,7 @@
       font-size: 14px;
       text-align: left;
     }
-    th {
-      background-color: #f9f9f9;
-    }
+    th { background-color: #f9f9f9; }
     .btn {
       padding: 8px 16px;
       background: linear-gradient(135deg, #0078d7, #00bcf2);
@@ -199,7 +190,7 @@
     </div>
   </div>
 
- <script>
+<script>
   function alternarVisibilidade(id) {
     const el = document.getElementById(id);
     el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
@@ -208,8 +199,6 @@
   function verificarLogin() {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value.trim();
-
-    // Aqui você pode fazer uma chamada para autenticar no backend
     if (user === 'admin' && pass === '12345') {
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('painel').style.display = 'block';
@@ -251,7 +240,9 @@
     const select = document.getElementById("lista-professores");
     tbody.innerHTML = "";
     if (select) {
-      select.innerHTML = '<option disabled selected>Selecione o professor</option>';
+      select.innerHTML = `
+        <option disabled selected>Selecione o professor</option>
+        <option value="todos">Todos os Professores</option>`;
     }
     profs.forEach(p => {
       tbody.innerHTML += `<tr>
@@ -259,7 +250,7 @@
         <td>${p.online ? "✅" : "❌"}</td>
         <td><button onclick="removerProfessor('${p.email}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
       </tr>`;
-      if (select) {
+      if (select && p.email) {
         select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
       }
     });
@@ -309,19 +300,38 @@
 
   async function enviarMensagem() {
     const email = document.getElementById("lista-professores").value;
-    const mensagem = document.getElementById("mensagem-texto").value;
-    if (!email || !mensagem.trim()) {
-      alert("Selecione o professor e digite a mensagem.");
+    const mensagem = document.getElementById("mensagem-texto").value.trim();
+
+    if (!email || !mensagem) {
+      alert("Selecione o professor ou todos, e digite a mensagem.");
       return;
     }
-    await fetch("/enviar-mensagem-professor", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, mensagem })
-    });
-    alert("Mensagem enviada com sucesso.");
+
+    if (email === "todos") {
+      const res = await fetch("/listar-professores-online");
+      const professores = await res.json();
+      for (const prof of professores) {
+        if (prof.email) {
+          await fetch("/enviar-mensagem-professor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: prof.email, mensagem })
+          });
+        }
+      }
+      alert("Mensagem enviada para todos os professores.");
+    } else {
+      await fetch("/enviar-mensagem-professor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, mensagem })
+      });
+      alert("Mensagem enviada com sucesso.");
+    }
+
     document.getElementById("mensagem-texto").value = "";
   }
 </script>
 </body>
 </html>
+
