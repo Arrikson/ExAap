@@ -279,32 +279,37 @@
   </div>
 
   <div class="container">
-    <h1><img src="/static/professor.png" alt="Professor"> Meu Perfil</h1>
+  <h1><img src="/static/professor.png" alt="Professor"> Meu Perfil</h1>
 
-    {% if mensagem %}
-      <p style="text-align:center; color: #ff9800; font-size: 18px;">{{ mensagem }}</p>
-    {% endif %}
+  {% if mensagem %}
+    <p style="text-align:center; color: #ff9800; font-size: 18px;">{{ mensagem }}</p>
+  {% endif %}
 
-    <div class="grid">
-      <div>
-        <label>Nome Completo</label>
-        <input type="text" value="{{professor.nome_completo}}" readonly>
+  <div id="mensagensAdmin" style="margin-top: 30px; display: none; background: #fff8e1; padding: 20px; border-radius: 10px; border-left: 5px solid #ffc107;">
+    <h3 style="margin-bottom: 15px;">📬 Mensagens da Administração</h3>
+    <ul id="listaMensagens" style="list-style: none; padding-left: 0;"></ul>
+  </div>
 
-        <label>Nível de Ensino</label>
-        <input type="text" value="{{professor.nivel_ensino}}" readonly>
+  <div class="grid">
+    <div>
+      <label>Nome Completo</label>
+      <input type="text" value="{{professor.nome_completo}}" readonly>
 
-        <label>Área de Formação</label>
-        <input type="text" value="{{professor.area_formacao}}" readonly>
-      </div>
-      <div>
-        <label>Telefone</label>
-        <input type="text" value="{{professor.telefone}}" readonly>
+      <label>Nível de Ensino</label>
+      <input type="text" value="{{professor.nivel_ensino}}" readonly>
 
-        <label>Localização</label>
-        <input type="text" value="{{professor.localizacao}}" readonly>
-      </div>
+      <label>Área de Formação</label>
+      <input type="text" value="{{professor.area_formacao}}" readonly>
     </div>
+    <div>
+      <label>Telefone</label>
+      <input type="text" value="{{professor.telefone}}" readonly>
 
+      <label>Localização</label>
+      <input type="text" value="{{professor.localizacao}}" readonly>
+    </div>
+  </div>
+</div>
     <button class="toggle-btn" onclick="toggleDados()">Ver mais dados</button>
     <div id="dadosSecretos" class="dados-secretos">
       <p><strong>Email:</strong> {{professor.email}}</p>
@@ -714,6 +719,37 @@ async function enviarHorario() {
     console.error(e);
   }
 } 
+  function toggleDados() {
+    const div = document.getElementById("dadosSecretos");
+    div.style.display = div.style.display === "none" ? "block" : "none";
+
+    const mensagensDiv = document.getElementById("mensagensAdmin");
+    mensagensDiv.style.display = mensagensDiv.style.display === "none" ? "block" : "none";
+  }
+
+  async function buscarMensagensProfessor() {
+    const email = "{{ professor.email }}".trim().toLowerCase();
+    const res = await fetch(`/mensagens-professor/${email}`);
+    const dados = await res.json();
+
+    const lista = document.getElementById("listaMensagens");
+    lista.innerHTML = "";
+
+    if (dados.mensagens && dados.mensagens.length > 0) {
+      dados.mensagens.forEach(msg => {
+        const item = document.createElement("li");
+        item.style.padding = "10px";
+        item.style.borderBottom = "1px solid #ffe082";
+        item.innerHTML = `<strong>${msg.data || "Sem data"}:</strong><br>${msg.texto}`;
+        lista.appendChild(item);
+      });
+    } else {
+      lista.innerHTML = "<li style='color:#777'>Nenhuma mensagem recebida ainda.</li>";
+    }
+  }
+
+  // Chama a função ao carregar a página
+  window.addEventListener("DOMContentLoaded", buscarMensagensProfessor);
 </script>
 </body>
 </html>
