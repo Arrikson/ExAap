@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel do Administrador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f8;
+    }
+    .navbar {
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      padding: 15px 20px;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+    }
+    .section {
+      margin-bottom: 30px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    @media (max-width: 768px) {
+      table, th, td {
+        font-size: 12px;
+      }
+      .navbar {
+        font-size: 18px;
+      }
+    }
+    .refresh-btn {
+      padding: 6px 12px;
+      margin-top: 10px;
+      background-color: #00c9ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">Painel do Administrador</div>
+
+  <div class="container">
+
+    <div class="section" id="alunos-cadastrados">
+      <h2>Alunos Cadastrados</h2>
+      <button class="refresh-btn" onclick="carregarAlunos()">Atualizar</button>
+      <table id="tabela-alunos">
+        <thead>
+          <tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="alunos-disponiveis">
+      <h2>Alunos sem Vínculo</h2>
+      <button class="refresh-btn" onclick="carregarAlunosDisponiveis()">Atualizar</button>
+      <table id="tabela-disponiveis">
+        <thead><tr><th>Nome</th><th>Disciplina</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="professores-online">
+      <h2>Professores Online</h2>
+      <button class="refresh-btn" onclick="carregarProfessores()">Atualizar</button>
+      <table id="tabela-professores">
+        <thead><tr><th>Email</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="aulas-ao-vivo">
+      <h2>Aulas de Videochamada em Andamento</h2>
+      <button class="refresh-btn" onclick="carregarAulas()">Atualizar</button>
+      <table id="tabela-aulas">
+        <thead><tr><th>Aluno</th><th>Professor</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="aulas-dadas">
+      <h2>Relatório de Aulas Dadas</h2>
+      <button class="refresh-btn" onclick="carregarRelatorioAulas()">Atualizar</button>
+      <table id="tabela-aulas-dadas">
+        <thead><tr><th>Professor</th><th>Aluno</th><th>Aulas Dadas</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="horarios">
+      <h2>Horários dos Professores e Alunos</h2>
+      <p>🔒 Integração futura com rota de horários ainda em desenvolvimento.</p>
+    </div>
+
+  </div>
+
+  <script>
+    async function carregarAlunos() {
+      const res = await fetch("/listar-alunos"); // Crie uma rota que lista alunos com dados necessários
+      const alunos = await res.json();
+      const tbody = document.querySelector("#tabela-alunos tbody");
+      tbody.innerHTML = "";
+      alunos.forEach(a => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${a.nome}</td>
+            <td>${a.disciplina}</td>
+            <td>${a.online ? "✅" : "❌"}</td>
+            <td>${a.vinculado ? "Sim" : "Não"}</td>
+          </tr>`;
+      });
+    }
+
+    async function carregarAlunosDisponiveis() {
+      const res = await fetch("/alunos-disponiveis/admin@site.com"); // use um email de teste
+      const dados = await res.json();
+      const tbody = document.querySelector("#tabela-disponiveis tbody");
+      tbody.innerHTML = "";
+      dados.forEach(aluno => {
+        tbody.innerHTML += `<tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>`;
+      });
+    }
+
+    async function carregarProfessores() {
+      const res = await fetch("/listar-professores-online"); // precisa criar essa rota
+      const profs = await res.json();
+      const tbody = document.querySelector("#tabela-professores tbody");
+      tbody.innerHTML = "";
+      profs.forEach(p => {
+        tbody.innerHTML += `<tr><td>${p.email}</td><td>${p.online ? "✅" : "❌"}</td></tr>`;
+      });
+    }
+
+    async function carregarAulas() {
+      const res = await fetch("/listar-chamadas"); // precisa criar essa rota
+      const chamadas = await res.json();
+      const tbody = document.querySelector("#tabela-aulas tbody");
+      tbody.innerHTML = "";
+      chamadas.forEach(ch => {
+        tbody.innerHTML += `<tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>`;
+      });
+    }
+
+    async function carregarRelatorioAulas() {
+      const res = await fetch("/relatorio-aulas"); // criar rota que percorre alunos_professor
+      const dados = await res.json();
+      const tbody = document.querySelector("#tabela-aulas-dadas tbody");
+      tbody.innerHTML = "";
+      dados.forEach(item => {
+        tbody.innerHTML += `<tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>`;
+      });
+    }
+
+    // Inicialização
+    carregarAlunos();
+    carregarAlunosDisponiveis();
+    carregarProfessores();
+    carregarAulas();
+    carregarRelatorioAulas();
+  </script>
+</body>
+</html>
