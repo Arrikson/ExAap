@@ -2005,6 +2005,15 @@ async def enviar_mensagem_professor(request: Request):
     # lógica para armazenar/enviar a mensagem
     return {"mensagem": "Mensagem enviada com sucesso"}
 
+@app.get("/mensagens-professor/{email}")
+async def mensagens_professor(email: str):
+    email = email.strip().lower()
+    db_firestore = firestore.client()
+    doc_ref = db_firestore.collection("mensagens_professores").document(email)
+    doc = doc_ref.get()
+    if doc.exists:
+        return {"mensagens": doc.to_dict().get("mensagens", [])}
+    return {"mensagens": []}
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
