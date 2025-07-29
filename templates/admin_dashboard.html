@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Painel do Administrador</title>
+  <title>Login do Administrador</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -29,6 +29,7 @@
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 20px;
+      display: none;
     }
     h2 {
       margin-top: 0;
@@ -48,15 +49,7 @@
     th {
       background-color: #f0f0f0;
     }
-    @media (max-width: 768px) {
-      table, th, td {
-        font-size: 12px;
-      }
-      .navbar {
-        font-size: 18px;
-      }
-    }
-    .refresh-btn {
+    .refresh-btn, .toggle-btn {
       padding: 6px 12px;
       margin-top: 10px;
       background-color: #00c9ff;
@@ -65,26 +58,56 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    .login-form {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .login-form input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .login-form button {
+      width: 100%;
+      padding: 10px;
+      background: #00c9ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div class="navbar">Painel do Administrador</div>
 
-  <div class="container">
+  <div class="login-form" id="login-form">
+    <h2>Entrar</h2>
+    <input type="text" id="username" placeholder="Nome de utilizador">
+    <input type="password" id="password" placeholder="Palavra-passe">
+    <button onclick="verificarLogin()">Entrar</button>
+    <p id="login-erro" style="color:red;"></p>
+  </div>
 
+  <div class="container" id="painel" style="display:none">
+
+    <button class="toggle-btn" onclick="alternarVisibilidade('alunos-cadastrados')">Alunos Cadastrados</button>
     <div class="section" id="alunos-cadastrados">
-      <h2>Alunos Cadastrados</h2>
       <button class="refresh-btn" onclick="carregarAlunos()">Atualizar</button>
       <table id="tabela-alunos">
-        <thead>
-          <tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th></tr>
-        </thead>
+        <thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
 
+    <button class="toggle-btn" onclick="alternarVisibilidade('alunos-disponiveis')">Alunos sem Vínculo</button>
     <div class="section" id="alunos-disponiveis">
-      <h2>Alunos sem Vínculo</h2>
       <button class="refresh-btn" onclick="carregarAlunosDisponiveis()">Atualizar</button>
       <table id="tabela-disponiveis">
         <thead><tr><th>Nome</th><th>Disciplina</th></tr></thead>
@@ -92,8 +115,8 @@
       </table>
     </div>
 
+    <button class="toggle-btn" onclick="alternarVisibilidade('professores-online')">Professores Online</button>
     <div class="section" id="professores-online">
-      <h2>Professores Online</h2>
       <button class="refresh-btn" onclick="carregarProfessores()">Atualizar</button>
       <table id="tabela-professores">
         <thead><tr><th>Email</th><th>Status</th></tr></thead>
@@ -101,8 +124,8 @@
       </table>
     </div>
 
+    <button class="toggle-btn" onclick="alternarVisibilidade('aulas-ao-vivo')">Aulas em Andamento</button>
     <div class="section" id="aulas-ao-vivo">
-      <h2>Aulas de Videochamada em Andamento</h2>
       <button class="refresh-btn" onclick="carregarAulas()">Atualizar</button>
       <table id="tabela-aulas">
         <thead><tr><th>Aluno</th><th>Professor</th><th>Status</th></tr></thead>
@@ -110,23 +133,35 @@
       </table>
     </div>
 
+    <button class="toggle-btn" onclick="alternarVisibilidade('aulas-dadas')">Relatório de Aulas Dadas</button>
     <div class="section" id="aulas-dadas">
-      <h2>Relatório de Aulas Dadas</h2>
       <button class="refresh-btn" onclick="carregarRelatorioAulas()">Atualizar</button>
       <table id="tabela-aulas-dadas">
         <thead><tr><th>Professor</th><th>Aluno</th><th>Aulas Dadas</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
-
-    <div class="section" id="horarios">
-      <h2>Horários dos Professores e Alunos</h2>
-      <p>🔒 Integração futura com rota de horários ainda em desenvolvimento.</p>
-    </div>
-
   </div>
 
   <script>
+    function alternarVisibilidade(id) {
+      const el = document.getElementById(id);
+      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+
+    function verificarLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+
+      // Aqui você pode fazer uma chamada para autenticar no backend
+      if (user === 'admin' && pass === '12345') {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('painel').style.display = 'block';
+      } else {
+        document.getElementById('login-erro').innerText = 'Credenciais inválidas';
+      }
+    }
+
     async function carregarAlunos() {
       const res = await fetch("/listar-alunos");
       const alunos = await res.json();
@@ -164,7 +199,7 @@
     }
 
     async function carregarAulas() {
-      const res = await fetch("/listar-chamadas"); // precisa criar essa rota
+      const res = await fetch("/listar-chamadas");
       const chamadas = await res.json();
       const tbody = document.querySelector("#tabela-aulas tbody");
       tbody.innerHTML = "";
@@ -174,7 +209,7 @@
     }
 
     async function carregarRelatorioAulas() {
-      const res = await fetch("/relatorio-aulas"); 
+      const res = await fetch("/relatorio-aulas");
       const dados = await res.json();
       const tbody = document.querySelector("#tabela-aulas-dadas tbody");
       tbody.innerHTML = "";
@@ -182,13 +217,6 @@
         tbody.innerHTML += `<tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>`;
       });
     }
-
-    // Inicialização
-    carregarAlunos();
-    carregarAlunosDisponiveis();
-    carregarProfessores();
-    carregarAulas();
-    carregarRelatorioAulas();
   </script>
 </body>
 </html>
