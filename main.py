@@ -1982,6 +1982,30 @@ async def listar_alunos_nao_vinculados():
             content={"erro": "Erro ao buscar alunos não vinculados", "detalhes": str(e)}
         )
 
+
+@app.post("/remover-aluno")
+async def remover_aluno(request: Request):
+    dados = await request.json()
+    nome = dados.get("nome")
+    # lógica para apagar o aluno
+    return {"mensagem": f"Aluno {nome} removido com sucesso"}
+
+@app.post("/remover-professor")
+async def remover_professor(request: Request):
+    dados = await request.json()
+    email = dados.get("email")
+    # lógica para apagar o professor
+    return {"mensagem": f"Professor {email} removido com sucesso"}
+
+@app.post("/enviar-mensagem-professor")
+async def enviar_mensagem_professor(request: Request):
+    dados = await request.json()
+    destino = dados.get("email")
+    mensagem = dados.get("mensagem")
+    # lógica para armazenar/enviar a mensagem
+    return {"mensagem": "Mensagem enviada com sucesso"}
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
