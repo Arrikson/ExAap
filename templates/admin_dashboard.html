@@ -6,81 +6,116 @@
   <title>Login do Administrador</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Nunito', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f8;
+      background-color: #e6ecf0;
     }
     .navbar {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      background: linear-gradient(135deg, #0078d7, #00bcf2);
       padding: 15px 20px;
       color: white;
       font-size: 22px;
       font-weight: bold;
       text-align: center;
     }
-    .container {
-      padding: 20px;
-    }
-    .section {
-      margin-bottom: 30px;
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      display: none;
-    }
-    h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #333;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    .refresh-btn, .toggle-btn {
-      padding: 6px 12px;
-      margin-top: 10px;
-      background-color: #00c9ff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
     .login-form {
       max-width: 400px;
       margin: 60px auto;
       padding: 20px;
       background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .login-form input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
+    .login-form input,
     .login-form button {
       width: 100%;
-      padding: 10px;
-      background: #00c9ff;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+    .login-form input {
+      border: 1px solid #ccc;
+    }
+    .login-form button {
+      background: linear-gradient(135deg, #0078d7, #00bcf2);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .login-form button:hover {
+      background: linear-gradient(135deg, #005fa3, #00a4c2);
+    }
+    .container {
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .card {
+      flex: 1 1 300px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f9f9f9;
+    }
+    .btn {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #0078d7, #00bcf2);
       color: white;
       border: none;
       border-radius: 6px;
-      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #005fa3, #00a4c2);
+    }
+    .toggle-btn {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 10px;
+    }
+    .section {
+      display: none;
+      margin-top: 10px;
+    }
+    textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -96,62 +131,72 @@
   </div>
 
   <div class="container" id="painel" style="display:none">
-
-    <button class="toggle-btn" onclick="alternarVisibilidade('alunos-cadastrados')">Alunos Cadastrados</button>
-    <div class="section" id="alunos-cadastrados">
-      <button class="refresh-btn" onclick="carregarAlunos()">Atualizar</button>
-      <table id="tabela-alunos">
-        <thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('alunos-cadastrados')">👨‍🎓 Alunos Cadastrados</button>
+      <div class="section" id="alunos-cadastrados">
+        <button class="btn" onclick="carregarAlunos()">Atualizar</button>
+        <table id="tabela-alunos">
+          <thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="alternarVisibilidade('alunos-disponiveis')">Alunos sem Vínculo</button>
-    <div class="section" id="alunos-disponiveis">
-      <button class="refresh-btn" onclick="carregarAlunosDisponiveis()">Atualizar</button>
-      <table id="tabela-disponiveis">
-        <thead><tr><th>Nome</th><th>Disciplina</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('alunos-disponiveis')">📋 Alunos sem Vínculo</button>
+      <div class="section" id="alunos-disponiveis">
+        <button class="btn" onclick="carregarAlunosDisponiveis()">Atualizar</button>
+        <table id="tabela-disponiveis">
+          <thead><tr><th>Nome</th><th>Disciplina</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="alternarVisibilidade('professores-online')">Professores Online</button>
-    <div class="section" id="professores-online">
-      <button class="refresh-btn" onclick="carregarProfessores()">Atualizar</button>
-      <table id="tabela-professores">
-        <thead><tr><th>Email</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('professores-online')">🧑‍🏫 Professores Online</button>
+      <div class="section" id="professores-online">
+        <button class="btn" onclick="carregarProfessores()">Atualizar</button>
+        <table id="tabela-professores">
+          <thead><tr><th>Email</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="alternarVisibilidade('aulas-ao-vivo')">Aulas em Andamento</button>
-    <div class="section" id="aulas-ao-vivo">
-      <button class="refresh-btn" onclick="carregarAulas()">Atualizar</button>
-      <table id="tabela-aulas">
-        <thead><tr><th>Aluno</th><th>Professor</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('aulas-ao-vivo')">🎥 Aulas em Andamento</button>
+      <div class="section" id="aulas-ao-vivo">
+        <button class="btn" onclick="carregarAulas()">Atualizar</button>
+        <table id="tabela-aulas">
+          <thead><tr><th>Aluno</th><th>Professor</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="alternarVisibilidade('aulas-dadas')">Relatório de Aulas Dadas</button>
-    <div class="section" id="aulas-dadas">
-      <button class="refresh-btn" onclick="carregarRelatorioAulas()">Atualizar</button>
-      <table id="tabela-aulas-dadas">
-        <thead><tr><th>Professor</th><th>Aluno</th><th>Aulas Dadas</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('aulas-dadas')">📚 Relatório de Aulas</button>
+      <div class="section" id="aulas-dadas">
+        <button class="btn" onclick="carregarRelatorioAulas()">Atualizar</button>
+        <table id="tabela-aulas-dadas">
+          <thead><tr><th>Professor</th><th>Aluno</th><th>Aulas Dadas</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <button class="toggle-btn" onclick="alternarVisibilidade('enviar-mensagem')">Enviar Mensagem</button>
-    <div class="section" id="enviar-mensagem">
-      <h2>Enviar Mensagem ao Professor</h2>
-      <select id="lista-professores" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-        <option disabled selected>Selecione o professor</option>
-      </select>
-      <textarea id="mensagem-texto" placeholder="Digite sua mensagem" style="width: 100%; height: 100px; padding: 10px;"></textarea>
-      <button class="refresh-btn" onclick="enviarMensagem()">Enviar Mensagem</button>
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('enviar-mensagem')">✉️ Enviar Mensagem</button>
+      <div class="section" id="enviar-mensagem">
+        <h2>Mensagem ao Professor</h2>
+        <select id="lista-professores">
+          <option disabled selected>Selecione o professor</option>
+        </select>
+        <textarea id="mensagem-texto" placeholder="Digite sua mensagem"></textarea>
+        <button class="btn" onclick="enviarMensagem()">Enviar Mensagem</button>
+      </div>
     </div>
-
   </div>
 
  <script>
