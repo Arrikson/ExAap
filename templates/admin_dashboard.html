@@ -128,7 +128,7 @@
 
   <script>
     async function carregarAlunos() {
-      const res = await fetch("/listar-alunos"); // Crie uma rota que lista alunos com dados necessários
+      const res = await fetch("/listar-alunos");
       const alunos = await res.json();
       const tbody = document.querySelector("#tabela-alunos tbody");
       tbody.innerHTML = "";
@@ -144,7 +144,7 @@
     }
 
     async function carregarAlunosDisponiveis() {
-      const res = await fetch("/alunos-disponiveis/admin@site.com"); // use um email de teste
+      const res = await fetch("/alunos-nao-vinculados");
       const dados = await res.json();
       const tbody = document.querySelector("#tabela-disponiveis tbody");
       tbody.innerHTML = "";
@@ -154,7 +154,7 @@
     }
 
     async function carregarProfessores() {
-      const res = await fetch("/listar-professores-online"); // precisa criar essa rota
+      const res = await fetch("/listar-professores-online");
       const profs = await res.json();
       const tbody = document.querySelector("#tabela-professores tbody");
       tbody.innerHTML = "";
@@ -174,7 +174,7 @@
     }
 
     async function carregarRelatorioAulas() {
-      const res = await fetch("/relatorio-aulas"); // criar rota que percorre alunos_professor
+      const res = await fetch("/relatorio-aulas"); 
       const dados = await res.json();
       const tbody = document.querySelector("#tabela-aulas-dadas tbody");
       tbody.innerHTML = "";
