@@ -1891,6 +1891,77 @@ async def ver_aulas(request: Request):
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
 
+@app.get("/listar-alunos")
+async def listar_alunos():
+    alunos_ref = db.collection("aluno1").stream()
+    alunos = []
+
+    for doc in alunos_ref:
+        dados = doc.to_dict()
+        nome = dados.get("nome", "")
+        disciplina = dados.get("disciplina", "")
+        online = dados.get("online", False)
+        vinculado = dados.get("vinculado", False)
+        alunos.append({
+            "nome": nome,
+            "disciplina": disciplina,
+            "online": online,
+            "vinculado": vinculado
+        })
+
+    return alunos
+
+@app.get("/listar-professores-online")
+async def listar_professores_online():
+    professores = db.collection("professores_online").stream()
+    lista = []
+
+    for prof in professores:
+        dados = prof.to_dict()
+        lista.append({
+            "email": dados.get("email", ""),
+            "online": dados.get("online", False)
+        })
+
+    return lista
+
+@app.get("/listar-chamadas")
+async def listar_chamadas():
+    chamadas_ref = db.collection("chamadas_ao_vivo").stream()
+    lista = []
+
+    for ch in chamadas_ref:
+        dados = ch.to_dict()
+        lista.append({
+            "aluno": dados.get("aluno", ""),
+            "professor": dados.get("professor", ""),
+            "status": dados.get("status", "")
+        })
+
+    return lista
+
+
+@app.get("/relatorio-aulas")
+async def relatorio_aulas():
+    relatorio_ref = db.collection("alunos_professor").stream()
+    resultado = []
+
+    for doc in relatorio_ref:
+        dados = doc.to_dict()
+        resultado.append({
+            "professor": dados.get("professor", ""),
+            "aluno": dados.get("aluno", ""),
+            "aulas_dadas": dados.get("aulas_dadas", 0)
+        })
+
+    return resultado
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def painel_admin(request: Request):
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
+
+
 class EntradaItem(BaseModel):
     nome: str
     preco: float
