@@ -1986,16 +1986,48 @@ async def listar_alunos_nao_vinculados():
 @app.post("/remover-aluno")
 async def remover_aluno(request: Request):
     dados = await request.json()
-    nome = dados.get("nome")
-    # lógica para apagar o aluno
-    return {"mensagem": f"Aluno {nome} removido com sucesso"}
+    nome_raw = dados.get("nome", "")
+    nome = str(nome_raw).strip().lower().replace(" ", "")
+    
+    if not nome:
+        return JSONResponse(content={"erro": "Nome do aluno ausente"}, status_code=400)
+    
+    db = firestore.client()
+    docs = db.collection("alunos").where("nome_normalizado", "==", nome).stream()
+    achou = False
+
+    for doc in docs:
+        doc.reference.delete()
+        achou = True
+
+    if achou:
+        return {"mensagem": f"Aluno {nome_raw} removido com sucesso"}
+    else:
+        return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
+
 
 @app.post("/remover-professor")
 async def remover_professor(request: Request):
     dados = await request.json()
-    email = dados.get("email")
-    # lógica para apagar o professor
-    return {"mensagem": f"Professor {email} removido com sucesso"}
+    email_raw = dados.get("email", "")
+    email = str(email_raw).strip().lower()
+    
+    if not email:
+        return JSONResponse(content={"erro": "Email do professor ausente"}, status_code=400)
+
+    db = firestore.client()
+    docs = db.collection("professores_online").where("email", "==", email).stream()
+    achou = False
+
+    for doc in docs:
+        doc.reference.delete()
+        achou = True
+
+    if achou:
+        return {"mensagem": f"Professor {email_raw} removido com sucesso"}
+    else:
+        return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
+
 
 @app.post("/enviar-mensagem-professor")
 async def enviar_mensagem_professor(request: Request):
