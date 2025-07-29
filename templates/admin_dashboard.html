@@ -141,82 +141,142 @@
         <tbody></tbody>
       </table>
     </div>
+
+    <button class="toggle-btn" onclick="alternarVisibilidade('enviar-mensagem')">Enviar Mensagem</button>
+    <div class="section" id="enviar-mensagem">
+      <h2>Enviar Mensagem ao Professor</h2>
+      <select id="lista-professores" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+        <option disabled selected>Selecione o professor</option>
+      </select>
+      <textarea id="mensagem-texto" placeholder="Digite sua mensagem" style="width: 100%; height: 100px; padding: 10px;"></textarea>
+      <button class="refresh-btn" onclick="enviarMensagem()">Enviar Mensagem</button>
+    </div>
+
   </div>
 
-  <script>
-    function alternarVisibilidade(id) {
-      const el = document.getElementById(id);
-      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+ <script>
+  function alternarVisibilidade(id) {
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+  }
+
+  function verificarLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+
+    // Aqui você pode fazer uma chamada para autenticar no backend
+    if (user === 'admin' && pass === '12345') {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('painel').style.display = 'block';
+    } else {
+      document.getElementById('login-erro').innerText = 'Credenciais inválidas';
     }
+  }
 
-    function verificarLogin() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
+  async function carregarAlunos() {
+    const res = await fetch("/listar-alunos");
+    const alunos = await res.json();
+    const tbody = document.querySelector("#tabela-alunos tbody");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+      tbody.innerHTML += `<tr>
+        <td>${a.nome}</td>
+        <td>${a.disciplina}</td>
+        <td>${a.online ? "✅" : "❌"}</td>
+        <td>${a.vinculado ? "Sim" : "Não"}</td>
+        <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+      </tr>`;
+    });
+  }
 
-      // Aqui você pode fazer uma chamada para autenticar no backend
-      if (user === 'admin' && pass === '12345') {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('painel').style.display = 'block';
-      } else {
-        document.getElementById('login-erro').innerText = 'Credenciais inválidas';
+  async function carregarAlunosDisponiveis() {
+    const res = await fetch("/alunos-nao-vinculados");
+    const dados = await res.json();
+    const tbody = document.querySelector("#tabela-disponiveis tbody");
+    tbody.innerHTML = "";
+    dados.forEach(aluno => {
+      tbody.innerHTML += `<tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>`;
+    });
+  }
+
+  async function carregarProfessores() {
+    const res = await fetch("/listar-professores-online");
+    const profs = await res.json();
+    const tbody = document.querySelector("#tabela-professores tbody");
+    const select = document.getElementById("lista-professores");
+    tbody.innerHTML = "";
+    if (select) {
+      select.innerHTML = '<option disabled selected>Selecione o professor</option>';
+    }
+    profs.forEach(p => {
+      tbody.innerHTML += `<tr>
+        <td>${p.email}</td>
+        <td>${p.online ? "✅" : "❌"}</td>
+        <td><button onclick="removerProfessor('${p.email}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+      </tr>`;
+      if (select) {
+        select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
       }
-    }
+    });
+  }
 
-    async function carregarAlunos() {
-      const res = await fetch("/listar-alunos");
-      const alunos = await res.json();
-      const tbody = document.querySelector("#tabela-alunos tbody");
-      tbody.innerHTML = "";
-      alunos.forEach(a => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${a.nome}</td>
-            <td>${a.disciplina}</td>
-            <td>${a.online ? "✅" : "❌"}</td>
-            <td>${a.vinculado ? "Sim" : "Não"}</td>
-          </tr>`;
-      });
-    }
+  async function carregarAulas() {
+    const res = await fetch("/listar-chamadas");
+    const chamadas = await res.json();
+    const tbody = document.querySelector("#tabela-aulas tbody");
+    tbody.innerHTML = "";
+    chamadas.forEach(ch => {
+      tbody.innerHTML += `<tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>`;
+    });
+  }
 
-    async function carregarAlunosDisponiveis() {
-      const res = await fetch("/alunos-nao-vinculados");
-      const dados = await res.json();
-      const tbody = document.querySelector("#tabela-disponiveis tbody");
-      tbody.innerHTML = "";
-      dados.forEach(aluno => {
-        tbody.innerHTML += `<tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>`;
-      });
-    }
+  async function carregarRelatorioAulas() {
+    const res = await fetch("/relatorio-aulas");
+    const dados = await res.json();
+    const tbody = document.querySelector("#tabela-aulas-dadas tbody");
+    tbody.innerHTML = "";
+    dados.forEach(item => {
+      tbody.innerHTML += `<tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>`;
+    });
+  }
 
-    async function carregarProfessores() {
-      const res = await fetch("/listar-professores-online");
-      const profs = await res.json();
-      const tbody = document.querySelector("#tabela-professores tbody");
-      tbody.innerHTML = "";
-      profs.forEach(p => {
-        tbody.innerHTML += `<tr><td>${p.email}</td><td>${p.online ? "✅" : "❌"}</td></tr>`;
+  async function removerAluno(nome) {
+    if (confirm(`Deseja mesmo remover o aluno "${nome}"?`)) {
+      await fetch("/remover-aluno", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome })
       });
+      carregarAlunos();
     }
+  }
 
-    async function carregarAulas() {
-      const res = await fetch("/listar-chamadas");
-      const chamadas = await res.json();
-      const tbody = document.querySelector("#tabela-aulas tbody");
-      tbody.innerHTML = "";
-      chamadas.forEach(ch => {
-        tbody.innerHTML += `<tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>`;
+  async function removerProfessor(email) {
+    if (confirm(`Deseja mesmo remover o professor "${email}"?`)) {
+      await fetch("/remover-professor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
       });
+      carregarProfessores();
     }
+  }
 
-    async function carregarRelatorioAulas() {
-      const res = await fetch("/relatorio-aulas");
-      const dados = await res.json();
-      const tbody = document.querySelector("#tabela-aulas-dadas tbody");
-      tbody.innerHTML = "";
-      dados.forEach(item => {
-        tbody.innerHTML += `<tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>`;
-      });
+  async function enviarMensagem() {
+    const email = document.getElementById("lista-professores").value;
+    const mensagem = document.getElementById("mensagem-texto").value;
+    if (!email || !mensagem.trim()) {
+      alert("Selecione o professor e digite a mensagem.");
+      return;
     }
-  </script>
+    await fetch("/enviar-mensagem-professor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, mensagem })
+    });
+    alert("Mensagem enviada com sucesso.");
+    document.getElementById("mensagem-texto").value = "";
+  }
+</script>
 </body>
 </html>
