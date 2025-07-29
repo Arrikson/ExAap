@@ -1988,22 +1988,26 @@ async def listar_alunos_nao_vinculados():
 async def remover_aluno(request: Request):
     dados = await request.json()
     nome_raw = dados.get("nome", "")
-    nome = str(nome_raw).strip().lower().replace(" ", "")
-    
+    nome = str(nome_raw).strip()
+
     if not nome:
         return JSONResponse(content={"erro": "Nome do aluno ausente"}, status_code=400)
-    
+
+    print("🔍 Nome recebido:", nome)
+
     db = firestore.client()
-    docs = db.collection("alunos").where("nome_normalizado", "==", nome).stream()
+    docs = db.collection("alunos").where("nome", "==", nome).stream()
     achou = False
 
     for doc in docs:
+        print("📌 Documento encontrado:", doc.id)
         doc.reference.delete()
         achou = True
 
     if achou:
-        return {"mensagem": f"Aluno {nome_raw} removido com sucesso"}
+        return {"mensagem": f"Aluno {nome} removido com sucesso"}
     else:
+        print("⚠️ Nenhum aluno encontrado com esse nome.")
         return JSONResponse(content={"erro": "Aluno não encontrado"}, status_code=404)
 
 
@@ -2012,17 +2016,28 @@ async def remover_professor(request: Request):
     dados = await request.json()
     email_raw = dados.get("email", "")
     email = str(email_raw).strip().lower()
-    
+
     if not email:
         return JSONResponse(content={"erro": "Email do professor ausente"}, status_code=400)
+
+    print("🔍 Email recebido:", email_raw)
+    print("🔍 Email normalizado:", email)
 
     db = firestore.client()
     docs = db.collection("professores_online").where("email", "==", email).stream()
     achou = False
 
     for doc in docs:
+        print("📌 Documento encontrado:", doc.id)
         doc.reference.delete()
         achou = True
+
+    # Também remove da coleção professores_online2, onde o email é o ID
+    try:
+        db.collection("professores_online2").document(email).delete()
+        print("🗑️ Removido de professores_online2")
+    except Exception as e:
+        print("⚠️ Erro ao remover de professores_online2:", e)
 
     if achou:
         return {"mensagem": f"Professor {email_raw} removido com sucesso"}
