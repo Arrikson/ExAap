@@ -1893,7 +1893,7 @@ async def ver_aulas(request: Request):
 
 @app.get("/listar-alunos")
 async def listar_alunos():
-    alunos_ref = db.collection("aluno1").stream()
+    alunos_ref = db.collection("alunos").stream()
     alunos = []
 
     for doc in alunos_ref:
@@ -1956,6 +1956,31 @@ async def relatorio_aulas():
 
     return resultado
 
+@app.get("/alunos-nao-vinculados")
+async def listar_alunos_nao_vinculados():
+    try:
+        alunos_ref = db.collection("alunos") \
+                       .where("vinculado", "==", False) \
+                       .stream()
+
+        alunos_disponiveis = []
+        for doc in alunos_ref:
+            dados = doc.to_dict()
+            alunos_disponiveis.append({
+                "nome": dados.get("nome", ""),
+                "disciplina": dados.get("disciplina", ""),
+                "bairro": dados.get("bairro", ""),
+                "provincia": dados.get("provincia", ""),
+                "online": dados.get("online", False)
+            })
+
+        return JSONResponse(content=alunos_disponiveis)
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"erro": "Erro ao buscar alunos não vinculados", "detalhes": str(e)}
+        )
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
