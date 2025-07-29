@@ -2000,9 +2000,29 @@ async def remover_professor(request: Request):
 @app.post("/enviar-mensagem-professor")
 async def enviar_mensagem_professor(request: Request):
     dados = await request.json()
-    destino = dados.get("email")
-    mensagem = dados.get("mensagem")
-    # lógica para armazenar/enviar a mensagem
+    destino = dados.get("email", "").strip().lower()
+    texto = dados.get("mensagem", "").strip()
+
+    if not destino or not texto:
+        return {"erro": "Email e mensagem são obrigatórios"}
+
+    db_firestore = firestore.client()
+    doc_ref = db_firestore.collection("mensagens_professores").document(destino)
+
+    # Buscar mensagens anteriores (se existirem)
+    doc = doc_ref.get()
+    mensagens = doc.to_dict().get("mensagens", []) if doc.exists else []
+
+    # Adicionar nova mensagem com data
+    nova_mensagem = {
+        "texto": texto,
+        "data": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    mensagens.append(nova_mensagem)
+
+    # Atualizar no Firestore
+    doc_ref.set({"mensagens": mensagens})
+
     return {"mensagem": "Mensagem enviada com sucesso"}
 
 @app.get("/mensagens-professor/{email}")
