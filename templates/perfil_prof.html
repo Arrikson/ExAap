@@ -11,7 +11,7 @@
   <!-- Bootstrap Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-  <style>
+ <style>
   body {
     margin: 0;
     font-family: 'Nunito', sans-serif;
@@ -77,28 +77,31 @@
     cursor: pointer;
   }
 
-  .buttons {
-    margin-top: 20px;
+  /* NOVO: Botões estilo BAI */
+  .botao-menu {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 15px;
   }
 
-  .buttons button {
-    flex: 1;
-    margin: 5px;
-    padding: 12px 10px;
-    font-size: 14px;
-    background-color: #00bcd4;
+  .botao-menu button {
+    flex: 1 1 45%;
+    background-color: #f4f4f8;
     border: none;
-    color: white;
-    border-radius: 8px;
+    border-radius: 16px;
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: 0.2s ease;
   }
 
-  .buttons button:hover {
-    background-color: #0097a7;
+  .botao-menu button:hover {
+    background-color: #e0e0e0;
   }
 
   .ultimas-aulas {
@@ -147,7 +150,7 @@
     cursor: pointer;
   }
 
-  /* NOVO: Estilo para as seções dinâmicas */
+  /* Seções dinâmicas */
   .secao-dinamica {
     display: none;
     padding: 20px;
@@ -164,12 +167,8 @@
 
   /* Responsividade */
   @media (max-width: 700px) {
-    .buttons {
-      flex-direction: column;
-    }
-
-    .buttons button {
-      width: 100%;
+    .botao-menu button {
+      flex: 1 1 100%;
     }
   }
 </style>
@@ -188,12 +187,12 @@
   </div>
 
   <!-- Botões principais -->
-  <div class="buttons">
-    <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
-    <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-    <button onclick="toggleSection('ver-dados', mostrarMaisDados)">Ver Meus Dados</button>
-    <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Aulas da Semana</button>
-  </div>
+ <div class="botao-menu">
+  <button onclick="toggleSection('meus-alunos')">Meus Alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis')">Alunos Disponíveis</button>
+  <button onclick="toggleSection('ver-dados')">Ver Meus Dados</button>
+  <button onclick="toggleSection('aulas-semana')">Aulas da Semana</button>
+</div>
 
   <!-- Últimas aulas -->
   <div class="ultimas-aulas">
