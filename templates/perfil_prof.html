@@ -182,16 +182,14 @@
       <p>Nº B.I: {{ professor.bilhete }}</p>
       <p class="saldo">Saldo: <span id="saldo">Kz 00,00</span>
         <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span></p>
-      <button class="btn-ver-aulas" onclick="mostrarAulasDoDia()">Ver aulas do dia</button>
-    </div>
   </div>
 
   <!-- Botões principais -->
  <div class="botao-menu">
-  <button onclick="toggleSection('meus-alunos')">Meus Alunos</button>
-  <button onclick="toggleSection('alunos-disponiveis')">Alunos Disponíveis</button>
-  <button onclick="toggleSection('ver-dados')">Ver Meus Dados</button>
-  <button onclick="toggleSection('aulas-semana')">Aulas da Semana</button>
+   <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+  <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Aulas do Dia</button>
+  <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Aulas da Semana</button>
 </div>
 
   <!-- Últimas aulas -->
