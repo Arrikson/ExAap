@@ -11,7 +11,7 @@
   <!-- Bootstrap Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
- <style>
+<style>
   body {
     margin: 0;
     font-family: 'Nunito', sans-serif;
@@ -77,36 +77,35 @@
     cursor: pointer;
   }
 
-  /* NOVO: Botões estilo BAI */
-  /* NOVO: Botões estilo BAI */
-.botao-menu {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: nowrap; /* Não quebrar os botões */
-  gap: 10px;
-  margin: 20px 15px;
-}
+  /* Botões estilo BAI */
+  .botao-menu {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin: 20px 15px;
+  }
 
-.botao-menu button {
-  flex: 1;
-  background: linear-gradient(135deg, #00c9ff, #92fe9d);
-  border: none;
-  border-radius: 16px;
-  padding: 15px 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #000;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: 0.2s ease;
-  text-align: center;
-}
+  .botao-menu button {
+    flex: 1;
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    border: none;
+    border-radius: 16px;
+    padding: 15px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s ease;
+    text-align: center;
+  }
 
-.botao-menu button:hover {
-  opacity: 0.85;
-}
+  .botao-menu button:hover {
+    opacity: 0.85;
+  }
 
-   .ultimas-aulas {
+  .ultimas-aulas {
     padding: 20px;
   }
 
@@ -152,7 +151,6 @@
     cursor: pointer;
   }
 
-  /* Seções dinâmicas */
   .secao-dinamica {
     display: none;
     padding: 20px;
@@ -167,11 +165,10 @@
     color: #00796b;
   }
 
-  /* Responsividade: impedir quebra dos botões mesmo em telas pequenas */
   @media (max-width: 700px) {
     .botao-menu {
       flex-wrap: nowrap;
-      overflow-x: auto; /* rolagem horizontal se necessário */
+      overflow-x: auto;
     }
 
     .botao-menu button {
@@ -180,25 +177,30 @@
     }
   }
 </style>
+
 </head>
 <body>
-  <!-- Novo cabeçalho estilo BAI -->
+
+  <!-- Cabeçalho estilo BAI -->
   <div class="header-bai">
     <img src="/static/foto_perfil.png" alt="Foto Perfil">
     <div class="info">
       <h2>Olá, {{ professor.nome_completo }} 👋</h2>
       <p>Nº B.I: {{ professor.bilhete }}</p>
-      <p class="saldo">Saldo: <span id="saldo">Kz 00,00</span>
-        <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span></p>
+      <p class="saldo">
+        Saldo: <span id="saldo">Kz 00,00</span>
+        <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
+      </p>
+    </div>
   </div>
 
   <!-- Botões principais -->
- <div class="botao-menu">
-   <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
-  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
-  <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Aulas do Dia</button>
-  <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Aulas da Semana</button>
-</div>
+  <div class="botao-menu">
+    <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus Alunos</button>
+    <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Alunos Disponíveis</button>
+    <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Aulas do Dia</button>
+    <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Aulas da Semana</button>
+  </div>
 
   <!-- Últimas aulas -->
   <div class="ultimas-aulas">
@@ -213,7 +215,6 @@
       <span>Aula de Física</span>
       <span>Kz 1.250,00</span>
     </div>
-    <!-- Mais aulas aqui -->
   </div>
 
   <!-- Seções dinâmicas -->
@@ -231,7 +232,6 @@
     <h4>Meus Dados</h4>
     <p>Email: {{ professor.email }}</p>
     <p>Telefone: {{ professor.telefone }}</p>
-    <!-- Outros dados -->
   </div>
 
   <div id="aulas-semana" class="secao-dinamica">
@@ -241,9 +241,15 @@
 
   <!-- Navegação inferior -->
   <div class="bottom-nav">
-    <button onclick="location.href='/perfil_professor'" title="Meu Perfil"><i class="fas fa-user-circle"></i></button>
-    <button onclick="location.href='/salarios'" title="Salários"><i class="fas fa-money-bill-wave"></i></button>
-    <button onclick="abrirMenuResumo()" title="Menu"><i class="fas fa-bars"></i></button>
+    <button onclick="location.href='/perfil_professor'" title="Meu Perfil">
+      <i class="fas fa-user-circle"></i>
+    </button>
+    <button onclick="location.href='/salarios'" title="Salários">
+      <i class="fas fa-money-bill-wave"></i>
+    </button>
+    <button onclick="abrirMenuResumo()" title="Menu">
+      <i class="fas fa-bars"></i>
+    </button>
   </div>
 
   <script>
