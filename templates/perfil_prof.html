@@ -77,6 +77,36 @@
     cursor: pointer;
   }
 
+  .day {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #f1f1f1;
+  }
+
+  .day.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+
+  .time {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+    border-radius: 5px;
+    background: #f9f9f9;
+    cursor: pointer;
+  }
+
+  .time.active {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+    border-color: #218838;
+  }
+
   /* Botões estilo BAI */
   .botao-menu {
     display: flex;
@@ -640,17 +670,19 @@ function gerarCalendario() {
       document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
       div.classList.add('active');
       diaAtivo = dia;
-      gerarHorarios(dia);
+      gerarHorarios(); // Usa diaAtivo diretamente
     };
     daySelector.appendChild(div);
   });
 }
 
-function gerarHorarios(diaSelecionado) {
+function gerarHorarios() {
   const timeSelector = document.getElementById('timeSelector');
   timeSelector.innerHTML = '';
 
-  const horariosSalvos = horarioSelecionado[diaSelecionado] || [];
+  if (!diaAtivo) return;
+
+  const horariosSalvos = horarioSelecionado[diaAtivo] || [];
 
   const inicio = 7.5;
   const fim = 20.5;
@@ -669,13 +701,13 @@ function gerarHorarios(diaSelecionado) {
 
     div.onclick = () => {
       div.classList.toggle('active');
-      if (!horarioSelecionado[diaSelecionado]) {
-        horarioSelecionado[diaSelecionado] = [];
+      if (!horarioSelecionado[diaAtivo]) {
+        horarioSelecionado[diaAtivo] = [];
       }
       if (div.classList.contains('active')) {
-        horarioSelecionado[diaSelecionado].push(texto);
+        horarioSelecionado[diaAtivo].push(texto);
       } else {
-        horarioSelecionado[diaSelecionado] = horarioSelecionado[diaSelecionado].filter(h => h !== texto);
+        horarioSelecionado[diaAtivo] = horarioSelecionado[diaAtivo].filter(h => h !== texto);
       }
     };
     timeSelector.appendChild(div);
