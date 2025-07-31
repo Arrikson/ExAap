@@ -2083,6 +2083,44 @@ async def mensagens_professor(email: str):
         return {"mensagens": doc.to_dict().get("mensagens", [])}
     return {"mensagens": []}
 
+@app.post("/aulas_do_dia")
+async def aulas_do_dia(request: Request):
+    try:
+        dados = await request.json()
+        professor_email = dados.get("professor_email", "").strip().lower()
+
+        if not professor_email:
+            return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
+
+        # Buscar todos os alunos vinculados a este professor
+        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
+        alunos_vinculados = [doc.id.split("_")[0] for doc in vinculos]
+
+        if not alunos_vinculados:
+            return JSONResponse(content={"aulas": []})
+
+        # Dia da semana em formato minúsculo (ex: segunda, terca, ...)
+        dia_atual = datetime.now().strftime('%A').lower()
+        aulas_do_dia = []
+
+        for aluno in alunos_vinculados:
+            doc_ref = db.collection("horarios_alunos").document(aluno)
+            doc_snap = doc_ref.get()
+            if doc_snap.exists:
+                dados_horario = doc_snap.to_dict()
+                if dia_atual in dados_horario:
+                    horarios = dados_horario[dia_atual]
+                    aulas_do_dia.append({
+                        "aluno": aluno,
+                        "horarios": horarios
+                    })
+
+        return JSONResponse(content={"aulas": aulas_do_dia})
+
+    except Exception as e:
+        print("Erro ao obter aulas do dia:", e)
+        return JSONResponse(content={"erro": "Erro interno ao obter aulas do dia."}, status_code=500)
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
