@@ -245,14 +245,17 @@
   <div id="lista-aulas-semana"></div>
 </div>
 
-<!-- Container do Calendário -->
-<div id="calendarContainer" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); max-width:400px;">
-  <h4>Selecionar Horários</h4>
-  <div id="daySelector" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;"></div>
-  <div id="timeSelector" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;"></div>
-  <div style="margin-top:15px; text-align:right;">
-    <button onclick="enviarHorario()" style="background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:5px;">Enviar o horário</button>
-    <button onclick="document.getElementById('calendarContainer').style.display='none'" style="margin-left:10px;">Fechar</button>
+<!-- FUNDO ESCURO PARA DETECTAR CLIQUE FORA -->
+<div id="calendarOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.2); z-index:999;" onclick="fecharCalendarioSeForFora(event)">
+  <!-- CAIXA CALENDÁRIO -->
+  <div id="calendarContainer" onclick="event.stopPropagation()" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); max-width:400px;">
+    <h4>Selecionar Horários</h4>
+    <div id="daySelector" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;"></div>
+    <div id="timeSelector" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;"></div>
+    <div style="margin-top:15px; text-align:right;">
+      <button onclick="enviarHorario()" style="background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:5px;">Enviar o horário</button>
+      <button onclick="fecharCalendario()" style="margin-left:10px;">Fechar</button>
+    </div>
   </div>
 </div>
 
