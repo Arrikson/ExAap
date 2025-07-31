@@ -181,20 +181,19 @@
 </head>
 <body>
 
-  <!-- Cabeçalho estilo BAI -->
-  <div class="header-bai">
-    <img src="/static/foto_perfil.png" alt="Foto Perfil">
-    <div class="info">
-      <h2>Olá, {{ professor.nome_completo }} 👋</h2>
-      <p>Nº B.I: {{ professor.bilhete }}</p>
-      <p class="saldo">
-        Saldo: <span id="saldo">Kz 00,00</span>
-        <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
-      </p>
-    </div>
+<div class="header-bai">
+  <img src="/static/foto_perfil.png" alt="Foto Perfil">
+  <div class="info">
+    <h2>Olá, {{ professor.nome_completo }} 👋</h2>
+    <p>Nº B.I: {{ professor.bilhete }}</p>
+    <p class="saldo">
+      Saldo: <span id="saldo">Kz 00,00</span>
+      <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
+    </p>
   </div>
+</div>
 
-  <!-- Botões principais -->
+<!-- Botões principais -->
 <div class="botao-menu">
   <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Alunos</button>
   <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Disponíveis</button>
@@ -244,6 +243,17 @@
 <div id="aulas-semana" class="secao-dinamica" style="display:none; margin-top:10px; background:#eef; padding:10px; border-radius:8px;">
   <h4>Minhas Aulas da Semana</h4>
   <div id="lista-aulas-semana"></div>
+</div>
+
+<!-- Container do Calendário -->
+<div id="calendarContainer" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); max-width:400px;">
+  <h4>Selecionar Horários</h4>
+  <div id="daySelector" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;"></div>
+  <div id="timeSelector" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;"></div>
+  <div style="margin-top:15px; text-align:right;">
+    <button onclick="enviarHorario()" style="background:#28a745; color:#fff; border:none; padding:8px 12px; border-radius:5px;">Enviar o horário</button>
+    <button onclick="document.getElementById('calendarContainer').style.display='none'" style="margin-left:10px;">Fechar</button>
+  </div>
 </div>
 
 <!-- Navegação inferior -->
