@@ -195,62 +195,68 @@
   </div>
 
   <!-- Botões principais -->
-  <div class="botao-menu">
-    <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Alunos</button>
-    <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Disponíveis</button>
-    <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Do Dia</button>
-    <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Da Semana</button>
-  </div>
+<div class="botao-menu">
+  <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Disponíveis</button>
+  <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Do Dia</button>
+  <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Da Semana</button>
+</div>
 
-  <!-- Últimas aulas -->
-  <div class="ultimas-aulas">
-    <h3>Hoje, {{ data_hoje }}</h3>
-    <div class="aula-item" onclick="verDetalhesAula('Aluno X', '14h00')">
-      <i class="fas fa-chalkboard-teacher"></i>
-      <span>Aula de Matemática</span>
-      <span>Kz 1.250,00</span>
-    </div>
-    <div class="aula-item" onclick="verDetalhesAula('Aluno Y', '16h00')">
-      <i class="fas fa-chalkboard-teacher"></i>
-      <span>Aula de Física</span>
-      <span>Kz 1.250,00</span>
-    </div>
+<!-- Últimas aulas -->
+<div class="ultimas-aulas">
+  <h3>Hoje, {{ data_hoje }}</h3>
+  <div class="aula-item" onclick="verDetalhesAula('Aluno X', '14h00')">
+    <i class="fas fa-chalkboard-teacher"></i>
+    <span>Aula de Matemática</span>
+    <span>Kz 1.250,00</span>
   </div>
+  <div class="aula-item" onclick="verDetalhesAula('Aluno Y', '16h00')">
+    <i class="fas fa-chalkboard-teacher"></i>
+    <span>Aula de Física</span>
+    <span>Kz 1.250,00</span>
+  </div>
+</div>
 
-  <!-- Seções dinâmicas -->
-  <div id="alunos-disponiveis" class="secao-dinamica">
-    <h4>Alunos Disponíveis</h4>
-    <div id="lista-alunos-disponiveis"></div>
-  </div>
+<!-- Seções dinâmicas -->
+<div id="alunos-disponiveis" class="secao-dinamica">
+  <h4>Alunos Disponíveis</h4>
+  <div id="lista-alunos-disponiveis"></div>
+</div>
 
-  <div id="meus-alunos" class="secao-dinamica">
-    <h4>Meus Alunos</h4>
-    <div id="lista-meus-alunos"></div>
-  </div>
+<div id="meus-alunos" class="secao-dinamica">
+  <h4>Meus Alunos</h4>
+  <div id="lista-meus-alunos"></div>
+</div>
 
-  <div id="ver-dados" class="secao-dinamica">
-    <h4>Meus Dados</h4>
-    <p>Email: {{ professor.email }}</p>
-    <p>Telefone: {{ professor.telefone }}</p>
-  </div>
+<div id="ver-dados" class="secao-dinamica">
+  <h4>Meus Dados</h4>
+  <p>Email: {{ professor.email }}</p>
+  <p>Telefone: {{ professor.telefone }}</p>
+</div>
 
-  <div id="aulas-semana" class="secao-dinamica">
-    <h4>Minhas Aulas da Semana</h4>
-    <div id="lista-aulas-semana"></div>
-  </div>
+<div id="aulas-semana" class="secao-dinamica">
+  <h4>Minhas Aulas da Semana</h4>
+  <div id="lista-aulas-semana"></div>
+</div>
 
-  <!-- Navegação inferior -->
-  <div class="bottom-nav">
-    <button onclick="location.href='/perfil_professor'" title="Meu Perfil">
-      <i class="fas fa-user-circle"></i>
-    </button>
-    <button onclick="location.href='/salarios'" title="Salários">
-      <i class="fas fa-money-bill-wave"></i>
-    </button>
-    <button onclick="abrirMenuResumo()" title="Menu">
-      <i class="fas fa-bars"></i>
-    </button>
-  </div>
+<!-- Aulas do Dia -->
+<div id="aulas-dia" class="secao-dinamica" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:8px;">
+  <h4>Aulas de Hoje</h4>
+  <div id="lista-aulas-dia"></div>
+</div>
+
+<!-- Navegação inferior -->
+<div class="bottom-nav">
+  <button onclick="location.href='/perfil_professor'" title="Meu Perfil">
+    <i class="fas fa-user-circle"></i>
+  </button>
+  <button onclick="location.href='/salarios'" title="Salários">
+    <i class="fas fa-money-bill-wave"></i>
+  </button>
+  <button onclick="abrirMenuResumo()" title="Menu">
+    <i class="fas fa-bars"></i>
+  </button>
+</div>
 
   <script>
 let saldoVisivel = false;
@@ -427,6 +433,31 @@ async function listarMeusAlunos() {
   }
 }
 
+async function mostrarAulasDoDia() {
+    const professorEmail = "{{ professor.email }}";  // Garantir que o backend injete corretamente
+
+    const resposta = await fetch("/aulas_do_dia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professor_email: professorEmail })
+    });
+
+    const dados = await resposta.json();
+    const lista = document.getElementById("lista-aulas-dia");
+    lista.innerHTML = "";
+
+    if (dados.aulas && dados.aulas.length > 0) {
+      dados.aulas.forEach(item => {
+        const bloco = document.createElement("div");
+        bloco.style.marginBottom = "10px";
+        bloco.innerHTML = `<strong>${item.aluno}</strong>: ${item.horarios.join(", ")}`;
+        lista.appendChild(bloco);
+      });
+    } else {
+      lista.innerHTML = "Nenhuma aula marcada para hoje.";
+    }
+  }
+    
 async function verAulasDadas(nomeAluno) {
   try {
     const response = await fetch("/ver-aulas", {
