@@ -604,22 +604,34 @@ async function verAulasDadas(nomeAluno) {
     }
   }
   
+let alunoSelecionado = ""; // Certifique-se de definir isso em algum lugar
+let horarioSelecionado = {}; // Armazena horários por dia
+let diaAtivo = ""; // Dia atualmente selecionado
+
 function abrirCalendario() {
   const overlay = document.getElementById('calendarOverlay');
-  if (overlay) {
-    overlay.style.display = 'block';  // Agora exibe o overlay completo
-    gerarCalendario();
-  } else {
-    console.error("Elemento #calendarOverlay não encontrado.");
+  overlay.style.display = 'block';
+  gerarCalendario();
+}
+
+function fecharCalendario() {
+  document.getElementById('calendarOverlay').style.display = 'none';
+}
+
+function fecharCalendarioSeForFora(event) {
+  if (event.target.id === 'calendarOverlay') {
+    fecharCalendario();
   }
 }
+
 function gerarCalendario() {
-  const dias = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+  const dias = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
   const daySelector = document.getElementById('daySelector');
   const timeSelector = document.getElementById('timeSelector');
 
   daySelector.innerHTML = '';
   timeSelector.innerHTML = '';
+  diaAtivo = ""; // Reset inicial
 
   dias.forEach(dia => {
     const div = document.createElement('div');
@@ -628,15 +640,19 @@ function gerarCalendario() {
     div.onclick = () => {
       document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
       div.classList.add('active');
-      gerarHorarios();
+      diaAtivo = dia;
+      gerarHorarios(dia);
     };
     daySelector.appendChild(div);
   });
 }
 
-function gerarHorarios() {
+function gerarHorarios(diaSelecionado) {
   const timeSelector = document.getElementById('timeSelector');
   timeSelector.innerHTML = '';
+
+  const horariosSalvos = horarioSelecionado[diaSelecionado] || [];
+
   const inicio = 7.5;
   const fim = 20.5;
 
@@ -647,42 +663,29 @@ function gerarHorarios() {
     const div = document.createElement('div');
     div.textContent = texto;
     div.className = 'time';
-    div.onclick = () => div.classList.toggle('active');
+
+    if (horariosSalvos.includes(texto)) {
+      div.classList.add('active');
+    }
+
+    div.onclick = () => {
+      div.classList.toggle('active');
+      if (!horarioSelecionado[diaSelecionado]) {
+        horarioSelecionado[diaSelecionado] = [];
+      }
+      if (div.classList.contains('active')) {
+        horarioSelecionado[diaSelecionado].push(texto);
+      } else {
+        horarioSelecionado[diaSelecionado] = horarioSelecionado[diaSelecionado].filter(h => h !== texto);
+      }
+    };
     timeSelector.appendChild(div);
   }
 }
 
-function guardarHorario() {
-  const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
-  const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
-
-  if (!alunoSelecionado || diasSelecionados.length !== 1 || horarios.length === 0) {
-    alert("Selecione um único dia e pelo menos um horário.");
-    return;
-  }
-
-  const dados = {
-    aluno: alunoSelecionado,
-    dias: diasSelecionados,
-    horarios
-  };
-
-  fetch("/guardar-horario", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dados)
-  })
-    .then(res => res.json())
-    .then(data => alert(data.mensagem || data.erro))
-    .catch(err => alert("Erro ao guardar horário: " + err));
-}
-
 async function enviarHorario() {
-  const diasSelecionados = Array.from(document.querySelectorAll(".day.active")).map(d => d.textContent);
-  const horarios = Array.from(document.querySelectorAll(".time.active")).map(t => t.textContent);
-
-  if (!alunoSelecionado || diasSelecionados.length === 0 || horarios.length === 0) {
-    alert("Selecione pelo menos um dia e um horário.");
+  if (!alunoSelecionado || Object.keys(horarioSelecionado).length === 0) {
+    alert("Selecione pelo menos um dia e horário.");
     return;
   }
 
@@ -698,16 +701,16 @@ async function enviarHorario() {
     "Domingo": "Dom"
   };
 
-  const horario = {};
-  diasSelecionados.forEach(dia => {
+  const horarioFormatado = {};
+  for (const dia in horarioSelecionado) {
     const abreviado = mapaDias[dia] || dia;
-    horario[abreviado] = horarios;
-  });
+    horarioFormatado[abreviado] = horarioSelecionado[dia];
+  }
 
   const payload = {
     aluno_nome: alunoSelecionado,
     professor_email: professorEmail,
-    horario
+    horario: horarioFormatado
   };
 
   try {
@@ -720,6 +723,7 @@ async function enviarHorario() {
     const data = await response.json();
     if (response.ok) {
       alert(`Horário enviado com sucesso para ${alunoSelecionado}!`);
+      fecharCalendario();
     } else {
       alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido."));
     }
@@ -727,7 +731,7 @@ async function enviarHorario() {
     alert("Erro ao enviar o horário.");
     console.error(e);
   }
-} 
+}
   function toggleDados() {
     const div = document.getElementById("dadosSecretos");
     div.style.display = div.style.display === "none" ? "block" : "none";
