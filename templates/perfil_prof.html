@@ -745,6 +745,7 @@ async function enviarHorario() {
   };
 
   try {
+  
     const response = await fetch("/enviar-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -754,6 +755,33 @@ async function enviarHorario() {
     const data = await response.json();
     if (response.ok) {
       alert(`Horário enviado com sucesso para ${alunoSelecionado}!`);
+
+      // 2. Agora guardar o horário na base de dados com a rota /guardar-horario
+      const diasSelecionados = Object.keys(horarioSelecionado);
+      const ultimoDia = diasSelecionados[diasSelecionados.length - 1];
+      const horarios = horarioSelecionado[ultimoDia];
+
+      if (ultimoDia && horarios && horarios.length > 0) {
+        const guardarPayload = {
+          aluno: alunoSelecionado,
+          dias: [ultimoDia],
+          horarios: horarios
+        };
+
+        const guardarResponse = await fetch("/guardar-horario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(guardarPayload)
+        });
+
+        const guardarData = await guardarResponse.json();
+        if (guardarResponse.ok) {
+          console.log("Horário também guardado com sucesso!");
+        } else {
+          console.warn("Erro ao guardar horário:", guardarData.erro || "Erro desconhecido.");
+        }
+      }
+
       fecharCalendario();
     } else {
       alert("Erro ao enviar horário: " + (data.detail || "Erro desconhecido."));
@@ -763,6 +791,7 @@ async function enviarHorario() {
     console.error(e);
   }
 }
+
   function toggleDados() {
     const div = document.getElementById("dadosSecretos");
     div.style.display = div.style.display === "none" ? "block" : "none";
