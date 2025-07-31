@@ -605,11 +605,14 @@ async function verAulasDadas(nomeAluno) {
   }
   
 function abrirCalendario() {
-  const container = document.getElementById('calendarContainer');
-  container.style.display = 'block';
-  gerarCalendario();
+  const overlay = document.getElementById('calendarOverlay');
+  if (overlay) {
+    overlay.style.display = 'block';  // Agora exibe o overlay completo
+    gerarCalendario();
+  } else {
+    console.error("Elemento #calendarOverlay não encontrado.");
+  }
 }
-
 function gerarCalendario() {
   const dias = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
   const daySelector = document.getElementById('daySelector');
