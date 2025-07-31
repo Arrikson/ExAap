@@ -234,15 +234,16 @@
   <p>Telefone: {{ professor.telefone }}</p>
 </div>
 
-<div id="aulas-semana" class="secao-dinamica">
-  <h4>Minhas Aulas da Semana</h4>
-  <div id="lista-aulas-semana"></div>
-</div>
-
 <!-- Aulas do Dia -->
 <div id="aulas-dia" class="secao-dinamica" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:8px;">
   <h4>Aulas de Hoje</h4>
   <div id="lista-aulas-dia"></div>
+</div>
+
+<!-- Aulas da Semana -->
+<div id="aulas-semana" class="secao-dinamica" style="display:none; margin-top:10px; background:#eef; padding:10px; border-radius:8px;">
+  <h4>Minhas Aulas da Semana</h4>
+  <div id="lista-aulas-semana"></div>
 </div>
 
 <!-- Navegação inferior -->
@@ -258,22 +259,23 @@
   </button>
 </div>
 
-  <script>
-let saldoVisivel = false;
-    function toggleSaldo() {
-      const saldo = document.getElementById('saldo');
-      saldoVisivel = !saldoVisivel;
-      saldo.innerText = saldoVisivel ? "Kz {{ saldo_total }}" : "Kz 00,00";
-    }
+<script>
+  let saldoVisivel = false;
 
-    function verDetalhesAula(aluno, hora) {
-      alert("Aula para: " + aluno + "\nHorário: " + hora + "\nDuração: 1h\nValor: Kz 1.250,00");
-    }
+  function toggleSaldo() {
+    const saldo = document.getElementById('saldo');
+    saldoVisivel = !saldoVisivel;
+    saldo.innerText = saldoVisivel ? "Kz {{ saldo_total }}" : "Kz 00,00";
+  }
 
-    function abrirMenuResumo() {
-      alert("Botões e funções principais do professor serão listados aqui");
-    }
-  
+  function verDetalhesAula(aluno, hora) {
+    alert("Aula para: " + aluno + "\nHorário: " + hora + "\nDuração: 1h\nValor: Kz 1.250,00");
+  }
+
+  function abrirMenuResumo() {
+    alert("Botões e funções principais do professor serão listados aqui");
+  }
+
   function toggleDados() {
     const div = document.getElementById('dadosSecretos');
     div.style.display = div.style.display === 'block' ? 'none' : 'block';
@@ -285,7 +287,9 @@ let saldoVisivel = false;
       section.style.display = 'none';
     } else {
       section.style.display = 'block';
-      fetchFunction();
+      if (typeof fetchFunction === 'function') {
+        fetchFunction();
+      }
     }
   }
 
@@ -304,6 +308,44 @@ let saldoVisivel = false;
     } catch (error) {
       console.error("Erro ao enviar notificação:", error);
       alert("Erro ao enviar notificação.");
+    }
+  }
+
+  // NOVA FUNÇÃO: Mostrar aulas da semana
+  async function mostrarAulasDaSemana() {
+    const professorEmail = "{{ professor.email }}";
+
+    const resposta = await fetch("/aulas_da_semana", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professor_email: professorEmail })
+    });
+
+    const dados = await resposta.json();
+    const lista = document.getElementById("lista-aulas-semana");
+    lista.innerHTML = "";
+
+    if (dados.aulas && Object.keys(dados.aulas).length > 0) {
+      const diasOrdenados = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"];
+
+      diasOrdenados.forEach(dia => {
+        if (dados.aulas[dia]) {
+          const diaDiv = document.createElement("div");
+          diaDiv.style.marginBottom = "15px";
+          diaDiv.innerHTML = `<h5 style="text-transform: capitalize;">${dia}</h5>`;
+
+          dados.aulas[dia].forEach(item => {
+            const aulaItem = document.createElement("div");
+            aulaItem.style.marginLeft = "10px";
+            aulaItem.innerHTML = `<strong>${item.aluno}</strong>: ${item.horarios.join(", ")}`;
+            diaDiv.appendChild(aulaItem);
+          });
+
+          lista.appendChild(diaDiv);
+        }
+      });
+    } else {
+      lista.innerHTML = "Nenhuma aula marcada para esta semana.";
     }
   }
 
