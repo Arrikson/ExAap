@@ -148,10 +148,12 @@
   <h1>{{ aluno.nome }}</h1>
   <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
   <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+  <input type="hidden" id="professor-email" value="{{ professor_email }}">
+
   <script>
     console.log("📘 Nome do aluno capturado:", document.getElementById("aluno-nome").value);
   </script>
-  <input type="hidden" id="professor-email" value="{{ professor_email }}">
+
   <div class="btn-grid">
     <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
     <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
@@ -161,37 +163,36 @@
     <button class="notificar-btn" onclick="verHorario()">📅 Horário</button>
   </div>
 
-    <div id="sec-aula" class="info">
-      <p id="aulas-dadas"></p>
-      <p id="aulas-restantes"></p>
-      <ul id="lista-aulas" style="padding-left: 20px;"></ul>
-    </div>
-
-    <div id="sec-nivel" class="info">
-      <p>Nível Atual: Intermediário</p>
-      <p>Próximo: Avançado</p>
-    </div>
-
-    <div id="sec-notas" class="info">
-      <p>Português: 16</p>
-      <p>Biologia: 18</p>
-      <p>Química: 14</p>
-    </div>
-
-    <div id="notificacao-mensagem"></div>
-    <div id="professor-nome"></div>
-    <div id="horario-aulas"></div>
-
-    <div id="info-aula">
-      <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
-      <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
-    </div>
-
-    <form method="post" action="/logout" id="logoutForm">
-      <input type="hidden" name="nome" value="{{ aluno.nome }}">
-    </form>
+  <div id="sec-aula" class="info">
+    <p id="aulas-dadas"></p>
+    <p id="aulas-restantes"></p>
+    <ul id="lista-aulas" style="padding-left: 20px;"></ul>
   </div>
 
+  <div id="sec-nivel" class="info">
+    <p>Nível Atual: Intermediário</p>
+    <p>Próximo: Avançado</p>
+  </div>
+
+  <div id="sec-notas" class="info">
+    <p>Português: 16</p>
+    <p>Biologia: 18</p>
+    <p>Química: 14</p>
+  </div>
+
+  <div id="notificacao-mensagem"></div>
+  <div id="professor-nome"></div>
+  <div id="horario-aulas" style="display: none;"></div>
+
+  <div id="info-aula">
+    <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
+    <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+  </div>
+
+  <form method="post" action="/logout" id="logoutForm">
+    <input type="hidden" name="nome" value="{{ aluno.nome }}">
+  </form>
+</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -233,7 +234,7 @@
       }
     });
 
-  window.verHorario = async function () {
+window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
 
   if (divHorario.style.display === "block") {
@@ -242,21 +243,16 @@
   }
 
   try {
-    const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase().replace(/\s+/g, "");
+    const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase().replace(/\s+/g, "_");
+    const professorEmail = document.getElementById("professor-email").value.trim().toLowerCase();
 
-    const response = await fetch("/obter-horario", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        aluno: alunoNome
-      })
-    });
+    const response = await fetch(`/obter-horario?aluno_nome=${encodeURIComponent(alunoNome)}&professor_email=${encodeURIComponent(professorEmail)}`);
 
     const data = await response.json();
 
-    if (data.horarios && Object.keys(data.horarios).length > 0) {
+    if (data.horario && Object.keys(data.horario).length > 0) {
       let conteudo = "<b>Horários:</b><br><br>";
-      for (const [dia, lista] of Object.entries(data.horarios)) {
+      for (const [dia, lista] of Object.entries(data.horario)) {
         conteudo += `<b>${dia}:</b><br>`;
         lista.forEach(h => {
           conteudo += `&nbsp;&nbsp;• ${h}<br>`;
