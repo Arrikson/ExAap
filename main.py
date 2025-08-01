@@ -136,7 +136,7 @@ async def vincular_aluno(item: VinculoIn):
         for campo in ['senha', 'telefone', 'localizacao']:
             dados_aluno.pop(campo, None)
 
-        # Criação do documento com os dados do vínculo
+        # Criação do documento com o campo horario vazio
         db.collection('alunos_professor').add({
             'professor': prof,
             'aluno': aluno_nome_input,
@@ -146,10 +146,11 @@ async def vincular_aluno(item: VinculoIn):
             'notificacao': False,
             'aulas_dadas': 0,
             'total_aulas': 24,
-            'aulas': []
+            'aulas': [],
+            'horario': {}  # Campo novo
         })
 
-        # Atualiza o campo vinculado = True no documento do aluno
+        # Atualiza o campo vinculado no documento do aluno
         db.collection("alunos").document(aluno_doc.id).update({
             "vinculado": True
         })
@@ -164,7 +165,6 @@ async def vincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
-
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
@@ -2023,7 +2023,6 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Mapear dias
         dias_em_portugues = {
             "monday": "segunda-feira",
             "tuesday": "terça-feira",
@@ -2039,21 +2038,19 @@ async def aulas_do_dia(request: Request):
 
         aulas_do_dia = []
 
-        docs = db.collection("horarios_alunos").stream()
+        docs = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
 
         for doc in docs:
-            doc_id = doc.id
-            if not doc_id.endswith(f"_{professor_email}"):
-                continue
-
-            aluno_nome = doc_id.replace(f"_{professor_email}", "")
             dados = doc.to_dict()
-            horarios = dados.get(dia_hoje)
+            aluno_nome = dados.get("aluno", "")
+            horario = dados.get("horario", {})
 
-            if horarios:
+            horarios_hoje = horario.get(dia_hoje, [])
+
+            if horarios_hoje:
                 aulas_do_dia.append({
                     "aluno": aluno_nome,
-                    "horarios": horarios,
+                    "horarios": horarios_hoje,
                     "preco": "Kz 1.250,00"
                 })
 
@@ -2079,28 +2076,24 @@ async def aulas_da_semana(request: Request):
 
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
-        docs = db.collection("horarios_alunos").stream()
+        docs = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
 
         for doc in docs:
-            doc_id = doc.id
-            if not doc_id.endswith(f"_{professor_email}"):
-                continue
-
-            aluno_nome = doc_id.replace(f"_{professor_email}", "")
             dados = doc.to_dict()
+            aluno_nome = dados.get("aluno", "")
+            horario = dados.get("horario", {})
 
-            for dia, lista_horarios in dados.items():
+            for dia, lista in horario.items():
                 dia_formatado = dia.strip().lower()
                 if dia_formatado in aulas_semana:
                     aulas_semana[dia_formatado].append({
                         "aluno": aluno_nome,
-                        "horarios": lista_horarios,
+                        "horarios": lista,
                         "preco": "Kz 1.250,00"
                     })
 
-        # Remover dias sem aulas e ajustar capitalização
         aulas_semana_filtrado = {
-            dia.title(): aulas for dia, aulas in aulas_semana.items() if aulas
+            dia.title(): lista for dia, lista in aulas_semana.items() if lista
         }
 
         return JSONResponse(content={"aulas": aulas_semana_filtrado})
@@ -2120,20 +2113,35 @@ async def enviar_horario(request: Request):
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
         professor_email = dados.get("professor_email", "").strip().lower()
-        horario = dados.get("horario")  # Deve ser dict: {"segunda-feira": ["08:00", "09:00"]}
+        horario = dados.get("horario")  # dict esperado
 
         if not aluno_nome or not professor_email or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        # ID será igual ao da outra rota
         doc_id = f"{aluno_nome}_{professor_email}"
 
         print(f"🟢 Vai gravar EM horarios_alunos → ID: {doc_id} | Dados: {horario}")
-
-        # Gravar na coleção horarios_alunos
         db.collection("horarios_alunos").document(doc_id).set(horario, merge=True)
 
-        return {"mensagem": "Horário enviado com sucesso."}
+        # Atualizar o campo horario na coleção alunos_professor
+        query = db.collection("alunos_professor") \
+            .where("professor", "==", professor_email) \
+            .where("aluno", "==", aluno_nome) \
+            .limit(1) \
+            .stream()
+
+        doc_found = False
+        for doc in query:
+            doc.reference.update({"horario": horario})
+            doc_found = True
+            print(f"✅ Horário também atualizado em alunos_professor → ID: {doc.id}")
+            break
+
+        if not doc_found:
+            print("⚠️ Vínculo não encontrado na coleção alunos_professor para atualizar horário.")
+
+        return {"mensagem": "Horário enviado e atualizado com sucesso."}
+
     except Exception as e:
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
@@ -2150,7 +2158,7 @@ async def obter_horario(request: Request):
                 status_code=400
             )
 
-        # Buscar o professor_email do aluno na coleção 'alunos'
+        # Buscar professor vinculado a partir do documento do aluno
         aluno_doc_ref = db.collection("alunos").document(aluno_nome)
         aluno_doc = aluno_doc_ref.get()
 
@@ -2163,21 +2171,25 @@ async def obter_horario(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "Professor não vinculado ao aluno."}, status_code=400)
 
-        # Usar o mesmo ID usado na gravação
-        doc_id = f"{aluno_nome}_{professor_email}"
-        doc_ref = db.collection("horarios_alunos").document(doc_id)
-        doc_snap = doc_ref.get()
+        # Buscar documento na coleção alunos_professor
+        query = db.collection("alunos_professor") \
+            .where("professor", "==", professor_email) \
+            .where("aluno", "==", aluno_nome) \
+            .limit(1) \
+            .stream()
 
-        if not doc_snap.exists:
-            return JSONResponse(content={"horarios": {}}, status_code=200)
+        for doc in query:
+            dados = doc.to_dict()
+            horario = dados.get("horario", {})
+            print(f"✅ Horário encontrado em alunos_professor para {aluno_nome}: {horario}")
+            return JSONResponse(content={"horarios": horario}, status_code=200)
 
-        dados_doc = doc_snap.to_dict()
-        print(f"✅ Horário encontrado para {doc_id}: {dados_doc}")
-        return JSONResponse(content={"horarios": dados_doc})
+        return JSONResponse(content={"horarios": {}}, status_code=200)
 
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter horário."}, status_code=500)
+
 
 
 @app.get("/admin", response_class=HTMLResponse)
