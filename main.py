@@ -8,6 +8,7 @@ import shutil
 import os
 import json
 import uuid
+import re
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
 from reportlab.pdfgen import canvas
@@ -2146,12 +2147,14 @@ async def enviar_horario(request: Request):
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-
 @app.post("/obter-horario")
 async def obter_horario(request: Request):
     try:
         dados = await request.json()
-        aluno_nome = dados.get("aluno", "").strip().lower().replace(" ", "")
+        print("🔍 Dados recebidos na rota /obter-horario:", dados)
+
+        # Normalizar o nome do aluno (remover espaços e colocar em minúsculas)
+        aluno_nome = re.sub(r"\s+", "", dados.get("aluno", "").strip().lower())
 
         if not aluno_nome:
             return JSONResponse(
@@ -2159,7 +2162,7 @@ async def obter_horario(request: Request):
                 status_code=400
             )
 
-        # Buscar professor vinculado a partir do documento do aluno
+        # Buscar documento do aluno
         aluno_doc_ref = db.collection("alunos").document(aluno_nome)
         aluno_doc = aluno_doc_ref.get()
 
@@ -2172,7 +2175,7 @@ async def obter_horario(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "Professor não vinculado ao aluno."}, status_code=400)
 
-        # Buscar documento na coleção alunos_professor
+        # Buscar vínculo na coleção alunos_professor
         query = db.collection("alunos_professor") \
             .where("professor", "==", professor_email) \
             .where("aluno", "==", aluno_nome) \
@@ -2193,15 +2196,16 @@ async def obter_horario(request: Request):
             dados = doc.to_dict()
             horario_bruto = dados.get("horario", {})
 
-            # Converter as chaves abreviadas para o formato completo
-            horario_convertido = {}
-            for dia_curto, lista in horario_bruto.items():
-                dia_extenso = dias_convertidos.get(dia_curto, dia_curto)
-                horario_convertido[dia_extenso] = lista
+            # Converter abreviações para nomes completos dos dias
+            horario_convertido = {
+                dias_convertidos.get(dia_curto, dia_curto): lista
+                for dia_curto, lista in horario_bruto.items()
+            }
 
-            print(f"✅ Horário encontrado em alunos_professor para {aluno_nome}: {horario_convertido}")
+            print(f"✅ Horário encontrado para {aluno_nome}: {horario_convertido}")
             return JSONResponse(content={"horarios": horario_convertido}, status_code=200)
 
+        # Caso não tenha encontrado nenhum vínculo
         return JSONResponse(content={"horarios": {}}, status_code=200)
 
     except Exception as e:
