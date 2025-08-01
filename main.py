@@ -2146,6 +2146,7 @@ async def enviar_horario(request: Request):
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
+
 @app.post("/obter-horario")
 async def obter_horario(request: Request):
     try:
@@ -2178,18 +2179,34 @@ async def obter_horario(request: Request):
             .limit(1) \
             .stream()
 
+        dias_convertidos = {
+            "Seg": "segunda-feira",
+            "Ter": "terça-feira",
+            "Qua": "quarta-feira",
+            "Qui": "quinta-feira",
+            "Sex": "sexta-feira",
+            "Sáb": "sábado",
+            "Dom": "domingo"
+        }
+
         for doc in query:
             dados = doc.to_dict()
-            horario = dados.get("horario", {})
-            print(f"✅ Horário encontrado em alunos_professor para {aluno_nome}: {horario}")
-            return JSONResponse(content={"horarios": horario}, status_code=200)
+            horario_bruto = dados.get("horario", {})
+
+            # Converter as chaves abreviadas para o formato completo
+            horario_convertido = {}
+            for dia_curto, lista in horario_bruto.items():
+                dia_extenso = dias_convertidos.get(dia_curto, dia_curto)
+                horario_convertido[dia_extenso] = lista
+
+            print(f"✅ Horário encontrado em alunos_professor para {aluno_nome}: {horario_convertido}")
+            return JSONResponse(content={"horarios": horario_convertido}, status_code=200)
 
         return JSONResponse(content={"horarios": {}}, status_code=200)
 
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter horário."}, status_code=500)
-
 
 
 @app.get("/admin", response_class=HTMLResponse)
