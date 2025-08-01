@@ -2100,13 +2100,6 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Buscar alunos vinculados
-        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
-        alunos_vinculados = [doc.id.split("_")[0].strip().lower() for doc in vinculos]
-
-        if not alunos_vinculados:
-            return JSONResponse(content={"aulas": []})
-
         # Dia atual da semana em português
         dias_em_portugues = {
             "monday": "Segunda-feira",
@@ -2124,20 +2117,22 @@ async def aulas_do_dia(request: Request):
 
         aulas_do_dia = []
 
-        for aluno in alunos_vinculados:
-            doc_id = f"{aluno}_{professor_email}"
-            doc_ref = db.collection("horarios_alunos").document(doc_id)
-            doc_snap = doc_ref.get()
-            if doc_snap.exists:
-                dados_horario = doc_snap.to_dict()
+        # Buscar todos os documentos vinculados ao professor
+        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
 
-                for dia, horarios in dados_horario.items():
-                    if dia.strip().lower() == dia_em_portugues_lower:
-                        aulas_do_dia.append({
-                            "aluno": aluno,
-                            "horarios": horarios,
-                            "preco": "Kz 1.250,00"
-                        })
+        for doc in vinculos:
+            doc_id = doc.id
+            aluno = doc_id.split("_")[0]
+            dados = doc.to_dict()
+            horarios = dados.get("horarios", {})
+
+            for dia, lista_horarios in horarios.items():
+                if dia.strip().lower() == dia_em_portugues_lower:
+                    aulas_do_dia.append({
+                        "aluno": aluno,
+                        "horarios": lista_horarios,
+                        "preco": "Kz 1.250,00"
+                    })
 
         return JSONResponse(content={"aulas": aulas_do_dia})
 
@@ -2154,36 +2149,30 @@ async def aulas_da_semana(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Buscar alunos vinculados
-        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
-        alunos_vinculados = [doc.id.split("_")[0].strip().lower() for doc in vinculos]
-
-        if not alunos_vinculados:
-            return JSONResponse(content={"aulas": {}})
-
-        # Dias da semana em ordem
         dias_ordenados = [
             "Segunda-feira", "Terça-feira", "Quarta-feira",
             "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
         ]
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
-        for aluno in alunos_vinculados:
-            doc_id = f"{aluno}_{professor_email}"
-            doc_ref = db.collection("horarios_alunos").document(doc_id)
-            doc_snap = doc_ref.get()
-            if doc_snap.exists:
-                dados_horario = doc_snap.to_dict()
-                for dia, horarios in dados_horario.items():
-                    for dia_padrao in dias_ordenados:
-                        if dia.strip().lower() == dia_padrao.lower():
-                            aulas_semana[dia_padrao].append({
-                                "aluno": aluno,
-                                "horarios": horarios,
-                                "preco": "Kz 1.250,00"
-                            })
+        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
 
-      
+        for doc in vinculos:
+            doc_id = doc.id
+            aluno = doc_id.split("_")[0]
+            dados = doc.to_dict()
+            horarios = dados.get("horarios", {})
+
+            for dia, lista_horarios in horarios.items():
+                for dia_padrao in dias_ordenados:
+                    if dia.strip().lower() == dia_padrao.lower():
+                        aulas_semana[dia_padrao].append({
+                            "aluno": aluno,
+                            "horarios": lista_horarios,
+                            "preco": "Kz 1.250,00"
+                        })
+
+        # Remover dias sem aulas
         aulas_semana = {dia: lista for dia, lista in aulas_semana.items() if lista}
 
         return JSONResponse(content={"aulas": aulas_semana})
