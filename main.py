@@ -2147,70 +2147,34 @@ async def enviar_horario(request: Request):
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.post("/obter-horario")
-async def obter_horario(request: Request):
+@app.get("/obter-horario")
+async def obter_horario(aluno_nome: str = Query(...), professor_email: str = Query(...)):
     try:
-        dados = await request.json()
-        print("🔍 Dados recebidos na rota /obter-horario:", dados)
+        aluno_nome = aluno_nome.strip().lower()
+        professor_email = professor_email.strip().lower()
 
-        # Normalizar o nome do aluno (remover espaços e colocar em minúsculas)
-        aluno_nome = re.sub(r"\s+", "", dados.get("aluno", "").strip().lower())
-
-        if not aluno_nome:
-            return JSONResponse(
-                content={"erro": "Nome do aluno é obrigatório."},
-                status_code=400
-            )
-
-        # Buscar documento do aluno
-        aluno_doc_ref = db.collection("alunos").document(aluno_nome)
-        aluno_doc = aluno_doc_ref.get()
-
-        if not aluno_doc.exists:
-            return JSONResponse(content={"erro": "Aluno não encontrado."}, status_code=404)
-
-        aluno_data = aluno_doc.to_dict()
-        professor_email = aluno_data.get("professor_email", "").strip().lower()
-
-        if not professor_email:
-            return JSONResponse(content={"erro": "Professor não vinculado ao aluno."}, status_code=400)
-
-        # Buscar vínculo na coleção alunos_professor
         query = db.collection("alunos_professor") \
             .where("professor", "==", professor_email) \
             .where("aluno", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
-        dias_convertidos = {
-            "Seg": "segunda-feira",
-            "Ter": "terça-feira",
-            "Qua": "quarta-feira",
-            "Qui": "quinta-feira",
-            "Sex": "sexta-feira",
-            "Sáb": "sábado",
-            "Dom": "domingo"
-        }
-
         for doc in query:
             dados = doc.to_dict()
-            horario_bruto = dados.get("horario", {})
+            horario = dados.get("horario")
+            if horario:
+                print(f"🟢 Horário obtido com sucesso para aluno: {aluno_nome} | professor: {professor_email}")
+                return {"horario": horario}
+            else:
+                print(f"⚠️ Nenhum horário encontrado no documento.")
+                return JSONResponse(status_code=404, content={"detail": "Horário não encontrado."})
 
-            # Converter abreviações para nomes completos dos dias
-            horario_convertido = {
-                dias_convertidos.get(dia_curto, dia_curto): lista
-                for dia_curto, lista in horario_bruto.items()
-            }
-
-            print(f"✅ Horário encontrado para {aluno_nome}: {horario_convertido}")
-            return JSONResponse(content={"horarios": horario_convertido}, status_code=200)
-
-        # Caso não tenha encontrado nenhum vínculo
-        return JSONResponse(content={"horarios": {}}, status_code=200)
+        print(f"⚠️ Vínculo aluno-professor não encontrado.")
+        return JSONResponse(status_code=404, content={"detail": "Vínculo não encontrado."})
 
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
-        return JSONResponse(content={"erro": "Erro interno ao obter horário."}, status_code=500)
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
 @app.get("/admin", response_class=HTMLResponse)
