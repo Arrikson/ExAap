@@ -2105,17 +2105,22 @@ async def aulas_da_semana(request: Request):
         print("Erro ao obter aulas da semana:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500)
 
+class HorarioEnvio(BaseModel):
+    aluno_nome: str
+    professor_email: str  # Pode ser mantido para fins de log, mesmo que não usado
+    horario: dict
+
 @app.post("/enviar-horario")
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
-        horario = dados.get("horario")  # dict esperado
-
+        horario = dados.get("horario")
+        
         if not aluno_nome or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        # Atualizar o campo horario na coleção alunos
+        # Atualizar o campo 'horario' na coleção 'alunos'
         alunos_query = db.collection("alunos") \
             .where("nome", "==", aluno_nome) \
             .limit(1) \
@@ -2137,6 +2142,7 @@ async def enviar_horario(request: Request):
     except Exception as e:
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 @app.get("/obter-horario")
 async def obter_horario(aluno_nome: str = Query(...)):
