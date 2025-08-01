@@ -244,34 +244,41 @@ function verHorario() {
     return;
   }
 
-  const alunoNome = alunoNomeInput.value.trim().toLowerCase(); // ❗️ Usar apenas nome normalizado com espaço
+  const alunoNome = alunoNomeInput.value.trim().toLowerCase();
   if (!alunoNome) {
     console.warn("❗ Nome do aluno está ausente.");
     return;
   }
 
-  fetch(`/obter-horario?aluno_nome=${encodeURIComponent(alunoNome)}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Erro ao obter horário.");
-      }
-      return response.json();
-    })
-    .then(data => {
-      const horario = typeof data.horario === "string"
-        ? data.horario
-        : JSON.stringify(data.horario, null, 2); // Exibir como JSON legível
+  fetch("/obter-horario", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ aluno_nome: alunoNome })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Erro ao obter horário.");
+    }
+    return response.json();
+  })
+  .then(data => {
+    const horario = typeof data.horario === "string"
+      ? data.horario
+      : JSON.stringify(data.horario, null, 2); // Formato legível
 
-      const horarioDiv = document.getElementById("horario-aulas");
-      horarioDiv.innerText = horario;
-      horarioDiv.style.display = "block";
-    })
-    .catch(error => {
-      console.error("Erro:", error);
-      const horarioDiv = document.getElementById("horario-aulas");
-      horarioDiv.innerText = "Erro ao carregar horário.";
-      horarioDiv.style.display = "block";
-    });
+    const horarioDiv = document.getElementById("horario-conteudo");
+    horarioDiv.innerText = horario;
+
+    document.getElementById("horario-aulas").style.display = "block";
+  })
+  .catch(error => {
+    console.error("Erro:", error);
+    const horarioDiv = document.getElementById("horario-conteudo");
+    horarioDiv.innerText = "Erro ao carregar horário.";
+    document.getElementById("horario-aulas").style.display = "block";
+  });
 }
 
 window.toggleAulas = async function () {
