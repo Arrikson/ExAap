@@ -2107,7 +2107,7 @@ async def aulas_da_semana(request: Request):
 
 class HorarioEnvio(BaseModel):
     aluno_nome: str
-    professor_email: str  # Pode ser mantido para fins de log, mesmo que não usado
+    professor_email: str
     horario: dict
 
 @app.post("/enviar-horario")
@@ -2115,12 +2115,17 @@ async def enviar_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
-        horario = dados.get("horario")
-        
-        if not aluno_nome or not horario:
+        professor_email = dados.get("professor_email", "").strip().lower()
+        horario = dados.get("horario")  # dict esperado
+
+        if not aluno_nome or not professor_email or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        # Atualizar o campo 'horario' na coleção 'alunos'
+        doc_id = f"{aluno_nome}_{professor_email}"
+
+        print(f"🟢 Vai gravar EM alunos → nome: {aluno_nome} | Dados: {horario}")
+
+        # Atualiza o campo 'horario' na coleção 'alunos'
         alunos_query = db.collection("alunos") \
             .where("nome", "==", aluno_nome) \
             .limit(1) \
@@ -2135,7 +2140,23 @@ async def enviar_horario(request: Request):
 
         if not aluno_found:
             print("⚠️ Aluno não encontrado na coleção alunos para atualizar horário.")
-            return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
+
+        # Atualizar também o campo horario na coleção alunos_professor
+        query = db.collection("alunos_professor") \
+            .where("professor", "==", professor_email) \
+            .where("aluno", "==", aluno_nome) \
+            .limit(1) \
+            .stream()
+
+        doc_found = False
+        for doc in query:
+            doc.reference.update({"horario": horario})
+            doc_found = True
+            print(f"✅ Horário também atualizado em alunos_professor → ID: {doc.id}")
+            break
+
+        if not doc_found:
+            print("⚠️ Vínculo não encontrado na coleção alunos_professor para atualizar horário.")
 
         return {"mensagem": "Horário enviado e atualizado com sucesso."}
 
