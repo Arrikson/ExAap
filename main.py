@@ -2112,33 +2112,35 @@ async def aulas_do_dia(request: Request):
         }
 
         dia_em_ingles = datetime.now().strftime('%A').lower()
-        dia_em_portugues = dias_em_portugues.get(dia_em_ingles, "")
-        dia_em_portugues_lower = dia_em_portugues.lower()
+        dia_em_portugues = dias_em_portugues.get(dia_em_ingles, "").lower()
 
         aulas_do_dia = []
 
-        # Buscar todos os documentos vinculados ao professor
-        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
+        # Buscar documentos da coleção horarios_alunos
+        docs = db.collection("horarios_alunos").stream()
 
-        for doc in vinculos:
+        for doc in docs:
             doc_id = doc.id
-            aluno = doc_id.split("_")[0]
-            dados = doc.to_dict()
-            horarios = dados.get("horarios", {})
+            if not doc_id.endswith(f"_{professor_email}"):
+                continue
 
-            for dia, lista_horarios in horarios.items():
-                if dia.strip().lower() == dia_em_portugues_lower:
-                    aulas_do_dia.append({
-                        "aluno": aluno,
-                        "horarios": lista_horarios,
-                        "preco": "Kz 1.250,00"
-                    })
+            aluno = doc_id.replace(f"_{professor_email}", "")
+            dados = doc.to_dict()
+            horarios_dia = dados.get(dia_em_portugues)
+
+            if horarios_dia:
+                aulas_do_dia.append({
+                    "aluno": aluno,
+                    "horarios": horarios_dia,
+                    "preco": "Kz 1.250,00"
+                })
 
         return JSONResponse(content={"aulas": aulas_do_dia})
 
     except Exception as e:
         print("Erro ao obter aulas do dia:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter aulas do dia."}, status_code=500)
+
 
 @app.post("/aulas_da_semana")
 async def aulas_da_semana(request: Request):
@@ -2150,30 +2152,32 @@ async def aulas_da_semana(request: Request):
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
         dias_ordenados = [
-            "Segunda-feira", "Terça-feira", "Quarta-feira",
-            "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
+            "segunda-feira", "terça-feira", "quarta-feira",
+            "quinta-feira", "sexta-feira", "sábado", "domingo"
         ]
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
-        vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
+        docs = db.collection("horarios_alunos").stream()
 
-        for doc in vinculos:
+        for doc in docs:
             doc_id = doc.id
-            aluno = doc_id.split("_")[0]
-            dados = doc.to_dict()
-            horarios = dados.get("horarios", {})
+            if not doc_id.endswith(f"_{professor_email}"):
+                continue
 
-            for dia, lista_horarios in horarios.items():
-                for dia_padrao in dias_ordenados:
-                    if dia.strip().lower() == dia_padrao.lower():
-                        aulas_semana[dia_padrao].append({
-                            "aluno": aluno,
-                            "horarios": lista_horarios,
-                            "preco": "Kz 1.250,00"
-                        })
+            aluno = doc_id.replace(f"_{professor_email}", "")
+            dados = doc.to_dict()
+
+            for dia, lista_horarios in dados.items():
+                dia_lower = dia.strip().lower()
+                if dia_lower in aulas_semana:
+                    aulas_semana[dia_lower].append({
+                        "aluno": aluno,
+                        "horarios": lista_horarios,
+                        "preco": "Kz 1.250,00"
+                    })
 
         # Remover dias sem aulas
-        aulas_semana = {dia: lista for dia, lista in aulas_semana.items() if lista}
+        aulas_semana = {dia.title(): lista for dia, lista in aulas_semana.items() if lista}
 
         return JSONResponse(content={"aulas": aulas_semana})
 
