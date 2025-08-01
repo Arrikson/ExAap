@@ -2177,11 +2177,11 @@ async def obter_horario(aluno_nome: str = Query(...)):
                 content={"detail": "O nome do aluno é obrigatório."}
             )
 
-        aluno_nome = aluno_nome.strip().lower()
-        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome}'")
+        aluno_nome_normalizado = aluno_nome.strip().lower()
+        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome_normalizado}'")
 
         query = db.collection("alunos") \
-            .where("nome_normalizado", "==", aluno_nome) \
+            .where("nome_normalizado", "==", aluno_nome_normalizado) \
             .limit(1) \
             .stream()
 
@@ -2202,6 +2202,7 @@ async def obter_horario(aluno_nome: str = Query(...)):
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
         
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
