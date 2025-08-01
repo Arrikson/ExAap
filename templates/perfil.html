@@ -238,15 +238,19 @@
     });
 
 function verHorario() {
-  const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase().replace(/ /g, "_");
-  const professorEmail = document.getElementById("professor-email").value.trim().toLowerCase();
-
-  if (!alunoNome || !professorEmail) {
-    console.warn("❗ Nome do aluno ou e-mail do professor está ausente.");
+  const alunoNomeInput = document.getElementById("aluno-nome");
+  if (!alunoNomeInput) {
+    console.warn("❗ Campo 'aluno-nome' não encontrado.");
     return;
   }
 
-  fetch(`/obter-horario?aluno_nome=${alunoNome}&professor_email=${professorEmail}`)
+  const alunoNome = alunoNomeInput.value.trim().toLowerCase(); // ❗️ Usar apenas nome normalizado com espaço
+  if (!alunoNome) {
+    console.warn("❗ Nome do aluno está ausente.");
+    return;
+  }
+
+  fetch(`/obter-horario?aluno_nome=${encodeURIComponent(alunoNome)}`)
     .then(response => {
       if (!response.ok) {
         throw new Error("Erro ao obter horário.");
@@ -256,7 +260,7 @@ function verHorario() {
     .then(data => {
       const horario = typeof data.horario === "string"
         ? data.horario
-        : JSON.stringify(data.horario, null, 2); // Formata como JSON legível
+        : JSON.stringify(data.horario, null, 2); // Exibir como JSON legível
 
       const horarioDiv = document.getElementById("horario-aulas");
       horarioDiv.innerText = horario;
