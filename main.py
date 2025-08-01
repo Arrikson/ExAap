@@ -1741,49 +1741,60 @@ class HorarioEnvio(BaseModel):
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
-        aluno_nome = dados.get("aluno_nome").strip().lower()
-        professor_email = dados.get("professor_email").strip().lower()
-        horario = dados.get("horario")
+        aluno_nome = dados.get("aluno_nome", "").strip().lower()
+        professor_email = dados.get("professor_email", "").strip().lower()
+        horario = dados.get("horario")  # Deve ser dict: {"segunda-feira": ["08:00", "09:00"]}
 
         if not aluno_nome or not professor_email or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        doc_ref = db.collection("alunos_professor").document(f"{aluno_nome}_{professor_email}")
-        doc_ref.set({
-            "horario": horario,
-            "horario_pendente": True
-        }, merge=True)
+        # ID será igual ao da outra rota
+        doc_id = f"{aluno_nome}_{professor_email}"
+
+        print(f"🟢 Vai gravar EM horarios_alunos → ID: {doc_id} | Dados: {horario}")
+
+        # Gravar na coleção horarios_alunos
+        db.collection("horarios_alunos").document(doc_id).set(horario, merge=True)
 
         return {"mensagem": "Horário enviado com sucesso."}
     except Exception as e:
+        print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 @app.post("/guardar-horario")
 async def guardar_horario(request: Request):
-    dados = await request.json()
-    aluno = dados.get("aluno", "").strip().lower()
-    professor_email = dados.get("professor_email", "").strip().lower()
-    dias = dados.get("dias")
-    horarios = dados.get("horarios")
-
-    # Verificações básicas
-    if not aluno or not professor_email:
-        return JSONResponse(content={"erro": "Aluno e email do professor são obrigatórios."}, status_code=400)
-
-    if not dias or not horarios or len(dias) != 1:
-        return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário."}, status_code=400)
-
-    dia = dias[0]
-    dados_horario = {dia: horarios}
-
-    # ID do documento será: "nome_do_aluno_email_do_professor"
-    doc_id = f"{aluno}_{professor_email}"
-
     try:
+        dados = await request.json()
+        aluno = dados.get("aluno", "").strip().lower()
+        professor_email = dados.get("professor_email", "").strip().lower()
+        dias = dados.get("dias")
+        horarios = dados.get("horarios")
+
+        # Verificações básicas
+        if not aluno or not professor_email:
+            return JSONResponse(content={"erro": "Aluno e email do professor são obrigatórios."}, status_code=400)
+
+        if not dias or not horarios or len(dias) != 1:
+            return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário."}, status_code=400)
+
+        dia = dias[0].strip().lower()
+        dados_horario = {dia: horarios}
+
+        # ID do documento será: "nome_do_aluno_email_do_professor"
+        doc_id = f"{aluno}_{professor_email}"
+
+        print(f"🟢 Vai gravar em horarios_alunos → ID: {doc_id} | Dados: {dados_horario}")
+
+        # GRAVA EXCLUSIVAMENTE EM horarios_alunos
         db.collection("horarios_alunos").document(doc_id).set(dados_horario, merge=True)
+
         return JSONResponse(content={"mensagem": "Horário guardado com sucesso!"})
+
     except Exception as e:
+        print("🔴 Erro ao guardar horário:", e)
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+
 
 from datetime import datetime
 from fastapi import Body, HTTPException
