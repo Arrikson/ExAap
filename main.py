@@ -2092,8 +2092,9 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
+        # Buscar alunos vinculados
         vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
-        alunos_vinculados = [doc.id.split("_")[0] for doc in vinculos]
+        alunos_vinculados = [doc.id.split("_")[0].strip().lower() for doc in vinculos]
 
         if not alunos_vinculados:
             return JSONResponse(content={"aulas": []})
@@ -2111,6 +2112,7 @@ async def aulas_do_dia(request: Request):
 
         dia_em_ingles = datetime.now().strftime('%A').lower()
         dia_em_portugues = dias_em_portugues.get(dia_em_ingles, "")
+        dia_em_portugues_lower = dia_em_portugues.lower()
 
         aulas_do_dia = []
 
@@ -2119,12 +2121,14 @@ async def aulas_do_dia(request: Request):
             doc_snap = doc_ref.get()
             if doc_snap.exists:
                 dados_horario = doc_snap.to_dict()
-                if dia_em_portugues in dados_horario:
-                    horarios = dados_horario[dia_em_portugues]
-                    aulas_do_dia.append({
-                        "aluno": aluno,
-                        "horarios": horarios
-                    })
+
+                for dia, horarios in dados_horario.items():
+                    if dia.lower() == dia_em_portugues_lower:
+                        aulas_do_dia.append({
+                            "aluno": aluno,
+                            "horarios": horarios,
+                            "preco": "Kz 1.250,00"
+                        })
 
         return JSONResponse(content={"aulas": aulas_do_dia})
 
@@ -2143,17 +2147,18 @@ async def aulas_da_semana(request: Request):
 
         # Buscar alunos vinculados
         vinculos = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
-        alunos_vinculados = [doc.id.split("_")[0] for doc in vinculos]
+        alunos_vinculados = [doc.id.split("_")[0].strip().lower() for doc in vinculos]
 
         if not alunos_vinculados:
             return JSONResponse(content={"aulas": {}})
 
-        # Lista ordenada dos dias da semana
+        # Dias da semana na ordem certa
         dias_ordenados = [
             "Segunda-feira", "Terça-feira", "Quarta-feira",
             "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
         ]
 
+        # Dicionário com listas vazias para os dias
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
         for aluno in alunos_vinculados:
@@ -2162,22 +2167,23 @@ async def aulas_da_semana(request: Request):
             if doc_snap.exists:
                 dados_horario = doc_snap.to_dict()
                 for dia, horarios in dados_horario.items():
-                    if dia in aulas_semana:
-                        aulas_semana[dia].append({
-                            "aluno": aluno,
-                            "horarios": horarios,
-                            "preco": "Kz 1.250,00"  # valor fixo, pode ser ajustado depois
-                        })
+                    # Verifica o dia ignorando diferenças de maiúsculas/minúsculas
+                    for dia_padrao in dias_ordenados:
+                        if dia.strip().lower() == dia_padrao.lower():
+                            aulas_semana[dia_padrao].append({
+                                "aluno": aluno,
+                                "horarios": horarios,
+                                "preco": "Kz 1.250,00"
+                            })
 
-        # Remover dias sem aulas
-        aulas_semana = {dia: aulas for dia, aulas in aulas_semana.items() if aulas}
+        # Remove dias sem aulas
+        aulas_semana = {dia: lista for dia, lista in aulas_semana.items() if lista}
 
         return JSONResponse(content={"aulas": aulas_semana})
 
     except Exception as e:
         print("Erro ao obter aulas da semana:", e)
-        return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500)
-
+        return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500})
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
