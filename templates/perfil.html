@@ -230,7 +230,7 @@
       }
     });
 
- window.verHorario = async function () {
+  window.verHorario = async function () {
   const divHorario = document.getElementById("horario-aulas");
 
   if (divHorario.style.display === "block") {
@@ -239,15 +239,13 @@
   }
 
   try {
-    const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase();
-    const professorEmail = "{{ professor.email }}".trim().toLowerCase(); // renderizado pelo template
+    const alunoNome = document.getElementById("aluno-nome").value;
 
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        aluno: alunoNome,
-        professor_email: professorEmail
+        aluno: alunoNome
       })
     });
 
@@ -256,7 +254,7 @@
     if (data.horarios && Object.keys(data.horarios).length > 0) {
       let conteudo = "<b>Horários:</b><br><br>";
       for (const [dia, lista] of Object.entries(data.horarios)) {
-        conteudo += `<b>${dia.charAt(0).toUpperCase() + dia.slice(1)}:</b><br>`;
+        conteudo += `<b>${dia}:</b><br>`;
         lista.forEach(h => {
           conteudo += `&nbsp;&nbsp;• ${h}<br>`;
         });
