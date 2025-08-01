@@ -376,43 +376,47 @@
     }
   }
 
-  // NOVA FUNÇÃO: Mostrar aulas da semana
-  async function mostrarAulasDaSemana() {
-    const professorEmail = "{{ professor.email }}";
+// NOVA FUNÇÃO: Mostrar aulas da semana
+async function mostrarAulasDaSemana() {
+  const professorEmail = "{{ professor.email }}";
 
-    const resposta = await fetch("/aulas_da_semana", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ professor_email: professorEmail })
+  const resposta = await fetch("/aulas_da_semana", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ professor_email: professorEmail })
+  });
+
+  const dados = await resposta.json();
+  const lista = document.getElementById("lista-aulas-semana");
+  lista.innerHTML = "";
+
+  if (dados.aulas && Object.keys(dados.aulas).length > 0) {
+    // Ordenação correta dos dias conforme vêm da API
+    const diasOrdenados = [
+      "Segunda-feira", "Terça-feira", "Quarta-feira",
+      "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
+    ];
+
+    diasOrdenados.forEach(dia => {
+      if (dados.aulas[dia]) {
+        const diaDiv = document.createElement("div");
+        diaDiv.style.marginBottom = "15px";
+        diaDiv.innerHTML = `<h5 style="text-transform: capitalize;">${dia}</h5>`;
+
+        dados.aulas[dia].forEach(item => {
+          const aulaItem = document.createElement("div");
+          aulaItem.style.marginLeft = "10px";
+          aulaItem.innerHTML = `<strong>${item.aluno}</strong>: ${item.horarios.join(", ")}`;
+          diaDiv.appendChild(aulaItem);
+        });
+
+        lista.appendChild(diaDiv);
+      }
     });
-
-    const dados = await resposta.json();
-    const lista = document.getElementById("lista-aulas-semana");
-    lista.innerHTML = "";
-
-    if (dados.aulas && Object.keys(dados.aulas).length > 0) {
-      const diasOrdenados = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"];
-
-      diasOrdenados.forEach(dia => {
-        if (dados.aulas[dia]) {
-          const diaDiv = document.createElement("div");
-          diaDiv.style.marginBottom = "15px";
-          diaDiv.innerHTML = `<h5 style="text-transform: capitalize;">${dia}</h5>`;
-
-          dados.aulas[dia].forEach(item => {
-            const aulaItem = document.createElement("div");
-            aulaItem.style.marginLeft = "10px";
-            aulaItem.innerHTML = `<strong>${item.aluno}</strong>: ${item.horarios.join(", ")}`;
-            diaDiv.appendChild(aulaItem);
-          });
-
-          lista.appendChild(diaDiv);
-        }
-      });
-    } else {
-      lista.innerHTML = "Nenhuma aula marcada para esta semana.";
-    }
+  } else {
+    lista.innerHTML = "Nenhuma aula marcada para esta semana.";
   }
+}
 
   function slugify(text) {
     return text
@@ -531,7 +535,7 @@ async function listarMeusAlunos() {
       };
       card.appendChild(aulasBtn);
 
-      container.appendChild(card); // ✅ Isso deve vir depois de todos os appendChilds
+      container.appendChild(card); 
     });
 
   } catch (error) {
@@ -541,30 +545,36 @@ async function listarMeusAlunos() {
 }
 
 async function mostrarAulasDoDia() {
-    const professorEmail = "{{ professor.email }}";  // Garantir que o backend injete corretamente
+  const professorEmail = "{{ professor.email }}";  
 
-    const resposta = await fetch("/aulas_do_dia", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ professor_email: professorEmail })
+  const resposta = await fetch("/aulas_do_dia", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ professor_email: professorEmail })
+  });
+
+  const dados = await resposta.json();
+  const lista = document.getElementById("lista-aulas-dia");
+  lista.innerHTML = "";
+
+  if (dados.aulas && dados.aulas.length > 0) {
+    dados.aulas.forEach(item => {
+      const bloco = document.createElement("div");
+      bloco.style.marginBottom = "10px";
+      bloco.innerHTML = `
+        <div style="padding: 6px 10px; background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <strong>${item.aluno}</strong><br>
+          Horários: ${item.horarios.join(", ")}<br>
+          Valor: ${item.preco}
+        </div>
+      `;
+      lista.appendChild(bloco);
     });
-
-    const dados = await resposta.json();
-    const lista = document.getElementById("lista-aulas-dia");
-    lista.innerHTML = "";
-
-    if (dados.aulas && dados.aulas.length > 0) {
-      dados.aulas.forEach(item => {
-        const bloco = document.createElement("div");
-        bloco.style.marginBottom = "10px";
-        bloco.innerHTML = `<strong>${item.aluno}</strong>: ${item.horarios.join(", ")}`;
-        lista.appendChild(bloco);
-      });
-    } else {
-      lista.innerHTML = "Nenhuma aula marcada para hoje.";
-    }
+  } else {
+    lista.innerHTML = "Nenhuma aula marcada para hoje.";
   }
-    
+}
+
 async function verAulasDadas(nomeAluno) {
   try {
     const response = await fetch("/ver-aulas", {
@@ -656,8 +666,8 @@ async function verAulasDadas(nomeAluno) {
     }
   }
   
-let horarioSelecionado = {}; // Armazena horários por dia
-let diaAtivo = ""; // Dia atualmente selecionado
+let horarioSelecionado = {}; 
+let diaAtivo = ""; 
 
 function abrirCalendario() {
   const overlay = document.getElementById('calendarOverlay');
@@ -682,7 +692,7 @@ function gerarCalendario() {
 
   daySelector.innerHTML = '';
   timeSelector.innerHTML = '';
-  diaAtivo = ""; // Reset inicial
+  diaAtivo = ""; 
 
   dias.forEach(dia => {
     const div = document.createElement('div');
@@ -692,7 +702,7 @@ function gerarCalendario() {
       document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
       div.classList.add('active');
       diaAtivo = dia;
-      gerarHorarios(); // Usa diaAtivo diretamente
+      gerarHorarios(); 
     };
     daySelector.appendChild(div);
   });
@@ -778,7 +788,7 @@ async function enviarHorario() {
     if (response.ok) {
       alert(`Horário enviado com sucesso para ${alunoSelecionado}!`);
 
-      // 2. Agora guardar o horário na base de dados com a rota /guardar-horario
+      
       const diasSelecionados = Object.keys(horarioSelecionado);
       const ultimoDia = diasSelecionados[diasSelecionados.length - 1];
       const horarios = horarioSelecionado[ultimoDia];
@@ -843,7 +853,7 @@ async function enviarHorario() {
     }
   }
 
-  // Chama a função ao carregar a página
+ 
   window.addEventListener("DOMContentLoaded", buscarMensagensProfessor);
 </script>
 </body>
