@@ -234,43 +234,33 @@
       }
     });
 
-window.verHorario = async function () {
-  const divHorario = document.getElementById("horario-aulas");
+function verHorario() {
+  const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase().replace(/ /g, "_");
+  const professorEmail = document.getElementById("professor-email").value.trim().toLowerCase();
 
-  if (divHorario.style.display === "block") {
-    divHorario.style.display = "none";
+  if (!alunoNome || !professorEmail) {
+    console.warn("❗ Nome do aluno ou e-mail do professor está ausente.");
     return;
   }
 
-  try {
-    const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase().replace(/\s+/g, "_");
-    const professorEmail = document.getElementById("professor-email").value.trim().toLowerCase();
-
-    const response = await fetch(`/obter-horario?aluno_nome=${encodeURIComponent(alunoNome)}&professor_email=${encodeURIComponent(professorEmail)}`);
-
-    const data = await response.json();
-
-    if (data.horario && Object.keys(data.horario).length > 0) {
-      let conteudo = "<b>Horários:</b><br><br>";
-      for (const [dia, lista] of Object.entries(data.horario)) {
-        conteudo += `<b>${dia}:</b><br>`;
-        lista.forEach(h => {
-          conteudo += `&nbsp;&nbsp;• ${h}<br>`;
-        });
-        conteudo += "<br>";
+  fetch(`/obter-horario?aluno_nome=${alunoNome}&professor_email=${professorEmail}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erro ao obter horário.");
       }
-      divHorario.innerHTML = conteudo;
-    } else {
-      divHorario.innerHTML = "<b>Sem horários registrados.</b>";
-    }
-
-    divHorario.style.display = "block";
-  } catch (err) {
-    console.error("Erro ao buscar horário:", err);
-    divHorario.innerHTML = "<b>Erro ao obter o horário.</b>";
-    divHorario.style.display = "block";
-  }
-};
+      return response.json();
+    })
+    .then(data => {
+      const horario = data.horario || "Horário não definido.";
+      document.getElementById("horario-aulas").innerText = horario;
+      document.getElementById("horario-aulas").style.display = "block";
+    })
+    .catch(error => {
+      console.error("Erro:", error);
+      document.getElementById("horario-aulas").innerText = "Erro ao carregar horário.";
+      document.getElementById("horario-aulas").style.display = "block";
+    });
+}
 
 window.toggleAulas = async function () {
   const div = document.getElementById("sec-aula");
