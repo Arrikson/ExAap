@@ -2154,19 +2154,17 @@ async def obter_horario(
 ):
     try:
         if not aluno_nome or not professor_email:
-            print("⚠️ Parâmetros aluno_nome ou professor_email não fornecidos.")
             return JSONResponse(
                 status_code=400,
                 content={"detail": "Parâmetros obrigatórios ausentes."}
             )
 
-        # Limpeza e padronização
+        # Padronização SEM .replace()
         aluno_nome = aluno_nome.strip().lower()
         professor_email = professor_email.strip().lower()
 
         print(f"🔍 Buscando horário para aluno: '{aluno_nome}' | professor: '{professor_email}'")
 
-        # Consulta Firestore
         query = db.collection("alunos_professor") \
             .where(filter=FieldFilter("professor", "==", professor_email)) \
             .where(filter=FieldFilter("aluno", "==", aluno_nome)) \
