@@ -2207,28 +2207,6 @@ async def obter_horario(aluno_nome: str = Query(...)):
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
 
-@app.get("/atualizar-nome-normalizado")
-async def atualizar_nome_normalizado():
-    try:
-        alunos_ref = db.collection("alunos").stream()
-        atualizados = 0
-
-        for doc in alunos_ref:
-            dados = doc.to_dict()
-            nome_original = dados.get("nome", "").strip().lower()
-
-            if nome_original:
-                doc.reference.update({"nome_normalizado": nome_original})
-                atualizados += 1
-                print(f"✅ Atualizado: {nome_original} (doc ID: {doc.id})")
-
-        return {"mensagem": f"Atualização concluída. {atualizados} documentos modificados."}
-
-    except Exception as e:
-        print("🔴 Erro ao atualizar nomes:", e)
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
 class EntradaItem(BaseModel):
     nome: str
     preco: float
