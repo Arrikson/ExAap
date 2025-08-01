@@ -2160,11 +2160,11 @@ async def obter_horario(
                 content={"detail": "Parâmetros obrigatórios ausentes."}
             )
 
-        # Limpeza e padronização (sem .replace)
+        # Limpeza e padronização
         aluno_nome = aluno_nome.strip().lower()
         professor_email = professor_email.strip().lower()
 
-        print(f"🔍 Buscando horário para aluno: {aluno_nome} | professor: {professor_email}")
+        print(f"🔍 Buscando horário para aluno: '{aluno_nome}' | professor: '{professor_email}'")
 
         # Consulta Firestore
         query = db.collection("alunos_professor") \
@@ -2173,9 +2173,10 @@ async def obter_horario(
             .limit(1) \
             .stream()
 
-        # Verificação de retorno
         for doc in query:
             dados = doc.to_dict()
+            print("📄 Documento encontrado:", dados)
+
             horario = dados.get("horario")
             if horario:
                 print(f"🟢 Horário encontrado: {horario}")
