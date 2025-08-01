@@ -144,19 +144,22 @@
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
 
-  <div class="card">
-    <h1>{{ aluno.nome }}</h1>
-    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
-    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
-    <input type="hidden" id="professor-email" value="{{ professor_email }}">
-    <div class="btn-grid">
-      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
-      <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
-      <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
-      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
-      <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
-      <button class="notificar-btn" onclick="verHorario()">📅 Horário</button>
-    </div>
+<div class="card">
+  <h1>{{ aluno.nome }}</h1>
+  <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
+  <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+  <script>
+    console.log("📘 Nome do aluno capturado:", document.getElementById("aluno-nome").value);
+  </script>
+  <input type="hidden" id="professor-email" value="{{ professor_email }}">
+  <div class="btn-grid">
+    <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
+    <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
+    <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
+    <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+    <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
+    <button class="notificar-btn" onclick="verHorario()">📅 Horário</button>
+  </div>
 
     <div id="sec-aula" class="info">
       <p id="aulas-dadas"></p>
