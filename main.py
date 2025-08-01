@@ -605,7 +605,9 @@ async def cadastrar_aluno(
     outra_disciplina: str = Form(None)
 ):
     alunos_ref = db.collection("alunos")
-    existente = alunos_ref.where("nome", "==", nome).get()
+    nome_normalizado = nome.strip().lower()
+
+    existente = alunos_ref.where("nome_normalizado", "==", nome_normalizado).get()
 
     if existente:
         return templates.TemplateResponse("cadastro-aluno.html", {
@@ -616,6 +618,7 @@ async def cadastrar_aluno(
     aluno_id = str(uuid.uuid4())
     dados = {
         "nome": nome,
+        "nome_normalizado": nome_normalizado,  # ← campo adicionado
         "nome_mae": nome_mae,
         "nome_pai": nome_pai,
         "senha": senha,
