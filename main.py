@@ -2111,36 +2111,27 @@ async def aulas_da_semana(request: Request):
 
 class HorarioEnvio(BaseModel):
     aluno_nome: str
-    horario: dict  # Ex: {"segunda-feira": ["08:00", "09:00"], "terça-feira": ["10:00"]}
+    professor_email: str
+    horario: dict
 
 @app.post("/enviar-horario")
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
-        horario = dados.get("horario")
+        professor_email = dados.get("professor_email", "").strip().lower()
+        horario = dados.get("horario")  # Deve ser dict: {"segunda-feira": ["08:00", "09:00"]}
 
-        if not aluno_nome or not horario or not isinstance(horario, dict):
-            return JSONResponse(status_code=400, content={"detail": "Dados incompletos ou inválidos."})
+        if not aluno_nome or not professor_email or not horario:
+            return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        # Buscar o email do professor vinculado ao aluno
-        aluno_doc = db.collection("alunos").document(aluno_nome).get()
-        if not aluno_doc.exists:
-            return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
-
-        aluno_data = aluno_doc.to_dict()
-        professor_email = aluno_data.get("professor_email", "").strip().lower()
-
-        if not professor_email:
-            return JSONResponse(status_code=400, content={"detail": "Professor não vinculado ao aluno."})
-
-        # Formar o ID no mesmo formato da rota de leitura
+        # ID será igual ao da outra rota
         doc_id = f"{aluno_nome}_{professor_email}"
 
         print(f"🟢 Vai gravar EM horarios_alunos → ID: {doc_id} | Dados: {horario}")
 
-        # Salvar os dados de forma completa, sobrescrevendo o horário anterior
-        db.collection("horarios_alunos").document(doc_id).set(horario)
+        # Gravar na coleção horarios_alunos
+        db.collection("horarios_alunos").document(doc_id).set(horario, merge=True)
 
         return {"mensagem": "Horário enviado com sucesso."}
     except Exception as e:
