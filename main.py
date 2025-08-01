@@ -2183,7 +2183,7 @@ async def aulas_da_semana(request: Request):
                                 "preco": "Kz 1.250,00"
                             })
 
-        # Remove dias vazios
+      
         aulas_semana = {dia: lista for dia, lista in aulas_semana.items() if lista}
 
         return JSONResponse(content={"aulas": aulas_semana})
