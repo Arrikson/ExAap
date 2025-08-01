@@ -251,14 +251,19 @@ function verHorario() {
       return response.json();
     })
     .then(data => {
-      const horario = data.horario || "Horário não definido.";
-      document.getElementById("horario-aulas").innerText = horario;
-      document.getElementById("horario-aulas").style.display = "block";
+      const horario = typeof data.horario === "string"
+        ? data.horario
+        : JSON.stringify(data.horario, null, 2); // Formata como JSON legível
+
+      const horarioDiv = document.getElementById("horario-aulas");
+      horarioDiv.innerText = horario;
+      horarioDiv.style.display = "block";
     })
     .catch(error => {
       console.error("Erro:", error);
-      document.getElementById("horario-aulas").innerText = "Erro ao carregar horário.";
-      document.getElementById("horario-aulas").style.display = "block";
+      const horarioDiv = document.getElementById("horario-aulas");
+      horarioDiv.innerText = "Erro ao carregar horário.";
+      horarioDiv.style.display = "block";
     });
 }
 
