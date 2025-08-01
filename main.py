@@ -2168,20 +2168,22 @@ async def enviar_horario(request: Request):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
-@app.get("/obter-horario")
-async def obter_horario(aluno_nome: str = Query(...)):
+@app.post("/obter-horario")
+async def obter_horario(request: Request):
     try:
+        dados = await request.json()
+        aluno_nome = dados.get("aluno_nome", "").strip().lower()
+
         if not aluno_nome:
             return JSONResponse(
                 status_code=400,
                 content={"detail": "O nome do aluno é obrigatório."}
             )
 
-        aluno_nome_normalizado = aluno_nome.strip().lower()
-        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome_normalizado}'")
+        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome}'")
 
         query = db.collection("alunos") \
-            .where("nome_normalizado", "==", aluno_nome_normalizado) \
+            .where("nome_normalizado", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
