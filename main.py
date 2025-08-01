@@ -2166,45 +2166,6 @@ async def enviar_horario(request: Request):
     except Exception as e:
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
-@app.post("/obter-horario")
-async def obter_horario(request: Request):
-    try:
-        dados = await request.json()
-        aluno_nome = dados.get("aluno_nome", "").strip().lower()
-
-        if not aluno_nome:
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "O nome do aluno é obrigatório."}
-            )
-
-        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome}'")
-
-        query = db.collection("alunos") \
-            .where("nome_normalizado", "==", aluno_nome) \
-            .limit(1) \
-            .stream()
-
-        for doc in query:
-            dados = doc.to_dict()
-            horario = dados.get("horario")
-
-            if horario:
-                print(f"🟢 Horário encontrado: {horario}")
-                return {"horario": horario}
-            else:
-                print("⚠️ Aluno encontrado, mas sem horário definido.")
-                return JSONResponse(status_code=404, content={"detail": "Horário não encontrado."})
-
-        print("⚠️ Aluno não encontrado na coleção.")
-        return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
-
-    except Exception as e:
-        print("🔴 Erro ao obter horário:", e)
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
         
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
