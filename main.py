@@ -2105,43 +2105,32 @@ async def aulas_da_semana(request: Request):
         print("Erro ao obter aulas da semana:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500)
 
-class HorarioEnvio(BaseModel):
-    aluno_nome: str
-    professor_email: str
-    horario: dict
-
 @app.post("/enviar-horario")
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
-        professor_email = dados.get("professor_email", "").strip().lower()
         horario = dados.get("horario")  # dict esperado
 
-        if not aluno_nome or not professor_email or not horario:
+        if not aluno_nome or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        doc_id = f"{aluno_nome}_{professor_email}"
-
-        print(f"🟢 Vai gravar EM horarios_alunos → ID: {doc_id} | Dados: {horario}")
-        db.collection("horarios_alunos").document(doc_id).set(horario, merge=True)
-
-        # Atualizar o campo horario na coleção alunos_professor
-        query = db.collection("alunos_professor") \
-            .where("professor", "==", professor_email) \
-            .where("aluno", "==", aluno_nome) \
+        # Atualizar o campo horario na coleção alunos
+        alunos_query = db.collection("alunos") \
+            .where("nome", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
-        doc_found = False
-        for doc in query:
-            doc.reference.update({"horario": horario})
-            doc_found = True
-            print(f"✅ Horário também atualizado em alunos_professor → ID: {doc.id}")
+        aluno_found = False
+        for aluno_doc in alunos_query:
+            aluno_doc.reference.update({"horario": horario})
+            aluno_found = True
+            print(f"✅ Horário atualizado na coleção alunos → ID: {aluno_doc.id}")
             break
 
-        if not doc_found:
-            print("⚠️ Vínculo não encontrado na coleção alunos_professor para atualizar horário.")
+        if not aluno_found:
+            print("⚠️ Aluno não encontrado na coleção alunos para atualizar horário.")
+            return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
 
         return {"mensagem": "Horário enviado e atualizado com sucesso."}
 
@@ -2149,44 +2138,36 @@ async def enviar_horario(request: Request):
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.get("/obter-horario") 
-async def obter_horario(
-    aluno_nome: str = Query(...),
-    professor_email: str = Query(...)
-):
+@app.get("/obter-horario")
+async def obter_horario(aluno_nome: str = Query(...)):
     try:
-        if not aluno_nome or not professor_email:
+        if not aluno_nome:
             return JSONResponse(
                 status_code=400,
-                content={"detail": "Parâmetros obrigatórios ausentes."}
+                content={"detail": "O nome do aluno é obrigatório."}
             )
 
-        # Padronização SEM .replace()
         aluno_nome = aluno_nome.strip().lower()
-        professor_email = professor_email.strip().lower()
+        print(f"🔍 Buscando horário na coleção 'alunos' para aluno: '{aluno_nome}'")
 
-        print(f"🔍 Buscando horário para aluno: '{aluno_nome}' | professor: '{professor_email}'")
-
-        query = db.collection("alunos_professor") \
-            .where(filter=FieldFilter("professor", "==", professor_email)) \
-            .where(filter=FieldFilter("aluno", "==", aluno_nome)) \
+        query = db.collection("alunos") \
+            .where("nome", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
         for doc in query:
             dados = doc.to_dict()
-            print("📄 Documento encontrado:", dados)
-
             horario = dados.get("horario")
+
             if horario:
                 print(f"🟢 Horário encontrado: {horario}")
                 return {"horario": horario}
             else:
-                print("⚠️ Documento encontrado, mas nenhum horário definido.")
+                print("⚠️ Aluno encontrado, mas sem horário definido.")
                 return JSONResponse(status_code=404, content={"detail": "Horário não encontrado."})
 
-        print("⚠️ Vínculo aluno-professor não encontrado.")
-        return JSONResponse(status_code=404, content={"detail": "Vínculo não encontrado."})
+        print("⚠️ Aluno não encontrado na coleção.")
+        return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
 
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
