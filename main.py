@@ -631,12 +631,14 @@ async def cadastrar_aluno(
         "outra_disciplina": outra_disciplina,
         "online": False,
         "notificacao": False,
-        "vinculado": False 
+        "vinculado": False,
+        "horario": {}  # Campo novo, inicialmente vazio
     }
 
     db.collection("alunos").document(aluno_id).set(dados)
 
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
+
 
 @app.get("/login", response_class=HTMLResponse)
 async def exibir_login(request: Request, sucesso: int = 0):
