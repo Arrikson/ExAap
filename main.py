@@ -2148,14 +2148,21 @@ async def enviar_horario(request: Request):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.get("/obter-horario")
-async def obter_horario(aluno_nome: str = Query(...), professor_email: str = Query(...)):
+async def obter_horario(
+    aluno_nome: str = Query(...),
+    professor_email: str = Query(...)
+):
     try:
-        aluno_nome = aluno_nome.strip().lower()
+        aluno_nome = aluno_nome.strip().lower().replace(" ", "_")
         professor_email = professor_email.strip().lower()
 
+        if not aluno_nome or not professor_email:
+            print("⚠️ aluno_nome ou professor_email ausente!")
+            return JSONResponse(status_code=400, content={"detail": "Parâmetros inválidos: aluno_nome ou professor_email vazios."})
+
         query = db.collection("alunos_professor") \
-            .where("professor", "==", professor_email) \
-            .where("aluno", "==", aluno_nome) \
+            .where(filter=FieldFilter("professor", "==", professor_email)) \
+            .where(filter=FieldFilter("aluno", "==", aluno_nome)) \
             .limit(1) \
             .stream()
 
@@ -2163,19 +2170,19 @@ async def obter_horario(aluno_nome: str = Query(...), professor_email: str = Que
             dados = doc.to_dict()
             horario = dados.get("horario")
             if horario:
-                print(f"🟢 Horário obtido com sucesso para aluno: {aluno_nome} | professor: {professor_email}")
+                print(f"🟢 Horário encontrado para aluno: {aluno_nome} | professor: {professor_email}")
                 return {"horario": horario}
             else:
-                print(f"⚠️ Nenhum horário encontrado no documento.")
+                print(f"⚠️ Documento encontrado, mas nenhum horário definido.")
                 return JSONResponse(status_code=404, content={"detail": "Horário não encontrado."})
 
-        print(f"⚠️ Vínculo aluno-professor não encontrado.")
+        print(f"⚠️ Nenhum vínculo encontrado entre {aluno_nome} e {professor_email}")
         return JSONResponse(status_code=404, content={"detail": "Vínculo não encontrado."})
 
     except Exception as e:
         print("🔴 Erro ao obter horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
+        
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
