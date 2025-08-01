@@ -2123,11 +2123,11 @@ async def enviar_horario(request: Request):
 
         doc_id = f"{aluno_nome}_{professor_email}"
 
-        print(f"🟢 Vai gravar EM alunos → nome: {aluno_nome} | Dados: {horario}")
+        print(f"🟢 Vai gravar EM alunos → nome_normalizado: {aluno_nome} | Dados: {horario}")
 
-        # Atualiza o campo 'horario' na coleção 'alunos'
+        # ✅ Atualiza o campo 'horario' na coleção 'alunos' usando 'nome_normalizado'
         alunos_query = db.collection("alunos") \
-            .where("nome", "==", aluno_nome) \
+            .where("nome_normalizado", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
@@ -2175,10 +2175,10 @@ async def obter_horario(aluno_nome: str = Query(...)):
             )
 
         aluno_nome = aluno_nome.strip().lower()
-        print(f"🔍 Buscando horário na coleção 'alunos' para aluno: '{aluno_nome}'")
+        print(f"🔍 Buscando horário na coleção 'alunos' para aluno (normalizado): '{aluno_nome}'")
 
         query = db.collection("alunos") \
-            .where("nome", "==", aluno_nome) \
+            .where("nome_normalizado", "==", aluno_nome) \
             .limit(1) \
             .stream()
 
