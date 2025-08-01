@@ -2142,7 +2142,7 @@ async def enviar_horario(request: Request):
 async def obter_horario(request: Request):
     try:
         dados = await request.json()
-        aluno_nome = dados.get("aluno", "").strip().lower()
+        aluno_nome = dados.get("aluno", "").strip().lower().replace(" ", "")
 
         if not aluno_nome:
             return JSONResponse(
@@ -2150,8 +2150,10 @@ async def obter_horario(request: Request):
                 status_code=400
             )
 
-        # Buscar o professor_email automaticamente a partir da coleção 'alunos'
-        aluno_doc = db.collection("alunos").document(aluno_nome).get()
+        # Buscar o professor_email do aluno na coleção 'alunos'
+        aluno_doc_ref = db.collection("alunos").document(aluno_nome)
+        aluno_doc = aluno_doc_ref.get()
+
         if not aluno_doc.exists:
             return JSONResponse(content={"erro": "Aluno não encontrado."}, status_code=404)
 
@@ -2161,6 +2163,7 @@ async def obter_horario(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "Professor não vinculado ao aluno."}, status_code=400)
 
+        # Usar o mesmo ID usado na gravação
         doc_id = f"{aluno_nome}_{professor_email}"
         doc_ref = db.collection("horarios_alunos").document(doc_id)
         doc_snap = doc_ref.get()
@@ -2169,10 +2172,11 @@ async def obter_horario(request: Request):
             return JSONResponse(content={"horarios": {}}, status_code=200)
 
         dados_doc = doc_snap.to_dict()
+        print(f"✅ Horário encontrado para {doc_id}: {dados_doc}")
         return JSONResponse(content={"horarios": dados_doc})
 
     except Exception as e:
-        print("Erro ao obter horário:", e)
+        print("🔴 Erro ao obter horário:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter horário."}, status_code=500)
 
 
