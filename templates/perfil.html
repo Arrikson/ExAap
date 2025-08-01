@@ -239,13 +239,15 @@
   }
 
   try {
-    const alunoNome = document.getElementById("aluno-nome").value;
+    const alunoNome = document.getElementById("aluno-nome").value.trim().toLowerCase();
+    const professorEmail = "{{ professor.email }}".trim().toLowerCase(); // renderizado pelo template
 
     const response = await fetch("/obter-horario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        aluno: alunoNome
+        aluno: alunoNome,
+        professor_email: professorEmail
       })
     });
 
@@ -254,7 +256,7 @@
     if (data.horarios && Object.keys(data.horarios).length > 0) {
       let conteudo = "<b>Horários:</b><br><br>";
       for (const [dia, lista] of Object.entries(data.horarios)) {
-        conteudo += `<b>${dia}:</b><br>`;
+        conteudo += `<b>${dia.charAt(0).toUpperCase() + dia.slice(1)}:</b><br>`;
         lista.forEach(h => {
           conteudo += `&nbsp;&nbsp;• ${h}<br>`;
         });
@@ -277,8 +279,8 @@ window.toggleAulas = async function () {
   const div = document.getElementById("sec-aula");
   const aulasDadas = document.getElementById("aulas-dadas");
   const aulasRestantes = document.getElementById("aulas-restantes");
-  const listaAulas = document.getElementById("lista-aulas"); // Você pode adicionar esta <ul> no HTML
-
+  const listaAulas = document.getElementById("lista-aulas"); 
+  
   if (div.style.display === "block") {
     div.style.display = "none";
     return;
