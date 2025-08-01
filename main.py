@@ -1734,27 +1734,36 @@ async def buscar_id_professor(aluno: str):
 
 class HorarioEnvio(BaseModel):
     aluno_nome: str
-    professor_email: str
-    horario: dict
+    horario: dict  # Ex: {"segunda-feira": ["08:00", "09:00"], "terça-feira": ["10:00"]}
 
 @app.post("/enviar-horario")
 async def enviar_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
-        professor_email = dados.get("professor_email", "").strip().lower()
-        horario = dados.get("horario")  # Deve ser dict: {"segunda-feira": ["08:00", "09:00"]}
+        horario = dados.get("horario")
 
-        if not aluno_nome or not professor_email or not horario:
-            return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
+        if not aluno_nome or not horario or not isinstance(horario, dict):
+            return JSONResponse(status_code=400, content={"detail": "Dados incompletos ou inválidos."})
 
-        # ID será igual ao da outra rota
+        # Buscar o email do professor vinculado ao aluno
+        aluno_doc = db.collection("alunos").document(aluno_nome).get()
+        if not aluno_doc.exists:
+            return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado."})
+
+        aluno_data = aluno_doc.to_dict()
+        professor_email = aluno_data.get("professor_email", "").strip().lower()
+
+        if not professor_email:
+            return JSONResponse(status_code=400, content={"detail": "Professor não vinculado ao aluno."})
+
+        # Formar o ID no mesmo formato da rota de leitura
         doc_id = f"{aluno_nome}_{professor_email}"
 
         print(f"🟢 Vai gravar EM horarios_alunos → ID: {doc_id} | Dados: {horario}")
 
-        # Gravar na coleção horarios_alunos
-        db.collection("horarios_alunos").document(doc_id).set(horario, merge=True)
+        # Salvar os dados de forma completa, sobrescrevendo o horário anterior
+        db.collection("horarios_alunos").document(doc_id).set(horario)
 
         return {"mensagem": "Horário enviado com sucesso."}
     except Exception as e:
@@ -1767,22 +1776,30 @@ async def obter_horario(request: Request):
     try:
         dados = await request.json()
         aluno_nome = dados.get("aluno", "").strip().lower()
-        professor_email = dados.get("professor_email", "").strip().lower()
 
-        if not aluno_nome or not professor_email:
+        if not aluno_nome:
             return JSONResponse(
-                content={"erro": "Nome do aluno e email do professor são obrigatórios."},
+                content={"erro": "Nome do aluno é obrigatório."},
                 status_code=400
             )
 
-        # Formar o doc_id como em guardar_horario
-        doc_id = f"{aluno_nome}_{professor_email}"
+        # Buscar o professor_email automaticamente a partir da coleção 'alunos'
+        aluno_doc = db.collection("alunos").document(aluno_nome).get()
+        if not aluno_doc.exists:
+            return JSONResponse(content={"erro": "Aluno não encontrado."}, status_code=404)
 
+        aluno_data = aluno_doc.to_dict()
+        professor_email = aluno_data.get("professor_email", "").strip().lower()
+
+        if not professor_email:
+            return JSONResponse(content={"erro": "Professor não vinculado ao aluno."}, status_code=400)
+
+        doc_id = f"{aluno_nome}_{professor_email}"
         doc_ref = db.collection("horarios_alunos").document(doc_id)
         doc_snap = doc_ref.get()
 
         if not doc_snap.exists:
-            return JSONResponse(content={"erro": "Horário não encontrado."}, status_code=404)
+            return JSONResponse(content={"horarios": {}}, status_code=200)
 
         dados_doc = doc_snap.to_dict()
         return JSONResponse(content={"horarios": dados_doc})
@@ -2107,23 +2124,22 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Dia atual da semana em português
+        # Mapear dias
         dias_em_portugues = {
-            "monday": "Segunda-feira",
-            "tuesday": "Terça-feira",
-            "wednesday": "Quarta-feira",
-            "thursday": "Quinta-feira",
-            "friday": "Sexta-feira",
-            "saturday": "Sábado",
-            "sunday": "Domingo"
+            "monday": "segunda-feira",
+            "tuesday": "terça-feira",
+            "wednesday": "quarta-feira",
+            "thursday": "quinta-feira",
+            "friday": "sexta-feira",
+            "saturday": "sábado",
+            "sunday": "domingo"
         }
 
         dia_em_ingles = datetime.now().strftime('%A').lower()
-        dia_em_portugues = dias_em_portugues.get(dia_em_ingles, "").lower()
+        dia_hoje = dias_em_portugues.get(dia_em_ingles)
 
         aulas_do_dia = []
 
-        # Buscar documentos da coleção horarios_alunos
         docs = db.collection("horarios_alunos").stream()
 
         for doc in docs:
@@ -2131,14 +2147,14 @@ async def aulas_do_dia(request: Request):
             if not doc_id.endswith(f"_{professor_email}"):
                 continue
 
-            aluno = doc_id.replace(f"_{professor_email}", "")
+            aluno_nome = doc_id.replace(f"_{professor_email}", "")
             dados = doc.to_dict()
-            horarios_dia = dados.get(dia_em_portugues)
+            horarios = dados.get(dia_hoje)
 
-            if horarios_dia:
+            if horarios:
                 aulas_do_dia.append({
-                    "aluno": aluno,
-                    "horarios": horarios_dia,
+                    "aluno": aluno_nome,
+                    "horarios": horarios,
                     "preco": "Kz 1.250,00"
                 })
 
@@ -2147,7 +2163,6 @@ async def aulas_do_dia(request: Request):
     except Exception as e:
         print("Erro ao obter aulas do dia:", e)
         return JSONResponse(content={"erro": "Erro interno ao obter aulas do dia."}, status_code=500)
-
 
 @app.post("/aulas_da_semana")
 async def aulas_da_semana(request: Request):
@@ -2162,6 +2177,7 @@ async def aulas_da_semana(request: Request):
             "segunda-feira", "terça-feira", "quarta-feira",
             "quinta-feira", "sexta-feira", "sábado", "domingo"
         ]
+
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
         docs = db.collection("horarios_alunos").stream()
@@ -2171,22 +2187,24 @@ async def aulas_da_semana(request: Request):
             if not doc_id.endswith(f"_{professor_email}"):
                 continue
 
-            aluno = doc_id.replace(f"_{professor_email}", "")
+            aluno_nome = doc_id.replace(f"_{professor_email}", "")
             dados = doc.to_dict()
 
             for dia, lista_horarios in dados.items():
-                dia_lower = dia.strip().lower()
-                if dia_lower in aulas_semana:
-                    aulas_semana[dia_lower].append({
-                        "aluno": aluno,
+                dia_formatado = dia.strip().lower()
+                if dia_formatado in aulas_semana:
+                    aulas_semana[dia_formatado].append({
+                        "aluno": aluno_nome,
                         "horarios": lista_horarios,
                         "preco": "Kz 1.250,00"
                     })
 
-        # Remover dias sem aulas
-        aulas_semana = {dia.title(): lista for dia, lista in aulas_semana.items() if lista}
+        # Remover dias sem aulas e ajustar capitalização
+        aulas_semana_filtrado = {
+            dia.title(): aulas for dia, aulas in aulas_semana.items() if aulas
+        }
 
-        return JSONResponse(content={"aulas": aulas_semana})
+        return JSONResponse(content={"aulas": aulas_semana_filtrado})
 
     except Exception as e:
         print("Erro ao obter aulas da semana:", e)
