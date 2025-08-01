@@ -1758,21 +1758,29 @@ async def enviar_horario(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.post("/guardar-horario") 
+@app.post("/guardar-horario")
 async def guardar_horario(request: Request):
     dados = await request.json()
-    aluno = dados.get("aluno").strip().lower()
+    aluno = dados.get("aluno", "").strip().lower()
+    professor_email = dados.get("professor_email", "").strip().lower()
     dias = dados.get("dias")
     horarios = dados.get("horarios")
 
-    if not aluno or not dias or not horarios or len(dias) != 1:
-        return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário"}, status_code=400)
+    # Verificações básicas
+    if not aluno or not professor_email:
+        return JSONResponse(content={"erro": "Aluno e email do professor são obrigatórios."}, status_code=400)
+
+    if not dias or not horarios or len(dias) != 1:
+        return JSONResponse(content={"erro": "Selecione um único dia e pelo menos um horário."}, status_code=400)
 
     dia = dias[0]
     dados_horario = {dia: horarios}
 
+    # ID do documento será: "nome_do_aluno_email_do_professor"
+    doc_id = f"{aluno}_{professor_email}"
+
     try:
-        db.collection("horarios_alunos").document(aluno).set(dados_horario, merge=True)
+        db.collection("horarios_alunos").document(doc_id).set(dados_horario, merge=True)
         return JSONResponse(content={"mensagem": "Horário guardado com sucesso!"})
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
@@ -2099,7 +2107,7 @@ async def aulas_do_dia(request: Request):
         if not alunos_vinculados:
             return JSONResponse(content={"aulas": []})
 
-        # Mapeamento dos dias da semana
+        # Dia atual da semana em português
         dias_em_portugues = {
             "monday": "Segunda-feira",
             "tuesday": "Terça-feira",
@@ -2117,13 +2125,14 @@ async def aulas_do_dia(request: Request):
         aulas_do_dia = []
 
         for aluno in alunos_vinculados:
-            doc_ref = db.collection("horarios_alunos").document(aluno)
+            doc_id = f"{aluno}_{professor_email}"
+            doc_ref = db.collection("horarios_alunos").document(doc_id)
             doc_snap = doc_ref.get()
             if doc_snap.exists:
                 dados_horario = doc_snap.to_dict()
 
                 for dia, horarios in dados_horario.items():
-                    if dia.lower() == dia_em_portugues_lower:
+                    if dia.strip().lower() == dia_em_portugues_lower:
                         aulas_do_dia.append({
                             "aluno": aluno,
                             "horarios": horarios,
@@ -2152,22 +2161,20 @@ async def aulas_da_semana(request: Request):
         if not alunos_vinculados:
             return JSONResponse(content={"aulas": {}})
 
-        # Dias da semana na ordem certa
+        # Dias da semana em ordem
         dias_ordenados = [
             "Segunda-feira", "Terça-feira", "Quarta-feira",
             "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
         ]
-
-        # Dicionário com listas vazias para os dias
         aulas_semana = {dia: [] for dia in dias_ordenados}
 
         for aluno in alunos_vinculados:
-            doc_ref = db.collection("horarios_alunos").document(aluno)
+            doc_id = f"{aluno}_{professor_email}"
+            doc_ref = db.collection("horarios_alunos").document(doc_id)
             doc_snap = doc_ref.get()
             if doc_snap.exists:
                 dados_horario = doc_snap.to_dict()
                 for dia, horarios in dados_horario.items():
-                    # Verifica o dia ignorando diferenças de maiúsculas/minúsculas
                     for dia_padrao in dias_ordenados:
                         if dia.strip().lower() == dia_padrao.lower():
                             aulas_semana[dia_padrao].append({
@@ -2176,14 +2183,15 @@ async def aulas_da_semana(request: Request):
                                 "preco": "Kz 1.250,00"
                             })
 
-        # Remove dias sem aulas
+        # Remove dias vazios
         aulas_semana = {dia: lista for dia, lista in aulas_semana.items() if lista}
 
         return JSONResponse(content={"aulas": aulas_semana})
 
     except Exception as e:
         print("Erro ao obter aulas da semana:", e)
-        return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500})
+        return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500)
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
