@@ -239,12 +239,15 @@
 
 function verHorario() {
   const alunoNomeInput = document.getElementById("aluno-nome");
-  if (!alunoNomeInput) {
-    console.warn("❗ Campo 'aluno-nome' não encontrado.");
+  const horarioDiv = document.getElementById("horario-aulas");
+
+  if (!alunoNomeInput || !horarioDiv) {
+    console.warn("❗ Elementos obrigatórios não encontrados.");
     return;
   }
 
   const alunoNome = alunoNomeInput.value.trim().toLowerCase();
+
   if (!alunoNome) {
     console.warn("❗ Nome do aluno está ausente.");
     return;
@@ -257,28 +260,25 @@ function verHorario() {
     },
     body: JSON.stringify({ aluno_nome: alunoNome })
   })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Erro ao obter horário.");
-    }
-    return response.json();
-  })
-  .then(data => {
-    const horario = typeof data.horario === "string"
-      ? data.horario
-      : JSON.stringify(data.horario, null, 2); // Formato legível
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erro ao obter horário.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      const horario = typeof data.horario === "string"
+        ? data.horario
+        : JSON.stringify(data.horario, null, 2);
 
-    const horarioDiv = document.getElementById("horario-conteudo");
-    horarioDiv.innerText = horario;
-
-    document.getElementById("horario-aulas").style.display = "block";
-  })
-  .catch(error => {
-    console.error("Erro:", error);
-    const horarioDiv = document.getElementById("horario-conteudo");
-    horarioDiv.innerText = "Erro ao carregar horário.";
-    document.getElementById("horario-aulas").style.display = "block";
-  });
+      horarioDiv.innerText = horario;
+      horarioDiv.style.display = "block";
+    })
+    .catch(error => {
+      console.error("Erro:", error);
+      horarioDiv.innerText = "Erro ao carregar horário.";
+      horarioDiv.style.display = "block";
+    });
 }
 
 window.toggleAulas = async function () {
