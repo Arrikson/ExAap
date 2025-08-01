@@ -2147,7 +2147,7 @@ async def enviar_horario(request: Request):
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.get("/obter-horario")
+@app.get("/obter-horario") 
 async def obter_horario(
     aluno_nome: str = Query(...),
     professor_email: str = Query(...)
@@ -2160,8 +2160,8 @@ async def obter_horario(
                 content={"detail": "Parâmetros obrigatórios ausentes."}
             )
 
-        # Limpeza e padronização
-        aluno_nome = aluno_nome.strip().lower().replace(" ", "_")
+        # Limpeza e padronização (sem .replace)
+        aluno_nome = aluno_nome.strip().lower()
         professor_email = professor_email.strip().lower()
 
         print(f"🔍 Buscando horário para aluno: {aluno_nome} | professor: {professor_email}")
