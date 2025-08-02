@@ -138,16 +138,13 @@
   <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
   <input type="hidden" id="professor-email" value="{{ professor_email }}">
 
-  <script>
-    console.log("📘 Nome do aluno capturado:", document.getElementById("aluno-nome").value);
-  </script>
-
   <div class="btn-grid">
     <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
     <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
     <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
     <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
     <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
+    <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
   </div>
 
   <div id="sec-aula" class="info">
@@ -175,6 +172,11 @@
     <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
+  <div id="sec-horario" class="info">
+    <h3>📅 Horário Definido</h3>
+    <pre id="texto-horario"></pre>
+  </div>
+
   <form method="post" action="/logout" id="logoutForm">
     <input type="hidden" name="nome" value="{{ aluno.nome }}">
   </form>
@@ -183,7 +185,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getFirestore, doc, onSnapshot, updateDoc, getDoc
+    getFirestore, doc, onSnapshot, updateDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -243,27 +245,22 @@
       if (data.erro) {
         aulasDadas.textContent = "Erro ao carregar as aulas.";
         aulasRestantes.textContent = "";
-        if (listaAulas) listaAulas.innerHTML = "";
+        listaAulas.innerHTML = "";
         return;
       }
 
       aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
       aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
-
-      if (listaAulas && Array.isArray(data.aulas)) {
-        listaAulas.innerHTML = "";
-        data.aulas.forEach((aula, i) => {
-          const li = document.createElement("li");
-          li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
-          listaAulas.appendChild(li);
-        });
-      }
-
+      listaAulas.innerHTML = "";
+      data.aulas.forEach((aula, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
+        listaAulas.appendChild(li);
+      });
     } catch (err) {
-      console.error("Erro ao buscar dados das aulas:", err);
       aulasDadas.textContent = "❌ Erro ao buscar dados.";
       aulasRestantes.textContent = "";
-      if (listaAulas) listaAulas.innerHTML = "";
+      listaAulas.innerHTML = "";
     }
 
     div.style.display = "block";
@@ -283,7 +280,7 @@
         container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
         container.style.display = "block";
       })
-      .catch(err => {
+      .catch(() => {
         container.innerHTML = "Professor não encontrado.";
         container.style.display = "block";
       });
@@ -329,6 +326,31 @@
       }
     });
   };
+
+  window.verHorario = async function () {
+    const container = document.getElementById("sec-horario");
+    const textoHorario = document.getElementById("texto-horario");
+
+    if (container.style.display === "block") {
+      container.style.display = "none";
+      return;
+    }
+
+    try {
+      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+      const data = await res.json();
+      if (data.erro) {
+        textoHorario.textContent = "⚠️ Horário não encontrado.";
+      } else {
+        textoHorario.textContent = JSON.stringify(data.horario, null, 2);
+      }
+    } catch (e) {
+      textoHorario.textContent = "❌ Erro ao buscar horário.";
+    }
+
+    container.style.display = "block";
+  };
+
   function toggle(id) {
     const el = document.getElementById(id);
     el.style.display = el.style.display === 'block' ? 'none' : 'block';
@@ -354,3 +376,4 @@
 </script>
 </body>
 </html>
+
