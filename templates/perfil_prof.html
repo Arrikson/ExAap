@@ -377,7 +377,7 @@
   }
 
 async function mostrarAulasDoDia() {
-  const professorEmail = "{{ professor.email }}";  
+  const professorEmail = "{{ professor.email }}";
 
   const resposta = await fetch("/aulas_do_dia", {
     method: "POST",
