@@ -174,7 +174,7 @@
 
   <div id="sec-horario" class="info">
     <h3>📅 Horário Definido</h3>
-    <pre id="texto-horario"></pre>
+    <ul id="lista-horario" style="list-style-type: none; padding-left: 0;"></ul>
   </div>
 
   <form method="post" action="/logout" id="logoutForm">
@@ -327,29 +327,57 @@
     });
   };
 
-  window.verHorario = async function () {
-    const container = document.getElementById("sec-horario");
-    const textoHorario = document.getElementById("texto-horario");
+ window.verHorario = async function () {
+  const container = document.getElementById("sec-horario");
+  const listaHorario = document.getElementById("lista-horario");
 
-    if (container.style.display === "block") {
-      container.style.display = "none";
-      return;
-    }
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
 
-    try {
-      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
-      const data = await res.json();
-      if (data.erro) {
-        textoHorario.textContent = "⚠️ Horário não encontrado.";
-      } else {
-        textoHorario.textContent = JSON.stringify(data.horario, null, 2);
+  try {
+    const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+    const data = await res.json();
+    listaHorario.innerHTML = "";
+
+    if (data.erro) {
+      const li = document.createElement("li");
+      li.textContent = "⚠️ Horário não encontrado.";
+      listaHorario.appendChild(li);
+    } else {
+      for (const [dia, horarios] of Object.entries(data.horario)) {
+        const diaItem = document.createElement("li");
+        diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
+        listaHorario.appendChild(diaItem);
+
+        horarios.forEach(h => {
+          const horaItem = document.createElement("li");
+          horaItem.textContent = `- ${h}`;
+          horaItem.style.marginLeft = "15px";
+          listaHorario.appendChild(horaItem);
+        });
       }
-    } catch (e) {
-      textoHorario.textContent = "❌ Erro ao buscar horário.";
     }
+  } catch (e) {
+    listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
+  }
 
-    container.style.display = "block";
+  container.style.display = "block";
+};
+
+function traduzirDia(diaAbreviado) {
+  const dias = {
+    "Seg": "Segunda-feira",
+    "Ter": "Terça-feira",
+    "Qua": "Quarta-feira",
+    "Qui": "Quinta-feira",
+    "Sex": "Sexta-feira",
+    "Sab": "Sábado",
+    "Dom": "Domingo"
   };
+  return dias[diaAbreviado] || diaAbreviado;
+}
 
   function toggle(id) {
     const el = document.getElementById(id);
