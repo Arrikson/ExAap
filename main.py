@@ -2050,7 +2050,7 @@ dias_traduzidos = {
     "Dom": "Domingo"
 }
 
-@app.post("/aulas_do_dia")
+@app.post("/aulas_do_dia") 
 async def aulas_do_dia(request: Request):
     try:
         dados = await request.json()
@@ -2080,17 +2080,17 @@ async def aulas_do_dia(request: Request):
 
         for doc in docs:
             data = doc.to_dict()
-            aluno_nome = data.get("aluno", "")
+            aluno_nome = data.get("aluno", "").strip().lower()  # Normalizar aqui
 
             aluno_docs = db.collection("alunos") \
-                .where("nome", "==", aluno_nome).limit(1).stream()
+                .where("nome_normalizado", "==", aluno_nome).limit(1).stream()
 
             for aluno_doc in aluno_docs:
                 aluno_data = aluno_doc.to_dict()
                 horarios = aluno_data.get("horario", {}).get(dia_abreviado, [])
                 if horarios:
                     aulas.append({
-                        "aluno": aluno_nome,
+                        "aluno": aluno_data.get("nome", aluno_nome),  # Pega o nome verdadeiro
                         "horarios": horarios,
                         "preco": "1.500 Kz"
                     })
