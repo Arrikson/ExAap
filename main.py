@@ -2175,13 +2175,31 @@ async def ver_horario_aluno(nome: str):
         for doc in query:
             dados = doc.to_dict()
             if "horario" in dados:
-                return {"horario": dados["horario"]}
+                horario = dados["horario"]
+
+                # Tradução dos dias
+                dias_traduzidos = {
+                    "Seg": "Segunda-feira",
+                    "Ter": "Terça-feira",
+                    "Qua": "Quarta-feira",
+                    "Qui": "Quinta-feira",
+                    "Sex": "Sexta-feira",
+                    "Sab": "Sábado",
+                    "Dom": "Domingo"
+                }
+
+                horario_traduzido = {}
+                for dia, horarios in horario.items():
+                    nome_completo = dias_traduzidos.get(dia, dia)
+                    horario_traduzido[nome_completo] = horarios
+
+                return {"horario": horario_traduzido}
             else:
                 return {"erro": "Horário não encontrado para este aluno."}
         return {"erro": "Aluno não encontrado."}
     except Exception as e:
         return {"erro": f"Erro ao buscar horário: {str(e)}"}
-        
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
