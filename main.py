@@ -9,6 +9,7 @@ import os
 import json
 import uuid
 import re
+import pytz
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
 from reportlab.pdfgen import canvas
@@ -2020,93 +2021,109 @@ async def mensagens_professor(email: str):
         return {"mensagens": doc.to_dict().get("mensagens", [])}
     return {"mensagens": []}
 
+dias_traduzidos = {
+    "Seg": "Segunda-feira",
+    "Ter": "Terça-feira",
+    "Qua": "Quarta-feira",
+    "Qui": "Quinta-feira",
+    "Sex": "Sexta-feira",
+    "Sab": "Sábado",
+    "Dom": "Domingo"
+}
+
 @app.post("/aulas_do_dia")
 async def aulas_do_dia(request: Request):
     try:
         dados = await request.json()
         professor_email = dados.get("professor_email", "").strip().lower()
-
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        dias_em_portugues = {
-            "monday": "segunda-feira",
-            "tuesday": "terça-feira",
-            "wednesday": "quarta-feira",
-            "thursday": "quinta-feira",
-            "friday": "sexta-feira",
-            "saturday": "sábado",
-            "sunday": "domingo"
+        hoje = datetime.now(pytz.timezone("Africa/Luanda")).strftime("%A")
+        hoje_traduzido = hoje.capitalize()
+
+        dias_map = {
+            "Monday": "Seg",
+            "Tuesday": "Ter",
+            "Wednesday": "Qua",
+            "Thursday": "Qui",
+            "Friday": "Sex",
+            "Saturday": "Sab",
+            "Sunday": "Dom"
         }
+        dia_abreviado = dias_map.get(datetime.now().strftime("%A"), "")
 
-        dia_em_ingles = datetime.now().strftime('%A').lower()
-        dia_hoje = dias_em_portugues.get(dia_em_ingles)
-
-        aulas_do_dia = []
-
-        docs = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
+        aulas = []
+        docs = db.collection("alunos_professor") \
+                 .where("professor", "==", professor_email).stream()
 
         for doc in docs:
-            dados = doc.to_dict()
-            aluno_nome = dados.get("aluno", "")
-            horario = dados.get("horario", {})
+            data = doc.to_dict()
+            aluno_nome = data.get("aluno", "")
 
-            horarios_hoje = horario.get(dia_hoje, [])
+            aluno_docs = db.collection("alunos") \
+                .where("nome", "==", aluno_nome).limit(1).stream()
 
-            if horarios_hoje:
-                aulas_do_dia.append({
-                    "aluno": aluno_nome,
-                    "horarios": horarios_hoje,
-                    "preco": "Kz 1.250,00"
-                })
+            for aluno_doc in aluno_docs:
+                aluno_data = aluno_doc.to_dict()
+                horarios = aluno_data.get("horario", {}).get(dia_abreviado, [])
+                if horarios:
+                    aulas.append({
+                        "aluno": aluno_nome,
+                        "horarios": horarios,
+                        "preco": "1.500 Kz"
+                    })
 
-        return JSONResponse(content={"aulas": aulas_do_dia})
-
+        return JSONResponse(content={"aulas": aulas})
     except Exception as e:
-        print("Erro ao obter aulas do dia:", e)
-        return JSONResponse(content={"erro": "Erro interno ao obter aulas do dia."}, status_code=500)
+        return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
+
 
 @app.post("/aulas_da_semana")
 async def aulas_da_semana(request: Request):
     try:
         dados = await request.json()
         professor_email = dados.get("professor_email", "").strip().lower()
-
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        dias_ordenados = [
-            "segunda-feira", "terça-feira", "quarta-feira",
-            "quinta-feira", "sexta-feira", "sábado", "domingo"
-        ]
-
-        aulas_semana = {dia: [] for dia in dias_ordenados}
-
-        docs = db.collection("alunos_professor").where("professor", "==", professor_email).stream()
-
-        for doc in docs:
-            dados = doc.to_dict()
-            aluno_nome = dados.get("aluno", "")
-            horario = dados.get("horario", {})
-
-            for dia, lista in horario.items():
-                dia_formatado = dia.strip().lower()
-                if dia_formatado in aulas_semana:
-                    aulas_semana[dia_formatado].append({
-                        "aluno": aluno_nome,
-                        "horarios": lista,
-                        "preco": "Kz 1.250,00"
-                    })
-
-        aulas_semana_filtrado = {
-            dia.title(): lista for dia, lista in aulas_semana.items() if lista
+        resultado = {
+            "Segunda-feira": [],
+            "Terça-feira": [],
+            "Quarta-feira": [],
+            "Quinta-feira": [],
+            "Sexta-feira": [],
+            "Sábado": [],
+            "Domingo": []
         }
 
-        return JSONResponse(content={"aulas": aulas_semana_filtrado})
+        docs = db.collection("alunos_professor") \
+                 .where("professor", "==", professor_email).stream()
 
+        for doc in docs:
+            data = doc.to_dict()
+            aluno_nome = data.get("aluno", "")
+
+            aluno_docs = db.collection("alunos") \
+                .where("nome", "==", aluno_nome).limit(1).stream()
+
+            for aluno_doc in aluno_docs:
+                aluno_data = aluno_doc.to_dict()
+                horarios_por_dia = aluno_data.get("horario", {})
+
+                for dia_abrev, horarios in horarios_por_dia.items():
+                    dia_completo = dias_traduzidos.get(dia_abrev, dia_abrev)
+                    if dia_completo in resultado:
+                        resultado[dia_completo].append({
+                            "aluno": aluno_nome,
+                            "horarios": horarios,
+                            "preco": "1.500 Kz"
+                        })
+
+        return JSONResponse(content={"aulas": resultado})
     except Exception as e:
-        print("Erro ao obter aulas da semana:", e)
-        return JSONResponse(content={"erro": "Erro interno ao obter aulas da semana."}, status_code=500)
+        return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
+
 
 class HorarioEnvio(BaseModel):
     aluno_nome: str
