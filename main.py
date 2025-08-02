@@ -2021,6 +2021,25 @@ async def mensagens_professor(email: str):
         return {"mensagens": doc.to_dict().get("mensagens", [])}
     return {"mensagens": []}
 
+
+# Timezone de Angola
+tz = pytz.timezone("Africa/Luanda")
+agora = datetime.now(tz)
+
+# Mapeamento manual
+dias_semana = {
+    0: "segunda",
+    1: "terça",
+    2: "quarta",
+    3: "quinta",
+    4: "sexta",
+    5: "sabado",
+    6: "domingo"
+}
+
+hoje = dias_semana[agora.weekday()]
+print("Hoje é:", hoje)  # Ex: Hoje é: sabado
+
 dias_traduzidos = {
     "Seg": "Segunda-feira",
     "Ter": "Terça-feira",
@@ -2039,8 +2058,9 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        hoje = datetime.now(pytz.timezone("Africa/Luanda")).strftime("%A")
-        hoje_traduzido = hoje.capitalize()
+        # Garantir que está no fuso horário de Angola
+        tz = pytz.timezone("Africa/Luanda")
+        agora = datetime.now(tz)
 
         dias_map = {
             "Monday": "Seg",
@@ -2051,7 +2071,8 @@ async def aulas_do_dia(request: Request):
             "Saturday": "Sab",
             "Sunday": "Dom"
         }
-        dia_abreviado = dias_map.get(datetime.now().strftime("%A"), "")
+
+        dia_abreviado = dias_map.get(agora.strftime("%A"), "")
 
         aulas = []
         docs = db.collection("alunos_professor") \
@@ -2077,7 +2098,6 @@ async def aulas_do_dia(request: Request):
         return JSONResponse(content={"aulas": aulas})
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
-
 
 @app.post("/aulas_da_semana")
 async def aulas_da_semana(request: Request):
@@ -2112,8 +2132,8 @@ async def aulas_da_semana(request: Request):
                 horarios_por_dia = aluno_data.get("horario", {})
 
                 for dia_abrev, horarios in horarios_por_dia.items():
-                    dia_completo = dias_traduzidos.get(dia_abrev, dia_abrev)
-                    if dia_completo in resultado:
+                    dia_completo = dias_traduzidos.get(dia_abrev)
+                    if dia_completo and dia_completo in resultado:
                         resultado[dia_completo].append({
                             "aluno": aluno_nome,
                             "horarios": horarios,
@@ -2123,7 +2143,6 @@ async def aulas_da_semana(request: Request):
         return JSONResponse(content={"aulas": resultado})
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
-
 
 class HorarioEnvio(BaseModel):
     aluno_nome: str
