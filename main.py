@@ -2166,6 +2166,21 @@ async def enviar_horario(request: Request):
     except Exception as e:
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.get("/ver-horario-aluno/{nome}")
+async def ver_horario_aluno(nome: str):
+    try:
+        nome = nome.strip()
+        query = db.collection("alunos").where("nome", "==", nome).limit(1).stream()
+        for doc in query:
+            dados = doc.to_dict()
+            if "horario" in dados:
+                return {"horario": dados["horario"]}
+            else:
+                return {"erro": "Horário não encontrado para este aluno."}
+        return {"erro": "Aluno não encontrado."}
+    except Exception as e:
+        return {"erro": f"Erro ao buscar horário: {str(e)}"}
         
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
