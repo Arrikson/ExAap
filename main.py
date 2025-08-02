@@ -2104,6 +2104,7 @@ async def aulas_da_semana(request: Request):
     try:
         dados = await request.json()
         professor_email = dados.get("professor_email", "").strip().lower()
+
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
@@ -2117,15 +2118,17 @@ async def aulas_da_semana(request: Request):
             "Domingo": []
         }
 
+        # Buscar os alunos vinculados ao professor
         docs = db.collection("alunos_professor") \
                  .where("professor", "==", professor_email).stream()
 
         for doc in docs:
             data = doc.to_dict()
-            aluno_nome = data.get("aluno", "")
+            aluno_nome = data.get("aluno", "").strip().lower()
 
+            # Consultar pelo nome normalizado
             aluno_docs = db.collection("alunos") \
-                .where("nome", "==", aluno_nome).limit(1).stream()
+                .where("nome_normalizado", "==", aluno_nome).limit(1).stream()
 
             for aluno_doc in aluno_docs:
                 aluno_data = aluno_doc.to_dict()
@@ -2135,15 +2138,16 @@ async def aulas_da_semana(request: Request):
                     dia_completo = dias_traduzidos.get(dia_abrev)
                     if dia_completo and dia_completo in resultado:
                         resultado[dia_completo].append({
-                            "aluno": aluno_nome,
+                            "aluno": aluno_data.get("nome", aluno_nome),
                             "horarios": horarios,
                             "preco": "1.500 Kz"
                         })
 
         return JSONResponse(content={"aulas": resultado})
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
-
+        
 class HorarioEnvio(BaseModel):
     aluno_nome: str
     professor_email: str
