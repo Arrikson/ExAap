@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Salários do Professor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>Salários do Professor {{ professor.nome }}</h1>
+  <p>Total de aulas: {{ total_aulas }}</p>
+  <p>Valor por aula: {{ valor_por_aula }} Kz</p>
+  <p><strong>Total a receber: {{ total_a_receber }} Kz</strong></p>
+
+  <h2>Detalhes das Aulas</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th>Data</th>
+        <th>Disciplina</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aula in aulas %}
+      <tr>
+        <td>{{ aula.nome_aluno }}</td>
+        <td>{{ aula.data }}</td>
+        <td>{{ aula.disciplina }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
