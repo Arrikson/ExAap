@@ -1162,21 +1162,30 @@ async def login_prof_post(
 @app.post("/dados_professor", response_class=HTMLResponse)
 async def dados_professor(request: Request, email: str = Form(...)):
     try:
+        email = email.strip().lower()
         prof_query = db.collection("professores_online").where("email", "==", email).limit(1).stream()
-
         for prof_doc in prof_query:
             dados = prof_doc.to_dict()
+
+            # Pegar salários se já estiverem salvos
+            salario_info = dados.get("salario", {})
+            saldo_atual = salario_info.get("saldo_atual", 0)
+            salario_mensal = salario_info.get("mensal_estimado", 0)
+
             return templates.TemplateResponse("perfil_prof.html", {
                 "request": request,
-                "professor": dados
+                "professor": dados,
+                "saldo_atual": saldo_atual,
+                "salario_mensal": salario_mensal,
+                "total_aulas": 0,  # ou pegue do Firestore se necessário
+                "valor_por_aula": 1250,
+                "total_a_receber": saldo_atual
             })
 
         return HTMLResponse(content="Professor não encontrado.", status_code=404)
-
     except Exception as e:
-        import traceback
-        traceback_str = traceback.format_exc()
-        return HTMLResponse(content=f"Erro interno:<br><pre>{traceback_str}</pre>", status_code=500)
+        return HTMLResponse(content=f"Erro interno: {str(e)}", status_code=500)
+
 
 @app.post("/logout_prof", response_class=HTMLResponse)
 async def logout_prof(request: Request, email: str = Form(...)):
