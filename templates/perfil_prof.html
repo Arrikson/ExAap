@@ -252,20 +252,12 @@
   <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Do Dia</button>
   <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Da Semana</button>
 </div>
-
-<!-- Últimas aulas -->
-<div class="ultimas-aulas">
-  <h3>Hoje, {{ data_hoje }}</h3>
-  <div class="aula-item" onclick="verDetalhesAula('Aluno X', '14h00')">
-    <i class="fas fa-chalkboard-teacher"></i>
-    <span>Aula de Matemática</span>
-    <span>Kz 1.250,00</span>
-  </div>
-  <div class="aula-item" onclick="verDetalhesAula('Aluno Y', '16h00')">
-    <i class="fas fa-chalkboard-teacher"></i>
-    <span>Aula de Física</span>
-    <span>Kz 1.250,00</span>
-  </div>
+<!-- 📚 Últimas Aulas Dadas -->
+<div class="ultimas-aulas" style="margin-top:15px; background:#fff8e1; padding:12px; border-radius:8px;">
+  <h3 style="margin-top:0;">📚 Últimas Aulas Dadas</h3>
+  <ul id="lista-ultimas-aulas" style="list-style:none; padding-left:0; font-size:14px;">
+    <li>Carregando...</li>
+  </ul>
 </div>
 
 <!-- Seções dinâmicas -->
@@ -604,6 +596,34 @@ async function verAulasDadas(nomeAluno) {
   }
 }
 
+async function carregarUltimasAulas(professorEmail) {
+    try {
+      const resposta = await fetch("/ultimas-aulas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ professor_email: professorEmail })
+      });
+
+      const resultado = await resposta.json();
+
+      const lista = document.getElementById("lista-ultimas-aulas");
+      lista.innerHTML = ""; // limpar antes de preencher
+
+      if (resultado.ultimas_aulas && resultado.ultimas_aulas.length > 0) {
+        resultado.ultimas_aulas.forEach((aula) => {
+          const item = document.createElement("li");
+          item.innerHTML = `<strong>${aula.nome}</strong> - ${aula.data} às ${aula.horario}`;
+          lista.appendChild(item);
+        });
+      } else {
+        lista.innerHTML = "<li>Nenhuma aula registrada ainda.</li>";
+      }
+
+    } catch (error) {
+      console.error("Erro ao carregar últimas aulas:", error);
+    }
+  }
+  
  async function buscarAlunosDisponiveis() {
     const email = "{{ professor.email }}";
     try {
