@@ -2022,16 +2022,19 @@ async def mensagens_professor(email: str):
     return {"mensagens": []}
 
 
-data_base = datetime(2025, 8, 3, 11, 10)  # Domingo
+from datetime import datetime, timedelta
+
+# Data base fixa: Domingo, 3 de agosto de 2025, às 11h10
+data_base = datetime(2025, 8, 3, 11, 40)  # Domingo
 
 dias_map = {
-    0: "Seg",
-    1: "Ter",
-    2: "Qua",
-    3: "Qui",
-    4: "Sex",
-    5: "Sab",
-    6: "Dom"
+    0: "Dom",  # 0 = Domingo
+    1: "Seg",
+    2: "Ter",
+    3: "Qua",
+    4: "Qui",
+    5: "Sex",
+    6: "Sab"
 }
 
 dias_traduzidos = {
@@ -2044,17 +2047,20 @@ dias_traduzidos = {
     "Dom": "Domingo"
 }
 
-@app.post("/aulas_do_dia") 
+@app.post("/aulas_do_dia")
 async def aulas_do_dia(request: Request):
     try:
         dados = await request.json()
         professor_email = dados.get("professor_email", "").strip().lower()
+
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Calcular dia atual com base em data fixa
+        # Calcular o número de dias passados desde a data base
         dias_passados = (datetime.now() - data_base).days
-        dia_semana_index = (6 + dias_passados) % 7  # Domingo = 6
+
+        # Dia da semana (Domingo = 0, Segunda = 1, ..., Sábado = 6)
+        dia_semana_index = (0 + dias_passados) % 7
         dia_abreviado = dias_map[dia_semana_index]
 
         aulas = []
@@ -2063,7 +2069,7 @@ async def aulas_do_dia(request: Request):
 
         for doc in docs:
             data = doc.to_dict()
-            aluno_nome = data.get("aluno", "").strip().lower()  # Normalizar
+            aluno_nome = data.get("aluno", "").strip().lower()
 
             aluno_docs = db.collection("alunos") \
                 .where("nome_normalizado", "==", aluno_nome).limit(1).stream()
@@ -2081,6 +2087,7 @@ async def aulas_do_dia(request: Request):
         return JSONResponse(content={"aulas": aulas})
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
+
 
 @app.post("/aulas_da_semana")
 async def aulas_da_semana(request: Request):
