@@ -2335,7 +2335,8 @@ async def ver_salarios(request: Request):
             }
         })
 
-        return templates.TemplateResponse("salarios_professor.html", {
+        # Atualizado: renderiza o template salarios.html
+        return templates.TemplateResponse("salarios.html", {
             "request": request,
             "nome": professor.get("nome_completo", "Professor"),
             "salario_mensal": salario_mensal,
@@ -2344,14 +2345,6 @@ async def ver_salarios(request: Request):
 
     except Exception as e:
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
-
-@app.get("/salarios_professor")
-async def redirecionar_salarios(request: Request):
-    email = request.query_params.get("email")
-    if not email:
-        return HTMLResponse("Email do professor não especificado.", status_code=400)
-    
-    return RedirectResponse(url=f"/salarios?email={email}")
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
