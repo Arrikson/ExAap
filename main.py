@@ -98,7 +98,7 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
     
 
-class VinculoIn(BaseModel):
+class VinculoIn(BaseModel): 
     professor_email: str
     aluno_nome: str
 
@@ -139,7 +139,7 @@ async def vincular_aluno(item: VinculoIn):
         for campo in ['senha', 'telefone', 'localizacao']:
             dados_aluno.pop(campo, None)
 
-        # Criação do documento com o campo horario vazio
+        # Criação do documento com os campos necessários, incluindo o novo campo `datas_aulas`
         db.collection('alunos_professor').add({
             'professor': prof,
             'aluno': aluno_nome_input,
@@ -150,7 +150,8 @@ async def vincular_aluno(item: VinculoIn):
             'aulas_dadas': 0,
             'total_aulas': 24,
             'aulas': [],
-            'horario': {}  # Campo novo
+            'horario': {},        
+            'datas_aulas': []      
         })
 
         # Atualiza o campo vinculado no documento do aluno
@@ -168,6 +169,7 @@ async def vincular_aluno(item: VinculoIn):
             status_code=500,
             content={'detail': 'Erro interno ao criar vínculo. Verifique os dados e tente novamente.'}
         )
+
 
 @app.get("/perfil_prof", response_class=HTMLResponse)
 async def get_perfil_prof(request: Request, email: str):
