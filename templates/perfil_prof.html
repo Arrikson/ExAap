@@ -387,32 +387,6 @@
   function toggleDados() {
     const div = document.getElementById('dadosSecretos');
     div.style.display = div.style.display === 'block' ? 'none' : 'block';
-  
-  let saldoVisivel = false;
-
-  function toggleSaldo() {
-    const saldo = document.getElementById('saldo');
-    saldoVisivel = !saldoVisivel;
-    saldo.innerText = saldoVisivel ? "Kz {{ saldo_total }}" : "Kz 00,00";
-  }
-
-  function verDetalhesAula(aluno, hora) {
-    alert("Aula para: " + aluno + "\nHorário: " + hora + "\nDuração: 1h\nValor: Kz 1.250,00");
-  }
-
-  function abrirMenuResumo() {
-    const painel = document.getElementById("painel-informacoes");
-    painel.style.display = "block";
-  }
-
-  function fecharMenuResumo() {
-    const painel = document.getElementById("painel-informacoes");
-    painel.style.display = "none";
-  }
-
-  function toggleDados() {
-    const div = document.getElementById('dadosSecretos');
-    div.style.display = div.style.display === 'block' ? 'none' : 'block';
   }
 
   function toggleSection(id, fetchFunction) {
