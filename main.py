@@ -1162,8 +1162,7 @@ async def login_prof_post(
 @app.post("/dados_professor", response_class=HTMLResponse)
 async def dados_professor(request: Request, email: str = Form(...)):
     try:
-        # Correção: .stream() não é coroutine → não use await
-        prof_query = db.collection("professores_online").where(filter=("email", "==", email)).limit(1).stream()
+        prof_query = db.collection("professores_online").where("email", "==", email).limit(1).stream()
 
         for prof_doc in prof_query:
             dados = prof_doc.to_dict()
@@ -1175,7 +1174,9 @@ async def dados_professor(request: Request, email: str = Form(...)):
         return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
     except Exception as e:
-        return HTMLResponse(content=f"Erro interno: {str(e)}", status_code=500)
+        import traceback
+        traceback_str = traceback.format_exc()
+        return HTMLResponse(content=f"Erro interno:<br><pre>{traceback_str}</pre>", status_code=500)
 
 @app.post("/logout_prof", response_class=HTMLResponse)
 async def logout_prof(request: Request, email: str = Form(...)):
