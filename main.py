@@ -2138,6 +2138,56 @@ async def aulas_da_semana(request: Request):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": f"Erro interno: {str(e)}"})
+
+@app.post("/ultimas-aulas")
+async def ultimas_aulas(request: Request):
+    try:
+        dados = await request.json()
+        professor_email = dados.get("professor_email", "").strip().lower()
+
+        if not professor_email:
+            return JSONResponse(
+                status_code=400,
+                content={"erro": "E-mail do professor é obrigatório."}
+            )
+
+        documentos = db.collection("alunos_professor") \
+                       .where("professor", "==", professor_email).stream()
+
+        lista_aulas = []
+
+        for doc in documentos:
+            doc_dict = doc.to_dict()
+            nome_aluno = doc_dict.get("aluno", "Aluno desconhecido")
+            aulas = doc_dict.get("aulas", [])
+
+            for aula in aulas:
+                lista_aulas.append({
+                    "nome": nome_aluno,
+                    "data": aula.get("data", ""),
+                    "horario": aula.get("horario", "")
+                })
+
+        # Ordenar por data + horário em ordem decrescente
+        def parse_datetime(aula):
+            try:
+                return datetime.strptime(f"{aula['data']} {aula['horario']}", "%Y-%m-%d %H:%M")
+            except:
+                return datetime.min
+
+        lista_aulas.sort(key=parse_datetime, reverse=True)
+
+        return {
+            "ultimas_aulas": lista_aulas[:20]  # retorna no máximo 20
+        }
+
+    except Exception as e:
+        print("Erro ao buscar últimas aulas:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"erro": "Erro interno ao buscar últimas aulas"}
+        )
+
         
 class HorarioEnvio(BaseModel):
     aluno_nome: str
