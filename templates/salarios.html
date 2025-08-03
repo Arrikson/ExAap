@@ -43,23 +43,6 @@
     <p><strong>Saldo atual:</strong> {{ saldo_atual }} Kz</p>
     <p><strong>Salário mensal estimado:</strong> {{ salario_mensal }} Kz</p>
   </div>
-
-  <h2>Detalhes das Aulas Dadas</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Aluno</th>
-        <th>Data</th>
-        <th>Disciplina</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for aula in aulas %}
-      <tr>
-        <td>{{ aula.nome_aluno }}</td>
-        <td>{{ aula.data }}</td>
-        <td>{{ aula.disciplina }}</td>
-      </tr>
       {% endfor %}
     </tbody>
   </table>
