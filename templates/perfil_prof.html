@@ -623,6 +623,9 @@ async function carregarUltimasAulas(professorEmail) {
       console.error("Erro ao carregar últimas aulas:", error);
     }
   }
+
+  const professorEmail = "{{ professor.email }}";
+  carregarUltimasAulas(professorEmail);
   
  async function buscarAlunosDisponiveis() {
     const email = "{{ professor.email }}";
