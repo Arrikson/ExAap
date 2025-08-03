@@ -234,7 +234,8 @@
     <h2>Olá, {{ professor.nome_completo }} 👋</h2>
     <p>Nº B.I: {{ professor.bilhete }}</p>
     <p class="saldo">
-      Saldo: <span id="saldo">Kz 00,00</span>
+      Saldo: 
+      <span id="saldo">Kz {{ "{:,.2f}".format(saldo_atual) }}</span>
       <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
     </p>
   </div>
