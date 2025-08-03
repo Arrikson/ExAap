@@ -2022,10 +2022,8 @@ async def mensagens_professor(email: str):
     return {"mensagens": []}
 
 
-from datetime import datetime, timedelta
-
 # Data base fixa: Domingo, 3 de agosto de 2025, às 11h10
-data_base = datetime(2025, 8, 3, 11, 40)  # Domingo
+data_base = datetime(2025, 8, 3, 11, 10)  # Domingo
 
 dias_map = {
     0: "Dom",  # 0 = Domingo
