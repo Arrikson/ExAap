@@ -1165,7 +1165,7 @@ async def dados_professor(request: Request, email: str = Form(...)):
         prof_query = db.collection("professores_online").where("email", "==", email).limit(1).stream()
         for prof_doc in prof_query:
             dados = prof_doc.to_dict()
-            return templates.TemplateResponse("perfil_professor.html", {
+            return templates.TemplateResponse("perfil_prof.html", {
                 "request": request,
                 "professor": dados
             })
