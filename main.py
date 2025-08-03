@@ -186,7 +186,22 @@ async def get_perfil_prof(request: Request, email: str):
 
     prof_data = prof_doc.to_dict()
     prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
-    return templates.TemplateResponse("perfil_prof.html", {"request": request, "professor": prof_data})
+
+    # Pega o saldo atual ou assume 0.0
+    saldo = prof_data.get("saldo", 0.0)
+    try:
+        saldo_float = float(saldo)
+    except (ValueError, TypeError):
+        saldo_float = 0.0
+
+    # Formata o saldo como Kz 1.000,00
+    saldo_formatado = f"{saldo_float:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    return templates.TemplateResponse("perfil_prof.html", {
+        "request": request,
+        "professor": prof_data,
+        "saldo_atual": saldo_formatado
+    })
 
 
 @app.post("/perfil_prof", response_class=HTMLResponse)
@@ -212,7 +227,7 @@ async def post_perfil_prof(
 
     # Redireciona de volta ao perfil com confirmação
     return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
-
+    
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
