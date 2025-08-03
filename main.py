@@ -2096,15 +2096,16 @@ async def aulas_da_semana(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        resultado = {
+        # ✅ OrderedDict garante a ordem
+        resultado = OrderedDict({
+            "Domingo": [],
             "Segunda-feira": [],
             "Terça-feira": [],
             "Quarta-feira": [],
             "Quinta-feira": [],
             "Sexta-feira": [],
-            "Sábado": [],
-            "Domingo": []
-        }
+            "Sábado": []
+        })
 
         # Buscar os alunos vinculados ao professor
         docs = db.collection("alunos_professor") \
@@ -2114,7 +2115,6 @@ async def aulas_da_semana(request: Request):
             data = doc.to_dict()
             aluno_nome = data.get("aluno", "").strip().lower()
 
-            # Consultar pelo nome normalizado
             aluno_docs = db.collection("alunos") \
                 .where("nome_normalizado", "==", aluno_nome).limit(1).stream()
 
