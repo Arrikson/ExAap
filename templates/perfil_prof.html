@@ -245,6 +245,7 @@
   <input type="hidden" name="email" value="{{ professor.email }}">
   <button type="submit" class="logout-button">Sair</button>
 </form>  
+
 <!-- Botões principais -->
 <div class="botao-menu">
   <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Alunos</button>
@@ -252,6 +253,7 @@
   <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Do Dia</button>
   <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Da Semana</button>
 </div>
+
 <!-- 📚 Últimas Aulas Dadas -->
 <div class="ultimas-aulas" style="margin-top: 20px; background: #ffffff; padding: 16px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
   <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #333;">Últimas aulas dadas</h3>
@@ -294,7 +296,7 @@
 <!-- FUNDO ESCURO PARA DETECTAR CLIQUE FORA -->
 <div id="calendarOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.2); z-index:999;" onclick="fecharCalendarioSeForFora(event)">
   <!-- CAIXA CALENDÁRIO -->
- <div id="calendarContainer" onclick="event.stopPropagation()" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:15px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; max-height:85vh; overflow-y:auto; font-size:14px;">
+  <div id="calendarContainer" onclick="event.stopPropagation()" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:15px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; max-height:85vh; overflow-y:auto; font-size:14px;">
     <h4>Selecionar Horários</h4>
     <div id="daySelector" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;"></div>
     <div id="timeSelector" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;"></div>
@@ -307,16 +309,21 @@
 
 <!-- Navegação inferior -->
 <div class="bottom-nav">
-  <button onclick="location.href='/perfil_professor'" title="Meu Perfil">
+  <button onclick="abrirPerfil()" title="Meu Perfil">
     <i class="fas fa-user-circle"></i>
   </button>
-  <button onclick="location.href='/salarios'" title="Salários">
+  <button onclick="abrirSalarios()" title="Salários">
     <i class="fas fa-money-bill-wave"></i>
   </button>
   <button onclick="abrirMenuResumo()" title="Menu">
     <i class="fas fa-bars"></i>
   </button>
 </div>
+
+<!-- Formulário oculto para redirecionar ao perfil -->
+<form method="POST" action="/dados_professor" id="form-dados-prof" style="display:none;">
+  <input type="hidden" name="email" id="prof-email-hidden">
+</form>
 
 <script>
   let saldoVisivel = false;
@@ -350,6 +357,17 @@
         fetchFunction();
       }
     }
+  }
+  
+function abrirSalarios() {
+    const email = "{{ professor.email }}";
+    window.location.href = `/salarios?email=${encodeURIComponent(email)}`;
+  }
+  
+  function abrirPerfil() {
+    const email = "{{ professor.email }}";
+    document.getElementById('prof-email-hidden').value = email;
+    document.getElementById('form-dados-prof').submit();
   }
 
   async function enviarNotificacao(aluno) {
