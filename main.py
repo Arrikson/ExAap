@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from datetime import datetime
+from datetime import datetime, timedelta
 from fpdf import FPDF
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
@@ -2022,23 +2022,17 @@ async def mensagens_professor(email: str):
     return {"mensagens": []}
 
 
-# Timezone de Angola
-tz = pytz.timezone("Africa/Luanda")
-agora = datetime.now(tz)
+data_base = datetime(2025, 8, 3, 11, 06)  # Domingo
 
-# Mapeamento manual
-dias_semana = {
-    0: "segunda",
-    1: "terça",
-    2: "quarta",
-    3: "quinta",
-    4: "sexta",
-    5: "sabado",
-    6: "domingo"
+dias_map = {
+    0: "Seg",
+    1: "Ter",
+    2: "Qua",
+    3: "Qui",
+    4: "Sex",
+    5: "Sab",
+    6: "Dom"
 }
-
-hoje = dias_semana[agora.weekday()]
-print("Hoje é:", hoje)  # Ex: Hoje é: sabado
 
 dias_traduzidos = {
     "Seg": "Segunda-feira",
@@ -2058,21 +2052,10 @@ async def aulas_do_dia(request: Request):
         if not professor_email:
             return JSONResponse(content={"erro": "E-mail do professor é obrigatório."}, status_code=400)
 
-        # Garantir que está no fuso horário de Angola
-        tz = pytz.timezone("Africa/Luanda")
-        agora = datetime.now(tz)
-
-        dias_map = {
-            "Monday": "Seg",
-            "Tuesday": "Ter",
-            "Wednesday": "Qua",
-            "Thursday": "Qui",
-            "Friday": "Sex",
-            "Saturday": "Sab",
-            "Sunday": "Dom"
-        }
-
-        dia_abreviado = dias_map.get(agora.strftime("%A"), "")
+        # Calcular dia atual com base em data fixa
+        dias_passados = (datetime.now() - data_base).days
+        dia_semana_index = (6 + dias_passados) % 7  # Domingo = 6
+        dia_abreviado = dias_map[dia_semana_index]
 
         aulas = []
         docs = db.collection("alunos_professor") \
@@ -2080,7 +2063,7 @@ async def aulas_do_dia(request: Request):
 
         for doc in docs:
             data = doc.to_dict()
-            aluno_nome = data.get("aluno", "").strip().lower()  # Normalizar aqui
+            aluno_nome = data.get("aluno", "").strip().lower()  # Normalizar
 
             aluno_docs = db.collection("alunos") \
                 .where("nome_normalizado", "==", aluno_nome).limit(1).stream()
@@ -2090,7 +2073,7 @@ async def aulas_do_dia(request: Request):
                 horarios = aluno_data.get("horario", {}).get(dia_abreviado, [])
                 if horarios:
                     aulas.append({
-                        "aluno": aluno_data.get("nome", aluno_nome),  # Pega o nome verdadeiro
+                        "aluno": aluno_data.get("nome", aluno_nome),
                         "horarios": horarios,
                         "preco": "1.500 Kz"
                     })
