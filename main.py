@@ -2321,6 +2321,8 @@ async def ver_horario_aluno(nome: str):
         return {"erro": f"Erro ao buscar horário: {str(e)}"}
 
 
+from google.cloud.firestore_v1 import FieldFilter
+
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
     try:
@@ -2331,8 +2333,11 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Buscar professor (corrigido com filter=)
-        prof_ref = db.collection("professores_online").where(filter=("email", "==", email)).limit(1).stream()
+        # Buscar professor (usando FieldFilter)
+        prof_ref = db.collection("professores_online").where(
+            filter=FieldFilter("email", "==", email)
+        ).limit(1).stream()
+
         professor = None
         prof_id = None
 
@@ -2344,8 +2349,10 @@ async def ver_salarios(request: Request):
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Buscar alunos vinculados ao professor (corrigido com filter=)
-        vinculos = db.collection("alunos_professor").where(filter=("professor", "==", email)).stream()
+        # Buscar alunos vinculados ao professor (usando FieldFilter)
+        vinculos = db.collection("alunos_professor").where(
+            filter=FieldFilter("professor", "==", email)
+        ).stream()
 
         total_aulas = 0
         aulas_dadas = 0
@@ -2362,7 +2369,7 @@ async def ver_salarios(request: Request):
                 total_aulas += qtd_total
                 aulas_dadas += qtd_dadas
 
-                # Coletar detalhes das aulas (se necessário)
+                # Coletar detalhes das aulas
                 datas = dados.get("datas_aulas", [])
                 for d in datas:
                     detalhes_aulas.append({
@@ -2399,6 +2406,7 @@ async def ver_salarios(request: Request):
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
+
 
 
 @app.get("/admin", response_class=HTMLResponse)
