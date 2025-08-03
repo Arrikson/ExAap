@@ -367,8 +367,12 @@
 
   function toggleSaldo() {
     const saldo = document.getElementById('saldo');
+    if (saldoVisivel) {
+      saldo.textContent = 'Kz ******';
+    } else {
+      saldo.textContent = 'Kz {{ "{:,.2f}".format(saldo_total) }}';
+    }
     saldoVisivel = !saldoVisivel;
-    saldo.innerText = saldoVisivel ? "Kz {{ saldo_total }}" : "Kz 00,00";
   }
 
   function verDetalhesAula(aluno, hora) {
