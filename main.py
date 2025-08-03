@@ -1802,10 +1802,6 @@ async def registrar_aula(data: dict = Body(...)):
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
 
-@app.get("/teste", response_class=HTMLResponse)
-async def exibir_teste(request: Request):
-    return templates.TemplateResponse("teste.html", {"request": request})
-    
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
     try:
@@ -2294,6 +2290,61 @@ async def ver_horario_aluno(nome: str):
         return {"erro": "Aluno não encontrado."}
     except Exception as e:
         return {"erro": f"Erro ao buscar horário: {str(e)}"}
+
+
+@app.get("/salarios", response_class=HTMLResponse)
+async def ver_salarios(request: Request):
+    try:
+        email = request.query_params.get("email")
+
+        if not email:
+            return HTMLResponse(content="Email do professor não especificado.", status_code=400)
+
+        # Busca o professor
+        prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+        professor = None
+        prof_id = None
+
+        for doc in prof_ref:
+            professor = doc.to_dict()
+            prof_id = doc.id
+            break
+
+        if not professor:
+            return HTMLResponse(content="Professor não encontrado.", status_code=404)
+
+        # Busca todos os alunos vinculados a esse professor
+        alunos_query = db.collection("alunos_professor").where("email_professor", "==", email).stream()
+
+        total_aulas = 0
+        aulas_dadas = 0
+
+        for aluno_doc in alunos_query:
+            aluno = aluno_doc.to_dict()
+            total_aulas += int(aluno.get("total_aulas", 0))
+            aulas_dadas += int(aluno.get("aulas_dadas", 0))
+
+        salario_mensal = total_aulas * 1250
+        saldo_atual = aulas_dadas * 1250
+
+        # Atualiza a coleção do professor com o campo "salario"
+        db.collection("professores_online").document(prof_id).update({
+            "salario": {
+                "mensal_estimado": salario_mensal,
+                "saldo_atual": saldo_atual
+            }
+        })
+
+        return templates.TemplateResponse("salarios_professor.html", {
+            "request": request,
+            "nome": professor.get("nome_completo", "Professor"),
+            "salario_mensal": salario_mensal,
+            "saldo_atual": saldo_atual
+        })
+
+    except Exception as e:
+        return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
