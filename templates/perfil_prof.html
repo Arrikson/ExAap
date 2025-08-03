@@ -363,18 +363,19 @@
 
 <script>
 
-  let saldoVisivel = false;
+ let saldoVisivel = false;
+  const saldoReal = "{{ saldo_total if saldo_total is not none else '0,00' }}";
 
   function toggleSaldo() {
     const saldo = document.getElementById('saldo');
     if (saldoVisivel) {
       saldo.textContent = 'Kz ******';
     } else {
-      saldo.textContent = 'Kz {{ "{:,.2f}".format(saldo_total) }}';
+      saldo.textContent = 'Kz ' + saldoReal;
     }
     saldoVisivel = !saldoVisivel;
   }
-
+  
   function verDetalhesAula(aluno, hora) {
     alert("Aula para: " + aluno + "\nHorário: " + hora + "\nDuração: 1h\nValor: Kz 1.250,00");
   }
