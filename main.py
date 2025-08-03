@@ -2316,8 +2316,8 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Buscar professor
-        prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+        # Buscar professor (corrigido com filter=)
+        prof_ref = db.collection("professores_online").where(filter=("email", "==", email)).limit(1).stream()
         professor = None
         prof_id = None
 
@@ -2329,8 +2329,8 @@ async def ver_salarios(request: Request):
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Buscar alunos vinculados ao professor
-        vinculos = db.collection("alunos_professor").where("professor", "==", email).stream()
+        # Buscar alunos vinculados ao professor (corrigido com filter=)
+        vinculos = db.collection("alunos_professor").where(filter=("professor", "==", email)).stream()
 
         total_aulas = 0
         aulas_dadas = 0
@@ -2347,7 +2347,7 @@ async def ver_salarios(request: Request):
                 total_aulas += qtd_total
                 aulas_dadas += qtd_dadas
 
-                # Opcional: coletar detalhes das aulas
+                # Coletar detalhes das aulas (se necessário)
                 datas = dados.get("datas_aulas", [])
                 for d in datas:
                     detalhes_aulas.append({
@@ -2362,7 +2362,7 @@ async def ver_salarios(request: Request):
         salario_mensal = total_aulas * valor_por_aula
         saldo_atual = aulas_dadas * valor_por_aula
 
-        # Atualizar Firestore
+        # Atualizar no Firestore
         db.collection("professores_online").document(prof_id).update({
             "salario": {
                 "mensal_estimado": salario_mensal,
