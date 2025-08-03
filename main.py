@@ -2022,7 +2022,7 @@ async def mensagens_professor(email: str):
     return {"mensagens": []}
 
 
-data_base = datetime(2025, 8, 3, 11, 06)  # Domingo
+data_base = datetime(2025, 8, 3, 11, 10)  # Domingo
 
 dias_map = {
     0: "Seg",
