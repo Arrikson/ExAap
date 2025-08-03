@@ -2296,9 +2296,10 @@ async def ver_horario_aluno(nome: str):
 async def ver_salarios(request: Request):
     try:
         email = request.query_params.get("email")
-
         if not email:
             return HTMLResponse(content="Email do professor não especificado.", status_code=400)
+        
+        email = email.strip().lower()
 
         # Busca o professor
         prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
@@ -2310,7 +2311,7 @@ async def ver_salarios(request: Request):
             prof_id = doc.id
             break
 
-        if not professor:
+        if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
         # Busca todos os alunos vinculados a esse professor
@@ -2321,8 +2322,11 @@ async def ver_salarios(request: Request):
 
         for aluno_doc in alunos_query:
             aluno = aluno_doc.to_dict()
-            total_aulas += int(aluno.get("total_aulas", 0))
-            aulas_dadas += int(aluno.get("aulas_dadas", 0))
+            try:
+                total_aulas += int(aluno.get("total_aulas", 0) or 0)
+                aulas_dadas += int(aluno.get("aulas_dadas", 0) or 0)
+            except ValueError:
+                continue  # ignora dados inválidos
 
         salario_mensal = total_aulas * 1250
         saldo_atual = aulas_dadas * 1250
@@ -2335,7 +2339,6 @@ async def ver_salarios(request: Request):
             }
         })
 
-        # Atualizado: renderiza o template salarios.html
         return templates.TemplateResponse("salarios.html", {
             "request": request,
             "nome": professor.get("nome_completo", "Professor"),
