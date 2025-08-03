@@ -2300,9 +2300,13 @@ async def ver_salarios(request: Request):
             return HTMLResponse(content="Email do professor não especificado.", status_code=400)
         
         email = email.strip().lower()
+        print(f"🔍 Verificando salário do professor: {email}")
 
         # Busca o professor
-        prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+        prof_ref = db.collection("professores_online").where(
+            filter=("email", "==", email)
+        ).limit(1).stream()
+
         professor = None
         prof_id = None
 
@@ -2312,10 +2316,13 @@ async def ver_salarios(request: Request):
             break
 
         if not professor or not prof_id:
+            print("⚠️ Professor não encontrado.")
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
         # Busca todos os alunos vinculados a esse professor
-        alunos_query = db.collection("alunos_professor").where("email_professor", "==", email).stream()
+        alunos_query = db.collection("alunos_professor").where(
+            filter=("email_professor", "==", email)
+        ).stream()
 
         total_aulas = 0
         aulas_dadas = 0
@@ -2325,13 +2332,16 @@ async def ver_salarios(request: Request):
             try:
                 total_aulas += int(aluno.get("total_aulas", 0) or 0)
                 aulas_dadas += int(aluno.get("aulas_dadas", 0) or 0)
-            except ValueError:
-                continue  # ignora dados inválidos
+            except ValueError as ve:
+                print(f"⚠️ Erro nos dados de aluno: {aluno}, erro: {ve}")
+                continue
 
         salario_mensal = total_aulas * 1250
         saldo_atual = aulas_dadas * 1250
 
-        # Atualiza a coleção do professor com o campo "salario"
+        print(f"💰 Salário estimado: {salario_mensal}, saldo atual: {saldo_atual}")
+
+        # Atualiza o campo "salario" do professor
         db.collection("professores_online").document(prof_id).update({
             "salario": {
                 "mensal_estimado": salario_mensal,
@@ -2347,6 +2357,7 @@ async def ver_salarios(request: Request):
         })
 
     except Exception as e:
+        print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
 
 @app.get("/admin", response_class=HTMLResponse)
