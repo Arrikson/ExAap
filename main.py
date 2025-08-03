@@ -2302,9 +2302,8 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Busca o professor (forma tradicional com argumentos posicionais)
+        # Buscar professor
         prof_ref = db.collection("professores_online").where("email", "==", email).limit(1).stream()
-
         professor = None
         prof_id = None
 
@@ -2314,30 +2313,42 @@ async def ver_salarios(request: Request):
             break
 
         if not professor or not prof_id:
-            print("⚠️ Professor não encontrado.")
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Busca alunos do professor
-        alunos_query = db.collection("alunos_professor").where("email_professor", "==", email).stream()
+        # Buscar alunos vinculados ao professor
+        vinculos = db.collection("alunos_professor").where("professor", "==", email).stream()
 
         total_aulas = 0
         aulas_dadas = 0
+        valor_por_aula = 1250
+        detalhes_aulas = []
 
-        for aluno_doc in alunos_query:
-            aluno = aluno_doc.to_dict()
+        for doc in vinculos:
+            dados = doc.to_dict()
             try:
-                total_aulas += int(aluno.get("total_aulas", 0) or 0)
-                aulas_dadas += int(aluno.get("aulas_dadas", 0) or 0)
-            except ValueError as ve:
-                print(f"⚠️ Erro nos dados do aluno: {aluno}, erro: {ve}")
+                aluno_nome = dados.get("aluno", "Desconhecido").title()
+                qtd_total = int(dados.get("total_aulas", 0))
+                qtd_dadas = int(dados.get("aulas_dadas", 0))
+
+                total_aulas += qtd_total
+                aulas_dadas += qtd_dadas
+
+                # Opcional: coletar detalhes das aulas
+                datas = dados.get("datas_aulas", [])
+                for d in datas:
+                    detalhes_aulas.append({
+                        "nome_aluno": aluno_nome,
+                        "data": d,
+                        "disciplina": dados.get("dados_aluno", {}).get("disciplina", "N/A")
+                    })
+            except Exception as e:
+                print(f"⚠️ Erro ao processar aluno: {e}")
                 continue
 
-        salario_mensal = total_aulas * 1250
-        saldo_atual = aulas_dadas * 1250
+        salario_mensal = total_aulas * valor_por_aula
+        saldo_atual = aulas_dadas * valor_por_aula
 
-        print(f"💰 Estimado: {salario_mensal} Kz, Saldo atual: {saldo_atual} Kz")
-
-        # Atualiza os dados no Firestore
+        # Atualizar Firestore
         db.collection("professores_online").document(prof_id).update({
             "salario": {
                 "mensal_estimado": salario_mensal,
@@ -2349,7 +2360,11 @@ async def ver_salarios(request: Request):
             "request": request,
             "nome": professor.get("nome_completo", "Professor"),
             "salario_mensal": salario_mensal,
-            "saldo_atual": saldo_atual
+            "saldo_atual": saldo_atual,
+            "total_aulas": total_aulas,
+            "valor_por_aula": valor_por_aula,
+            "total_a_receber": saldo_atual,
+            "aulas": detalhes_aulas
         })
 
     except Exception as e:
