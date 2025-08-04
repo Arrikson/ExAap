@@ -5,9 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
 
-  <!-- Google Fonts + Estilos -->
+  <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
+
+  <!-- Estilo incorporado -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Nunito', 'Heebo', sans-serif;
+      background: linear-gradient(to bottom right, #e0f7fa, #e8f5e9);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-aluno {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(90deg, #2196f3, #4caf50);
+      color: white;
+      border-bottom: 2px solid #1976d2;
+    }
+
+    .header-aluno img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+
+    .section-box {
+      background: white;
+      margin: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    button {
+      background: linear-gradient(90deg, #2196f3, #4caf50);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px 0;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #1976d2, #388e3c);
+    }
+
+    .logout-button {
+      background: #f44336;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .logout-button:hover {
+      background: #d32f2f;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+    }
+
+    .bottom-nav button {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #2196f3;
+    }
+
+    .bottom-nav button:hover {
+      color: #0d47a1;
+    }
+
+    .status-icon {
+      font-weight: bold;
+      color: #4caf50;
+    }
+
+    #notificacao-mensagem {
+      background: #fff3cd;
+      color: #856404;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 15px 20px;
+      border: 1px solid #ffeeba;
+      display: none;
+    }
+
+    .notificar-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 5px;
+      margin-left: 10px;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    ul li {
+      margin-bottom: 6px;
+    }
+
+    h3 {
+      margin-top: 0;
+    }
+  </style>
 </head>
 <body>
 
@@ -66,10 +188,9 @@
     <button onclick="toggle('professor-nome')" title="Professor"><i class="fas fa-user"></i></button>
   </div>
 
-  <!-- Script de funcionalidades Firebase + aula -->
+
   <script type="module">
-    // ... 🔽 SCRIPT EXATAMENTE COMO VOCÊ ENVIOU 🔽 ...
-    // (mesmo conteúdo sem alteração aqui)
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, onSnapshot, updateDoc
