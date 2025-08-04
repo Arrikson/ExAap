@@ -4,174 +4,126 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&family=Nunito:wght@400;700&display=swap');
-
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Nunito', 'Heebo', sans-serif;
-    background: linear-gradient(135deg, #e0f7fa, #f1fff0);
-    color: #333;
-    min-height: 100vh;
-  }
-
-  h1, h2, h3 {
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-
-  p {
-    margin: 5px 0;
-  }
-
-  .header-aluno {
-    display: flex;
-    align-items: center;
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    padding: 15px 20px;
-    color: white;
-    border-bottom-left-radius: 25px;
-    border-bottom-right-radius: 25px;
-  }
-
-  .header-aluno img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    margin-right: 15px;
-    border: 3px solid white;
-  }
-
-  .header-aluno .info h2 {
-    font-size: 1.5em;
-    margin: 0;
-  }
-
-  .logout-button {
-    background: #ff6f61;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: background 0.3s;
-  }
-
-  .logout-button:hover {
-    background: #e85c50;
-  }
-
-  .section-box {
-    background: white;
-    margin: 20px;
-    padding: 15px 20px;
-    border-radius: 20px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  }
-
-  .section-box h3 {
-    margin-bottom: 10px;
-    color: #00695c;
-  }
-
-  .section-box ul {
-    padding-left: 20px;
-    margin: 0;
-  }
-
-  button {
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    border: none;
-    padding: 10px 18px;
-    border-radius: 25px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: transform 0.2s, background 0.3s;
-    margin: 10px 0;
-  }
-
-  button:hover {
-    transform: scale(1.03);
-    background: linear-gradient(135deg, #00b0e0, #7afc8b);
-  }
-
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #ccc;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    z-index: 999;
-  }
-
-  .bottom-nav button {
-    background: none;
-    box-shadow: none;
-    border-radius: 50%;
-    padding: 10px;
-    color: #00bcd4;
-    font-size: 1.2em;
-  }
-
-  .bottom-nav button:hover {
-    background: rgba(0, 188, 212, 0.1);
-  }
-
-  #notificacao-mensagem {
-    background: #ffecb3;
-    color: #795548;
-    padding: 10px 15px;
-    margin: 15px 20px;
-    border-radius: 15px;
-    font-weight: bold;
-    display: none;
-  }
-
-  .notificar-btn {
-    background: #00796b;
-    padding: 5px 12px;
-    border-radius: 15px;
-    color: white;
-    border: none;
-    margin-left: 10px;
-    cursor: pointer;
-  }
-
-  .status-icon {
-    font-weight: normal;
-    color: #00796b;
-    margin-left: 5px;
-  }
-
-  @media (max-width: 600px) {
-    .header-aluno {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 20px;
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      padding: 80px 15px 30px;
     }
 
-    .header-aluno img {
-      margin-bottom: 10px;
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 999;
     }
 
-    .section-box {
-      margin: 15px 10px;
+    .top-bar img {
+      height: 35px;
     }
 
-    .logout-button {
-      font-size: 0.9em;
-      padding: 6px 12px;
+    .top-bar .logout-icon {
+      font-size: 20px;
+      color: #000;
+      cursor: pointer;
     }
-  }
-</style>
+
+    .card {
+      background: white;
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.8em;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .notificar-btn {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #000;
+      font-size: 16px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+
+    .notificar-btn:hover {
+      background: linear-gradient(135deg, #00a0c9, #7cd77b);
+    }
+
+    .info {
+      display: none;
+      margin-top: 10px;
+      padding: 15px;
+      background: #f0f8ff;
+      border-left: 4px solid #00c9ff;
+      border-radius: 10px;
+    }
+
+    #notificacao-mensagem, #professor-nome, #info-aula {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
+      border-left: 4px solid #00c9ff;
+    }
+
+    form {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 20px;
+      }
+
+      .btn-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .top-bar img {
+        height: 30px;
+      }
+
+      .top-bar .logout-icon {
+        font-size: 18px;
+      }
+    }
+  </style>
   <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
 </head>
 <body>
