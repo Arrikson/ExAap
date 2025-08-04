@@ -4,400 +4,451 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Perfil do Aluno</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&family=Nunito:wght@400;700&display=swap');
 
-  <!-- Fontes -->
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito', 'Heebo', sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #f1fff0);
+    color: #333;
+    min-height: 100vh;
+  }
 
-  <!-- Estilo incorporado -->
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Nunito', 'Heebo', sans-serif;
-      background: linear-gradient(to bottom right, #e0f7fa, #e8f5e9);
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+  h1, h2, h3 {
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
 
+  p {
+    margin: 5px 0;
+  }
+
+  .header-aluno {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    padding: 15px 20px;
+    color: white;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+  }
+
+  .header-aluno img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+    border: 3px solid white;
+  }
+
+  .header-aluno .info h2 {
+    font-size: 1.5em;
+    margin: 0;
+  }
+
+  .logout-button {
+    background: #ff6f61;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: background 0.3s;
+  }
+
+  .logout-button:hover {
+    background: #e85c50;
+  }
+
+  .section-box {
+    background: white;
+    margin: 20px;
+    padding: 15px 20px;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  }
+
+  .section-box h3 {
+    margin-bottom: 10px;
+    color: #00695c;
+  }
+
+  .section-box ul {
+    padding-left: 20px;
+    margin: 0;
+  }
+
+  button {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background 0.3s;
+    margin: 10px 0;
+  }
+
+  button:hover {
+    transform: scale(1.03);
+    background: linear-gradient(135deg, #00b0e0, #7afc8b);
+  }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #ccc;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 999;
+  }
+
+  .bottom-nav button {
+    background: none;
+    box-shadow: none;
+    border-radius: 50%;
+    padding: 10px;
+    color: #00bcd4;
+    font-size: 1.2em;
+  }
+
+  .bottom-nav button:hover {
+    background: rgba(0, 188, 212, 0.1);
+  }
+
+  #notificacao-mensagem {
+    background: #ffecb3;
+    color: #795548;
+    padding: 10px 15px;
+    margin: 15px 20px;
+    border-radius: 15px;
+    font-weight: bold;
+    display: none;
+  }
+
+  .notificar-btn {
+    background: #00796b;
+    padding: 5px 12px;
+    border-radius: 15px;
+    color: white;
+    border: none;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+
+  .status-icon {
+    font-weight: normal;
+    color: #00796b;
+    margin-left: 5px;
+  }
+
+  @media (max-width: 600px) {
     .header-aluno {
-      display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       padding: 20px;
-      background: linear-gradient(90deg, #2196f3, #4caf50);
-      color: white;
-      border-bottom: 2px solid #1976d2;
     }
 
     .header-aluno img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin-right: 15px;
+      margin-bottom: 10px;
     }
 
     .section-box {
-      background: white;
-      margin: 20px;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    button {
-      background: linear-gradient(90deg, #2196f3, #4caf50);
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 5px 0;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: linear-gradient(90deg, #1976d2, #388e3c);
+      margin: 15px 10px;
     }
 
     .logout-button {
-      background: #f44336;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
+      font-size: 0.9em;
+      padding: 6px 12px;
     }
-
-    .logout-button:hover {
-      background: #d32f2f;
-    }
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      border-top: 1px solid #ccc;
-    }
-
-    .bottom-nav button {
-      background: none;
-      border: none;
-      font-size: 22px;
-      color: #2196f3;
-    }
-
-    .bottom-nav button:hover {
-      color: #0d47a1;
-    }
-
-    .status-icon {
-      font-weight: bold;
-      color: #4caf50;
-    }
-
-    #notificacao-mensagem {
-      background: #fff3cd;
-      color: #856404;
-      padding: 10px 15px;
-      border-radius: 8px;
-      margin: 15px 20px;
-      border: 1px solid #ffeeba;
-      display: none;
-    }
-
-    .notificar-btn {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
-    ul {
-      padding-left: 20px;
-    }
-
-    ul li {
-      margin-bottom: 6px;
-    }
-
-    h3 {
-      margin-top: 0;
-    }
-  </style>
+  }
+</style>
+  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
 </head>
 <body>
-
-  <!-- Header com saudação -->
-  <div class="header-aluno">
-    <img src="/static/perfil.png" alt="Foto Perfil">
-    <div class="info">
-      <h2>Olá, {{ aluno.nome }} 👋</h2>
-      <p>Seja bem-vindo à plataforma!</p>
-    </div>
+  <div class="top-bar">
+    <img src="/static/logo.png" alt="Logo">
+    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
 
-  <!-- Botão de logout -->
-  <form method="POST" action="/logout" style="position: fixed; top: 10px; right: 15px; z-index: 1000;">
-    <input type="hidden" id="aluno-id" name="nome" value="{{ aluno.nome }}">
-    <button type="submit" class="logout-button">Sair</button>
-  </form>
+<div class="card">
+  <h1>{{ aluno.nome }}</h1>
+  <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
+  <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+  <input type="hidden" id="professor-email" value="{{ professor_email }}">
 
-  <!-- Notificação -->
-  <div id="notificacao-mensagem"></div>
-
-  <!-- Seção de Professor -->
-  <div class="section-box">
-    <h3>Status do Professor</h3>
-    <div id="professor-nome">Clique para ver o status do professor</div>
-    <button onclick="toggleProfessor()">Atualizar</button>
+  <div class="btn-grid">
+    <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
+    <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
+    <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
+    <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+    <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
+    <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
   </div>
 
-  <!-- Seção de Horário -->
-  <div id="sec-horario" class="section-box" style="display:none;">
-    <h3>📆 Horários Marcados</h3>
-    <ul id="lista-horario"></ul>
-  </div>
-  <button onclick="verHorario()">Ver Horário</button>
-
-  <!-- Seção de Aulas -->
-  <div id="sec-aula" class="section-box" style="display:none;">
-    <h3>📚 Informações das Aulas</h3>
+  <div id="sec-aula" class="info">
     <p id="aulas-dadas"></p>
     <p id="aulas-restantes"></p>
-    <ul id="lista-aulas"></ul>
-  </div>
-  <button onclick="toggleAulas()">Ver Aulas</button>
-
-  <!-- Aula ao Vivo -->
-  <div class="section-box" id="info-aula" style="display: none;">
-    <h3>🚀 Aula ao vivo disponível!</h3>
-    <p>ID da Sala: <span id="sala-id"></span></p>
-    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    <ul id="lista-aulas" style="padding-left: 20px;"></ul>
   </div>
 
-  <!-- Rodapé com navegação -->
-  <div class="bottom-nav">
-    <button onclick="toggle('sec-horario')" title="Horário"><i class="fas fa-calendar-alt"></i></button>
-    <button onclick="toggle('sec-aula')" title="Aulas"><i class="fas fa-book"></i><span id="contador-aulas"></span></button>
-    <button onclick="toggle('professor-nome')" title="Professor"><i class="fas fa-user"></i></button>
+  <div id="sec-nivel" class="info">
+    <p>Nível Atual: Intermediário</p>
+    <p>Próximo: Avançado</p>
   </div>
 
+  <div id="sec-notas" class="info">
+    <p>Português: 16</p>
+    <p>Biologia: 18</p>
+    <p>Química: 14</p>
+  </div>
 
-  <script type="module">
+  <div id="notificacao-mensagem"></div>
+  <div id="professor-nome"></div>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, doc, onSnapshot, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <div id="info-aula">
+    <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
+    <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-      authDomain: "exap-8a935.firebaseapp.com",
-      projectId: "exap-8a935",
-      storageBucket: "exap-8a935.appspot.com",
-      messagingSenderId: "664710895978",
-      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-    };
+  <div id="sec-horario" class="info">
+    <h3>📅 Horário Definido</h3>
+    <ul id="lista-horario" style="list-style-type: none; padding-left: 0;"></ul>
+  </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  <form method="post" action="/logout" id="logoutForm">
+    <input type="hidden" name="nome" value="{{ aluno.nome }}">
+  </form>
+</div>
 
-    const nomeAluno = "{{ aluno.nome }}";
-    const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-    const infoAulaDiv = document.getElementById("info-aula");
-    const salaIdSpan = document.getElementById("sala-id");
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, doc, onSnapshot, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    onSnapshot(chamadaRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const dados = docSnap.data();
-        if (dados.status === "pendente") {
-          salaIdSpan.textContent = dados.sala;
-          infoAulaDiv.style.display = "block";
-          const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-          updateDoc(chamadaRef, {
-            status: aceitar ? "aceito" : "rejeitado"
-          });
-          if (aceitar) {
-            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
-          }
+  const firebaseConfig = {
+    apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+    authDomain: "exap-8a935.firebaseapp.com",
+    projectId: "exap-8a935",
+    storageBucket: "exap-8a935.appspot.com",
+    messagingSenderId: "664710895978",
+    appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const nomeAluno = "{{ aluno.nome }}";
+  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+  const infoAulaDiv = document.getElementById("info-aula");
+  const salaIdSpan = document.getElementById("sala-id");
+
+  onSnapshot(chamadaRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const dados = docSnap.data();
+      if (dados.status === "pendente") {
+        salaIdSpan.textContent = dados.sala;
+        infoAulaDiv.style.display = "block";
+        const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+        updateDoc(chamadaRef, {
+          status: aceitar ? "aceito" : "rejeitado"
+        });
+        if (aceitar) {
+          window.location.href = `/sala_virtual_aluno/${dados.sala}`;
         }
       }
-    });
+    }
+  });
 
-    window.toggleAulas = async function () {
-      const div = document.getElementById("sec-aula");
-      const aulasDadas = document.getElementById("aulas-dadas");
-      const aulasRestantes = document.getElementById("aulas-restantes");
-      const listaAulas = document.getElementById("lista-aulas"); 
+  window.toggleAulas = async function () {
+    const div = document.getElementById("sec-aula");
+    const aulasDadas = document.getElementById("aulas-dadas");
+    const aulasRestantes = document.getElementById("aulas-restantes");
+    const listaAulas = document.getElementById("lista-aulas"); 
+    
+    if (div.style.display === "block") {
+      div.style.display = "none";
+      return;
+    }
 
-      if (div.style.display === "block") {
-        div.style.display = "none";
-        return;
-      }
+    try {
+      const response = await fetch("/ver-aulas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      });
 
-      try {
-        const response = await fetch("/ver-aulas", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ aluno: nomeAluno })
-        });
+      const data = await response.json();
 
-        const data = await response.json();
-
-        if (data.erro) {
-          aulasDadas.textContent = "Erro ao carregar as aulas.";
-          aulasRestantes.textContent = "";
-          listaAulas.innerHTML = "";
-          return;
-        }
-
-        aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
-        aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
-        listaAulas.innerHTML = "";
-        data.aulas.forEach((aula, i) => {
-          const li = document.createElement("li");
-          li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
-          listaAulas.appendChild(li);
-        });
-      } catch (err) {
-        aulasDadas.textContent = "❌ Erro ao buscar dados.";
+      if (data.erro) {
+        aulasDadas.textContent = "Erro ao carregar as aulas.";
         aulasRestantes.textContent = "";
         listaAulas.innerHTML = "";
-      }
-
-      div.style.display = "block";
-    };
-
-    window.toggleProfessor = function () {
-      const container = document.getElementById("professor-nome");
-      if (container.style.display === "block") {
-        container.style.display = "none";
         return;
       }
-      fetch(`/meu-professor-status/${nomeAluno}`)
-        .then(response => response.json())
-        .then(data => {
-          const statusIcon = data.online ? '🟢' : '⚪';
-          const statusText = data.online ? 'Online' : 'Offline';
-          container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-          container.style.display = "block";
-        })
-        .catch(() => {
-          container.innerHTML = "Professor não encontrado.";
-          container.style.display = "block";
-        });
-    };
 
-    window.verNotificacao = function () {
-      fetch("/verificar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      })
+      aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
+      aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
+      listaAulas.innerHTML = "";
+      data.aulas.forEach((aula, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
+        listaAulas.appendChild(li);
+      });
+    } catch (err) {
+      aulasDadas.textContent = "❌ Erro ao buscar dados.";
+      aulasRestantes.textContent = "";
+      listaAulas.innerHTML = "";
+    }
+
+    div.style.display = "block";
+  };
+
+  window.toggleProfessor = function () {
+    const container = document.getElementById("professor-nome");
+    if (container.style.display === "block") {
+      container.style.display = "none";
+      return;
+    }
+    fetch(`/meu-professor-status/${nomeAluno}`)
       .then(response => response.json())
       .then(data => {
-        const notificacaoEl = document.getElementById("notificacao-mensagem");
-        const contadorAulas = document.getElementById("contador-aulas");
-        if (data.notificacao === true) {
-          window.professorEmailAtual = data.professor_email;
-          notificacaoEl.innerHTML = `
-            A tua aula irá começar
-            <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
-          `;
-          notificacaoEl.style.display = "block";
-          contadorAulas.innerText = "(1)";
-        } else {
-          notificacaoEl.style.display = "none";
-          contadorAulas.innerText = "";
-        }
-      });
-    };
-
-    window.desativarNotificacaoERedirecionar = function () {
-      fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
+        const statusIcon = data.online ? '🟢' : '⚪';
+        const statusText = data.online ? 'Online' : 'Offline';
+        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+        container.style.display = "block";
       })
-      .then(() => {
-        document.getElementById("notificacao-mensagem").style.display = "none";
-        document.getElementById("contador-aulas").innerText = "";
-        if (window.professorEmailAtual) {
-          const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
-          window.location.href = `/sala_virtual_aluno/${sala}`;
-        }
+      .catch(() => {
+        container.innerHTML = "Professor não encontrado.";
+        container.style.display = "block";
       });
-    };
+  };
 
-    window.verHorario = async function () {
-      const container = document.getElementById("sec-horario");
-      const listaHorario = document.getElementById("lista-horario");
-
-      if (container.style.display === "block") {
-        container.style.display = "none";
-        return;
+  window.verNotificacao = function () {
+    fetch("/verificar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const notificacaoEl = document.getElementById("notificacao-mensagem");
+      const contadorAulas = document.getElementById("contador-aulas");
+      if (data.notificacao === true) {
+        window.professorEmailAtual = data.professor_email;
+        notificacaoEl.innerHTML = `
+          A tua aula irá começar
+          <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
+        `;
+        notificacaoEl.style.display = "block";
+        contadorAulas.innerText = "(1)";
+      } else {
+        notificacaoEl.style.display = "none";
+        contadorAulas.innerText = "";
       }
+    });
+  };
 
-      try {
-        const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
-        const data = await res.json();
-        listaHorario.innerHTML = "";
-
-        if (data.erro) {
-          const li = document.createElement("li");
-          li.textContent = "⚠️ Horário não encontrado.";
-          listaHorario.appendChild(li);
-        } else {
-          for (const [dia, horarios] of Object.entries(data.horario)) {
-            const diaItem = document.createElement("li");
-            diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
-            listaHorario.appendChild(diaItem);
-
-            horarios.forEach(h => {
-              const horaItem = document.createElement("li");
-              horaItem.textContent = `- ${h}`;
-              horaItem.style.marginLeft = "15px";
-              listaHorario.appendChild(horaItem);
-            });
-          }
-        }
-      } catch (e) {
-        listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
+  window.desativarNotificacaoERedirecionar = function () {
+    fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    })
+    .then(() => {
+      document.getElementById("notificacao-mensagem").style.display = "none";
+      document.getElementById("contador-aulas").innerText = "";
+      if (window.professorEmailAtual) {
+        const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
+        window.location.href = `/sala_virtual_aluno/${sala}`;
       }
+    });
+  };
 
-      container.style.display = "block";
-    };
+ window.verHorario = async function () {
+  const container = document.getElementById("sec-horario");
+  const listaHorario = document.getElementById("lista-horario");
 
-    function traduzirDia(diaAbreviado) {
-      const dias = {
-        "Seg": "Segunda-feira",
-        "Ter": "Terça-feira",
-        "Qua": "Quarta-feira",
-        "Qui": "Quinta-feira",
-        "Sex": "Sexta-feira",
-        "Sab": "Sábado",
-        "Dom": "Domingo"
-      };
-      return dias[diaAbreviado] || diaAbreviado;
-    }
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
 
-    function toggle(id) {
-      const el = document.getElementById(id);
-      el.style.display = el.style.display === 'block' ? 'none' : 'block';
-    }
+  try {
+    const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+    const data = await res.json();
+    listaHorario.innerHTML = "";
 
-    function entrarNaAulaDireto() {
-      const salaId = document.getElementById("sala-id").textContent;
-      if (salaId) {
-        window.location.href = `/sala_virtual_aluno/${salaId}`;
+    if (data.erro) {
+      const li = document.createElement("li");
+      li.textContent = "⚠️ Horário não encontrado.";
+      listaHorario.appendChild(li);
+    } else {
+      for (const [dia, horarios] of Object.entries(data.horario)) {
+        const diaItem = document.createElement("li");
+        diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
+        listaHorario.appendChild(diaItem);
+
+        horarios.forEach(h => {
+          const horaItem = document.createElement("li");
+          horaItem.textContent = `- ${h}`;
+          horaItem.style.marginLeft = "15px";
+          listaHorario.appendChild(horaItem);
+        });
       }
     }
-  </script>
+  } catch (e) {
+    listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
+  }
+
+  container.style.display = "block";
+};
+
+function traduzirDia(diaAbreviado) {
+  const dias = {
+    "Seg": "Segunda-feira",
+    "Ter": "Terça-feira",
+    "Qua": "Quarta-feira",
+    "Qui": "Quinta-feira",
+    "Sex": "Sexta-feira",
+    "Sab": "Sábado",
+    "Dom": "Domingo"
+  };
+  return dias[diaAbreviado] || diaAbreviado;
+}
+
+  function toggle(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function fazerLogout() {
+    const nomeAluno = document.getElementById("aluno-id").value;
+    fetch("/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: nomeAluno })
+    })
+    .then(() => window.location.href = "/")
+    .catch(error => console.error("Erro ao fazer logout:", error));
+  }
+
+  function entrarNaAulaDireto() {
+    const salaId = document.getElementById("sala-id").textContent;
+    if (salaId) {
+      window.location.href = `/sala_virtual_aluno/${salaId}`;
+    }
+  }
+</script>
 </body>
 </html>
