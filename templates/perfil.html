@@ -1,126 +1,131 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil do Aluno</title>
+  <meta charset="UTF-8">
+  <title>Painel do Aluno</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f4f7fa, #e2edf5);
       color: #333;
-      padding: 80px 15px 30px;
+      padding: 0;
     }
 
     .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      background-color: #1e88e5;
+      color: white;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 999;
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .top-bar img {
-      height: 35px;
+      height: 40px;
     }
 
-    .top-bar .logout-icon {
-      font-size: 20px;
-      color: #000;
+    .logout-icon {
       cursor: pointer;
+      font-size: 22px;
+      transition: transform 0.2s;
+    }
+
+    .logout-icon:hover {
+      transform: scale(1.1);
+      color: #ffcccb;
     }
 
     .card {
-      background: white;
       max-width: 800px;
-      margin: auto;
-      padding: 30px;
+      margin: 30px auto;
+      background: #fff;
       border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      padding: 25px 30px;
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 1.8em;
+    .card h1 {
+      margin-top: 0;
+      font-size: 28px;
+      color: #1e88e5;
     }
 
     .btn-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
     }
 
     .notificar-btn {
-      margin-top: 10px;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      background: #1e88e5;
       border: none;
-      padding: 14px;
-      border-radius: 10px;
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 15px;
       cursor: pointer;
-      font-weight: bold;
-      color: #000;
-      font-size: 16px;
       box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      transition: background 0.3s ease;
-      width: 100%;
+      transition: background 0.3s, transform 0.2s;
     }
 
     .notificar-btn:hover {
-      background: linear-gradient(135deg, #00a0c9, #7cd77b);
+      background: #1565c0;
+      transform: translateY(-1px);
     }
 
     .info {
       display: none;
-      margin-top: 10px;
-      padding: 15px;
-      background: #f0f8ff;
-      border-left: 4px solid #00c9ff;
-      border-radius: 10px;
-    }
-
-    #notificacao-mensagem, #professor-nome, #info-aula {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background: #fff;
-      border-radius: 10px;
-      border-left: 4px solid #00c9ff;
-    }
-
-    form {
       margin-top: 20px;
-      text-align: center;
+      padding: 15px;
+      background-color: #f1f8ff;
+      border-radius: 10px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+
+    .info p {
+      margin: 8px 0;
+    }
+
+    #notificacao-mensagem {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      display: none;
+    }
+
+    #professor-nome {
+      margin-top: 15px;
+      font-weight: 500;
+      display: none;
+    }
+
+    #info-aula {
+      margin-top: 15px;
+      display: none;
+      background-color: #e8f5e9;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #c8e6c9;
+    }
+
+    #sec-horario h3 {
+      margin-bottom: 10px;
+      color: #2e7d32;
+    }
+
+    ul {
+      padding-left: 20px;
     }
 
     @media (max-width: 600px) {
-      .card {
-        padding: 20px;
-      }
-
       .btn-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      h1 {
-        font-size: 1.5em;
-      }
-
-      .top-bar img {
-        height: 30px;
-      }
-
-      .top-bar .logout-icon {
-        font-size: 18px;
+        grid-template-columns: 1fr 1fr;
       }
     }
   </style>
@@ -132,55 +137,55 @@
     <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
   </div>
 
-<div class="card">
-  <h1>{{ aluno.nome }}</h1>
-  <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
-  <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
-  <input type="hidden" id="professor-email" value="{{ professor_email }}">
+  <div class="card">
+    <h1>{{ aluno.nome }}</h1>
+    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
+    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+    <input type="hidden" id="professor-email" value="{{ professor_email }}">
 
-  <div class="btn-grid">
-    <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
-    <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
-    <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
-    <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
-    <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
-    <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
+    <div class="btn-grid">
+      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
+      <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
+      <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
+      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+      <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
+      <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
+    </div>
+
+    <div id="sec-aula" class="info">
+      <p id="aulas-dadas"></p>
+      <p id="aulas-restantes"></p>
+      <ul id="lista-aulas"></ul>
+    </div>
+
+    <div id="sec-nivel" class="info">
+      <p>Nível Atual: Intermediário</p>
+      <p>Próximo: Avançado</p>
+    </div>
+
+    <div id="sec-notas" class="info">
+      <p>Português: 16</p>
+      <p>Biologia: 18</p>
+      <p>Química: 14</p>
+    </div>
+
+    <div id="notificacao-mensagem"></div>
+    <div id="professor-nome"></div>
+
+    <div id="info-aula">
+      <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
+      <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    </div>
+
+    <div id="sec-horario" class="info">
+      <h3>📅 Horário Definido</h3>
+      <ul id="lista-horario"></ul>
+    </div>
+
+    <form method="post" action="/logout" id="logoutForm">
+      <input type="hidden" name="nome" value="{{ aluno.nome }}">
+    </form>
   </div>
-
-  <div id="sec-aula" class="info">
-    <p id="aulas-dadas"></p>
-    <p id="aulas-restantes"></p>
-    <ul id="lista-aulas" style="padding-left: 20px;"></ul>
-  </div>
-
-  <div id="sec-nivel" class="info">
-    <p>Nível Atual: Intermediário</p>
-    <p>Próximo: Avançado</p>
-  </div>
-
-  <div id="sec-notas" class="info">
-    <p>Português: 16</p>
-    <p>Biologia: 18</p>
-    <p>Química: 14</p>
-  </div>
-
-  <div id="notificacao-mensagem"></div>
-  <div id="professor-nome"></div>
-
-  <div id="info-aula">
-    <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
-    <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
-  </div>
-
-  <div id="sec-horario" class="info">
-    <h3>📅 Horário Definido</h3>
-    <ul id="lista-horario" style="list-style-type: none; padding-left: 0;"></ul>
-  </div>
-
-  <form method="post" action="/logout" id="logoutForm">
-    <input type="hidden" name="nome" value="{{ aluno.nome }}">
-  </form>
-</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -404,4 +409,3 @@ function traduzirDia(diaAbreviado) {
 </script>
 </body>
 </html>
-
