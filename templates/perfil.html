@@ -4,165 +4,169 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perfil do Aluno - Estilo BAI</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #111;
-      color: white;
-      max-width: 480px;
-      margin: auto;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #ffffff; /* fundo branco */
+    color: #333;
+    max-width: 480px;
+    margin: auto;
+  }
 
-    .top-bar {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+  .top-bar {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
 
-    .top-bar img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-    }
+  .top-bar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+  }
 
-    .top-bar .info {
-      display: flex;
-      flex-direction: column;
-    }
+  .top-bar .info {
+    display: flex;
+    flex-direction: column;
+  }
 
-    .top-bar .info h2 {
-      font-size: 1rem;
-      margin: 0;
-      color: #000;
-    }
+  .top-bar .info h2 {
+    font-size: 1rem;
+    margin: 0;
+    color: #000;
+  }
 
-    .top-bar .info p {
-      margin: 2px 0;
-      color: rgba(0, 0, 0, 0.6);
-    }
+  .top-bar .info p {
+    margin: 2px 0;
+    color: rgba(0, 0, 0, 0.6);
+  }
 
-    .saldo {
-      font-size: 1.75rem;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #000;
-    }
+  .saldo {
+    font-size: 1.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #000;
+  }
 
-    .saldo button {
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
+  .saldo button {
+    background: none;
+    border: none;
+    color: #000;
+    cursor: pointer;
+  }
 
-    .detalhes-btn {
-      margin-top: 10px;
-      padding: 8px 12px;
-      border: 1px solid white;
-      background: none;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-    }
+  .detalhes-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px solid #00c9ff;
+    background: none;
+    color: #00c9ff;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 
-    .carrossel-indicadores {
-      margin-top: 5px;
-      text-align: center;
-    }
+  .carrossel-indicadores {
+    margin-top: 5px;
+    text-align: center;
+  }
 
-    .carrossel-indicadores span {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      margin: 0 3px;
-      border-radius: 50%;
-      background-color: #1fc8db;
-    }
+  .carrossel-indicadores span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background-color: #1fc8db;
+  }
 
-    .acoes {
-      display: flex;
-      justify-content: space-around;
-      background: #111;
-      padding: 15px 0;
-      flex-wrap: wrap;
-    }
+  .acoes {
+    display: flex;
+    justify-content: space-around;
+    background: #f2f2f2;
+    padding: 15px 0;
+    flex-wrap: wrap;
+  }
 
-    .acao {
-      width: 70px;
-      height: 70px;
-      background: #1e1e1e;
-      border-radius: 15px;
-      text-align: center;
-      padding-top: 8px;
-      margin: 5px;
-    }
+  .acao {
+    width: 70px;
+    height: 70px;
+    background: #e0f7fa;
+    border-radius: 15px;
+    text-align: center;
+    padding-top: 8px;
+    margin: 5px;
+  }
 
-    .acao i {
-      font-size: 20px;
-      display: block;
-    }
+  .acao i {
+    font-size: 20px;
+    display: block;
+    color: #007b8f;
+  }
 
-    .acao span {
-      font-size: 12px;
-    }
+  .acao span {
+    font-size: 12px;
+    color: #007b8f;
+  }
 
-    .ultimas-aulas {
-      background: #1e1e1e;
-      border-radius: 15px;
-      margin: 15px;
-      padding: 10px;
-    }
+  .ultimas-aulas {
+    background: #f8f8f8;
+    border-radius: 15px;
+    margin: 15px;
+    padding: 10px;
+  }
 
-    .aula-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #333;
-      padding: 8px 0;
-    }
+  .aula-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding: 8px 0;
+  }
 
-    .aula-info {
-      flex: 1;
-    }
+  .aula-info {
+    flex: 1;
+  }
 
-    .aula-valor {
-      font-weight: bold;
-    }
+  .aula-valor {
+    font-weight: bold;
+    color: #000;
+  }
 
-    .footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 480px;
-      background: black;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 0;
-    }
+  .footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+  }
 
-    .footer .item {
-      text-align: center;
-      color: #aaa;
-      font-size: 12px;
-    }
+  .footer .item {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+  }
 
-    .footer .item.active {
-      color: #1fc8db;
-    }
+  .footer .item.active {
+    color: #1fc8db;
+  }
 
-    .footer .item i {
-      font-size: 20px;
-      display: block;
-    }
-  </style>
+  .footer .item i {
+    font-size: 20px;
+    display: block;
+  }
+</style>
 </head>
 <body>
   <div class="top-bar">
