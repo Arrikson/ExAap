@@ -701,25 +701,45 @@ async def login(request: Request, nome: str = Form(...), senha: str = Form(...))
 
 from starlette.status import HTTP_303_SEE_OTHER
 
-@app.get("/perfil/{nome}", response_class=HTMLResponse) 
+@app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def perfil(request: Request, nome: str):
-    aluno_ref = db.collection("alunos").where("nome", "==", nome).get()
-    if not aluno_ref:
-        return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+    try:
+        nome_normalizado = nome.strip().lower()
+        print(f"🔍 Buscando dados do aluno: {nome_normalizado}")
 
-    doc = aluno_ref[0]
-    aluno = doc.to_dict()
+        query = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).stream()
 
-    # Atualiza status online com timestamp
-    db.collection("alunos").document(doc.id).update({
-        "online": True,
-        "ultimo_ping": datetime.utcnow().isoformat()
-    })
+        aluno = None
+        doc_id = None
 
-    return templates.TemplateResponse("perfil.html", {
-        "request": request,
-        "aluno": aluno,
-    })
+        for doc in query:
+            dados = doc.to_dict()
+            aluno = {
+                "nome": dados.get("nome", nome),
+                "bilhete": dados.get("bilhete", "Não informado"),
+                "nivel_ingles": dados.get("nivel_ingles", "N/A"),
+                "telefone": dados.get("telefone", "N/A"),
+                "disciplina": dados.get("disciplina", "N/A")
+            }
+            doc_id = doc.id
+            break
+
+        if not aluno or not doc_id:
+            return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+
+        # Atualizar status online com timestamp
+        db.collection("alunos").document(doc_id).update({
+            "online": True,
+            "ultimo_ping": datetime.utcnow().isoformat()
+        })
+
+        return templates.TemplateResponse("perfil.html", {
+            "request": request,
+            "aluno": aluno
+        })
+
+    except Exception as e:
+        return HTMLResponse(content=f"Erro ao carregar perfil: {str(e)}", status_code=500)
 
 from slugify import slugify
 
@@ -2483,32 +2503,6 @@ async def obter_saldo_atual(request: Request):
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
-@app.get("/ver-dados-aluno/{nome}")
-async def ver_dados_aluno(nome: str):
-    try:
-        nome_normalizado = nome.strip().lower()
-        print(f"🔍 Buscando dados do aluno: {nome_normalizado}")
-
-        query = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).stream()
-
-        for doc in query:
-            dados = doc.to_dict()
-            bilhete = dados.get("bilhete", "Não informado")
-            nivel_ingles = dados.get("nivel_ingles", "N/A")
-            telefone = dados.get("telefone", "N/A")
-            disciplina = dados.get("disciplina", "N/A")
-            return {
-                "nome": dados.get("nome", nome),
-                "bilhete": bilhete,
-                "nivel_ingles": nivel_ingles,
-                "telefone": telefone,
-                "disciplina": disciplina
-            }
-
-        return {"erro": "Aluno não encontrado."}
-
-    except Exception as e:
-        return {"erro": f"Erro ao buscar dados do aluno: {str(e)}"}
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
