@@ -123,7 +123,6 @@
       <label for="nome_pai">Nome do Pai</label>
       <input type="text" name="nome_pai" required>
 
-      <!-- NOVO CAMPO ADICIONADO AQUI -->
       <label for="bilhete">Número do B.I</label>
       <input type="text" name="bilhete" required>
 
@@ -158,6 +157,16 @@
 
       <label for="outra_disciplina">Outra Disciplina (opcional)</label>
       <input type="text" name="outra_disciplina">
+
+      <!-- NOVO CAMPO ADICIONADO AQUI: Nível de Inglês -->
+      <label for="nivel_ingles">Nível de Inglês</label>
+      <select name="nivel_ingles" required>
+        <option value="">Selecione o nível</option>
+        <option value="Básico">Básico</option>
+        <option value="Intermediário">Intermediário</option>
+        <option value="Avançado">Avançado</option>
+        <option value="Fluente">Fluente</option>
+      </select>
 
       <button type="submit">Cadastrar</button>
     </form>
