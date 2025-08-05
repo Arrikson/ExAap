@@ -2408,6 +2408,31 @@ async def ver_salarios(request: Request):
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
 
 
+@app.get("/saldo-atual")
+async def obter_saldo_atual(request: Request):
+    try:
+        email = request.query_params.get("email")
+        if not email:
+            return JSONResponse(content={"erro": "Email não informado"}, status_code=400)
+
+        email = email.strip().lower()
+
+        prof_ref = db.collection("professores_online").where(
+            filter=FieldFilter("email", "==", email)
+        ).limit(1).stream()
+
+        for doc in prof_ref:
+            professor = doc.to_dict()
+            salario_info = professor.get("salario", {})
+            saldo_atual = salario_info.get("saldo_atual", 0)
+            return JSONResponse(content={"saldo_atual": saldo_atual})
+
+        return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
+
+    except Exception as e:
+        print(f"❌ Erro ao obter saldo: {e}")
+        return JSONResponse(content={"erro": str(e)}, status_code=500)
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
