@@ -215,7 +215,7 @@
     <!-- Outras aulas virão dinamicamente -->
   </div>
 
-  <div class="footer">
+    <div class="footer">
     <div class="item active">
       <i>👤</i>
       O Meu Perfil
@@ -228,6 +228,31 @@
       <i>📂</i>
       Menu
     </div>
+  </div>
+
+  <!-- Seção para exibir detalhes das aulas -->
+  <div id="sec-aula" style="display:none;">
+    <p id="aulas-dadas"></p>
+    <p id="aulas-restantes"></p>
+    <ul id="lista-aulas"></ul>
+  </div>
+
+  <!-- Seção do professor -->
+  <div id="professor-nome" style="display:none;"></div>
+
+  <!-- Seção de notificações -->
+  <div id="notificacao-mensagem" style="display:none;"></div>
+  <span id="contador-aulas"></span>
+
+  <!-- Seção de horário -->
+  <div id="sec-horario" style="display:none;">
+    <ul id="lista-horario"></ul>
+  </div>
+
+  <!-- Seção para chamadas ao vivo -->
+  <div id="info-aula" style="display:none;">
+    <span id="sala-id"></span>
+    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
 <script type="module">
