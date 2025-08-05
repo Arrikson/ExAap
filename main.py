@@ -606,7 +606,6 @@ async def gerar_pdf():
 @app.get("/cadastro-aluno", response_class=HTMLResponse)
 async def exibir_formulario(request: Request):
     return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
-
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
     request: Request,
@@ -621,6 +620,7 @@ async def cadastrar_aluno(
     longitude: str = Form(...),
     telefone: str = Form(...),
     disciplina: str = Form(...),
+    bilhete: str = Form(...),  # ← Novo campo adicionado aqui
     outra_disciplina: str = Form(None)
 ):
     alunos_ref = db.collection("alunos")
@@ -637,7 +637,7 @@ async def cadastrar_aluno(
     aluno_id = str(uuid.uuid4())
     dados = {
         "nome": nome,
-        "nome_normalizado": nome_normalizado,  # ← campo adicionado
+        "nome_normalizado": nome_normalizado,
         "nome_mae": nome_mae,
         "nome_pai": nome_pai,
         "senha": senha,
@@ -651,10 +651,11 @@ async def cadastrar_aluno(
         "telefone": telefone,
         "disciplina": disciplina,
         "outra_disciplina": outra_disciplina,
+        "bilhete": bilhete,  # ← Bilhete salvo no Firebase
         "online": False,
         "notificacao": False,
         "vinculado": False,
-        "horario": {}  # Campo novo, inicialmente vazio
+        "horario": {}
     }
 
     db.collection("alunos").document(aluno_id).set(dados)
