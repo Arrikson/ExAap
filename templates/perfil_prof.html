@@ -107,6 +107,26 @@
     border-color: #218838;
   }
 
+.botao-padrao {
+  background: linear-gradient(135deg, #00c9ff, #92fe9d);
+  border: none;
+  border-radius: 16px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-align: center;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+.botao-padrao:hover {
+  opacity: 0.85;
+}
+  
 .logout-button {
   position: fixed; 
   top: 15px;
@@ -597,7 +617,7 @@ async function listarMeusAlunos() {
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
         iniciarBtn.textContent = 'Dar Aula';
-        iniciarBtn.className = 'notificar-btn';
+        iniciarBtn.className = 'botao-padrao';
         iniciarBtn.onclick = (e) => {
           e.stopPropagation();
           iniciarChamada(aluno.nome, emailProfessorLogado);
@@ -607,7 +627,7 @@ async function listarMeusAlunos() {
 
       const desvincularBtn = document.createElement('button');
       desvincularBtn.textContent = 'Desvincular';
-      desvincularBtn.style.marginLeft = '10px';
+      desvincularBtn.className = 'botao-padrao';
       desvincularBtn.onclick = (e) => {
         e.stopPropagation();
         desvincularAluno(aluno.nome, emailProfessorLogado);
@@ -616,7 +636,7 @@ async function listarMeusAlunos() {
 
       const horarioBtn = document.createElement('button');
       horarioBtn.textContent = 'Horário';
-      horarioBtn.style.marginLeft = '10px';
+      horarioBtn.className = 'botao-padrao';
       horarioBtn.onclick = (e) => {
         e.stopPropagation();
         alunoSelecionado = aluno.nome;
@@ -624,10 +644,9 @@ async function listarMeusAlunos() {
       };
       card.appendChild(horarioBtn);
 
-      // ✅ Botão "Aulas dadas"
       const aulasBtn = document.createElement('button');
       aulasBtn.textContent = 'Aulas dadas';
-      aulasBtn.style.marginLeft = '10px';
+      aulasBtn.className = 'botao-padrao';
       aulasBtn.onclick = (e) => {
         e.stopPropagation();
         verAulasDadas(aluno.nome);
