@@ -252,11 +252,11 @@
 <div class="header-bai">
   <img src="/static/perfil.png" alt="Foto Perfil">
   <div class="info">
-    <h2>Olá, {{ nome }} 👋</h2>
+    <h2>Olá, {{ professor.nome_completo }} 👋</h2>
     <p>Nº B.I: {{ professor.bilhete }}</p>
     <p class="saldo">
-      Saldo:
-      <span id="saldo">Kz ******</span>
+      Saldo: 
+      <span id="saldo">{{ saldo_atual }} Kz</span>
       <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
     </p>
   </div>
@@ -385,7 +385,7 @@
 
 <script>
 
-let saldoVisivel = false;
+ let saldoVisivel = true;
   const saldoReal = {{ saldo_atual | default(0) }};
 
   function toggleSaldo() {
