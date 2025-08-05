@@ -256,7 +256,7 @@
     <p>Nº B.I: {{ professor.bilhete }}</p>
     <p class="saldo">
       Saldo: 
-      <span id="saldo">{{ saldo_atual }} Kz</span>
+      <span id="saldo">Kz ******</span>
       <span class="saldo-toggle" onclick="toggleSaldo()">👁️</span>
     </p>
   </div>
@@ -385,18 +385,16 @@
 
 <script>
 
- let saldoVisivel = true;
-  const saldoReal = {{ saldo_atual | default(0) }};
+
+ let saldoVisivel = false;
+  const saldoReal = "{{ saldo_total if saldo_total is not none else '0,00' }}";
 
   function toggleSaldo() {
     const saldo = document.getElementById('saldo');
     if (saldoVisivel) {
       saldo.textContent = 'Kz ******';
     } else {
-      saldo.textContent = 'Kz ' + saldoReal.toLocaleString('pt-PT', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+      saldo.textContent = 'Kz ' + saldoReal;
     }
     saldoVisivel = !saldoVisivel;
   }
