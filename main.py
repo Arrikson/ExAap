@@ -2409,6 +2409,54 @@ async def ver_salarios(request: Request):
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
 
+@app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
+async def ver_custos_aluno(request: Request, nome: str):
+    try:
+        nome = nome.strip().lower()
+        print(f"🔍 Verificando custos do aluno: {nome}")
+
+        # Buscar os vínculos do aluno na coleção alunos_professor
+        vinculos = db.collection("alunos_professor").where("aluno", "==", nome).stream()
+
+        valor_por_aula = 1250
+        total_aulas_dadas = 0
+        detalhes_aulas = []
+
+        for doc in vinculos:
+            dados = doc.to_dict()
+            try:
+                professor = dados.get("professor", "Desconhecido")
+                qtd_dadas = int(dados.get("aulas_dadas", 0))
+                total_aulas_dadas += qtd_dadas
+
+                # Coletar detalhes das aulas
+                datas = dados.get("datas_aulas", [])
+                for d in datas:
+                    detalhes_aulas.append({
+                        "data": d,
+                        "professor": professor,
+                        "disciplina": dados.get("dados_aluno", {}).get("disciplina", "N/A")
+                    })
+
+            except Exception as e:
+                print(f"⚠️ Erro ao processar vínculo do aluno: {e}")
+                continue
+
+        total_gasto = total_aulas_dadas * valor_por_aula
+
+        return templates.TemplateResponse("custos_aluno.html", {
+            "request": request,
+            "nome_aluno": nome.title(),
+            "total_gasto": total_gasto,
+            "total_aulas": total_aulas_dadas,
+            "valor_por_aula": valor_por_aula,
+            "aulas": detalhes_aulas
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao calcular custos do aluno: {e}")
+        return HTMLResponse(content=f"Erro ao calcular os custos: {str(e)}", status_code=500)
+
 
 @app.get("/saldo-atual")
 async def obter_saldo_atual(request: Request):
