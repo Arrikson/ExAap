@@ -386,18 +386,41 @@
 <script>
 
 
- let saldoVisivel = false;
-  const saldoReal = "{{ saldo_total if saldo_total is not none else '0,00' }}";
+let saldoVisivel = false;
+let saldoReal = 0;
 
-  function toggleSaldo() {
-    const saldo = document.getElementById('saldo');
-    if (saldoVisivel) {
-      saldo.textContent = 'Kz ******';
-    } else {
-      saldo.textContent = 'Kz ' + saldoReal;
+async function buscarSaldo() {
+  try {
+    const email = "{{ professor.email }}";
+    const res = await fetch(`/saldo-atual?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (data.saldo_atual !== undefined) {
+      saldoReal = data.saldo_atual;
     }
-    saldoVisivel = !saldoVisivel;
+  } catch (error) {
+    console.error("Erro ao buscar saldo:", error);
   }
+}
+
+async function toggleSaldo() {
+  const saldo = document.getElementById('saldo');
+
+  // Buscar o saldo apenas se ainda for 0
+  if (!saldoReal) {
+    await buscarSaldo();
+  }
+
+  if (saldoVisivel) {
+    saldo.textContent = 'Kz ******';
+  } else {
+    saldo.textContent = 'Kz ' + saldoReal.toLocaleString('pt-PT', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  saldoVisivel = !saldoVisivel;
+}
   
   function verDetalhesAula(aluno, hora) {
     alert("Aula para: " + aluno + "\nHorário: " + hora + "\nDuração: 1h\nValor: Kz 1.250,00");
