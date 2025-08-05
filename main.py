@@ -620,8 +620,9 @@ async def cadastrar_aluno(
     longitude: str = Form(...),
     telefone: str = Form(...),
     disciplina: str = Form(...),
-    bilhete: str = Form(...),  # ← Novo campo adicionado aqui
-    outra_disciplina: str = Form(None)
+    bilhete: str = Form(...),
+    outra_disciplina: str = Form(None),
+    nivel_ingles: str = Form(...)  # ← Novo campo adicionado aqui
 ):
     alunos_ref = db.collection("alunos")
     nome_normalizado = nome.strip().lower()
@@ -651,7 +652,8 @@ async def cadastrar_aluno(
         "telefone": telefone,
         "disciplina": disciplina,
         "outra_disciplina": outra_disciplina,
-        "bilhete": bilhete,  # ← Bilhete salvo no Firebase
+        "bilhete": bilhete,
+        "nivel_ingles": nivel_ingles,  # ← Nível de inglês salvo aqui
         "online": False,
         "notificacao": False,
         "vinculado": False,
@@ -661,7 +663,6 @@ async def cadastrar_aluno(
     db.collection("alunos").document(aluno_id).set(dados)
 
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
-
 
 @app.get("/login", response_class=HTMLResponse)
 async def exibir_login(request: Request, sucesso: int = 0):
