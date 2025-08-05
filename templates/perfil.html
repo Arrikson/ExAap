@@ -2,333 +2,227 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil do Aluno</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil do Aluno - Estilo BAI</title>
   <style>
-  body {
-    margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: #f2f2f2;
-    color: #333;
-    padding: 80px 15px 30px;
-  }
-
- 
-  .top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    padding: 0 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 0 0 20px 20px;
-    z-index: 999;
-  }
-
-  .top-bar img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-
-  .top-bar .logout-icon {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: background-color 0.3s ease;
-}
-
-.top-bar .logout-icon:hover {
-  background-color: #d9363e;
-}
- 
-  .card {
-    background: white;
-    max-width: 800px;
-    margin: auto;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 20px;
-  }
-
-  p {
-    font-size: 14px;
-    margin: 2px 0;
-  }
-
-  .saldo {
-    font-size: 16px;
-    font-weight: bold;
-  }
-
- 
-  .divida-toggle {
-    background-color: white;
-    color: black;
-    font-size: 12px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-
-
-  .ver-aulas-btn {
-    background-color: #ffc107;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-
-  .day, .time {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    display: inline-block;
-    margin: 4px;
-  }
-
-  .day.active {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .time.active {
-    background-color: #28a745;
-    border-color: #218838;
-    color: white;
-  }
-
- 
-  .botao-menu {
-    display: flex;
-    gap: 10px;
-    margin: 20px 15px;
-    overflow-x: auto;
-  }
-
-  .botao-menu button {
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    padding: 15px 10px;
-    color: #000;
-    font-weight: 600;
-    border: none;
-    border-radius: 16px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-width: 120px;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-
-  
-  .ultimas-aulas {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
-  }
-
-  .ultimas-aulas h2 {
-    font-size: 20px;
-  }
-
-  .ultimas-aulas p {
-    font-size: 17px;
-    color: #444;
-  }
-
-
-  .aula-item {
-    background: white;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    margin: 10px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #ccc;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    z-index: 999;
-  }
-
-  .bottom-nav button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    color: #444;
-    cursor: pointer;
-  }
-
- 
-  .secao-dinamica {
-    display: none;
-    background: white;
-    padding: 20px;
-    margin: 10px 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-
-  @media (max-width: 700px) {
-    .botao-menu {
-      overflow-x: auto;
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: white;
+      max-width: 480px;
+      margin: auto;
     }
 
-    .botao-menu button {
-      min-width: 120px;
-    }
-
-    .card {
-      padding: 20px;
-    }
-
-    h1 {
-      font-size: 1.5em;
+    .top-bar {
+      background: linear-gradient(135deg, #012733, #004d5c);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .top-bar img {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
     }
 
-    .top-bar .logout-icon {
-      font-size: 18px;
+    .top-bar .info {
+      display: flex;
+      flex-direction: column;
     }
-  }
 
+    .top-bar .info h2 {
+      font-size: 1rem;
+      margin: 0;
+    }
 
-  .notificar-btn {
-    margin-top: 10px;
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    border: none;
-    padding: 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #000;
-    font-size: 16px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    transition: background 0.3s ease;
-    width: 100%;
-  }
+    .top-bar .info p {
+      margin: 2px 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
 
-  .notificar-btn:hover {
-    background: linear-gradient(135deg, #00a0c9, #7cd77b);
-  }
+    .saldo {
+      font-size: 1.75rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  .info {
-    display: none;
-    margin-top: 10px;
-    padding: 15px;
-    background: #f0f8ff;
-    border-left: 4px solid #00c9ff;
-    border-radius: 10px;
-  }
+    .saldo button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
 
-  #notificacao-mensagem, #professor-nome, #info-aula {
-    display: none;
-    margin-top: 15px;
-    padding: 15px;
-    background: #fff;
-    border-radius: 10px;
-    border-left: 4px solid #00c9ff;
-  }
-</style>
-  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
+    .detalhes-btn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: 1px solid white;
+      background: none;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .carrossel-indicadores {
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .carrossel-indicadores span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 3px;
+      border-radius: 50%;
+      background-color: #1fc8db;
+    }
+
+    .acoes {
+      display: flex;
+      justify-content: space-around;
+      background: #111;
+      padding: 15px 0;
+      flex-wrap: wrap;
+    }
+
+    .acao {
+      width: 70px;
+      height: 70px;
+      background: #1e1e1e;
+      border-radius: 15px;
+      text-align: center;
+      padding-top: 8px;
+      margin: 5px;
+    }
+
+    .acao i {
+      font-size: 20px;
+      display: block;
+    }
+
+    .acao span {
+      font-size: 12px;
+    }
+
+    .ultimas-aulas {
+      background: #1e1e1e;
+      border-radius: 15px;
+      margin: 15px;
+      padding: 10px;
+    }
+
+    .aula-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+      padding: 8px 0;
+    }
+
+    .aula-info {
+      flex: 1;
+    }
+
+    .aula-valor {
+      font-weight: bold;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: black;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .footer .item {
+      text-align: center;
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .footer .item.active {
+      color: #1fc8db;
+    }
+
+    .footer .item i {
+      font-size: 20px;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-
-  <!-- Botão de logout no canto superior direito com rota GET /logout/{nome} -->
-  <a href="/logout/{{ aluno.nome }}" 
-     style="position: fixed; top: 10px; right: 15px; z-index: 1000; text-decoration: none;">
-    <button type="button" class="logout-button">Sair</button>
-  </a>
-
   <div class="top-bar">
-    <img src="/static/logo.png" alt="Logo">
+    <img src="/static/perfil.png" alt="Perfil" />
+    <div class="info">
+      <h2>Olá, {{ aluno.nome }} 👋</h2>
+      <p>B.I: {{ aluno.bilhete }}</p>
+      <div class="saldo">
+        <span id="valor-divida">Kz {{ aluno.divida }},00</span>
+        <button onclick="toggleVisibilidade()">👁️</button>
+      </div>
+      <button class="detalhes-btn">Ver Detalhes da Conta</button>
+      <div class="carrossel-indicadores">
+        <span></span><span style="opacity: 0.3;"></span>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <h1>{{ aluno.nome }}</h1>
-    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
-    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
-    <input type="hidden" id="professor-email" value="{{ professor_email }}">
-
-    <div class="btn-grid">
-      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
-      <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
-      <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
-      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
-      <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
-      <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
+  <div class="acoes">
+    <div class="acao" onclick="toggleAulas()">
+      <i>📘</i>
+      <span>Ver Aulas</span>
     </div>
-
-    <div id="sec-aula" class="info">
-      <p id="aulas-dadas"></p>
-      <p id="aulas-restantes"></p>
-      <ul id="lista-aulas" style="padding-left: 20px;"></ul>
+    <div class="acao" onclick="verNotificacao()">
+      <i>🔔</i>
+      <span>Notificações</span>
     </div>
-
-    <div id="sec-nivel" class="info">
-      <p>Nível Atual: Intermediário</p>
-      <p>Próximo: Avançado</p>
+    <div class="acao" onclick="verHorario()">
+      <i>📅</i>
+      <span>Ver Horário</span>
     </div>
-
-    <div id="sec-notas" class="info">
-      <p>Português: 16</p>
-      <p>Biologia: 18</p>
-      <p>Química: 14</p>
+    <div class="acao" onclick="toggle('sec-notas')">
+      <i>📝</i>
+      <span>Ver Notas</span>
     </div>
-
-    <div id="notificacao-mensagem"></div>
-    <div id="professor-nome"></div>
-
-    <div id="info-aula">
-      <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
-      <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    <div class="acao" onclick="toggleProfessor()">
+      <i>👨‍🏫</i>
+      <span>Ver Professor</span>
     </div>
+  </div>
 
-    <div id="sec-horario" class="info">
-      <h3>📅 Horário Definido</h3>
-      <ul id="lista-horario" style="list-style-type: none; padding-left: 0;"></ul>
+  <div class="ultimas-aulas">
+    <div class="aula-item">
+      <div class="aula-info">
+        <strong>Hoje, 30 Julho</strong><br />
+        Serviço especial MCX...
+      </div>
+      <div class="aula-valor">Kz 2.000,00</div>
+    </div>
+    <!-- Outras aulas virão dinamicamente -->
+  </div>
+
+  <div class="footer">
+    <div class="item active">
+      <i>👤</i>
+      O Meu Perfil
+    </div>
+    <div class="item">
+      <i>💳</i>
+      Pagamentos
+    </div>
+    <div class="item">
+      <i>📂</i>
+      Menu
     </div>
   </div>
 
@@ -398,6 +292,15 @@
         listaAulas.innerHTML = "";
         return;
       }
+
+       window.toggleVisibilidade = function () {
+    const el = document.getElementById("valor-divida");
+    if (el.textContent.includes("Kz")) {
+      el.textContent = "•••••••";
+    } else {
+      el.textContent = "Kz {{ aluno.divida }},00";
+    }
+  };
 
       aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
       aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
