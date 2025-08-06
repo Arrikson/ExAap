@@ -475,43 +475,58 @@
       window.location.href = `/sala_virtual_aluno/${salaId}`;
     }
   }
-  let perguntas = [];
-  let perguntaAtual = 0;
-  let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
-  let nomeAluno = "{{ nome_normalizado }}";
+let perguntas = [];
+let perguntaAtual = 0;
+let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
+let nomeAluno = "{{ nome_normalizado }}";
 
-  async function carregarPerguntas() {
-    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
-    const dados = await resposta.json();
-    perguntas = dados.perguntas;
-    mostrarPergunta();
+// Mapeamento de sinônimos de níveis
+const mapaNiveis = {
+  "basico": "iniciante",
+  "inicial": "iniciante",
+  "intermedio": "intermediario",
+  "medio": "intermediario",
+  "avançado": "avancado",
+  "fluente": "fluente"
+};
+
+function normalizarNivel(nivel) {
+  return mapaNiveis[nivel] || nivel;
+}
+
+async function carregarPerguntas() {
+  const nivelNormalizado = normalizarNivel(nivelAtual);
+  const resposta = await fetch(`/perguntas-ingles?nivel=${nivelNormalizado}`);
+  const dados = await resposta.json();
+  perguntas = dados.perguntas;
+  mostrarPergunta();
+}
+
+function mostrarPergunta() {
+  if (perguntaAtual < perguntas.length) {
+    const pergunta = perguntas[perguntaAtual];
+    document.getElementById('pergunta-texto').textContent = pergunta.pergunta;
+    document.getElementById('resposta-input').value = '';
+    document.getElementById('mensagem-feedback').textContent = '';
+  } else {
+    subirNivel();
   }
+}
 
-  function mostrarPergunta() {
-    if (perguntaAtual < perguntas.length) {
-      const pergunta = perguntas[perguntaAtual];
-      document.getElementById('pergunta-texto').textContent = pergunta.pergunta;
-      document.getElementById('resposta-input').value = '';
-      document.getElementById('mensagem-feedback').textContent = '';
-    } else {
-      subirNivel();
-    }
+async function verificarResposta() {
+  const resposta = document.getElementById('resposta-input').value.trim().toLowerCase();
+  const correta = perguntas[perguntaAtual].resposta.toLowerCase();
+
+  if (resposta === correta) {
+    document.getElementById('mensagem-feedback').textContent = "🎉 Parabéns! Você está cada vez mais perto de se tornar fluente!";
+    perguntaAtual++;
+    setTimeout(mostrarPergunta, 1500);
+  } else {
+    document.getElementById('mensagem-feedback').textContent = "❌ Resposta incorreta. Tente novamente!";
   }
+}
 
-  async function verificarResposta() {
-    const resposta = document.getElementById('resposta-input').value.trim().toLowerCase();
-    const correta = perguntas[perguntaAtual].resposta.toLowerCase();
-
-    if (resposta === correta) {
-      document.getElementById('mensagem-feedback').textContent = "🎉 Parabéns! Você está cada vez mais perto de se tornar fluente!";
-      perguntaAtual++;
-      setTimeout(mostrarPergunta, 1500);
-    } else {
-      document.getElementById('mensagem-feedback').textContent = "❌ Resposta incorreta. Tente novamente!";
-    }
-  }
-
-  async function subirNivel() {
+async function subirNivel() {
   try {
     const resposta = await fetch('/subir-nivel', {
       method: 'POST',
@@ -537,6 +552,7 @@
 }
 
 carregarPerguntas();
+
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
