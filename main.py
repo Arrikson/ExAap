@@ -733,13 +733,28 @@ async def perfil(request: Request, nome: str):
             "ultimo_ping": datetime.utcnow().isoformat()
         })
 
+        # Buscar dados da coleção alunos_professor
+        total_gasto = 0
+        alunos_prof_ref = db.collection("alunos_professor") \
+            .where("aluno", "==", nome_normalizado) \
+            .limit(1) \
+            .stream()
+
+        for vinculo_doc in alunos_prof_ref:
+            vinculo_data = vinculo_doc.to_dict()
+            aulas_dadas = vinculo_data.get("aulas_dadas", 0)
+            total_gasto = aulas_dadas * 1250
+            break
+
         return templates.TemplateResponse("perfil.html", {
             "request": request,
-            "aluno": aluno
+            "aluno": aluno,
+            "total_gasto": total_gasto
         })
 
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar perfil: {str(e)}", status_code=500)
+
 
 from slugify import slugify
 
