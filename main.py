@@ -2535,9 +2535,21 @@ proximo_nivel = {
     "avancado": "fluente"
 }
 
+# Sinônimos de níveis
+mapa_niveis = {
+    "basico": "iniciante",
+    "inicial": "iniciante",
+    "intermedio": "intermediario",
+    "medio": "intermediario",
+    "avançado": "avancado",
+    "fluente": "fluente"
+}
+
+
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     nivel = nivel.strip().lower()
+    nivel = mapa_niveis.get(nivel, nivel)
     with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
         todas_perguntas = json.load(f)
     perguntas = todas_perguntas.get(nivel, [])
@@ -2555,7 +2567,8 @@ async def subir_nivel(data: dict = Body(...)):
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles")
+    nivel = aluno.get("nivel_ingles", "").strip().lower()
+    nivel = mapa_niveis.get(nivel, nivel)
 
     if not nivel:
         doc.reference.update({
@@ -2565,9 +2578,7 @@ async def subir_nivel(data: dict = Body(...)):
         print(f"🎓 {aluno.get('nome', nome)} começou no nível INICIANTE.")
         return {"mensagem": "Começou do nível básico!", "novo_nivel": "iniciante"}
 
-    nivel = nivel.lower()
     proximo = proximo_nivel.get(nivel)
-
     if proximo:
         doc.reference.update({
             "nivel_ingles": proximo,
@@ -2591,7 +2602,8 @@ async def proxima_pergunta(data: dict = Body(...)):
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
+    nivel = mapa_niveis.get(nivel, nivel)
     progresso = aluno.get("progresso_ingles", 0)
 
     with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
@@ -2621,7 +2633,8 @@ async def verificar_resposta(data: dict = Body(...)):
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
+    nivel = mapa_niveis.get(nivel, nivel)
     progresso = aluno.get("progresso_ingles", 0)
 
     with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
