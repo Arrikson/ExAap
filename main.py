@@ -2545,6 +2545,32 @@ mapa_niveis = {
     "fluente": "fluente"
 }
 
+perguntas_ingles = [
+    {
+        "iniciante": [
+            { "pergunta": "You ___ a student.", "resposta": "are" },
+            { "pergunta": "I ___ happy.", "resposta": "am" },
+            { "pergunta": "He ___ a doctor.", "resposta": "is" },
+            { "pergunta": "She ___ my friend.", "resposta": "is" },
+            { "pergunta": "We ___ ready.", "resposta": "are" },
+            { "pergunta": "They ___ teachers.", "resposta": "are" },
+            { "pergunta": "It ___ a cat.", "resposta": "is" },
+            { "pergunta": "I ___ from Angola.", "resposta": "am" },
+            { "pergunta": "He ___ not here.", "resposta": "is" },
+            { "pergunta": "She ___ beautiful.", "resposta": "is" },
+            { "pergunta": "They ___ playing football.", "resposta": "are" },
+            { "pergunta": "We ___ in the classroom.", "resposta": "are" },
+            { "pergunta": "It ___ raining.", "resposta": "is" },
+            { "pergunta": "You ___ very kind.", "resposta": "are" },
+            { "pergunta": "I ___ tired.", "resposta": "am" },
+            { "pergunta": "My name ___ John.", "resposta": "is" },
+            { "pergunta": "They ___ not at home.", "resposta": "are" },
+            { "pergunta": "We ___ hungry.", "resposta": "are" },
+            { "pergunta": "This ___ my book.", "resposta": "is" },
+            { "pergunta": "Those ___ my shoes.", "resposta": "are" }
+        ]
+    }
+]
 
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
