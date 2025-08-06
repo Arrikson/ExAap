@@ -2525,12 +2525,21 @@ async def obter_saldo_atual(request: Request):
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
         
+# Dicionário de níveis
+proximo_nivel = {
+    "iniciante": "intermediario",
+    "intermediario": "avancado",
+    "avancado": "fluente"
+}
+
+# 🔁 Carregar as perguntas do arquivo a cada requisição
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     nivel = nivel.strip().lower()
-    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+        todas_perguntas = json.load(f)
+    perguntas = todas_perguntas.get(nivel, [])
     return {"perguntas": perguntas}
-
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
@@ -2566,7 +2575,6 @@ async def subir_nivel(data: dict = Body(...)):
         print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
         return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
 
-
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
     nome = data.get("nome", "").strip().lower()
@@ -2580,7 +2588,10 @@ async def proxima_pergunta(data: dict = Body(...)):
     nivel = aluno.get("nivel_ingles", "iniciante").lower()
     progresso = aluno.get("progresso_ingles", 0)
 
-    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+        todas_perguntas = json.load(f)
+    perguntas = todas_perguntas.get(nivel, [])
+
     if progresso >= len(perguntas):
         return JSONResponse(content={"status": "final-nivel"})
 
@@ -2590,7 +2601,6 @@ async def proxima_pergunta(data: dict = Body(...)):
         "numero": progresso,
         "nivel": nivel
     })
-
 
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
@@ -2606,7 +2616,10 @@ async def verificar_resposta(data: dict = Body(...)):
     nivel = aluno.get("nivel_ingles", "iniciante").lower()
     progresso = aluno.get("progresso_ingles", 0)
 
-    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+        todas_perguntas = json.load(f)
+    perguntas = todas_perguntas.get(nivel, [])
+
     if progresso >= len(perguntas):
         return JSONResponse(content={"erro": "Todas perguntas respondidas."})
 
@@ -2639,18 +2652,6 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
-
-
-# Dicionário de níveis
-proximo_nivel = {
-    "iniciante": "intermediario",
-    "intermediario": "avancado",
-    "avancado": "fluente"
-}
-
-# Carregamento das perguntas
-with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
-    TODAS_PERGUNTAS = json.load(f)
 
 
 @app.get("/admin", response_class=HTMLResponse)
