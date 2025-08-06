@@ -2538,10 +2538,11 @@ proximo_nivel = {
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     nivel = nivel.strip().lower()
-    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+    with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
         todas_perguntas = json.load(f)
     perguntas = todas_perguntas.get(nivel, [])
     return {"perguntas": perguntas}
+
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
@@ -2578,6 +2579,7 @@ async def subir_nivel(data: dict = Body(...)):
         print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
         return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
 
+
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
     nome = data.get("nome", "").strip()
@@ -2592,7 +2594,7 @@ async def proxima_pergunta(data: dict = Body(...)):
     nivel = aluno.get("nivel_ingles", "iniciante").lower()
     progresso = aluno.get("progresso_ingles", 0)
 
-    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+    with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
         todas_perguntas = json.load(f)
     perguntas = todas_perguntas.get(nivel, [])
 
@@ -2605,6 +2607,7 @@ async def proxima_pergunta(data: dict = Body(...)):
         "numero": progresso,
         "nivel": nivel
     })
+
 
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
@@ -2621,7 +2624,7 @@ async def verificar_resposta(data: dict = Body(...)):
     nivel = aluno.get("nivel_ingles", "iniciante").lower()
     progresso = aluno.get("progresso_ingles", 0)
 
-    with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+    with open("static/perguntas_ingles.json", "r", encoding="utf-8") as f:
         todas_perguntas = json.load(f)
     perguntas = todas_perguntas.get(nivel, [])
 
@@ -2657,6 +2660,7 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
