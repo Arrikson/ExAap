@@ -4,165 +4,149 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perfil do Aluno - Estilo BAI</title>
-<style>
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f5f7fa; /* fundo mais suave */
-    color: #2c3e50;
-    max-width: 480px;
-    margin: auto;
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #2c3e50;
+      max-width: 480px;
+      margin: auto;
+    }
 
-  .top-bar {
-    background: linear-gradient(135deg, #00c9ff, #92fe9d); /* Mantida */
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
+    .top-bar {
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
 
-  .top-bar img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-  }
+    .top-bar img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
 
-  .top-bar .info {
-    display: flex;
-    flex-direction: column;
-  }
+    .top-bar .info {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .top-bar .info h2 {
-    font-size: 1rem;
-    margin: 0;
-    color: #ffffff;
-  }
+    .top-bar .info h2 {
+      font-size: 1rem;
+      margin: 0;
+      color: #ffffff;
+    }
 
-  .top-bar .info p {
-    margin: 2px 0;
-    color: rgba(255, 255, 255, 0.9);
-  }
+    .top-bar .info p {
+      margin: 2px 0;
+      color: rgba(255, 255, 255, 0.9);
+    }
 
-  .saldo {
-    font-size: 1.1rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #34495e;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-top: 8px;
-  }
+    .saldo {
+      font-size: 1.1rem;
+      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      color: #34495e;
+      margin-top: 8px;
+    }
 
-  .saldo button {
-    background: none;
-    border: none;
-    color: #2c3e50;
-    cursor: pointer;
-  }
+    .saldo button {
+      background: none;
+      border: none;
+      color: #2c3e50;
+      cursor: pointer;
+    }
 
-  .carrossel-indicadores {
-    margin-top: 8px;
-    text-align: center;
-  }
+    .carrossel-indicadores {
+      margin-top: 8px;
+      text-align: center;
+    }
 
-  .carrossel-indicadores span {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin: 0 3px;
-    border-radius: 50%;
-    background-color: #1abc9c;
-  }
+    .carrossel-indicadores span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 3px;
+      border-radius: 50%;
+      background-color: #1abc9c;
+    }
 
-  .acoes {
-    display: flex;
-    justify-content: space-around;
-    background: #ecf0f1;
-    padding: 15px 0;
-    flex-wrap: wrap;
-  }
+    .acoes {
+      display: flex;
+      justify-content: space-around;
+      background: #ecf0f1;
+      padding: 15px 0;
+      flex-wrap: wrap;
+    }
 
-  .acao {
-    width: 70px;
-    height: 70px;
-    background: #d0f0ef;
-    border-radius: 15px;
-    text-align: center;
-    padding-top: 8px;
-    margin: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
+    .acao {
+      width: 70px;
+      height: 70px;
+      background: #d0f0ef;
+      border-radius: 15px;
+      text-align: center;
+      padding-top: 8px;
+      margin: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
 
-  .acao i {
-    font-size: 20px;
-    display: block;
-    color: #16a085;
-  }
+    .acao i {
+      font-size: 20px;
+      display: block;
+      color: #16a085;
+    }
 
- .acao span {
-   font-size: 12px;
-   color: #000000; /* preto */
- }
-  
-  .ultimas-aulas {
-    background: #ffffff;
-    border-radius: 15px;
-    margin: 15px;
-    padding: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
+    .acao span {
+      font-size: 12px;
+      color: #000000;
+    }
 
-  .aula-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #dfe6e9;
-    padding: 8px 0;
-  }
+    .jogo-ingles {
+      margin: 15px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      max-height: 300px;
+      overflow-y: auto;
+      position: relative;
+    }
 
-  .aula-info {
-    flex: 1;
-    color: #2c3e50;
-  }
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-top: 1px solid #dcdde1;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+    }
 
-  .aula-valor {
-    font-weight: bold;
-    color: #2c3e50;
-  }
+    .footer .item {
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 12px;
+    }
 
-  .footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    max-width: 480px;
-    background: #ffffff;
-    border-top: 1px solid #dcdde1;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 0;
-  }
+    .footer .item.active {
+      color: #1abc9c;
+    }
 
-  .footer .item {
-    text-align: center;
-    color: #7f8c8d;
-    font-size: 12px;
-  }
-
-  .footer .item.active {
-    color: #1abc9c;
-  }
-
-  .footer .item i {
-    font-size: 20px;
-    display: block;
-  }
-</style>
+    .footer .item i {
+      font-size: 20px;
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <div class="top-bar">
@@ -175,7 +159,7 @@
         <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
           <strong style="font-size: 10px;">Por pagar:</strong>
           <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
-          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
+          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button>
         </p>
 
         <strong style="font-size: 13px;">Nível de Inglês:</strong>
@@ -212,52 +196,29 @@
     </div>
   </div>
 
-<!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
-  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
-  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+  <!-- Desafio de Inglês -->
+  <div class="jogo-ingles" id="jogo-ingles">
+    <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+    <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+    <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
 
-  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
+    <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
 
-  <button onclick="verificarResposta()" style="
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    padding: 12px;
-    background: #1abc9c;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;">
-    <!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
-  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
-  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+    <button onclick="verificarResposta()" style="
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      padding: 12px;
+      background: #1abc9c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;">
+      Verificar
+    </button>
 
-  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
-
-  <button onclick="verificarResposta()" style="
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    padding: 12px;
-    background: #1abc9c;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;">
-    Verificar
-  </button>
-
-  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
-  </button>
-
-  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
-
+    <p id="mensagem-feedback" style="margin-top: 10px;"></p>
   </div>
 
   <div class="footer">
@@ -275,26 +236,21 @@
     </div>
   </div>
 
-  <!-- Seção para exibir detalhes das aulas -->
+  <!-- Seções adicionais -->
   <div id="sec-aula" style="display:none;">
     <p id="aulas-dadas"></p>
     <p id="aulas-restantes"></p>
     <ul id="lista-aulas"></ul>
   </div>
 
-  <!-- Seção do professor -->
   <div id="professor-nome" style="display:none;"></div>
-
-  <!-- Seção de notificações -->
   <div id="notificacao-mensagem" style="display:none;"></div>
   <span id="contador-aulas"></span>
 
-  <!-- Seção de horário -->
   <div id="sec-horario" style="display:none;">
     <ul id="lista-horario"></ul>
   </div>
 
-  <!-- Seção para chamadas ao vivo -->
   <div id="info-aula" style="display:none;">
     <span id="sala-id"></span>
     <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
