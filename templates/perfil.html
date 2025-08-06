@@ -512,20 +512,31 @@
   }
 
   async function subirNivel() {
+  try {
     const resposta = await fetch('/subir-nivel', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome: nomeAluno }) // ✅ usando nome_normalizado
     });
 
+    if (!resposta.ok) {
+      throw new Error("Erro ao subir de nível.");
+    }
+
     const dados = await resposta.json();
     nivelAtual = dados.novo_nivel;
+
     document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
     perguntaAtual = 0;
-    await carregarPerguntas();
-  }
 
-  carregarPerguntas();
+    await carregarPerguntas();
+  } catch (erro) {
+    console.error(erro);
+    document.getElementById('pergunta-texto').textContent = "❌ Erro ao subir de nível. Tente novamente mais tarde.";
+  }
+}
+
+carregarPerguntas();
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
