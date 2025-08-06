@@ -159,31 +159,29 @@
 </style>
 </head>
 <body>
- <div class="top-bar">
-  <img src="/static/perfil.png" alt="Perfil" />
-  <div class="info">
-    <h2>Olá, {{ aluno.nome }} 👋</h2>
-    <p>B.I: {{ aluno.bilhete }}</p>
+  <div class="top-bar">
+    <img src="/static/perfil.png" alt="Perfil" />
+    <div class="info">
+      <h2>Olá, {{ aluno.nome }} 👋</h2>
+      <p>B.I: {{ aluno.bilhete }}</p>
 
+      <div class="saldo">
+        <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
+          <strong style="font-size: 10px;">Por pagar:</strong>
+          <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
+          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
+        </p>
 
-    <div class="saldo">
-  <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
-    <strong style="font-size: 13px;">Mensalidade:</strong>
-    <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
-    <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
-  </p>
+        <strong style="font-size: 13px;">Nível de Inglês:</strong>
+        <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
+      </div>
 
-  <strong style="font-size: 13px;">Nível de Inglês:</strong>
-  <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
-</div>
-
-    <div class="carrossel-indicadores">
-      <span></span>
-      <span style="opacity: 0.3;"></span>
+      <div class="carrossel-indicadores">
+        <span></span>
+        <span style="opacity: 0.3;"></span>
+      </div>
     </div>
   </div>
-</div>
-
 
   <div class="acoes">
     <div class="acao" onclick="toggleAulas()">
@@ -219,7 +217,7 @@
     <!-- Outras aulas virão dinamicamente -->
   </div>
 
-    <div class="footer">
+  <div class="footer">
     <div class="item active">
       <i>👤</i>
       O Meu Perfil
@@ -259,7 +257,7 @@
     <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
-<script type="module">
+  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getFirestore, doc, onSnapshot, updateDoc
