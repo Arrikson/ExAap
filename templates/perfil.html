@@ -475,10 +475,10 @@
       window.location.href = `/sala_virtual_aluno/${salaId}`;
     }
   }
-
   let perguntas = [];
   let perguntaAtual = 0;
   let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
+  let nomeAluno = "{{ nome_normalizado }}";
 
   async function carregarPerguntas() {
     const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
@@ -515,7 +515,7 @@
     const resposta = await fetch('/subir-nivel', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email: "{{ aluno.email }}" }) // ou id do aluno
+      body: JSON.stringify({ nome: nomeAluno }) // ✅ usando nome_normalizado
     });
 
     const dados = await resposta.json();
