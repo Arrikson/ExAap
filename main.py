@@ -2524,7 +2524,7 @@ async def obter_saldo_atual(request: Request):
     except Exception as e:
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
-
+        
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     nivel = nivel.strip().lower()
@@ -2534,9 +2534,9 @@ async def perguntas_ingles(nivel: str = "iniciante"):
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
-    email = data.get("email", "").strip().lower()
+    nome = data.get("nome", "").strip().lower()
 
-    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2544,12 +2544,12 @@ async def subir_nivel(data: dict = Body(...)):
     aluno = doc.to_dict()
     nivel = aluno.get("nivel_ingles")
 
-    # Se ainda não tiver nível, começar do "iniciante"
     if not nivel:
         doc.reference.update({
             "nivel_ingles": "iniciante",
             "progresso_ingles": 0
         })
+        print(f"🎓 {aluno.get('nome', nome)} começou no nível INICIANTE.")
         return {"mensagem": "Começou do nível básico!", "novo_nivel": "iniciante"}
 
     nivel = nivel.lower()
@@ -2560,26 +2560,18 @@ async def subir_nivel(data: dict = Body(...)):
             "nivel_ingles": proximo,
             "progresso_ingles": 0
         })
+        print(f"🚀 {aluno.get('nome', nome)} subiu de {nivel.upper()} para {proximo.upper()}.")
         return {"mensagem": "Subiu de nível!", "novo_nivel": proximo}
     else:
+        print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
         return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
 
 
-proximo_nivel = {
-    "iniciante": "intermediario",
-    "intermediario": "avancado",
-    "avancado": "fluente"
-}
-
-# Carrega as perguntas
-with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
-    TODAS_PERGUNTAS = json.load(f)
-
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
-    email = data.get("email", "").strip().lower()
+    nome = data.get("nome", "").strip().lower()
 
-    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2602,10 +2594,10 @@ async def proxima_pergunta(data: dict = Body(...)):
 
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
-    email = data.get("email", "").strip().lower()
+    nome = data.get("nome", "").strip().lower()
     resposta_user = data.get("resposta", "").strip().lower()
 
-    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2624,7 +2616,6 @@ async def verificar_resposta(data: dict = Body(...)):
     if resposta_user == resposta_certa:
         novo_progresso = progresso + 1
 
-        # Verifica se terminou o nível
         if novo_progresso >= len(perguntas):
             proximo = proximo_nivel.get(nivel)
             if proximo:
@@ -2632,18 +2623,34 @@ async def verificar_resposta(data: dict = Body(...)):
                     "nivel_ingles": proximo,
                     "progresso_ingles": 0
                 })
+                print(f"✅ {aluno.get('nome', nome)} completou o nível {nivel.upper()} e foi promovido a {proximo.upper()}.")
                 return JSONResponse(content={
                     "acertou": True,
                     "subiu_nivel": True,
                     "novo_nivel": proximo
                 })
             else:
+                print(f"🏁 {aluno.get('nome', nome)} finalizou todas as perguntas do nível FLUENTE.")
                 return JSONResponse(content={"acertou": True, "subiu_nivel": False, "mensagem": "Você já é fluente!"})
         else:
             doc.reference.update({"progresso_ingles": novo_progresso})
+            print(f"✔️ {aluno.get('nome', nome)} acertou a pergunta {progresso + 1}/{len(perguntas)} do nível {nivel.upper()}.")
             return JSONResponse(content={"acertou": True, "subiu_nivel": False})
     else:
+        print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
+
+
+# Dicionário de níveis
+proximo_nivel = {
+    "iniciante": "intermediario",
+    "intermediario": "avancado",
+    "avancado": "fluente"
+}
+
+# Carregamento das perguntas
+with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+    TODAS_PERGUNTAS = json.load(f)
 
 
 @app.get("/admin", response_class=HTMLResponse)
