@@ -195,8 +195,8 @@
       <span>Ver Aulas</span>
     </div>
     <div class="acao" onclick="verNotificacao()">
-      <i>🔔</i>
-      <span>Notificações</span>
+      <i>🔔👨‍🏫</i>
+      <span>Sala de aula</span>
     </div>
     <div class="acao" onclick="verHorario()">
       <i>📅</i>
@@ -212,15 +212,21 @@
     </div>
   </div>
 
-  <div class="ultimas-aulas">
-    <div class="aula-item">
-      <div class="aula-info">
-        <strong>Hoje, 30 Julho</strong><br />
-        Serviço especial MCX...
-      </div>
-      <div class="aula-valor">Kz 2.000,00</div>
-    </div>
-    <!-- Outras aulas virão dinamicamente -->
+<!-- Desafio de Inglês substituindo ultimas-aulas -->
+<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+
+  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 10px;" />
+
+  <button onclick="verificarResposta()" style="width: 100%; padding: 10px; background: #1abc9c; color: white; border: none; border-radius: 10px; cursor: pointer;">
+    Verificar
+  </button>
+
+  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
+</div>
+
   </div>
 
   <div class="footer">
@@ -482,6 +488,57 @@
       window.location.href = `/sala_virtual_aluno/${salaId}`;
     }
   }
+
+  let perguntas = [];
+  let perguntaAtual = 0;
+  let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
+
+  async function carregarPerguntas() {
+    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
+    const dados = await resposta.json();
+    perguntas = dados.perguntas;
+    mostrarPergunta();
+  }
+
+  function mostrarPergunta() {
+    if (perguntaAtual < perguntas.length) {
+      const pergunta = perguntas[perguntaAtual];
+      document.getElementById('pergunta-texto').textContent = pergunta.pergunta;
+      document.getElementById('resposta-input').value = '';
+      document.getElementById('mensagem-feedback').textContent = '';
+    } else {
+      subirNivel();
+    }
+  }
+
+  async function verificarResposta() {
+    const resposta = document.getElementById('resposta-input').value.trim().toLowerCase();
+    const correta = perguntas[perguntaAtual].resposta.toLowerCase();
+
+    if (resposta === correta) {
+      document.getElementById('mensagem-feedback').textContent = "🎉 Parabéns! Você está cada vez mais perto de se tornar fluente!";
+      perguntaAtual++;
+      setTimeout(mostrarPergunta, 1500);
+    } else {
+      document.getElementById('mensagem-feedback').textContent = "❌ Resposta incorreta. Tente novamente!";
+    }
+  }
+
+  async function subirNivel() {
+    const resposta = await fetch('/subir-nivel', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: "{{ aluno.email }}" }) // ou id do aluno
+    });
+
+    const dados = await resposta.json();
+    nivelAtual = dados.novo_nivel;
+    document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
+    perguntaAtual = 0;
+    await carregarPerguntas();
+  }
+
+  carregarPerguntas();
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
