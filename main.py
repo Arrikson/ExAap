@@ -2542,9 +2542,19 @@ async def subir_nivel(data: dict = Body(...)):
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+    nivel = aluno.get("nivel_ingles")
 
+    # Se ainda não tiver nível, começar do "iniciante"
+    if not nivel:
+        doc.reference.update({
+            "nivel_ingles": "iniciante",
+            "progresso_ingles": 0
+        })
+        return {"mensagem": "Começou do nível básico!", "novo_nivel": "iniciante"}
+
+    nivel = nivel.lower()
     proximo = proximo_nivel.get(nivel)
+
     if proximo:
         doc.reference.update({
             "nivel_ingles": proximo,
