@@ -551,8 +551,9 @@ async function subirNivel() {
   }
 }
 
-carregarPerguntas();
-
+window.onload = () => {
+  carregarPerguntas();
+};
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
