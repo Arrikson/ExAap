@@ -171,10 +171,10 @@
     <strong style="font-size: 13px;">Mensalidade:</strong>
     <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
     <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
-
-    <strong style="font-size: 13px;">Nível de Inglês:</strong>
-    <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
   </p>
+
+  <strong style="font-size: 13px;">Nível de Inglês:</strong>
+  <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
 </div>
 
     <div class="carrossel-indicadores">
@@ -480,20 +480,20 @@
   }
 
 window.toggleVisibilidade = function () {
-    const dividaEl = document.getElementById("valor-divida");
-    const inglesEl = document.getElementById("nivel-ingles");
+  const dividaEl = document.getElementById("valor-divida");
+  const inglesEl = document.getElementById("nivel-ingles");
 
-    const visivel = dividaEl.textContent.includes("Kz");
+  const visivel = dividaEl.textContent.includes("Kz");
 
-    if (visivel) {
-      dividaEl.textContent = "•••••••";
-      inglesEl.textContent = "•••••••";
-    } else {
-      const valorReal = dividaEl.dataset.real;
-      dividaEl.textContent = `Kz ${valorReal},00`;
-      inglesEl.textContent = "{{ aluno.nivel_ingles }}";
-    }
-  };
+  if (visivel) {
+    dividaEl.textContent = "•••••••";
+    inglesEl.textContent = "•••••••";
+  } else {
+    const valorReal = dividaEl.dataset.real;
+    dividaEl.textContent = `Kz ${valorReal},00`;
+    inglesEl.textContent = "{{ aluno.nivel_ingles }}";
+  }
+};
 </script>
 </body>
 </html>
