@@ -2533,7 +2533,6 @@ proximo_nivel = {
     "avancado": "fluente"
 }
 
-# 🔁 Carregar as perguntas do arquivo a cada requisição
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     nivel = nivel.strip().lower()
@@ -2544,9 +2543,10 @@ async def perguntas_ingles(nivel: str = "iniciante"):
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
-    nome = data.get("nome", "").strip().lower()
+    nome = data.get("nome", "").strip()
+    nome_normalizado = nome.lower()
 
-    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2578,9 +2578,10 @@ async def subir_nivel(data: dict = Body(...)):
 
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
-    nome = data.get("nome", "").strip().lower()
+    nome = data.get("nome", "").strip()
+    nome_normalizado = nome.lower()
 
-    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2605,10 +2606,11 @@ async def proxima_pergunta(data: dict = Body(...)):
 
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
-    nome = data.get("nome", "").strip().lower()
+    nome = data.get("nome", "").strip()
+    nome_normalizado = nome.lower()
     resposta_user = data.get("resposta", "").strip().lower()
 
-    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
@@ -2653,7 +2655,6 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
-
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
