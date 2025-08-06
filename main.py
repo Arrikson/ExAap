@@ -2526,6 +2526,87 @@ async def obter_saldo_atual(request: Request):
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
 
+proximo_nivel = {
+    "iniciante": "intermediario",
+    "intermediario": "avancado",
+    "avancado": "fluente"
+}
+
+# Carrega as perguntas
+with open("perguntas_ingles.json", "r", encoding="utf-8") as f:
+    TODAS_PERGUNTAS = json.load(f)
+
+@app.post("/proxima-pergunta")
+async def proxima_pergunta(data: dict = Body(...)):
+    email = data.get("email", "").strip().lower()
+
+    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    if not aluno_ref:
+        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
+    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+    progresso = aluno.get("progresso_ingles", 0)
+
+    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    if progresso >= len(perguntas):
+        return JSONResponse(content={"status": "final-nivel"})
+
+    pergunta_atual = perguntas[progresso]
+    return JSONResponse(content={
+        "pergunta": pergunta_atual["pergunta"],
+        "numero": progresso,
+        "nivel": nivel
+    })
+
+
+@app.post("/verificar-resposta")
+async def verificar_resposta(data: dict = Body(...)):
+    email = data.get("email", "").strip().lower()
+    resposta_user = data.get("resposta", "").strip().lower()
+
+    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    if not aluno_ref:
+        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
+    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+    progresso = aluno.get("progresso_ingles", 0)
+
+    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    if progresso >= len(perguntas):
+        return JSONResponse(content={"erro": "Todas perguntas respondidas."})
+
+    pergunta_atual = perguntas[progresso]
+    resposta_certa = pergunta_atual["resposta"].strip().lower()
+
+    if resposta_user == resposta_certa:
+        novo_progresso = progresso + 1
+
+        # Verifica se terminou o nível
+        if novo_progresso >= len(perguntas):
+            proximo = proximo_nivel.get(nivel)
+            if proximo:
+                doc.reference.update({
+                    "nivel_ingles": proximo,
+                    "progresso_ingles": 0
+                })
+                return JSONResponse(content={
+                    "acertou": True,
+                    "subiu_nivel": True,
+                    "novo_nivel": proximo
+                })
+            else:
+                return JSONResponse(content={"acertou": True, "subiu_nivel": False, "mensagem": "Você já é fluente!"})
+        else:
+            doc.reference.update({"progresso_ingles": novo_progresso})
+            return JSONResponse(content={"acertou": True, "subiu_nivel": False})
+    else:
+        return JSONResponse(content={"acertou": False})
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
