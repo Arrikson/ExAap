@@ -1,0 +1,4010 @@
+{
+  "iniciante": [
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "I ___ happy.",
+      "resposta": "am"
+    },
+    {
+      "pergunta": "You ___ a student.",
+      "resposta": "are"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    },
+    {
+      "pergunta": "He ___ a doctor.",
+      "resposta": "is"
+    }
+  ],
+  "intermediario": [
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "I ___ a car.",
+      "resposta": "have"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "She ___ a book.",
+      "resposta": "has"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    },
+    {
+      "pergunta": "They ___ swim.",
+      "resposta": "can"
+    }
+  ],
+  "avancado": [
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "They ___ late.",
+      "resposta": "were"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "We ___ go soon.",
+      "resposta": "will"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    },
+    {
+      "pergunta": "He ___ tired yesterday.",
+      "resposta": "was"
+    }
+  ],
+  "fluente": [
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "I ___ like to help.",
+      "resposta": "would"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    },
+    {
+      "pergunta": "She ___ speak French.",
+      "resposta": "could"
+    },
+    {
+      "pergunta": "You ___ study more.",
+      "resposta": "should"
+    }
+  ]
+}
