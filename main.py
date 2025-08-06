@@ -2525,6 +2525,35 @@ async def obter_saldo_atual(request: Request):
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+@app.get("/perguntas-ingles")
+async def perguntas_ingles(nivel: str = "iniciante"):
+    nivel = nivel.strip().lower()
+    perguntas = TODAS_PERGUNTAS.get(nivel, [])
+    return {"perguntas": perguntas}
+
+
+@app.post("/subir-nivel")
+async def subir_nivel(data: dict = Body(...)):
+    email = data.get("email", "").strip().lower()
+
+    aluno_ref = db.collection("alunos").where("email", "==", email).limit(1).get()
+    if not aluno_ref:
+        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
+    nivel = aluno.get("nivel_ingles", "iniciante").lower()
+
+    proximo = proximo_nivel.get(nivel)
+    if proximo:
+        doc.reference.update({
+            "nivel_ingles": proximo,
+            "progresso_ingles": 0
+        })
+        return {"mensagem": "Subiu de nível!", "novo_nivel": proximo}
+    else:
+        return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
+
 
 proximo_nivel = {
     "iniciante": "intermediario",
