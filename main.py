@@ -606,6 +606,7 @@ async def gerar_pdf():
 @app.get("/cadastro-aluno", response_class=HTMLResponse)
 async def exibir_formulario(request: Request):
     return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
+    
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
     request: Request,
@@ -621,8 +622,7 @@ async def cadastrar_aluno(
     telefone: str = Form(...),
     disciplina: str = Form(...),
     bilhete: str = Form(...),
-    outra_disciplina: str = Form(None),
-    nivel_ingles: str = Form(...)  # ← Novo campo adicionado aqui
+    outra_disciplina: str = Form(None)
 ):
     alunos_ref = db.collection("alunos")
     nome_normalizado = nome.strip().lower()
@@ -653,7 +653,8 @@ async def cadastrar_aluno(
         "disciplina": disciplina,
         "outra_disciplina": outra_disciplina,
         "bilhete": bilhete,
-        "nivel_ingles": nivel_ingles,  # ← Nível de inglês salvo aqui
+        "nivel_ingles": "iniciante",  # ← sempre começa como iniciante
+        "progresso_ingles": 0,        # ← também pode iniciar o progresso como 0
         "online": False,
         "notificacao": False,
         "vinculado": False,
