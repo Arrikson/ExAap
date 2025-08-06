@@ -622,7 +622,8 @@ async def cadastrar_aluno(
     telefone: str = Form(...),
     disciplina: str = Form(...),
     bilhete: str = Form(...),
-    outra_disciplina: str = Form(None)
+    outra_disciplina: str = Form(None),
+    nivel_ingles: str = Form(...)  # ✅ CAMPO ADICIONADO
 ):
     alunos_ref = db.collection("alunos")
     nome_normalizado = nome.strip().lower()
@@ -653,8 +654,8 @@ async def cadastrar_aluno(
         "disciplina": disciplina,
         "outra_disciplina": outra_disciplina,
         "bilhete": bilhete,
-        "nivel_ingles": "iniciante",  # ← sempre começa como iniciante
-        "progresso_ingles": 0,        # ← também pode iniciar o progresso como 0
+        "nivel_ingles": nivel_ingles,  # ✅ agora capturado do formulário
+        "progresso_ingles": 0,
         "online": False,
         "notificacao": False,
         "vinculado": False,
@@ -664,6 +665,7 @@ async def cadastrar_aluno(
     db.collection("alunos").document(aluno_id).set(dados)
 
     return RedirectResponse(url="/login?sucesso=1", status_code=HTTP_303_SEE_OTHER)
+
 
 @app.get("/login", response_class=HTMLResponse)
 async def exibir_login(request: Request, sucesso: int = 0):
