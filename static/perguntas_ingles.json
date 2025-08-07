@@ -1,810 +1,90 @@
 {
   "iniciante": [
     {
-      "pergunta": "Iniciante Pergunta 1: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What is your name?",
+      "resposta": "My name is John."
     },
     {
-      "pergunta": "Iniciante Pergunta 2: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "How are you?",
+      "resposta": "I am fine, thank you."
     },
     {
-      "pergunta": "Iniciante Pergunta 3: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Where do you live?",
+      "resposta": "I live in Luanda."
     },
     {
-      "pergunta": "Iniciante Pergunta 4: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What is this?",
+      "resposta": "This is a book."
     },
     {
-      "pergunta": "Iniciante Pergunta 5: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 6: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 7: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 8: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 9: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 10: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 11: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 12: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 13: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 14: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 15: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 16: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 17: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 18: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 19: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 20: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 21: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 22: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 23: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 24: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 25: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 26: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 27: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 28: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 29: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 30: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 31: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 32: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 33: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 34: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 35: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 36: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 37: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 38: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 39: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 40: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 41: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 42: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 43: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 44: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 45: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 46: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 47: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 48: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 49: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Iniciante Pergunta 50: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Do you like apples?",
+      "resposta": "Yes, I do."
     }
   ],
   "intermediario": [
     {
-      "pergunta": "Intermediario Pergunta 1: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What did you do yesterday?",
+      "resposta": "I went to the market."
     },
     {
-      "pergunta": "Intermediario Pergunta 2: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Can you play the guitar?",
+      "resposta": "Yes, I can."
     },
     {
-      "pergunta": "Intermediario Pergunta 3: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What time does the train leave?",
+      "resposta": "It leaves at 5 PM."
     },
     {
-      "pergunta": "Intermediario Pergunta 4: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Have you ever been to Portugal?",
+      "resposta": "Yes, I have."
     },
     {
-      "pergunta": "Intermediario Pergunta 5: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 6: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 7: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 8: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 9: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 10: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 11: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 12: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 13: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 14: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 15: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 16: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 17: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 18: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 19: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 20: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 21: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 22: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 23: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 24: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 25: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 26: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 27: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 28: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 29: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 30: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 31: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 32: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 33: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 34: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 35: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 36: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 37: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 38: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 39: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 40: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 41: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 42: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 43: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 44: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 45: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 46: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 47: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 48: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 49: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Intermediario Pergunta 50: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What are you doing now?",
+      "resposta": "I am studying English."
     }
   ],
   "avancado": [
     {
-      "pergunta": "Avancado Pergunta 1: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "If you won the lottery, what would you do?",
+      "resposta": "I would travel around the world."
     },
     {
-      "pergunta": "Avancado Pergunta 2: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What do you think about climate change?",
+      "resposta": "It is a serious global issue."
     },
     {
-      "pergunta": "Avancado Pergunta 3: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "How do you define success?",
+      "resposta": "Success is achieving your goals."
     },
     {
-      "pergunta": "Avancado Pergunta 4: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Why is education important?",
+      "resposta": "Because it empowers people and improves society."
     },
     {
-      "pergunta": "Avancado Pergunta 5: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 6: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 7: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 8: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 9: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 10: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 11: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 12: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 13: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 14: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 15: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 16: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 17: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 18: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 19: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 20: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 21: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 22: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 23: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 24: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 25: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 26: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 27: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 28: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 29: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 30: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 31: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 32: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 33: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 34: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 35: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 36: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 37: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 38: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 39: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 40: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 41: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 42: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 43: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 44: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 45: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 46: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 47: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 48: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 49: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Avancado Pergunta 50: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What are the advantages of learning a second language?",
+      "resposta": "It improves brain function and career opportunities."
     }
   ],
   "fluente": [
     {
-      "pergunta": "Fluente Pergunta 1: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "How has technology impacted human communication?",
+      "resposta": "It has made communication faster but sometimes less personal."
     },
     {
-      "pergunta": "Fluente Pergunta 2: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "Do you agree that money can't buy happiness?",
+      "resposta": "Yes, because true happiness comes from within."
     },
     {
-      "pergunta": "Fluente Pergunta 3: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What role does culture play in shaping identity?",
+      "resposta": "Culture influences values, beliefs, and behavior."
     },
     {
-      "pergunta": "Fluente Pergunta 4: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "How would you solve the issue of poverty?",
+      "resposta": "By improving education, creating jobs, and ensuring fair policies."
     },
     {
-      "pergunta": "Fluente Pergunta 5: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 6: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 7: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 8: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 9: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 10: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 11: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 12: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 13: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 14: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 15: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 16: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 17: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 18: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 19: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 20: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 21: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 22: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 23: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 24: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 25: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 26: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 27: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 28: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 29: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 30: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 31: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 32: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 33: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 34: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 35: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 36: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 37: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 38: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 39: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 40: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 41: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 42: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 43: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 44: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 45: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 46: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 47: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 48: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 49: Exemplo ___ ?",
-      "resposta": "exemplo"
-    },
-    {
-      "pergunta": "Fluente Pergunta 50: Exemplo ___ ?",
-      "resposta": "exemplo"
+      "pergunta": "What makes a leader effective?",
+      "resposta": "An effective leader inspires, listens, and leads by example."
     }
   ]
 }
