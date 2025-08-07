@@ -496,9 +496,19 @@ function normalizarNivel(nivel) {
 
 async function carregarPerguntas() {
   const nivelNormalizado = normalizarNivel(nivelAtual);
+  console.log("🔍 Carregando perguntas para o nível:", nivelNormalizado);
+
   const resposta = await fetch(`/perguntas-ingles?nivel=${nivelNormalizado}`);
   const dados = await resposta.json();
-  perguntas = dados.perguntas;
+  console.log("✅ Perguntas carregadas:", dados);
+
+  perguntas = dados.perguntas || [];
+
+  if (perguntas.length === 0) {
+    document.getElementById('pergunta-texto').textContent = "❌ Nenhuma pergunta encontrada.";
+    return;
+  }
+
   mostrarPergunta();
 }
 
