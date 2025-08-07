@@ -150,88 +150,73 @@
 </head>
 <body>
   <div class="top-bar">
-    <img src="/static/perfil.png" alt="Perfil" />
+    <img src="/static/logo.png" alt="Logo">
+    <i class="fas fa-sign-out-alt logout-icon" onclick="fazerLogout()" title="Sair"></i>
+  </div>
+
+  <div class="card">
+    <h1>{{ aluno.nome }}</h1>
+    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
+    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
+    <input type="hidden" id="professor-email" value="{{ professor_email }}">
+
+    <script>
+      console.log("📘 Nome do aluno capturado:", document.getElementById("aluno-nome").value);
+    </script>
+
+    <div class="btn-grid">
+      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
+      <button class="notificar-btn" onclick="verNotificacao()">🔔 Sala de aula</button>
+      <button class="notificar-btn" onclick="verHorario()">📅 Ver Horário</button>
+      <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
+      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+    </div>
+
     <div class="info">
-      <h2>Olá, {{ aluno.nome }} 👋</h2>
-      <p>B.I: {{ aluno.bilhete }}</p>
-
-      <div class="saldo">
-        <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
-          <strong style="font-size: 10px;">Por pagar:</strong>
-          <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
-          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button>
-        </p>
-
-        <strong style="font-size: 13px;">Nível de Inglês:</strong>
-        <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
-      </div>
-
-      <div class="carrossel-indicadores">
-        <span></span>
-        <span style="opacity: 0.3;"></span>
-      </div>
+      <p><strong>Por pagar:</strong> <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span> <button onclick="toggleVisibilidade()">👁️</button></p>
+      <p><strong>Nível de Inglês:</strong> <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span></p>
     </div>
+
+    <div class="carrossel-indicadores">
+      <span></span>
+      <span style="opacity: 0.3;"></span>
+    </div>
+
+    <!-- Seções -->
+    <div id="sec-aula" class="info" style="display:none;">
+      <p id="aulas-dadas"></p>
+      <p id="aulas-restantes"></p>
+      <ul id="lista-aulas"></ul>
+    </div>
+
+    <div id="sec-notas" class="info" style="display:none;"></div>
+    <div id="sec-horario" class="info" style="display:none;">
+      <ul id="lista-horario"></ul>
+    </div>
+    <div id="professor-nome" style="display:none;"></div>
+    <div id="notificacao-mensagem" style="display:none;"></div>
+    <span id="contador-aulas"></span>
+
+    <div id="info-aula" style="display:none;">
+      <span id="sala-id"></span>
+      <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    </div>
+
+    <div class="jogo-ingles" id="jogo-ingles" style="position: relative; padding-bottom: 80px;">
+      <h3>🧠 Desafio de Inglês</h3>
+      <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+      <p id="pergunta-texto">Loading...</p>
+      <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 20px;" />
+      <p id="mensagem-feedback" style="margin-top: 10px; color: #e74c3c; font-weight: bold;"></p>
+      <button onclick="verificarResposta()" style="position: absolute; bottom: 20px; left: 20px; right: 20px; padding: 14px; background: linear-gradient(90deg, #1abc9c, #16a085); color: white; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        Verificar
+      </button>
+    </div>
+
+    <form method="post" action="/logout" id="logoutForm">
+      <input type="hidden" name="nome" value="{{ aluno.nome }}">
+    </form>
   </div>
-
-  <div class="acoes">
-    <div class="acao" onclick="toggleAulas()">
-      <i>📘</i>
-      <span>Ver Aulas</span>
-    </div>
-    <div class="acao" onclick="verNotificacao()">
-      <i>🔔👨‍🏫</i>
-      <span>Sala de aula</span>
-    </div>
-    <div class="acao" onclick="verHorario()">
-      <i>📅</i>
-      <span>Ver Horário</span>
-    </div>
-    <div class="acao" onclick="toggle('sec-notas')">
-      <i>📝</i>
-      <span>Ver Notas</span>
-    </div>
-    <div class="acao" onclick="toggleProfessor()">
-      <i>👨‍🏫</i>
-      <span>Ver Professor</span>
-    </div>
-  </div>
-
- <!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="position: relative; padding-bottom: 80px;">
-  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
-  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
-
-  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 20px;
-  " />
-
-  <!-- ✅ Apenas um elemento com ID 'mensagem-feedback' -->
-  <p id="mensagem-feedback" style="margin-top: 10px; color: #e74c3c; font-weight: bold;"></p>
-
-  <button onclick="verificarResposta()" style="
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    padding: 14px;
-    background: linear-gradient(90deg, #1abc9c, #16a085);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  ">
-    Verificar
-  </button>
-</div>
 
   <div class="footer">
     <div class="item active">
@@ -246,26 +231,6 @@
       <i>📂</i>
       Menu
     </div>
-  </div>
-
-  <!-- Seções adicionais -->
-  <div id="sec-aula" style="display:none;">
-    <p id="aulas-dadas"></p>
-    <p id="aulas-restantes"></p>
-    <ul id="lista-aulas"></ul>
-  </div>
-
-  <div id="professor-nome" style="display:none;"></div>
-  <div id="notificacao-mensagem" style="display:none;"></div>
-  <span id="contador-aulas"></span>
-
-  <div id="sec-horario" style="display:none;">
-    <ul id="lista-horario"></ul>
-  </div>
-
-  <div id="info-aula" style="display:none;">
-    <span id="sala-id"></span>
-    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
   <script type="module">
