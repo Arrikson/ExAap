@@ -2619,6 +2619,25 @@ def inserir_perguntas():
             })
             total += 1
     return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
+    
+
+@app.get("/inserir-perguntas")
+def inserir_perguntas_get():
+    return inserir_perguntas()
+
+# Função compartilhada
+def inserir_perguntas():
+    total = 0
+    for nivel, perguntas in perguntas_ingles.items():
+        for i, p in enumerate(perguntas):
+            doc_id = f"{nivel}_{i+1}"
+            db.collection("perguntas_ingles").document(doc_id).set({
+                "pergunta": p["pergunta"],
+                "resposta": p["resposta"],
+                "nivel": nivel
+            })
+            total += 1
+    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
 
         
 # Dicionário de níveis
@@ -2767,6 +2786,34 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
+
+from fastapi.middleware.cors import CORSMiddleware
+
+# Habilitar CORS para permitir requisições do HTML
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/adicionar-pergunta")
+async def adicionar_pergunta(request: Request):
+    dados = await request.json()
+    nivel = dados.get("nivel", "").strip().lower()
+    pergunta = dados.get("pergunta", "").strip()
+    resposta = dados.get("resposta", "").strip()
+
+    if not (nivel and pergunta and resposta):
+        return {"erro": "Todos os campos são obrigatórios"}
+
+    doc_ref = db.collection("perguntas_ingles").document()
+    doc_ref.set({
+        "nivel": nivel,
+        "pergunta": pergunta,
+        "resposta": resposta
+    })
+    return {"mensagem": "Pergunta adicionada com sucesso!"}
 
 
 @app.get("/admin", response_class=HTMLResponse)
