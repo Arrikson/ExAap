@@ -2528,6 +2528,30 @@ async def obter_saldo_atual(request: Request):
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+
+@app.get("/criar-perguntas")
+def inserir_perguntas_get():
+    return inserir_perguntas()
+
+def inserir_perguntas():
+    perguntas_dict = {
+        "iniciante": [...],
+        "intermediario": [...],
+        "avancado": [...],
+        "fluente": [...]
+    }
+
+    for nivel, perguntas in perguntas_dict.items():
+        for p in perguntas:
+            db.collection("perguntas_ingles").add({
+                "nivel": nivel,
+                "pergunta": p["pergunta"],
+                "resposta": p["resposta"]
+            })
+
+    return {"mensagem": "Perguntas inseridas com sucesso."}
+
+
 # Dicionário completo de perguntas por nível
 perguntas_ingles = {
     "iniciante": [
