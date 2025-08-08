@@ -2539,7 +2539,7 @@ def inserir_perguntas_get():
 # 🔹 Função principal para inserir as perguntas no Firebase
 def inserir_perguntas():
     total = 0
-    perguntas_por_nivel = perguntas_ingles()  # CHAMANDO A FUNÇÃO CORRETAMENTE
+    perguntas_por_nivel = await perguntas_ingles()
 
     for nivel, perguntas in perguntas_por_nivel.items():
         for i, p in enumerate(perguntas):
