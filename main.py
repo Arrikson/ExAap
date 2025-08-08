@@ -2527,6 +2527,7 @@ async def obter_saldo_atual(request: Request):
     except Exception as e:
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
+        
 @app.post("/inserir-perguntas")
 def inserir_perguntas_post():
     return inserir_perguntas()
@@ -2535,10 +2536,10 @@ def inserir_perguntas_post():
 def inserir_perguntas_get():
     return inserir_perguntas()
 
-# Função principal para inserir perguntas
+# 🔹 Função principal para inserir as perguntas no Firebase
 def inserir_perguntas():
     total = 0
-    perguntas_por_nivel = perguntas_ingles()  # ✅ CHAMA a função corretamente
+    perguntas_por_nivel = perguntas_ingles()  # CHAMANDO A FUNÇÃO CORRETAMENTE
 
     for nivel, perguntas in perguntas_por_nivel.items():
         for i, p in enumerate(perguntas):
@@ -2551,84 +2552,86 @@ def inserir_perguntas():
             total += 1
 
     return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
-
     
-# Dicionário completo de perguntas por nível
-perguntas_ingles = {
-    "iniciante": [
-        {"pergunta": "You ___ a student.", "resposta": "are"},
-        {"pergunta": "I ___ happy.", "resposta": "am"},
-        {"pergunta": "He ___ a doctor.", "resposta": "is"},
-        {"pergunta": "She ___ my friend.", "resposta": "is"},
-        {"pergunta": "We ___ ready.", "resposta": "are"},
-        {"pergunta": "They ___ teachers.", "resposta": "are"},
-        {"pergunta": "It ___ a cat.", "resposta": "is"},
-        {"pergunta": "I ___ from Angola.", "resposta": "am"},
-        {"pergunta": "He ___ not here.", "resposta": "is"},
-        {"pergunta": "She ___ beautiful.", "resposta": "is"},
-        {"pergunta": "They ___ playing football.", "resposta": "are"},
-        {"pergunta": "We ___ in the classroom.", "resposta": "are"},
-        {"pergunta": "It ___ raining.", "resposta": "is"},
-        {"pergunta": "You ___ very kind.", "resposta": "are"},
-        {"pergunta": "I ___ tired.", "resposta": "am"},
-        {"pergunta": "My name ___ John.", "resposta": "is"},
-        {"pergunta": "They ___ not at home.", "resposta": "are"},
-        {"pergunta": "We ___ hungry.", "resposta": "are"},
-        {"pergunta": "This ___ my book.", "resposta": "is"},
-        {"pergunta": "Those ___ my shoes.", "resposta": "are"}
-    ],
-    "intermediario": [
-        {"pergunta": "She ___ to school every day.", "resposta": "goes"},
-        {"pergunta": "We ___ dinner at 7 PM.", "resposta": "have"},
-        {"pergunta": "They ___ in Luanda last year.", "resposta": "were"},
-        {"pergunta": "He ___ not like coffee.", "resposta": "does"},
-        {"pergunta": "I ___ playing the guitar now.", "resposta": "am"},
-        {"pergunta": "What ___ you doing?", "resposta": "are"},
-        {"pergunta": "We ___ been to Brazil.", "resposta": "have"},
-        {"pergunta": "He ___ watching TV when I arrived.", "resposta": "was"},
-        {"pergunta": "She ___ already eaten.", "resposta": "has"},
-        {"pergunta": "___ you ever traveled alone?", "resposta": "have"},
-        {"pergunta": "They ___ working since morning.", "resposta": "have been"},
-        {"pergunta": "I ___ my homework before dinner.", "resposta": "did"},
-        {"pergunta": "She ___ a new phone yesterday.", "resposta": "bought"},
-        {"pergunta": "Where ___ you go on vacation?", "resposta": "did"},
-        {"pergunta": "He ___ English fluently.", "resposta": "speaks"}
-    ],
-    "avancado": [
-        {"pergunta": "If I ___ more time, I would travel.", "resposta": "had"},
-        {"pergunta": "She would have come if she ___ invited.", "resposta": "had been"},
-        {"pergunta": "He ___ finished the work by now.", "resposta": "should have"},
-        {"pergunta": "I wish I ___ taller.", "resposta": "were"},
-        {"pergunta": "By next year, they ___ graduated.", "resposta": "will have"},
-        {"pergunta": "He acts as if he ___ the boss.", "resposta": "were"},
-        {"pergunta": "No sooner ___ I arrived than it started to rain.", "resposta": "had"},
-        {"pergunta": "Had I known, I ___ helped you.", "resposta": "would have"},
-        {"pergunta": "She demanded that he ___ on time.", "resposta": "be"},
-        {"pergunta": "It’s essential that she ___ informed immediately.", "resposta": "be"},
-        {"pergunta": "Hardly ___ he left when the phone rang.", "resposta": "had"},
-        {"pergunta": "He ___ rather stay home than go out.", "resposta": "would"},
-        {"pergunta": "Were I rich, I ___ travel the world.", "resposta": "would"},
-        {"pergunta": "If only I ___ spoken up earlier.", "resposta": "had"},
-        {"pergunta": "She speaks as though she ___ everything.", "resposta": "knew"}
-    ],
-    "fluente": [
-        {"pergunta": "Not only ___ he smart, but also kind.", "resposta": "is"},
-        {"pergunta": "Scarcely ___ I sat down when she arrived.", "resposta": "had"},
-        {"pergunta": "Little ___ they know about the truth.", "resposta": "do"},
-        {"pergunta": "Rarely ___ we see such talent.", "resposta": "do"},
-        {"pergunta": "So beautiful ___ the painting that everyone stopped to look.", "resposta": "was"},
-        {"pergunta": "No sooner ___ the meeting started than he left.", "resposta": "had"},
-        {"pergunta": "Were it not for her help, I ___ failed.", "resposta": "would have"},
-        {"pergunta": "Under no circumstances ___ you open that door.", "resposta": "must"},
-        {"pergunta": "Only after the rain stopped ___ we leave the house.", "resposta": "did"},
-        {"pergunta": "Seldom ___ a mistake like that.", "resposta": "does he make"},
-        {"pergunta": "Hardly ever ___ such a mistake occur.", "resposta": "does"},
-        {"pergunta": "Had it not been for the traffic, I ___ on time.", "resposta": "would have arrived"},
-        {"pergunta": "Never before ___ I seen such a view.", "resposta": "have"},
-        {"pergunta": "Not until she spoke ___ I realize the truth.", "resposta": "did"},
-        {"pergunta": "Only by working hard ___ you succeed.", "resposta": "can"}
-    ]
-}
+
+# 🔹 Função que retorna o dicionário completo de perguntas por nível
+def perguntas_ingles():
+    return {
+        "iniciante": [
+            {"pergunta": "You ___ a student.", "resposta": "are"},
+            {"pergunta": "I ___ happy.", "resposta": "am"},
+            {"pergunta": "He ___ a doctor.", "resposta": "is"},
+            {"pergunta": "She ___ my friend.", "resposta": "is"},
+            {"pergunta": "We ___ ready.", "resposta": "are"},
+            {"pergunta": "They ___ teachers.", "resposta": "are"},
+            {"pergunta": "It ___ a cat.", "resposta": "is"},
+            {"pergunta": "I ___ from Angola.", "resposta": "am"},
+            {"pergunta": "He ___ not here.", "resposta": "is"},
+            {"pergunta": "She ___ beautiful.", "resposta": "is"},
+            {"pergunta": "They ___ playing football.", "resposta": "are"},
+            {"pergunta": "We ___ in the classroom.", "resposta": "are"},
+            {"pergunta": "It ___ raining.", "resposta": "is"},
+            {"pergunta": "You ___ very kind.", "resposta": "are"},
+            {"pergunta": "I ___ tired.", "resposta": "am"},
+            {"pergunta": "My name ___ John.", "resposta": "is"},
+            {"pergunta": "They ___ not at home.", "resposta": "are"},
+            {"pergunta": "We ___ hungry.", "resposta": "are"},
+            {"pergunta": "This ___ my book.", "resposta": "is"},
+            {"pergunta": "Those ___ my shoes.", "resposta": "are"}
+        ],
+        "intermediario": [
+            {"pergunta": "She ___ to school every day.", "resposta": "goes"},
+            {"pergunta": "We ___ dinner at 7 PM.", "resposta": "have"},
+            {"pergunta": "They ___ in Luanda last year.", "resposta": "were"},
+            {"pergunta": "He ___ not like coffee.", "resposta": "does"},
+            {"pergunta": "I ___ playing the guitar now.", "resposta": "am"},
+            {"pergunta": "What ___ you doing?", "resposta": "are"},
+            {"pergunta": "We ___ been to Brazil.", "resposta": "have"},
+            {"pergunta": "He ___ watching TV when I arrived.", "resposta": "was"},
+            {"pergunta": "She ___ already eaten.", "resposta": "has"},
+            {"pergunta": "___ you ever traveled alone?", "resposta": "have"},
+            {"pergunta": "They ___ working since morning.", "resposta": "have been"},
+            {"pergunta": "I ___ my homework before dinner.", "resposta": "did"},
+            {"pergunta": "She ___ a new phone yesterday.", "resposta": "bought"},
+            {"pergunta": "Where ___ you go on vacation?", "resposta": "did"},
+            {"pergunta": "He ___ English fluently.", "resposta": "speaks"}
+        ],
+        "avancado": [
+            {"pergunta": "If I ___ more time, I would travel.", "resposta": "had"},
+            {"pergunta": "She would have come if she ___ invited.", "resposta": "had been"},
+            {"pergunta": "He ___ finished the work by now.", "resposta": "should have"},
+            {"pergunta": "I wish I ___ taller.", "resposta": "were"},
+            {"pergunta": "By next year, they ___ graduated.", "resposta": "will have"},
+            {"pergunta": "He acts as if he ___ the boss.", "resposta": "were"},
+            {"pergunta": "No sooner ___ I arrived than it started to rain.", "resposta": "had"},
+            {"pergunta": "Had I known, I ___ helped you.", "resposta": "would have"},
+            {"pergunta": "She demanded that he ___ on time.", "resposta": "be"},
+            {"pergunta": "It’s essential that she ___ informed immediately.", "resposta": "be"},
+            {"pergunta": "Hardly ___ he left when the phone rang.", "resposta": "had"},
+            {"pergunta": "He ___ rather stay home than go out.", "resposta": "would"},
+            {"pergunta": "Were I rich, I ___ travel the world.", "resposta": "would"},
+            {"pergunta": "If only I ___ spoken up earlier.", "resposta": "had"},
+            {"pergunta": "She speaks as though she ___ everything.", "resposta": "knew"}
+        ],
+        "fluente": [
+            {"pergunta": "Not only ___ he smart, but also kind.", "resposta": "is"},
+            {"pergunta": "Scarcely ___ I sat down when she arrived.", "resposta": "had"},
+            {"pergunta": "Little ___ they know about the truth.", "resposta": "do"},
+            {"pergunta": "Rarely ___ we see such talent.", "resposta": "do"},
+            {"pergunta": "So beautiful ___ the painting that everyone stopped to look.", "resposta": "was"},
+            {"pergunta": "No sooner ___ the meeting started than he left.", "resposta": "had"},
+            {"pergunta": "Were it not for her help, I ___ failed.", "resposta": "would have"},
+            {"pergunta": "Under no circumstances ___ you open that door.", "resposta": "must"},
+            {"pergunta": "Only after the rain stopped ___ we leave the house.", "resposta": "did"},
+            {"pergunta": "Seldom ___ a mistake like that.", "resposta": "does he make"},
+            {"pergunta": "Hardly ever ___ such a mistake occur.", "resposta": "does"},
+            {"pergunta": "Had it not been for the traffic, I ___ on time.", "resposta": "would have arrived"},
+            {"pergunta": "Never before ___ I seen such a view.", "resposta": "have"},
+            {"pergunta": "Not until she spoke ___ I realize the truth.", "resposta": "did"},
+            {"pergunta": "Only by working hard ___ you succeed.", "resposta": "can"}
+        ]
+    }
+
         
 # Dicionário de níveis
 proximo_nivel = {
