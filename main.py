@@ -2677,10 +2677,16 @@ async def pergunta_ingles(nome: str):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
-    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel, nivel)
-    progresso = aluno.get("progresso_ingles", 0)
+    # Garantir que o nível comece com "iniciante" se for inválido
+    nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
+    nivel = mapa_niveis.get(nivel_raw, "iniciante")  # se o nível não estiver no mapa, usar "iniciante"
 
+    # Garantir que o progresso seja um número inteiro válido
+    progresso = aluno.get("progresso_ingles", 0)
+    if not isinstance(progresso, int) or progresso < 0:
+        progresso = 0
+
+    # Buscar perguntas do nível correspondente
     perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).order_by("pergunta").stream()
     perguntas = [p.to_dict() for p in perguntas_ref]
 
