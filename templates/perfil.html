@@ -497,16 +497,28 @@
     }
   }
 
- let perguntas = [];
-  let perguntaAtual = 0;
-  let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
+let perguntas = [];
+let perguntaAtual = 0;
+let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 
-  async function carregarPerguntas() {
-    const resposta = await fetch(`/pergunta-ingles?nivel=${nivelAtual}`);
+async function carregarPerguntas() {
+  try {
+    const resposta = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
     const dados = await resposta.json();
-    perguntas = dados.perguntas;
-    mostrarPergunta();
+
+    if (dados.pergunta) {
+      perguntas = [dados.pergunta];  // Armazena a pergunta atual, se necessário
+      mostrarPergunta(dados.pergunta, dados.nivel);
+    } else if (dados.status === "final-nivel") {
+      document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
+    } else {
+      document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
+    }
+  } catch (erro) {
+    console.error("Erro ao carregar pergunta:", erro);
+    document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
   }
+}
 
 async function mostrarPergunta() {
   try {
