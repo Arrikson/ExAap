@@ -2663,8 +2663,8 @@ proximo_nivel = {
 }
 
 
-@app.get("/perguntas-ingles")
-async def perguntas_ingles(nome: str):
+@app.get("/pergunta-ingles")
+async def pergunta_ingles(nome: str):
     # 🔤 Função local para remover acentos
     def remover_acentos(texto):
         return ''.join(c for c in unicodedata.normalize('NFD', texto)
