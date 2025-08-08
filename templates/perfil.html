@@ -218,7 +218,6 @@
   <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
   <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
 
-  <!-- Campo de resposta e botão lado a lado -->
   <div style="display: flex; gap: 10px; align-items: center;">
     <input
       type="text"
@@ -233,9 +232,9 @@
     </button>
   </div>
 
-  <!-- Feedback -->
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
+
 
 <div class="footer">
 
@@ -500,32 +499,48 @@
 
   let perguntas = [];
   let perguntaAtual = 0;
+
+  const nomeAluno = "{{ aluno.nome }}";
   let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 
+  // Carrega todas as perguntas para a lógica de avanço manual (backup)
   async function carregarPerguntas() {
-    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
-    const dados = await resposta.json();
-    perguntas = dados.perguntas;
-    mostrarPergunta();
-  }
-
-  function mostrarPergunta() {
-    if (perguntaAtual < perguntas.length) {
-      const pergunta = perguntas[perguntaAtual];
-      document.getElementById('pergunta-texto').textContent = pergunta.pergunta;
-      document.getElementById('resposta-input').value = '';
-      document.getElementById('mensagem-feedback').textContent = '';
-    } else {
-      subirNivel();
+    try {
+      const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
+      const dados = await resposta.json();
+      perguntas = dados.perguntas;
+      mostrarPergunta();
+    } catch (error) {
+      console.error("Erro ao carregar perguntas:", error);
     }
   }
 
+  // Mostra a pergunta atual baseada no progresso salvo
+  async function mostrarPergunta() {
+    try {
+      const response = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
+      const data = await response.json();
+
+      if (data.pergunta) {
+        document.getElementById("pergunta-texto").textContent = data.pergunta;
+        document.getElementById("nivel-aluno").textContent = data.nivel;
+        nivelAtual = data.nivel; // atualiza o nível para futuras requisições
+      } else {
+        document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
+      }
+    } catch (err) {
+      console.error("Erro ao buscar pergunta:", err);
+      document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
+    }
+  }
+
+  // Verifica a resposta digitada e atualiza feedback
   async function verificarResposta() {
-    const nome = "{{ aluno.nome }}";  // Assumindo que isso vem do backend
     const resposta = document.getElementById('resposta-input').value.trim();
+    const mensagemEl = document.getElementById('mensagem-feedback');
 
     if (!resposta) {
-      document.getElementById('mensagem-feedback').textContent = "⚠️ Escreve uma resposta antes de verificar.";
+      mensagemEl.textContent = "⚠️ Escreve uma resposta antes de verificar.";
       return;
     }
 
@@ -536,7 +551,7 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nome: nome,
+          nome: nomeAluno,
           resposta: resposta,
         }),
       });
@@ -545,39 +560,49 @@
 
       if (data.acertou) {
         if (data.subiu_nivel) {
-          document.getElementById('mensagem-feedback').textContent = `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`;
+          mensagemEl.textContent = `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`;
         } else {
-          document.getElementById('mensagem-feedback').textContent = "✔️ Resposta correta!";
+          mensagemEl.textContent = "✔️ Resposta correta!";
         }
 
         document.getElementById('resposta-input').value = "";
 
-        setTimeout(mostrarPergunta, 1500); // Carrega próxima pergunta
+        setTimeout(() => {
+          mensagemEl.textContent = "";
+          mostrarPergunta();
+        }, 1500);
+
       } else {
-        document.getElementById('mensagem-feedback').textContent = "❌ Resposta incorreta. Tenta novamente!";
+        mensagemEl.textContent = "❌ Resposta incorreta. Tenta novamente!";
       }
 
     } catch (error) {
       console.error("Erro ao verificar resposta:", error);
-      document.getElementById('mensagem-feedback').textContent = "Erro na verificação. Tenta mais tarde.";
+      mensagemEl.textContent = "Erro na verificação. Tenta mais tarde.";
     }
   }
 
+  // Sobe manualmente de nível (caso necessário)
   async function subirNivel() {
-    const resposta = await fetch('/subir-nivel', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email: "{{ aluno.email }}" }) // ou id do aluno
-    });
+    try {
+      const resposta = await fetch('/subir-nivel', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: "{{ aluno.email }}" })
+      });
 
-    const dados = await resposta.json();
-    nivelAtual = dados.novo_nivel;
-    document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
-    perguntaAtual = 0;
-    await carregarPerguntas();
+      const dados = await resposta.json();
+      nivelAtual = dados.novo_nivel;
+      document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
+      perguntaAtual = 0;
+      await carregarPerguntas();
+    } catch (error) {
+      console.error("Erro ao subir de nível:", error);
+    }
   }
 
-  carregarPerguntas();
+  // Iniciar carregamento da primeira pergunta ao abrir página
+  window.addEventListener("DOMContentLoaded", mostrarPergunta);
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
