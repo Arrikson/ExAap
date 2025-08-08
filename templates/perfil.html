@@ -497,22 +497,15 @@
     }
   }
 
-  let perguntas = [];
+ let perguntas = [];
   let perguntaAtual = 0;
-
-  const nomeAluno = "{{ aluno.nome }}";
   let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 
-  // Carrega todas as perguntas para a lógica de avanço manual (backup)
   async function carregarPerguntas() {
-    try {
-      const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
-      const dados = await resposta.json();
-      perguntas = dados.perguntas;
-      mostrarPergunta();
-    } catch (error) {
-      console.error("Erro ao carregar perguntas:", error);
-    }
+    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
+    const dados = await resposta.json();
+    perguntas = dados.perguntas;
+    mostrarPergunta();
   }
 
   // Mostra a pergunta atual baseada no progresso salvo
@@ -533,9 +526,8 @@
       document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
     }
   }
-
-  // Verifica a resposta digitada e atualiza feedback
-  async function verificarResposta() {
+    
+   async function verificarResposta() {
     const resposta = document.getElementById('resposta-input').value.trim();
     const mensagemEl = document.getElementById('mensagem-feedback');
 
@@ -581,8 +573,7 @@
       mensagemEl.textContent = "Erro na verificação. Tenta mais tarde.";
     }
   }
-
-  // Sobe manualmente de nível (caso necessário)
+    
   async function subirNivel() {
     try {
       const resposta = await fetch('/subir-nivel', {
@@ -600,9 +591,8 @@
       console.error("Erro ao subir de nível:", error);
     }
   }
-
-  // Iniciar carregamento da primeira pergunta ao abrir página
-  window.addEventListener("DOMContentLoaded", mostrarPergunta);
+    
+  carregarPerguntas();
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
