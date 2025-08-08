@@ -146,7 +146,7 @@
       font-size: 20px;
       display: block;
     }
-  </style>
+</style>
 </head>
 <body>
   <div class="top-bar">
@@ -170,29 +170,6 @@
         <span></span>
         <span style="opacity: 0.3;"></span>
       </div>
-    </div>
-  </div>
-
-  <div class="acoes">
-    <div class="acao" onclick="toggleAulas()">
-      <i>📘</i>
-      <span>Ver Aulas</span>
-    </div>
-    <div class="acao" onclick="verNotificacao()">
-      <i>🔔👨‍🏫</i>
-      <span>Sala de aula</span>
-    </div>
-    <div class="acao" onclick="verHorario()">
-      <i>📅</i>
-      <span>Ver Horário</span>
-    </div>
-    <div class="acao" onclick="toggle('sec-notas')">
-      <i>📝</i>
-      <span>Ver Notas</span>
-    </div>
-    <div class="acao" onclick="toggleProfessor()">
-      <i>👨‍🏫</i>
-      <span>Ver Professor</span>
     </div>
   </div>
 
@@ -232,22 +209,43 @@
     </button>
   </div>
 
+  <!-- Rodapé de Navegação -->
   <div class="footer">
-    <div class="item active">
+    <div class="item" onclick="mostrarSecao('perfil')">
       <i>👤</i>
       O Meu Perfil
     </div>
-    <div class="item">
+    <div class="item" onclick="mostrarSecao('pagamentos')">
       <i>💳</i>
       Pagamentos
     </div>
-    <div class="item">
+    <div class="item" onclick="mostrarSecao('menu')">
       <i>📂</i>
       Menu
     </div>
   </div>
 
-  <!-- Seções adicionais para funcionalidade dos botões -->
+  <!-- Seções Alternáveis -->
+  <div id="sec-perfil" style="display:none; margin-top: 20px;">
+    <p><strong>👤 Nome:</strong> {{ aluno.nome }}</p>
+    <p><strong>🎯 Nível de Inglês:</strong> <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span></p>
+    <p><strong>💰 Dívida:</strong> <span id="valor-divida" data-real="{{ aluno.divida }}">{{ aluno.divida }} Kz</span></p>
+    <button onclick="toggleVisibilidade()">👁 Alternar Visibilidade</button>
+  </div>
+
+  <div id="sec-pagamentos" style="display:none; margin-top: 20px;">
+    <p>Aqui vão aparecer os dados de pagamentos...</p>
+  </div>
+
+  <div id="sec-menu" style="display:none; margin-top: 20px;">
+    <button onclick="toggleAulas()">📘 Ver Aulas</button>
+    <button onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+    <button onclick="verHorario()">📅 Ver Horário</button>
+    <button onclick="verNotificacao()">🔔 Ver Notificações</button>
+    <button onclick="fazerLogout()">🚪 Logout</button>
+  </div>
+
+  <!-- Outras seções do sistema -->
   <div id="sec-aula" style="display:none;">
     <p id="aulas-dadas"></p>
     <p id="aulas-restantes"></p>
@@ -263,7 +261,6 @@
   </div>
 
   <div id="professor-nome" style="display:none;"></div>
-
   <div id="notificacao-mensagem" style="display:none;"></div>
   <span id="contador-aulas"></span>
 
@@ -272,230 +269,217 @@
     <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
-  <!-- Campo oculto com nome do aluno para logout -->
   <input type="hidden" id="aluno-id" value="{{ aluno.nome }}" />
+
+  <!-- Script para alternar seções -->
+  <script>
+    function mostrarSecao(secao) {
+      const secoes = ['perfil', 'pagamentos', 'menu'];
+      secoes.forEach(id => {
+        document.getElementById(`sec-${id}`).style.display = (id === secao) ? 'block' : 'none';
+      });
+    }
+  </script>
 </body>
 
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getFirestore, doc, onSnapshot, updateDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-    authDomain: "exap-8a935.firebaseapp.com",
-    projectId: "exap-8a935",
-    storageBucket: "exap-8a935.appspot.com",
-    messagingSenderId: "664710895978",
-    appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-  };
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, onSnapshot, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
+  authDomain: "exap-8a935.firebaseapp.com",
+  projectId: "exap-8a935",
+  storageBucket: "exap-8a935.appspot.com",
+  messagingSenderId: "664710895978",
+  appId: "1:664710895978:web:304790f37d7561d9b1ed13"
+};
 
-  const nomeAluno = "{{ aluno.nome }}";
-  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  const infoAulaDiv = document.getElementById("info-aula");
-  const salaIdSpan = document.getElementById("sala-id");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  onSnapshot(chamadaRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const dados = docSnap.data();
-      if (dados.status === "pendente") {
-        salaIdSpan.textContent = dados.sala;
-        infoAulaDiv.style.display = "block";
-        const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-        updateDoc(chamadaRef, {
-          status: aceitar ? "aceito" : "rejeitado"
-        });
-        if (aceitar) {
-          window.location.href = `/sala_virtual_aluno/${dados.sala}`;
-        }
+const nomeAluno = "{{ aluno.nome }}";
+const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+const infoAulaDiv = document.getElementById("info-aula");
+const salaIdSpan = document.getElementById("sala-id");
+
+onSnapshot(chamadaRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const dados = docSnap.data();
+    if (dados.status === "pendente") {
+      salaIdSpan.textContent = dados.sala;
+      infoAulaDiv.style.display = "block";
+      const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
+      updateDoc(chamadaRef, {
+        status: aceitar ? "aceito" : "rejeitado"
+      });
+      if (aceitar) {
+        window.location.href = `/sala_virtual_aluno/${dados.sala}`;
       }
     }
-  });
+  }
+});
 
-  window.toggleAulas = async function () {
-    const div = document.getElementById("sec-aula");
-    const aulasDadas = document.getElementById("aulas-dadas");
-    const aulasRestantes = document.getElementById("aulas-restantes");
-    const listaAulas = document.getElementById("lista-aulas"); 
-    
-    if (div.style.display === "block") {
-      div.style.display = "none";
-      return;
-    }
+window.toggleAulas = async function () {
+  const div = document.getElementById("sec-aula");
+  const aulasDadas = document.getElementById("aulas-dadas");
+  const aulasRestantes = document.getElementById("aulas-restantes");
+  const listaAulas = document.getElementById("lista-aulas"); 
+  
+  if (div.style.display === "block") {
+    div.style.display = "none";
+    return;
+  }
 
-    try {
-      const response = await fetch("/ver-aulas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
+  try {
+    const response = await fetch("/ver-aulas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.erro) {
-        aulasDadas.textContent = "Erro ao carregar as aulas.";
-        aulasRestantes.textContent = "";
-        listaAulas.innerHTML = "";
-        return;
-      }
-
-      aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
-      aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
-      listaAulas.innerHTML = "";
-      data.aulas.forEach((aula, i) => {
-        const li = document.createElement("li");
-        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
-        listaAulas.appendChild(li);
-      });
-    } catch (err) {
-      aulasDadas.textContent = "❌ Erro ao buscar dados.";
+    if (data.erro) {
+      aulasDadas.textContent = "Erro ao carregar as aulas.";
       aulasRestantes.textContent = "";
       listaAulas.innerHTML = "";
-    }
-
-    div.style.display = "block";
-  };
-
-  window.toggleProfessor = function () {
-    const container = document.getElementById("professor-nome");
-    if (container.style.display === "block") {
-      container.style.display = "none";
       return;
     }
-    fetch(`/meu-professor-status/${nomeAluno}`)
-      .then(response => response.json())
-      .then(data => {
-        const statusIcon = data.online ? '🟢' : '⚪';
-        const statusText = data.online ? 'Online' : 'Offline';
-        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-        container.style.display = "block";
-      })
-      .catch(() => {
-        container.innerHTML = "Professor não encontrado.";
-        container.style.display = "block";
-      });
-  };
 
-  window.verNotificacao = function () {
-    fetch("/verificar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
+    aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
+    aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
+    listaAulas.innerHTML = "";
+    data.aulas.forEach((aula, i) => {
+      const li = document.createElement("li");
+      li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
+      listaAulas.appendChild(li);
+    });
+  } catch (err) {
+    aulasDadas.textContent = "❌ Erro ao buscar dados.";
+    aulasRestantes.textContent = "";
+    listaAulas.innerHTML = "";
+  }
+
+  div.style.display = "block";
+};
+
+window.toggleProfessor = function () {
+  const container = document.getElementById("professor-nome");
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
+  fetch(`/meu-professor-status/${nomeAluno}`)
     .then(response => response.json())
     .then(data => {
-      const notificacaoEl = document.getElementById("notificacao-mensagem");
-      const contadorAulas = document.getElementById("contador-aulas");
-      if (data.notificacao === true) {
-        window.professorEmailAtual = data.professor_email;
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    });
-  };
-
-  window.desativarNotificacaoERedirecionar = function () {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
+      const statusIcon = data.online ? '🟢' : '⚪';
+      const statusText = data.online ? 'Online' : 'Offline';
+      container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+      container.style.display = "block";
     })
-    .then(() => {
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      document.getElementById("contador-aulas").innerText = "";
-      if (window.professorEmailAtual) {
-        const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      }
+    .catch(() => {
+      container.innerHTML = "Professor não encontrado.";
+      container.style.display = "block";
     });
-  };
+};
 
-  window.verHorario = async function () {
-    const container = document.getElementById("sec-horario");
-    const listaHorario = document.getElementById("lista-horario");
-
-    if (container.style.display === "block") {
-      container.style.display = "none";
-      return;
+window.verNotificacao = function () {
+  fetch("/verificar-notificacao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ aluno: nomeAluno })
+  })
+  .then(response => response.json())
+  .then(data => {
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+    if (data.notificacao === true) {
+      window.professorEmailAtual = data.professor_email;
+      notificacaoEl.innerHTML = `
+        A tua aula irá começar
+        <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
+      `;
+      notificacaoEl.style.display = "block";
+      contadorAulas.innerText = "(1)";
+    } else {
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
     }
+  });
+};
 
-    try {
-      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
-      const data = await res.json();
-      listaHorario.innerHTML = "";
+window.desativarNotificacaoERedirecionar = function () {
+  fetch("/desativar-notificacao", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ aluno: nomeAluno })
+  })
+  .then(() => {
+    document.getElementById("notificacao-mensagem").style.display = "none";
+    document.getElementById("contador-aulas").innerText = "";
+    if (window.professorEmailAtual) {
+      const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
+      window.location.href = `/sala_virtual_aluno/${sala}`;
+    }
+  });
+};
 
-      if (data.erro) {
-        const li = document.createElement("li");
-        li.textContent = "⚠️ Horário não encontrado.";
-        listaHorario.appendChild(li);
-      } else {
-        for (const [dia, horarios] of Object.entries(data.horario)) {
-          const diaItem = document.createElement("li");
-          diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
-          listaHorario.appendChild(diaItem);
+window.verHorario = async function () {
+  const container = document.getElementById("sec-horario");
+  const listaHorario = document.getElementById("lista-horario");
 
-          horarios.forEach(h => {
-            const horaItem = document.createElement("li");
-            horaItem.textContent = `- ${h}`;
-            horaItem.style.marginLeft = "15px";
-            listaHorario.appendChild(horaItem);
-          });
-        }
+  if (container.style.display === "block") {
+    container.style.display = "none";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+    const data = await res.json();
+    listaHorario.innerHTML = "";
+
+    if (data.erro) {
+      const li = document.createElement("li");
+      li.textContent = "⚠️ Horário não encontrado.";
+      listaHorario.appendChild(li);
+    } else {
+      for (const [dia, horarios] of Object.entries(data.horario)) {
+        const diaItem = document.createElement("li");
+        diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
+        listaHorario.appendChild(diaItem);
+
+        horarios.forEach(h => {
+          const horaItem = document.createElement("li");
+          horaItem.textContent = `- ${h}`;
+          horaItem.style.marginLeft = "15px";
+          listaHorario.appendChild(horaItem);
+        });
       }
-    } catch (e) {
-      listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
     }
+  } catch (e) {
+    listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
+  }
 
-    container.style.display = "block";
+  container.style.display = "block";
+};
+
+function traduzirDia(diaAbreviado) {
+  const dias = {
+    "Seg": "Segunda-feira",
+    "Ter": "Terça-feira",
+    "Qua": "Quarta-feira",
+    "Qui": "Quinta-feira",
+    "Sex": "Sexta-feira",
+    "Sab": "Sábado",
+    "Dom": "Domingo"
   };
+  return dias[diaAbreviado] || diaAbreviado;
+}
 
-  function traduzirDia(diaAbreviado) {
-    const dias = {
-      "Seg": "Segunda-feira",
-      "Ter": "Terça-feira",
-      "Qua": "Quarta-feira",
-      "Qui": "Quinta-feira",
-      "Sex": "Sexta-feira",
-      "Sab": "Sábado",
-      "Dom": "Domingo"
-    };
-    return dias[diaAbreviado] || diaAbreviado;
-  }
-
-  function toggle(id) {
-    const el = document.getElementById(id);
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
-  }
-
-  function fazerLogout() {
-    const nomeAluno = document.getElementById("aluno-id").value;
-    fetch("/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
-    })
-    .then(() => window.location.href = "/")
-    .catch(error => console.error("Erro ao fazer logout:", error));
-  }
-
-  function entrarNaAulaDireto() {
-    const salaId = document.getElementById("sala-id").textContent;
-    if (salaId) {
-      window.location.href = `/sala_virtual_aluno/${salaId}`;
-    }
-  }
-    
 let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 let nomeAluno = "{{ nome_normalizado }}";
 
@@ -592,8 +576,35 @@ async function subirNivel() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarPergunta();
 });
+  
+// ✅ CORREÇÃO: Tornando a função toggle global
+window.toggle = function (id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+};
 
-// Visibilidade dos dados
+function fazerLogout() {
+  const nomeAluno = document.getElementById("aluno-id").value;
+  fetch("/logout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: nomeAluno })
+  })
+  .then(() => window.location.href = "/")
+  .catch(error => console.error("Erro ao fazer logout:", error));
+}
+
+function entrarNaAulaDireto() {
+  const salaId = document.getElementById("sala-id").textContent;
+  if (salaId) {
+    window.location.href = `/sala_virtual_aluno/${salaId}`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarPergunta();
+});
+
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
   const inglesEl = document.getElementById("nivel-ingles");
