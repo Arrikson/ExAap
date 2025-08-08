@@ -2647,6 +2647,15 @@ mapa_niveis = {
 
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avançado": "avancado",
+        "fluente": "fluente"
+    }
+
     nivel = nivel.strip().lower()
     nivel = mapa_niveis.get(nivel, nivel)
 
@@ -2661,6 +2670,15 @@ async def perguntas_ingles(nivel: str = "iniciante"):
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avançado": "avancado",
+        "fluente": "fluente"
+    }
+
     nome = data.get("nome", "").strip()
     nome_normalizado = nome.lower()
 
@@ -2696,6 +2714,15 @@ async def subir_nivel(data: dict = Body(...)):
 
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avançado": "avancado",
+        "fluente": "fluente"
+    }
+
     nome = data.get("nome", "").strip()
     nome_normalizado = nome.lower()
 
@@ -2723,8 +2750,18 @@ async def proxima_pergunta(data: dict = Body(...)):
     })
 
 
+
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avançado": "avancado",
+        "fluente": "fluente"
+    }
+
     nome = data.get("nome", "").strip()
     nome_normalizado = nome.lower()
     resposta_user = data.get("resposta", "").strip().lower()
@@ -2774,6 +2811,7 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
