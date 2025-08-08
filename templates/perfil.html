@@ -2,337 +2,305 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil do Aluno</title>
-  <style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil do Aluno - Estilo BAI</title>
+<style>
   body {
     margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: #f2f2f2;
-    color: #333;
-    padding: 80px 15px 30px;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f7fa; /* fundo mais suave */
+    color: #2c3e50;
+    max-width: 480px;
+    margin: auto;
   }
 
- 
   .top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    background: linear-gradient(135deg, #00c9ff, #92fe9d); /* Mantida */
+    padding: 15px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 15px;
-    padding: 0 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-radius: 0 0 20px 20px;
-    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
   .top-bar img {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    object-fit: cover;
   }
 
-
-  .top-bar .logout-icon {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: background-color 0.3s ease;
-}
-
-.top-bar .logout-icon:hover {
-  background-color: #d9363e;
-}
- 
-  .card {
-    background: white;
-    max-width: 800px;
-    margin: auto;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  .top-bar .info {
+    display: flex;
+    flex-direction: column;
   }
 
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 20px;
+  .top-bar .info h2 {
+    font-size: 1rem;
+    margin: 0;
+    color: #ffffff;
   }
 
-  p {
-    font-size: 14px;
+  .top-bar .info p {
     margin: 2px 0;
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .saldo {
-    font-size: 16px;
-    font-weight: bold;
-  }
-
- 
-  .divida-toggle {
-    background-color: white;
-    color: black;
-    font-size: 12px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-
-
-  .ver-aulas-btn {
-    background-color: #ffc107;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-
-  .day, .time {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    display: inline-block;
-    margin: 4px;
-  }
-
-  .day.active {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .time.active {
-    background-color: #28a745;
-    border-color: #218838;
-    color: white;
-  }
-
- 
-  .botao-menu {
+    font-size: 1.1rem;
+    font-weight: 500;
     display: flex;
+    align-items: center;
     gap: 10px;
-    margin: 20px 15px;
-    overflow-x: auto;
+    color: #34495e;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 8px;
   }
 
-  .botao-menu button {
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    padding: 15px 10px;
-    color: #000;
-    font-weight: 600;
+  .saldo button {
+    background: none;
     border: none;
-    border-radius: 16px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-width: 120px;
-    flex-shrink: 0;
+    color: #2c3e50;
     cursor: pointer;
   }
 
+  .carrossel-indicadores {
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .carrossel-indicadores span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background-color: #1abc9c;
+  }
+
+  .acoes {
+    display: flex;
+    justify-content: space-around;
+    background: #ecf0f1;
+    padding: 15px 0;
+    flex-wrap: wrap;
+  }
+
+  .acao {
+    width: 70px;
+    height: 70px;
+    background: #d0f0ef;
+    border-radius: 15px;
+    text-align: center;
+    padding-top: 8px;
+    margin: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .acao i {
+    font-size: 20px;
+    display: block;
+    color: #16a085;
+  }
+
+ .acao span {
+   font-size: 12px;
+   color: #000000; /* preto */
+ }
   
   .ultimas-aulas {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
+    background: #ffffff;
+    border-radius: 15px;
+    margin: 15px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-
-  .ultimas-aulas h2 {
-    font-size: 20px;
-  }
-
-  .ultimas-aulas p {
-    font-size: 17px;
-    color: #444;
-  }
-
 
   .aula-item {
-    background: white;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    margin: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #dfe6e9;
+    padding: 8px 0;
   }
 
-  .bottom-nav {
+  .aula-info {
+    flex: 1;
+    color: #2c3e50;
+  }
+
+  .aula-valor {
+    font-weight: bold;
+    color: #2c3e50;
+  }
+
+  .footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #ccc;
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-top: 1px solid #dcdde1;
     display: flex;
     justify-content: space-around;
+    align-items: center;
     padding: 10px 0;
-    z-index: 999;
   }
 
-  .bottom-nav button {
-    background: none;
-    border: none;
+  .footer .item {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 12px;
+  }
+
+  .footer .item.active {
+    color: #1abc9c;
+  }
+
+  .footer .item i {
     font-size: 20px;
-    color: #444;
-    cursor: pointer;
-  }
-
- 
-  .secao-dinamica {
-    display: none;
-    background: white;
-    padding: 20px;
-    margin: 10px 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-
-  @media (max-width: 700px) {
-    .botao-menu {
-      overflow-x: auto;
-    }
-
-    .botao-menu button {
-      min-width: 120px;
-    }
-
-    .card {
-      padding: 20px;
-    }
-
-    h1 {
-      font-size: 1.5em;
-    }
-
-    .top-bar img {
-      width: 50px;
-      height: 50px;
-    }
-
-    .top-bar .logout-icon {
-      font-size: 18px;
-    }
-  }
-
-
-  .notificar-btn {
-    margin-top: 10px;
-    background: linear-gradient(135deg, #00c9ff, #92fe9d);
-    border: none;
-    padding: 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #000;
-    font-size: 16px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    transition: background 0.3s ease;
-    width: 100%;
-  }
-
-  .notificar-btn:hover {
-    background: linear-gradient(135deg, #00a0c9, #7cd77b);
-  }
-
-  .info {
-    display: none;
-    margin-top: 10px;
-    padding: 15px;
-    background: #f0f8ff;
-    border-left: 4px solid #00c9ff;
-    border-radius: 10px;
-  }
-
-  #notificacao-mensagem, #professor-nome, #info-aula {
-    display: none;
-    margin-top: 15px;
-    padding: 15px;
-    background: #fff;
-    border-radius: 10px;
-    border-left: 4px solid #00c9ff;
+    display: block;
   }
 </style>
-  <script src="https://kit.fontawesome.com/a2d9d5c56f.js" crossorigin="anonymous"></script>
 </head>
 <body>
-
-  <!-- Botão de logout no canto superior direito com rota GET /logout/{nome} -->
-  <a href="/logout/{{ aluno.nome }}" 
-     style="position: fixed; top: 10px; right: 15px; z-index: 1000; text-decoration: none;">
-    <button type="button" class="logout-button">Sair</button>
-  </a>
-
   <div class="top-bar">
-    <img src="/static/logo.png" alt="Logo">
-  </div>
+    <img src="/static/perfil.png" alt="Perfil" />
+    <div class="info">
+      <h2>Olá, {{ aluno.nome }} 👋</h2>
+      <p>B.I: {{ aluno.bilhete }}</p>
 
-  <div class="card">
-    <h1>{{ aluno.nome }}</h1>
-    <input type="hidden" id="aluno-id" value="{{ aluno.id }}">
-    <input type="hidden" id="aluno-nome" value="{{ aluno.nome }}">
-    <input type="hidden" id="professor-email" value="{{ professor_email }}">
+      <div class="saldo">
+        <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
+          <strong style="font-size: 10px;">Por pagar:</strong>
+          <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
+          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
+        </p>
 
-    <div class="btn-grid">
-      <button class="notificar-btn" onclick="toggleAulas()">📚 Ver Aulas</button>
-      <button class="notificar-btn" onclick="toggle('sec-nivel')">🧭 Nível do Inglês</button>
-      <button class="notificar-btn" onclick="toggle('sec-notas')">📝 Ver Notas</button>
-      <button class="notificar-btn" onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
-      <button class="notificar-btn" onclick="verNotificacao()">🔔 Notificação <span id="contador-aulas"></span></button>
-      <button class="notificar-btn" onclick="verHorario()">🗓️ Ver Horário</button>
-    </div>
+        <strong style="font-size: 13px;">Nível de Inglês:</strong>
+        <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
+      </div>
 
-    <div id="sec-aula" class="info">
-      <p id="aulas-dadas"></p>
-      <p id="aulas-restantes"></p>
-      <ul id="lista-aulas" style="padding-left: 20px;"></ul>
-    </div>
-
-    <div id="sec-nivel" class="info">
-      <p>Nível Atual: Intermediário</p>
-      <p>Próximo: Avançado</p>
-    </div>
-
-    <div id="sec-notas" class="info">
-      <p>Português: 16</p>
-      <p>Biologia: 18</p>
-      <p>Química: 14</p>
-    </div>
-
-    <div id="notificacao-mensagem"></div>
-    <div id="professor-nome"></div>
-
-    <div id="info-aula">
-      <p><strong>ID da Sala:</strong> <span id="sala-id">---</span></p>
-      <button class="notificar-btn" onclick="entrarNaAulaDireto()">Entrar na Aula</button>
-    </div>
-
-    <div id="sec-horario" class="info">
-      <h3>📅 Horário Definido</h3>
-      <ul id="lista-horario" style="list-style-type: none; padding-left: 0;"></ul>
+      <div class="carrossel-indicadores">
+        <span></span>
+        <span style="opacity: 0.3;"></span>
+      </div>
     </div>
   </div>
 
-<script type="module">
+  <div class="acoes">
+    <div class="acao" onclick="toggleAulas()">
+      <i>📘</i>
+      <span>Ver Aulas</span>
+    </div>
+    <div class="acao" onclick="verNotificacao()">
+      <i>🔔👨‍🏫</i>
+      <span>Sala de aula</span>
+    </div>
+    <div class="acao" onclick="verHorario()">
+      <i>📅</i>
+      <span>Ver Horário</span>
+    </div>
+    <div class="acao" onclick="toggle('sec-notas')">
+      <i>📝</i>
+      <span>Ver Notas</span>
+    </div>
+    <div class="acao" onclick="toggleProfessor()">
+      <i>👨‍🏫</i>
+      <span>Ver Professor</span>
+    </div>
+  </div>
+
+<!-- Desafio de Inglês -->
+<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
+  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+
+  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
+
+  <button onclick="verificarResposta()" style="
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    padding: 12px;
+    background: #1abc9c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;">
+    <!-- Desafio de Inglês -->
+<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
+  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+
+  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
+
+  <button onclick="verificarResposta()" style="
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    padding: 12px;
+    background: #1abc9c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;">
+    Verificar
+  </button>
+
+  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
+  </button>
+
+  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
+
+  </div>
+
+  <div class="footer">
+    <div class="item active">
+      <i>👤</i>
+      O Meu Perfil
+    </div>
+    <div class="item">
+      <i>💳</i>
+      Pagamentos
+    </div>
+    <div class="item">
+      <i>📂</i>
+      Menu
+    </div>
+  </div>
+
+  <!-- Seção para exibir detalhes das aulas -->
+  <div id="sec-aula" style="display:none;">
+    <p id="aulas-dadas"></p>
+    <p id="aulas-restantes"></p>
+    <ul id="lista-aulas"></ul>
+  </div>
+
+  <!-- Seção do professor -->
+  <div id="professor-nome" style="display:none;"></div>
+
+  <!-- Seção de notificações -->
+  <div id="notificacao-mensagem" style="display:none;"></div>
+  <span id="contador-aulas"></span>
+
+  <!-- Seção de horário -->
+  <div id="sec-horario" style="display:none;">
+    <ul id="lista-horario"></ul>
+  </div>
+
+  <!-- Seção para chamadas ao vivo -->
+  <div id="info-aula" style="display:none;">
+    <span id="sala-id"></span>
+    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+  </div>
+
+  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getFirestore, doc, onSnapshot, updateDoc
@@ -477,57 +445,57 @@
     });
   };
 
- window.verHorario = async function () {
-  const container = document.getElementById("sec-horario");
-  const listaHorario = document.getElementById("lista-horario");
+  window.verHorario = async function () {
+    const container = document.getElementById("sec-horario");
+    const listaHorario = document.getElementById("lista-horario");
 
-  if (container.style.display === "block") {
-    container.style.display = "none";
-    return;
-  }
-
-  try {
-    const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
-    const data = await res.json();
-    listaHorario.innerHTML = "";
-
-    if (data.erro) {
-      const li = document.createElement("li");
-      li.textContent = "⚠️ Horário não encontrado.";
-      listaHorario.appendChild(li);
-    } else {
-      for (const [dia, horarios] of Object.entries(data.horario)) {
-        const diaItem = document.createElement("li");
-        diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
-        listaHorario.appendChild(diaItem);
-
-        horarios.forEach(h => {
-          const horaItem = document.createElement("li");
-          horaItem.textContent = `- ${h}`;
-          horaItem.style.marginLeft = "15px";
-          listaHorario.appendChild(horaItem);
-        });
-      }
+    if (container.style.display === "block") {
+      container.style.display = "none";
+      return;
     }
-  } catch (e) {
-    listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
-  }
 
-  container.style.display = "block";
-};
+    try {
+      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+      const data = await res.json();
+      listaHorario.innerHTML = "";
 
-function traduzirDia(diaAbreviado) {
-  const dias = {
-    "Seg": "Segunda-feira",
-    "Ter": "Terça-feira",
-    "Qua": "Quarta-feira",
-    "Qui": "Quinta-feira",
-    "Sex": "Sexta-feira",
-    "Sab": "Sábado",
-    "Dom": "Domingo"
+      if (data.erro) {
+        const li = document.createElement("li");
+        li.textContent = "⚠️ Horário não encontrado.";
+        listaHorario.appendChild(li);
+      } else {
+        for (const [dia, horarios] of Object.entries(data.horario)) {
+          const diaItem = document.createElement("li");
+          diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
+          listaHorario.appendChild(diaItem);
+
+          horarios.forEach(h => {
+            const horaItem = document.createElement("li");
+            horaItem.textContent = `- ${h}`;
+            horaItem.style.marginLeft = "15px";
+            listaHorario.appendChild(horaItem);
+          });
+        }
+      }
+    } catch (e) {
+      listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
+    }
+
+    container.style.display = "block";
   };
-  return dias[diaAbreviado] || diaAbreviado;
-}
+
+  function traduzirDia(diaAbreviado) {
+    const dias = {
+      "Seg": "Segunda-feira",
+      "Ter": "Terça-feira",
+      "Qua": "Quarta-feira",
+      "Qui": "Quinta-feira",
+      "Sex": "Sexta-feira",
+      "Sab": "Sábado",
+      "Dom": "Domingo"
+    };
+    return dias[diaAbreviado] || diaAbreviado;
+  }
 
   function toggle(id) {
     const el = document.getElementById(id);
@@ -551,6 +519,73 @@ function traduzirDia(diaAbreviado) {
       window.location.href = `/sala_virtual_aluno/${salaId}`;
     }
   }
+
+  let perguntas = [];
+  let perguntaAtual = 0;
+  let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
+
+  async function carregarPerguntas() {
+    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
+    const dados = await resposta.json();
+    perguntas = dados.perguntas;
+    mostrarPergunta();
+  }
+
+  function mostrarPergunta() {
+    if (perguntaAtual < perguntas.length) {
+      const pergunta = perguntas[perguntaAtual];
+      document.getElementById('pergunta-texto').textContent = pergunta.pergunta;
+      document.getElementById('resposta-input').value = '';
+      document.getElementById('mensagem-feedback').textContent = '';
+    } else {
+      subirNivel();
+    }
+  }
+
+  async function verificarResposta() {
+    const resposta = document.getElementById('resposta-input').value.trim().toLowerCase();
+    const correta = perguntas[perguntaAtual].resposta.toLowerCase();
+
+    if (resposta === correta) {
+      document.getElementById('mensagem-feedback').textContent = "🎉 Parabéns! Você está cada vez mais perto de se tornar fluente!";
+      perguntaAtual++;
+      setTimeout(mostrarPergunta, 1500);
+    } else {
+      document.getElementById('mensagem-feedback').textContent = "❌ Resposta incorreta. Tente novamente!";
+    }
+  }
+
+  async function subirNivel() {
+    const resposta = await fetch('/subir-nivel', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: "{{ aluno.email }}" }) // ou id do aluno
+    });
+
+    const dados = await resposta.json();
+    nivelAtual = dados.novo_nivel;
+    document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
+    perguntaAtual = 0;
+    await carregarPerguntas();
+  }
+
+  carregarPerguntas();
+
+window.toggleVisibilidade = function () {
+  const dividaEl = document.getElementById("valor-divida");
+  const inglesEl = document.getElementById("nivel-ingles");
+
+  const visivel = dividaEl.textContent.includes("Kz");
+
+  if (visivel) {
+    dividaEl.textContent = "•••••••";
+    inglesEl.textContent = "•••••••";
+  } else {
+    const valorReal = dividaEl.dataset.real;
+    dividaEl.textContent = `Kz ${valorReal},00`;
+    inglesEl.textContent = "{{ aluno.nivel_ingles }}";
+  }
+};
 </script>
 </body>
 </html>
