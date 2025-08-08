@@ -2666,18 +2666,34 @@ def remover_acentos(texto):
     return ''.join(c for c in unicodedata.normalize('NFD', texto)
                    if unicodedata.category(c) != 'Mn')
 
-@app.get("/perguntas-ingles")
-async def perguntas_ingles(nivel: str = "iniciante"):
-    nivel = remover_acentos(nivel.strip().lower())
+@app.get("/pergunta-ingles")
+async def pergunta_ingles(nome: str):
+    nome = nome.strip().lower()
+
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
+    if not aluno_ref:
+        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+
+    doc = aluno_ref[0]
+    aluno = doc.to_dict()
+
+    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
     nivel = mapa_niveis.get(nivel, nivel)
+    progresso = aluno.get("progresso_ingles", 0)
 
-    perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).stream()
-    perguntas = [{"pergunta": p.to_dict()["pergunta"], "resposta": p.to_dict()["resposta"]} for p in perguntas_ref]
+    perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).order_by("pergunta").stream()
+    perguntas = [p.to_dict() for p in perguntas_ref]
 
-    if not perguntas:
-        return JSONResponse(status_code=404, content={"erro": f"Nenhuma pergunta encontrada para o nível '{nivel}'."})
+    if progresso >= len(perguntas):
+        return JSONResponse(content={"status": "final-nivel"})
 
-    return {"perguntas": perguntas}
+    pergunta_atual = perguntas[progresso]
+    return JSONResponse(content={
+        "pergunta": pergunta_atual["pergunta"],
+        "nivel": nivel,
+        "numero": progresso
+    })
+
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
