@@ -2554,8 +2554,8 @@ def inserir_perguntas():
     return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
     
 
-# 🔹 Função que retorna o dicionário completo de perguntas por nível
-def perguntas_ingles():
+# ✅ Corrigido: função com nome diferente da variável
+def obter_perguntas_ingles():
     return {
         "iniciante": [
             {"pergunta": "You ___ a student.", "resposta": "are"},
