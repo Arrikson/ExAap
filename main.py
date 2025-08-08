@@ -2529,18 +2529,9 @@ async def obter_saldo_atual(request: Request):
         return JSONResponse(content={"erro": str(e)}, status_code=500)
         
 @app.post("/inserir-perguntas")
-def inserir_perguntas_post():
-    return inserir_perguntas()
-
-@app.get("/inserir-perguntas")
-def inserir_perguntas_get():
-    return inserir_perguntas()
-
-# 🔹 Função principal para inserir as perguntas no Firebase
 def inserir_perguntas():
     total = 0
-    perguntas_por_nivel = await perguntas_ingles()
-
+    perguntas_por_nivel = obter_perguntas_ingles()  # <-- Correto agora!
     for nivel, perguntas in perguntas_por_nivel.items():
         for i, p in enumerate(perguntas):
             doc_id = f"{nivel}_{i+1}"
@@ -2550,9 +2541,13 @@ def inserir_perguntas():
                 "nivel": nivel
             })
             total += 1
-
     return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
-    
+
+
+@app.get("/inserir-perguntas")
+def inserir_perguntas_get():
+    return inserir_perguntas()  # Reaproveita a lógica do POST
+
 
 # ✅ Corrigido: função com nome diferente da variável
 def obter_perguntas_ingles():
