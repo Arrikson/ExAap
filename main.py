@@ -2528,30 +2528,39 @@ async def obter_saldo_atual(request: Request):
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
+@app.post("/inserir-perguntas")
+def inserir_perguntas():
+    total = 0
+    for nivel, perguntas in perguntas_ingles.items():
+        for i, p in enumerate(perguntas):
+            doc_id = f"{nivel}_{i+1}"
+            db.collection("perguntas_ingles").document(doc_id).set({
+                "pergunta": p["pergunta"],
+                "resposta": p["resposta"],
+                "nivel": nivel
+            })
+            total += 1
+    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
+    
 
-@app.get("/criar-perguntas")
+@app.get("/inserir-perguntas")
 def inserir_perguntas_get():
     return inserir_perguntas()
 
+# Função principal para inserir perguntas
 def inserir_perguntas():
-    perguntas_dict = {
-        "iniciante": [...],
-        "intermediario": [...],
-        "avancado": [...],
-        "fluente": [...]
-    }
-
-    for nivel, perguntas in perguntas_dict.items():
-        for p in perguntas:
-            db.collection("perguntas_ingles").add({
-                "nivel": nivel,
+    total = 0
+    for nivel, perguntas in perguntas_ingles.items():
+        for i, p in enumerate(perguntas):
+            doc_id = f"{nivel}_{i+1}"
+            db.collection("perguntas_ingles").document(doc_id).set({
                 "pergunta": p["pergunta"],
-                "resposta": p["resposta"]
+                "resposta": p["resposta"],
+                "nivel": nivel
             })
-
-    return {"mensagem": "Perguntas inseridas com sucesso."}
-
-
+            total += 1
+    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
+    
 # Dicionário completo de perguntas por nível
 perguntas_ingles = {
     "iniciante": [
@@ -2628,41 +2637,6 @@ perguntas_ingles = {
         {"pergunta": "Only by working hard ___ you succeed.", "resposta": "can"}
     ]
 }
-
-
-@app.post("/inserir-perguntas")
-def inserir_perguntas():
-    total = 0
-    for nivel, perguntas in perguntas_ingles.items():
-        for i, p in enumerate(perguntas):
-            doc_id = f"{nivel}_{i+1}"
-            db.collection("perguntas_ingles").document(doc_id).set({
-                "pergunta": p["pergunta"],
-                "resposta": p["resposta"],
-                "nivel": nivel
-            })
-            total += 1
-    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
-    
-
-@app.get("/inserir-perguntas")
-def inserir_perguntas_get():
-    return inserir_perguntas()
-
-# Função compartilhada
-def inserir_perguntas():
-    total = 0
-    for nivel, perguntas in perguntas_ingles.items():
-        for i, p in enumerate(perguntas):
-            doc_id = f"{nivel}_{i+1}"
-            db.collection("perguntas_ingles").document(doc_id).set({
-                "pergunta": p["pergunta"],
-                "resposta": p["resposta"],
-                "nivel": nivel
-            })
-            total += 1
-    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
-
         
 # Dicionário de níveis
 proximo_nivel = {
