@@ -10,6 +10,7 @@ import json
 import uuid
 import re
 import pytz
+import unicodedata
 from collections import OrderedDict
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
@@ -2645,7 +2646,21 @@ mapa_niveis = {
     "fluente": "fluente"
 }
 
-import unicodedata
+# Mapas de níveis
+mapa_niveis = {
+    "basico": "iniciante",
+    "inicial": "iniciante",
+    "intermedio": "intermediario",
+    "medio": "intermediario",
+    "avancado": "avancado",
+    "fluente": "fluente"
+}
+
+proximo_nivel = {
+    "iniciante": "intermediario",
+    "intermediario": "avancado",
+    "avancado": "fluente"
+}
 
 def remover_acentos(texto):
     return ''.join(c for c in unicodedata.normalize('NFD', texto)
@@ -2653,17 +2668,8 @@ def remover_acentos(texto):
 
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
-    mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avancado": "avancado",
-        "fluente": "fluente"
-    }
-
-    nivel = remover_acentos(nivel.strip().lower())  # Remove acentos
-    nivel = mapa_niveis.get(nivel, nivel)  # Aplica o mapeamento
+    nivel = remover_acentos(nivel.strip().lower())
+    nivel = mapa_niveis.get(nivel, nivel)
 
     perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).stream()
     perguntas = [{"pergunta": p.to_dict()["pergunta"], "resposta": p.to_dict()["resposta"]} for p in perguntas_ref]
@@ -2673,18 +2679,8 @@ async def perguntas_ingles(nivel: str = "iniciante"):
 
     return {"perguntas": perguntas}
 
-
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
-    mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avançado": "avancado",
-        "fluente": "fluente"
-    }
-
     nome = data.get("nome", "").strip()
     nome_normalizado = nome.lower()
 
@@ -2717,18 +2713,8 @@ async def subir_nivel(data: dict = Body(...)):
         print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
         return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
 
-
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
-    mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avançado": "avancado",
-        "fluente": "fluente"
-    }
-
     nome = data.get("nome", "").strip()
     nome_normalizado = nome.lower()
 
@@ -2755,13 +2741,11 @@ async def proxima_pergunta(data: dict = Body(...)):
         "nivel": nivel
     })
 
-
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
     nome = data.get("nome", "").strip().lower()
     resposta_user = remover_acentos(data.get("resposta", "").strip().lower())
 
-    # Buscar aluno pelo nome normalizado
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2785,7 +2769,6 @@ async def verificar_resposta(data: dict = Body(...)):
     if resposta_user == resposta_certa:
         novo_progresso = progresso + 1
 
-        # Verifica se deve subir de nível
         if novo_progresso >= len(perguntas):
             proximo = proximo_nivel.get(nivel)
             if proximo:
@@ -2809,35 +2792,6 @@ async def verificar_resposta(data: dict = Body(...)):
     else:
         print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
         return JSONResponse(content={"acertou": False})
-
-
-from fastapi.middleware.cors import CORSMiddleware
-
-# Habilitar CORS para permitir requisições do HTML
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.post("/adicionar-pergunta")
-async def adicionar_pergunta(request: Request):
-    dados = await request.json()
-    nivel = dados.get("nivel", "").strip().lower()
-    pergunta = dados.get("pergunta", "").strip()
-    resposta = dados.get("resposta", "").strip()
-
-    if not (nivel and pergunta and resposta):
-        return {"erro": "Todos os campos são obrigatórios"}
-
-    doc_ref = db.collection("perguntas_ingles").document()
-    doc_ref.set({
-        "nivel": nivel,
-        "pergunta": pergunta,
-        "resposta": resposta
-    })
-    return {"mensagem": "Pergunta adicionada com sucesso!"}
 
 
 @app.get("/admin", response_class=HTMLResponse)
