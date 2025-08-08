@@ -508,15 +508,9 @@
     mostrarPergunta();
   }
 
- async function mostrarPergunta() {
+async function mostrarPergunta() {
   try {
-    const response = await fetch("https://beckend-exaap.onrender.com/proxima-pergunta", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ nome: nomeAluno })
-    });
+    const response = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
 
     const data = await response.json();
 
