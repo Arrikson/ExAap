@@ -2527,21 +2527,9 @@ async def obter_saldo_atual(request: Request):
     except Exception as e:
         print(f"❌ Erro ao obter saldo: {e}")
         return JSONResponse(content={"erro": str(e)}, status_code=500)
-
 @app.post("/inserir-perguntas")
-def inserir_perguntas():
-    total = 0
-    for nivel, perguntas in perguntas_ingles.items():
-        for i, p in enumerate(perguntas):
-            doc_id = f"{nivel}_{i+1}"
-            db.collection("perguntas_ingles").document(doc_id).set({
-                "pergunta": p["pergunta"],
-                "resposta": p["resposta"],
-                "nivel": nivel
-            })
-            total += 1
-    return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
-    
+def inserir_perguntas_post():
+    return inserir_perguntas()
 
 @app.get("/inserir-perguntas")
 def inserir_perguntas_get():
@@ -2550,7 +2538,9 @@ def inserir_perguntas_get():
 # Função principal para inserir perguntas
 def inserir_perguntas():
     total = 0
-    for nivel, perguntas in perguntas_ingles.items():
+    perguntas_por_nivel = perguntas_ingles()  # ✅ CHAMA a função corretamente
+
+    for nivel, perguntas in perguntas_por_nivel.items():
         for i, p in enumerate(perguntas):
             doc_id = f"{nivel}_{i+1}"
             db.collection("perguntas_ingles").document(doc_id).set({
@@ -2559,7 +2549,9 @@ def inserir_perguntas():
                 "nivel": nivel
             })
             total += 1
+
     return {"mensagem": f"✅ {total} perguntas inseridas na coleção 'perguntas_ingles' com sucesso!"}
+
     
 # Dicionário completo de perguntas por nível
 perguntas_ingles = {
