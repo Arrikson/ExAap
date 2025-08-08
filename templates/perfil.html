@@ -502,7 +502,7 @@
   let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 
   async function carregarPerguntas() {
-    const resposta = await fetch(`/perguntas-ingles?nivel=${nivelAtual}`);
+    const resposta = await fetch(`/pergunta-ingles?nivel=${nivelAtual}`);
     const dados = await resposta.json();
     perguntas = dados.perguntas;
     mostrarPergunta();
