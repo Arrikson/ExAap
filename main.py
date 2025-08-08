@@ -2662,13 +2662,25 @@ proximo_nivel = {
     "avancado": "fluente"
 }
 
-def remover_acentos(texto):
-    return ''.join(c for c in unicodedata.normalize('NFD', texto)
-                   if unicodedata.category(c) != 'Mn')
 
 @app.get("/pergunta-ingles")
 async def pergunta_ingles(nome: str):
-    nome = nome.strip().lower()
+    # 🔤 Função local para remover acentos
+    def remover_acentos(texto):
+        return ''.join(c for c in unicodedata.normalize('NFD', texto)
+                       if unicodedata.category(c) != 'Mn')
+
+    # 📘 Mapa de conversão de níveis
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avancado": "avancado",
+        "fluente": "fluente"
+    }
+
+    nome = remover_acentos(nome.strip().lower())
 
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
@@ -2677,17 +2689,18 @@ async def pergunta_ingles(nome: str):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
-    # Garantir que o nível comece com "iniciante" se for inválido
     nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel_raw, "iniciante")  # se o nível não estiver no mapa, usar "iniciante"
+    nivel = mapa_niveis.get(nivel_raw, "iniciante")
 
-    # Garantir que o progresso seja um número inteiro válido
     progresso = aluno.get("progresso_ingles", 0)
     if not isinstance(progresso, int) or progresso < 0:
         progresso = 0
 
-    # Buscar perguntas do nível correspondente
-    perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).order_by("pergunta").stream()
+    perguntas_ref = db.collection("perguntas_ingles") \
+        .where("nivel", "==", nivel) \
+        .order_by("pergunta") \
+        .stream()
+
     perguntas = [p.to_dict() for p in perguntas_ref]
 
     if progresso >= len(perguntas):
@@ -2700,6 +2713,10 @@ async def pergunta_ingles(nome: str):
         "numero": progresso
     })
 
+
+def remover_acentos(texto):
+    return ''.join(c for c in unicodedata.normalize('NFD', texto)
+                   if unicodedata.category(c) != 'Mn')
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
