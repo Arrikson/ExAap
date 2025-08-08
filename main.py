@@ -2645,6 +2645,12 @@ mapa_niveis = {
     "fluente": "fluente"
 }
 
+import unicodedata
+
+def remover_acentos(texto):
+    return ''.join(c for c in unicodedata.normalize('NFD', texto)
+                   if unicodedata.category(c) != 'Mn')
+
 @app.get("/perguntas-ingles")
 async def perguntas_ingles(nivel: str = "iniciante"):
     mapa_niveis = {
@@ -2652,12 +2658,12 @@ async def perguntas_ingles(nivel: str = "iniciante"):
         "inicial": "iniciante",
         "intermedio": "intermediario",
         "medio": "intermediario",
-        "avançado": "avancado",
+        "avancado": "avancado",
         "fluente": "fluente"
     }
 
-    nivel = nivel.strip().lower()
-    nivel = mapa_niveis.get(nivel, nivel)
+    nivel = remover_acentos(nivel.strip().lower())  # Remove acentos
+    nivel = mapa_niveis.get(nivel, nivel)  # Aplica o mapeamento
 
     perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).stream()
     perguntas = [{"pergunta": p.to_dict()["pergunta"], "resposta": p.to_dict()["resposta"]} for p in perguntas_ref]
