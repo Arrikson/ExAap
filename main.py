@@ -2756,28 +2756,19 @@ async def proxima_pergunta(data: dict = Body(...)):
     })
 
 
-
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
-    mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avançado": "avancado",
-        "fluente": "fluente"
-    }
+    nome = data.get("nome", "").strip().lower()
+    resposta_user = remover_acentos(data.get("resposta", "").strip().lower())
 
-    nome = data.get("nome", "").strip()
-    nome_normalizado = nome.lower()
-    resposta_user = data.get("resposta", "").strip().lower()
-
-    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
+    # Buscar aluno pelo nome normalizado
+    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
+
     nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
     nivel = mapa_niveis.get(nivel, nivel)
     progresso = aluno.get("progresso_ingles", 0)
@@ -2789,11 +2780,12 @@ async def verificar_resposta(data: dict = Body(...)):
         return JSONResponse(content={"erro": "Todas perguntas respondidas."})
 
     pergunta_atual = perguntas[progresso]
-    resposta_certa = pergunta_atual["resposta"].strip().lower()
+    resposta_certa = remover_acentos(pergunta_atual["resposta"].strip().lower())
 
     if resposta_user == resposta_certa:
         novo_progresso = progresso + 1
 
+        # Verifica se deve subir de nível
         if novo_progresso >= len(perguntas):
             proximo = proximo_nivel.get(nivel)
             if proximo:
