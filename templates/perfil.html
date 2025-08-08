@@ -173,6 +173,29 @@
     </div>
   </div>
 
+  <div class="acoes">
+    <div class="acao" onclick="toggleAulas()">
+      <i>📘</i>
+      <span>Ver Aulas</span>
+    </div>
+    <div class="acao" onclick="verNotificacao()">
+      <i>🔔👨‍🏫</i>
+      <span>Sala de aula</span>
+    </div>
+    <div class="acao" onclick="verHorario()">
+      <i>📅</i>
+      <span>Ver Horário</span>
+    </div>
+    <div class="acao" onclick="toggle('sec-notas')">
+      <i>📝</i>
+      <span>Ver Notas</span>
+    </div>
+    <div class="acao" onclick="toggleProfessor()">
+      <i>👨‍🏫</i>
+      <span>Ver Professor</span>
+    </div>
+  </div>
+
   <!-- Desafio de Inglês -->
   <div class="jogo-ingles" id="jogo-ingles" style="position: relative; padding-bottom: 80px;">
     <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
@@ -209,80 +232,70 @@
     </button>
   </div>
 
-  <!-- Rodapé de Navegação -->
   <div class="footer">
-    <div class="item" onclick="mostrarSecao('perfil')">
-      <i>👤</i>
-      O Meu Perfil
-    </div>
-    <div class="item" onclick="mostrarSecao('pagamentos')">
-      <i>💳</i>
-      Pagamentos
-    </div>
-    <div class="item" onclick="mostrarSecao('menu')">
-      <i>📂</i>
-      Menu
-    </div>
+  <div class="item" onclick="mostrarSecao('perfil')">
+    <i>👤</i>
+    O Meu Perfil
   </div>
-
-  <!-- Seções Alternáveis -->
-  <div id="sec-perfil" style="display:none; margin-top: 20px;">
-    <p><strong>👤 Nome:</strong> {{ aluno.nome }}</p>
-    <p><strong>🎯 Nível de Inglês:</strong> <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span></p>
-    <p><strong>💰 Dívida:</strong> <span id="valor-divida" data-real="{{ aluno.divida }}">{{ aluno.divida }} Kz</span></p>
-    <button onclick="toggleVisibilidade()">👁 Alternar Visibilidade</button>
+  <div class="item" onclick="mostrarSecao('pagamentos')">
+    <i>💳</i>
+    Pagamentos
   </div>
-
-  <div id="sec-pagamentos" style="display:none; margin-top: 20px;">
-    <p>Aqui vão aparecer os dados de pagamentos...</p>
+  <div class="item" onclick="mostrarSecao('menu')">
+    <i>📂</i>
+    Menu
   </div>
+</div>
 
-  <div id="sec-menu" style="display:none; margin-top: 20px;">
-    <button onclick="toggleAulas()">📘 Ver Aulas</button>
-    <button onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
-    <button onclick="verHorario()">📅 Ver Horário</button>
-    <button onclick="verNotificacao()">🔔 Ver Notificações</button>
-    <button onclick="fazerLogout()">🚪 Logout</button>
-  </div>
+<!-- Seções adicionais para funcionalidade dos botões -->
+<div id="sec-aula" style="display:none;">
+  <p id="aulas-dadas"></p>
+  <p id="aulas-restantes"></p>
+  <ul id="lista-aulas"></ul>
+</div>
 
-  <!-- Outras seções do sistema -->
-  <div id="sec-aula" style="display:none;">
-    <p id="aulas-dadas"></p>
-    <p id="aulas-restantes"></p>
-    <ul id="lista-aulas"></ul>
-  </div>
+<div id="sec-notas" style="display:none;">
+  <p>Aqui vão aparecer as tuas notas...</p>
+</div>
 
-  <div id="sec-notas" style="display:none;">
-    <p>Aqui vão aparecer as tuas notas...</p>
-  </div>
+<div id="sec-horario" style="display:none;">
+  <ul id="lista-horario"></ul>
+</div>
 
-  <div id="sec-horario" style="display:none;">
-    <ul id="lista-horario"></ul>
-  </div>
+<div id="professor-nome" style="display:none;"></div>
+<div id="notificacao-mensagem" style="display:none;"></div>
+<span id="contador-aulas"></span>
 
-  <div id="professor-nome" style="display:none;"></div>
-  <div id="notificacao-mensagem" style="display:none;"></div>
-  <span id="contador-aulas"></span>
+<div id="info-aula" style="display:none;">
+  <span id="sala-id"></span>
+  <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+</div>
 
-  <div id="info-aula" style="display:none;">
-    <span id="sala-id"></span>
-    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
-  </div>
+<!-- NOVAS SEÇÕES INSERIDAS -->
+<div id="sec-perfil" style="display:none; margin-top: 20px;">
+  <p><strong>👤 Nome:</strong> {{ aluno.nome }}</p>
+  <p><strong>🎯 Nível de Inglês:</strong> <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span></p>
+  <p><strong>💰 Dívida:</strong> <span id="valor-divida" data-real="{{ aluno.divida }}">{{ aluno.divida }} Kz</span></p>
+  <button onclick="toggleVisibilidade()">👁 Alternar Visibilidade</button>
+</div>
 
-  <input type="hidden" id="aluno-id" value="{{ aluno.nome }}" />
+<div id="sec-pagamentos" style="display:none; margin-top: 20px;">
+  <p>Aqui vão aparecer os dados de pagamentos...</p>
+</div>
 
-  <!-- Script para alternar seções -->
-  <script>
-    function mostrarSecao(secao) {
-      const secoes = ['perfil', 'pagamentos', 'menu'];
-      secoes.forEach(id => {
-        document.getElementById(`sec-${id}`).style.display = (id === secao) ? 'block' : 'none';
-      });
-    }
-  </script>
+<div id="sec-menu" style="display:none; margin-top: 20px;">
+  <button onclick="toggleAulas()">📘 Ver Aulas</button>
+  <button onclick="toggleProfessor()">👨‍🏫 Ver Professor</button>
+  <button onclick="verHorario()">📅 Ver Horário</button>
+  <button onclick="verNotificacao()">🔔 Ver Notificações</button>
+  <button onclick="fazerLogout()">🚪 Logout</button>
+</div>
+
+<!-- Campo oculto com nome do aluno para logout -->
+<input type="hidden" id="aluno-id" value="{{ aluno.nome }}" />
 </body>
 
-
+<!-- Firebase + chamada ao vivo -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -322,7 +335,7 @@ onSnapshot(chamadaRef, (docSnap) => {
     }
   }
 });
-
+  
 window.toggleAulas = async function () {
   const div = document.getElementById("sec-aula");
   const aulasDadas = document.getElementById("aulas-dadas");
