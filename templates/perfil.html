@@ -616,7 +616,7 @@ async function verificarResposta() {
   }
 }
 
- async function subirNivel() {
+async function subirNivel() {
   try {
     const resposta = await fetch('https://beckend-exaap.onrender.com/subir-nivel', {
       method: 'POST',
@@ -630,7 +630,17 @@ async function verificarResposta() {
       nivelAtual = dados.novo_nivel;
       document.getElementById('nivel-aluno').textContent = dados.novo_nivel.toUpperCase();
       perguntaAtual = 0;
-      await carregarPerguntas();
+
+      // 🔹 Mensagem temporária de parabéns
+      const mensagemEl = document.getElementById('mensagem-feedback');
+      mensagemEl.textContent = `🚀 Parabéns! Agora você está no nível ${dados.novo_nivel.toUpperCase()}!`;
+
+      // 🔹 Espera um pouco antes de carregar a nova pergunta
+      setTimeout(async () => {
+        mensagemEl.textContent = "";
+        await carregarPerguntas();
+      }, 1500);
+
     } else if (dados.erro) {
       console.error("Erro ao subir de nível:", dados.erro);
     }
