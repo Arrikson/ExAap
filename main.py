@@ -2663,65 +2663,32 @@ proximo_nivel = {
 }
 
 
-@app.get("/pergunta-ingles") 
-async def pergunta_ingles(nome: str):
-    import unicodedata
+@app.post("/ajustar-progresso-ingles")
+async def ajustar_progresso_ingles():
+    alunos_ref = db.collection("alunos").stream()
+    count = 0
 
-    # 🔤 Função local para remover acentos
-    def remover_acentos(texto):
-        return ''.join(c for c in unicodedata.normalize('NFD', texto)
-                       if unicodedata.category(c) != 'Mn')
+    for aluno_doc in alunos_ref:
+        aluno_data = aluno_doc.to_dict()
+        update_data = {}
 
-    # 📘 Mapa de conversão de níveis
-    mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avancado": "avancado",
-        "fluente": "fluente"
-    }
+        # Cria campos de progresso por nível se não existirem
+        if "progresso_ingles" not in aluno_data:
+            update_data["progresso_ingles"] = 0
+        if "progresso_ingles1" not in aluno_data:
+            update_data["progresso_ingles1"] = 0
+        if "progresso_ingles2" not in aluno_data:
+            update_data["progresso_ingles2"] = 0
+        if "progresso_ingles3" not in aluno_data:
+            update_data["progresso_ingles3"] = 0
+        if "progresso_ingles4" not in aluno_data:
+            update_data["progresso_ingles4"] = 0
 
-    nome = remover_acentos(nome.strip().lower())
+        if update_data:
+            aluno_doc.reference.update(update_data)
+            count += 1
 
-    # 🔍 Busca o aluno
-    aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
-    if not aluno_ref:
-        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
-
-    doc = aluno_ref[0]
-    aluno = doc.to_dict()
-
-    # 🏷️ Ajusta nível
-    nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel_raw, "iniciante")
-
-    # 📊 Progresso
-    progresso = aluno.get("progresso_ingles", 0)
-    if not isinstance(progresso, int) or progresso < 0:
-        progresso = 0
-
-    # 📚 Busca perguntas do nível e inclui ID
-    perguntas_ref = db.collection("perguntas_ingles") \
-        .where("nivel", "==", nivel) \
-        .order_by("pergunta") \
-        .stream()
-
-    perguntas = [{"id": p.id, **p.to_dict()} for p in perguntas_ref]
-
-    # 🏁 Verifica se terminou
-    if progresso >= len(perguntas):
-        return JSONResponse(content={"status": "final-nivel"})
-
-    # 🎯 Pega pergunta atual
-    pergunta_atual = perguntas[progresso]
-
-    return JSONResponse(content={
-        "id": pergunta_atual["id"],       # 🔹 ID do documento
-        "pergunta": pergunta_atual["pergunta"],
-        "nivel": nivel,
-        "numero": progresso
-    })
+    return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
 
 def remover_acentos(texto):
@@ -2737,22 +2704,23 @@ async def pergunta_ingles(nome: str):
                        if unicodedata.category(c) != 'Mn')
 
     mapa_niveis = {
-        "basico": "iniciante",
-        "inicial": "iniciante",
-        "intermedio": "intermediario",
-        "medio": "intermediario",
-        "avancado": "avancado",
-        "fluente": "fluente"
+        "basico": ("iniciante", "progresso_ingles"),
+        "inicial": ("iniciante", "progresso_ingles"),
+        "intermedio": ("intermediario", "progresso_ingles1"),
+        "medio": ("intermediario", "progresso_ingles1"),
+        "avancado": ("avancado", "progresso_ingles2"),
+        "fluente": ("fluente", "progresso_ingles3")
     }
 
     proximo_nivel = {
-        "iniciante": "intermediario",
-        "intermediario": "avancado",
-        "avancado": "fluente"
+        "iniciante": ("intermediario", "progresso_ingles1"),
+        "intermediario": ("avancado", "progresso_ingles2"),
+        "avancado": ("fluente", "progresso_ingles3")
     }
 
     nome = remover_acentos(nome.strip().lower())
 
+    # 🔍 Busca aluno
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2761,30 +2729,31 @@ async def pergunta_ingles(nome: str):
     aluno = doc.to_dict()
 
     nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel_raw, "iniciante")
+    if nivel_raw not in mapa_niveis:
+        return JSONResponse(status_code=400, content={"erro": f"Nível '{nivel_raw}' inválido."})
 
-    progresso = aluno.get("progresso_ingles", 0)
+    nivel, progresso_field = mapa_niveis[nivel_raw]
+
+    progresso = aluno.get(progresso_field, 0)
     if not isinstance(progresso, int) or progresso < 0:
         progresso = 0
 
+    # 📚 Busca perguntas do nível
     perguntas_ref = db.collection("perguntas_ingles") \
         .where("nivel", "==", nivel) \
         .order_by("pergunta") \
         .stream()
-
     perguntas = [{"id": p.id, **p.to_dict()} for p in perguntas_ref]
 
-    # 🏁 Se terminou as perguntas, já sobe de nível
+    # 🏁 Se terminou as perguntas
     if progresso >= len(perguntas):
         if nivel in proximo_nivel:
-            novo_nivel = proximo_nivel[nivel]
+            novo_nivel, novo_campo = proximo_nivel[nivel]
             doc.reference.update({
                 "nivel_ingles": novo_nivel,
-                "progresso_ingles": 0
+                novo_campo: aluno.get(novo_campo, 0)
             })
-            print(f"🚀 {aluno.get('nome', nome)} subiu de {nivel.upper()} para {novo_nivel.upper()}.")
 
-            # Buscar primeira pergunta do próximo nível
             prox_perguntas_ref = db.collection("perguntas_ingles") \
                 .where("nivel", "==", novo_nivel) \
                 .order_by("pergunta") \
@@ -2799,14 +2768,22 @@ async def pergunta_ingles(nome: str):
                     "id": primeira["id"],
                     "pergunta": primeira["pergunta"],
                     "nivel": novo_nivel,
-                    "numero": 0
+                    "numero": aluno.get(novo_campo, 0)
                 })
             else:
                 return JSONResponse(content={"mensagem": "Subiu de nível, mas não há perguntas no próximo nível."})
-
         else:
-            print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
             return JSONResponse(content={"status": "maximo", "mensagem": "Você já está no nível máximo!"})
+
+    # 🎯 Pega pergunta atual
+    pergunta_atual = perguntas[progresso]
+    return JSONResponse(content={
+        "id": pergunta_atual["id"],
+        "pergunta": pergunta_atual["pergunta"],
+        "nivel": nivel,
+        "numero": progresso
+    })
+
 
     # 🎯 Caso ainda tenha perguntas
     pergunta_atual = perguntas[progresso]
