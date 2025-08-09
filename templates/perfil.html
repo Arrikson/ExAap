@@ -506,14 +506,39 @@ async function carregarPerguntas() {
     const resposta = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
     const dados = await resposta.json();
 
+    // 🔹 Se o backend informou que subiu de nível
+    if (dados.mensagem && dados.novo_nivel) {
+      nivelAtual = dados.novo_nivel;
+      document.getElementById("nivel-aluno").textContent = dados.novo_nivel.toUpperCase();
+
+      // Mostra mensagem de parabéns
+      const mensagemEl = document.getElementById("mensagem-feedback");
+      mensagemEl.textContent = `🚀 ${dados.mensagem}`;
+
+      // Remove a mensagem após alguns segundos
+      setTimeout(() => {
+        mensagemEl.textContent = "";
+      }, 2000);
+    }
+
+    // 🔹 Se tem pergunta para exibir
     if (dados.pergunta) {
-      perguntas = [dados.pergunta];  // Armazena a pergunta atual, se necessário
+      perguntas = [dados.pergunta];
       mostrarPergunta(dados.pergunta, dados.nivel);
-    } else if (dados.status === "final-nivel") {
+    } 
+    // 🔹 Se terminou todas as perguntas e já está no nível máximo
+    else if (dados.status === "maximo") {
+      document.getElementById("pergunta-texto").textContent = "🏆 Você já está no nível máximo!";
+    } 
+    // 🔹 Caso antigo: terminou o nível mas backend não retornou próximo nível
+    else if (dados.status === "final-nivel") {
       document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
-    } else {
+    } 
+    // 🔹 Caso não tenha perguntas
+    else {
       document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
     }
+
   } catch (erro) {
     console.error("Erro ao carregar pergunta:", erro);
     document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
