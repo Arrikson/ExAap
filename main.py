@@ -2663,8 +2663,10 @@ proximo_nivel = {
 }
 
 
-@app.get("/pergunta-ingles")
+@app.get("/pergunta-ingles") 
 async def pergunta_ingles(nome: str):
+    import unicodedata
+
     # 🔤 Função local para remover acentos
     def remover_acentos(texto):
         return ''.join(c for c in unicodedata.normalize('NFD', texto)
@@ -2682,6 +2684,7 @@ async def pergunta_ingles(nome: str):
 
     nome = remover_acentos(nome.strip().lower())
 
+    # 🔍 Busca o aluno
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2689,25 +2692,32 @@ async def pergunta_ingles(nome: str):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
+    # 🏷️ Ajusta nível
     nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
     nivel = mapa_niveis.get(nivel_raw, "iniciante")
 
+    # 📊 Progresso
     progresso = aluno.get("progresso_ingles", 0)
     if not isinstance(progresso, int) or progresso < 0:
         progresso = 0
 
+    # 📚 Busca perguntas do nível e inclui ID
     perguntas_ref = db.collection("perguntas_ingles") \
         .where("nivel", "==", nivel) \
         .order_by("pergunta") \
         .stream()
 
-    perguntas = [p.to_dict() for p in perguntas_ref]
+    perguntas = [{"id": p.id, **p.to_dict()} for p in perguntas_ref]
 
+    # 🏁 Verifica se terminou
     if progresso >= len(perguntas):
         return JSONResponse(content={"status": "final-nivel"})
 
+    # 🎯 Pega pergunta atual
     pergunta_atual = perguntas[progresso]
+
     return JSONResponse(content={
+        "id": pergunta_atual["id"],       # 🔹 ID do documento
         "pergunta": pergunta_atual["pergunta"],
         "nivel": nivel,
         "numero": progresso
