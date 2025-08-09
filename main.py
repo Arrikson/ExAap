@@ -2664,8 +2664,9 @@ proximo_nivel = {
 
 
 @app.get("/pergunta-ingles")
-async def pergunta_ingles(nome: str):
+async def pergunta_ingles(nome: str, nivel: str = None):
     import unicodedata
+    from fastapi.responses import JSONResponse
 
     def remover_acentos(texto):
         return ''.join(c for c in unicodedata.normalize('NFD', texto)
@@ -2688,6 +2689,7 @@ async def pergunta_ingles(nome: str):
 
     nome = remover_acentos(nome.strip().lower())
 
+    # Busca aluno pelo nome
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2695,21 +2697,26 @@ async def pergunta_ingles(nome: str):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
-    nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel_raw, "iniciante")
+    # Define nível
+    if nivel:
+        nivel = mapa_niveis.get(nivel.strip().lower(), "iniciante")
+    else:
+        nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
+        nivel = mapa_niveis.get(nivel_raw, "iniciante")
 
+    # Progresso do aluno
     progresso = aluno.get("progresso_ingles", 0)
     if not isinstance(progresso, int) or progresso < 0:
         progresso = 0
 
+    # Busca perguntas do nível
     perguntas_ref = db.collection("perguntas_ingles") \
         .where("nivel", "==", nivel) \
         .order_by("pergunta") \
         .stream()
-
     perguntas = [{"id": p.id, **p.to_dict()} for p in perguntas_ref]
 
-    # 🏁 Se terminou as perguntas, já sobe de nível
+    # Caso tenha terminado as perguntas -> subir nível
     if progresso >= len(perguntas):
         if nivel in proximo_nivel:
             novo_nivel = proximo_nivel[nivel]
@@ -2719,7 +2726,6 @@ async def pergunta_ingles(nome: str):
             })
             print(f"🚀 {aluno.get('nome', nome)} subiu de {nivel.upper()} para {novo_nivel.upper()}.")
 
-            # Buscar primeira pergunta do próximo nível
             prox_perguntas_ref = db.collection("perguntas_ingles") \
                 .where("nivel", "==", novo_nivel) \
                 .order_by("pergunta") \
@@ -2738,10 +2744,21 @@ async def pergunta_ingles(nome: str):
                 })
             else:
                 return JSONResponse(content={"mensagem": "Subiu de nível, mas não há perguntas no próximo nível."})
-
         else:
-            print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
             return JSONResponse(content={"status": "maximo", "mensagem": "Você já está no nível máximo!"})
+
+    # Caso ainda tenha perguntas no nível
+    if perguntas:
+        pergunta_atual = perguntas[progresso]
+        return JSONResponse(content={
+            "id": pergunta_atual["id"],
+            "pergunta": pergunta_atual["pergunta"],
+            "nivel": nivel,
+            "numero": progresso
+        })
+
+    # Nenhuma pergunta encontrada
+    return JSONResponse(content={"status": "sem-perguntas", "mensagem": "Nenhuma pergunta disponível para este nível."})
 
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
