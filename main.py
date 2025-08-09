@@ -2628,7 +2628,86 @@ def obter_perguntas_ingles():
         ]
     }
 
+
+@app.get("/ajustar-progresso-ingles")
+async def ajustar_progresso_ingles():
+    alunos_ref = db.collection("alunos").stream()
+    count = 0
+
+    for aluno_doc in alunos_ref:
+        aluno_data = aluno_doc.to_dict()
+        update_data = {}
+
+        if "progresso_ingles" not in aluno_data:
+            update_data["progresso_ingles"] = 0
+        if "progresso_ingles1" not in aluno_data:
+            update_data["progresso_ingles1"] = 0
+        if "progresso_ingles2" not in aluno_data:
+            update_data["progresso_ingles2"] = 0
+        if "progresso_ingles3" not in aluno_data:
+            update_data["progresso_ingles3"] = 0
+        if "progresso_ingles4" not in aluno_data:
+            update_data["progresso_ingles4"] = 0
+
+        if update_data:
+            aluno_doc.reference.update(update_data)
+            count += 1
+
+    # Dados das perguntas para as coleções separadas
+    perguntas_ingles1 = [
+        # nível iniciante (exemplo)
+        {"pergunta": "What is your name?", "resposta": "my name is"},
+        {"pergunta": "Where do you live?", "resposta": "i live in"},
+        {"pergunta": "How old are you?", "resposta": "i am"},
         
+    ]
+
+    perguntas_ingles2 = [
+        # nível intermediário
+        {"pergunta": "She ___ to school every day.", "resposta": "goes"},
+        {"pergunta": "We ___ dinner at 7 PM.", "resposta": "have"},
+        {"pergunta": "They ___ in Luanda last year.", "resposta": "were"},
+       
+    ]
+
+    perguntas_ingles3 = [
+        # nível avançado
+        {"pergunta": "If I ___ more time, I would travel.", "resposta": "had"},
+        {"pergunta": "She would have come if she ___ invited.", "resposta": "had been"},
+        {"pergunta": "He ___ finished the work by now.", "resposta": "should have"},
+  
+    ]
+
+    perguntas_ingles4 = [
+        # nível fluente
+        {"pergunta": "Not only ___ he smart, but also kind.", "resposta": "is"},
+        {"pergunta": "Scarcely ___ I sat down when she arrived.", "resposta": "had"},
+        {"pergunta": "Little ___ they know about the truth.", "resposta": "do"},
+       
+    ]
+
+    # Função para popular coleção, cuidando para não duplicar
+    def popular_colecao(nome_colecao, perguntas):
+        colecao_ref = db.collection(nome_colecao)
+        docs = list(colecao_ref.stream())
+        if docs:
+            print(f"🛑 Coleção {nome_colecao} já populada, pulando inserção.")
+            return  # já populado, evita duplicar
+        batch = db.batch()
+        for pergunta in perguntas:
+            doc_ref = colecao_ref.document()  # gera ID automático
+            batch.set(doc_ref, pergunta)
+        batch.commit()
+        print(f"✅ Coleção {nome_colecao} populada com {len(perguntas)} perguntas.")
+
+    popular_colecao("perguntas_ingles1", perguntas_ingles1)
+    popular_colecao("perguntas_ingles2", perguntas_ingles2)
+    popular_colecao("perguntas_ingles3", perguntas_ingles3)
+    popular_colecao("perguntas_ingles4", perguntas_ingles4)
+
+    return {"mensagem": f"Campos criados/atualizados em {count} alunos e coleções de perguntas criadas."}
+
+
 # Dicionário de níveis
 proximo_nivel = {
     "iniciante": "intermediario",
