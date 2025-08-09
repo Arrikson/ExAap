@@ -2663,15 +2663,17 @@ proximo_nivel = {
 }
 
 
+import unicodedata
+
+# 🔹 Função global para todas as rotas
+def remover_acentos(texto: str) -> str:
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    )
+
 @app.get("/pergunta-ingles")
 async def pergunta_ingles(nome: str, nivel: str = None):
-    import unicodedata
-    from fastapi.responses import JSONResponse
-
-    def remover_acentos(texto):
-        return ''.join(c for c in unicodedata.normalize('NFD', texto)
-                       if unicodedata.category(c) != 'Mn')
-
     mapa_niveis = {
         "basico": "iniciante",
         "inicial": "iniciante",
@@ -2757,18 +2759,11 @@ async def pergunta_ingles(nome: str, nivel: str = None):
             "numero": progresso
         })
 
-    # Nenhuma pergunta encontrada
     return JSONResponse(content={"status": "sem-perguntas", "mensagem": "Nenhuma pergunta disponível para este nível."})
+
 
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
-    import unicodedata
-
-    def remover_acentos(texto):
-        return ''.join(c for c in unicodedata.normalize('NFD', texto)
-                       if unicodedata.category(c) != 'Mn')
-
-    # Mapa de níveis
     mapa_niveis = {
         "basico": "iniciante",
         "inicial": "iniciante",
@@ -2788,17 +2783,14 @@ async def proxima_pergunta(data: dict = Body(...)):
     aluno_doc = aluno_ref[0]
     aluno = aluno_doc.to_dict()
 
-    # Incrementa progresso
     progresso = aluno.get("progresso_ingles", 0) + 1
     db.collection("alunos").document(aluno_doc.id).update({
         "progresso_ingles": progresso
     })
 
-    # Determina nível
     nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
     nivel = mapa_niveis.get(nivel_raw, "iniciante")
 
-    # Busca perguntas
     perguntas_ref = db.collection("perguntas_ingles") \
         .where("nivel", "==", nivel) \
         .order_by("pergunta") \
@@ -2812,7 +2804,7 @@ async def proxima_pergunta(data: dict = Body(...)):
     pergunta_atual = perguntas[progresso]
 
     return JSONResponse(content={
-        "id": pergunta_atual["id"],        # 🔹 Importante para verificar resposta
+        "id": pergunta_atual["id"],
         "pergunta": pergunta_atual["pergunta"],
         "nivel": nivel,
         "numero": progresso
@@ -2823,9 +2815,8 @@ async def proxima_pergunta(data: dict = Body(...)):
 async def verificar_resposta(data: dict = Body(...)):
     nome = data.get("nome", "").strip().lower()
     resposta_user = remover_acentos(data.get("resposta", "").strip().lower())
-    pergunta_id = data.get("pergunta_id", "").strip()  # 🔹 Recebendo ID da pergunta
+    pergunta_id = data.get("pergunta_id", "").strip()
 
-    # Verifica se o aluno existe
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2833,7 +2824,6 @@ async def verificar_resposta(data: dict = Body(...)):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
-    # Busca a pergunta pelo ID
     pergunta_ref = db.collection("perguntas_ingles").document(pergunta_id).get()
     if not pergunta_ref.exists:
         return JSONResponse(status_code=404, content={"erro": "Pergunta não encontrada"})
@@ -2841,7 +2831,6 @@ async def verificar_resposta(data: dict = Body(...)):
     pergunta_data = pergunta_ref.to_dict()
     resposta_certa = remover_acentos(pergunta_data["resposta"].strip().lower())
 
-    # Compara a resposta do usuário com a correta
     if resposta_user == resposta_certa:
         print(f"✔️ {aluno.get('nome', nome)} acertou a pergunta {pergunta_id}.")
         return JSONResponse(content={"acertou": True})
