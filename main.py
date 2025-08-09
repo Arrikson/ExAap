@@ -2784,7 +2784,9 @@ async def proxima_pergunta(data: dict = Body(...)):
 async def verificar_resposta(data: dict = Body(...)):
     nome = data.get("nome", "").strip().lower()
     resposta_user = remover_acentos(data.get("resposta", "").strip().lower())
+    pergunta_id = data.get("pergunta_id", "").strip()  # 🔹 Recebendo ID da pergunta
 
+    # Verifica se o aluno existe
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
@@ -2792,44 +2794,20 @@ async def verificar_resposta(data: dict = Body(...)):
     doc = aluno_ref[0]
     aluno = doc.to_dict()
 
-    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel, nivel)
-    progresso = aluno.get("progresso_ingles", 0)
+    # Busca a pergunta pelo ID
+    pergunta_ref = db.collection("perguntas_ingles").document(pergunta_id).get()
+    if not pergunta_ref.exists:
+        return JSONResponse(status_code=404, content={"erro": "Pergunta não encontrada"})
 
-    perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).order_by("pergunta").stream()
-    perguntas = [p.to_dict() for p in perguntas_ref]
+    pergunta_data = pergunta_ref.to_dict()
+    resposta_certa = remover_acentos(pergunta_data["resposta"].strip().lower())
 
-    if progresso >= len(perguntas):
-        return JSONResponse(content={"erro": "Todas perguntas respondidas."})
-
-    pergunta_atual = perguntas[progresso]
-    resposta_certa = remover_acentos(pergunta_atual["resposta"].strip().lower())
-
+    # Compara a resposta do usuário com a correta
     if resposta_user == resposta_certa:
-        novo_progresso = progresso + 1
-
-        if novo_progresso >= len(perguntas):
-            proximo = proximo_nivel.get(nivel)
-            if proximo:
-                doc.reference.update({
-                    "nivel_ingles": proximo,
-                    "progresso_ingles": 0
-                })
-                print(f"✅ {aluno.get('nome', nome)} completou o nível {nivel.upper()} e foi promovido a {proximo.upper()}.")
-                return JSONResponse(content={
-                    "acertou": True,
-                    "subiu_nivel": True,
-                    "novo_nivel": proximo
-                })
-            else:
-                print(f"🏁 {aluno.get('nome', nome)} finalizou todas as perguntas do nível FLUENTE.")
-                return JSONResponse(content={"acertou": True, "subiu_nivel": False, "mensagem": "Você já é fluente!"})
-        else:
-            doc.reference.update({"progresso_ingles": novo_progresso})
-            print(f"✔️ {aluno.get('nome', nome)} acertou a pergunta {progresso + 1}/{len(perguntas)} do nível {nivel.upper()}.")
-            return JSONResponse(content={"acertou": True, "subiu_nivel": False})
+        print(f"✔️ {aluno.get('nome', nome)} acertou a pergunta {pergunta_id}.")
+        return JSONResponse(content={"acertou": True})
     else:
-        print(f"❌ {aluno.get('nome', nome)} ERROU a pergunta {progresso + 1} no nível {nivel.upper()}.")
+        print(f"❌ {aluno.get('nome', nome)} errou a pergunta {pergunta_id}.")
         return JSONResponse(content={"acertou": False})
 
 
