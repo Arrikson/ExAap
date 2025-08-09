@@ -499,36 +499,42 @@
 
 let perguntas = [];
 let perguntaAtual = 0;
+let nivelAtual = "{{ aluno.nivel_ingles }}".toLowerCase();
 
 async function carregarPerguntas() {
   try {
     const resposta = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
     const dados = await resposta.json();
 
-    // 🔹 Se subiu de nível
+    // 🔹 Se o backend informou que subiu de nível
     if (dados.mensagem && dados.novo_nivel) {
+      nivelAtual = dados.novo_nivel;
       document.getElementById("nivel-aluno").textContent = dados.novo_nivel.toUpperCase();
 
+      // Mostra mensagem de parabéns
       const mensagemEl = document.getElementById("mensagem-feedback");
       mensagemEl.textContent = `🚀 ${dados.mensagem}`;
 
+      // Remove a mensagem após alguns segundos
       setTimeout(() => {
         mensagemEl.textContent = "";
       }, 2000);
     }
 
-    // 🔹 Exibe pergunta
+    // 🔹 Se tem pergunta para exibir
     if (dados.pergunta) {
-      mostrarPergunta(dados);
-    }
-    // 🔹 Nível máximo
+      perguntas = [dados.pergunta];
+      mostrarPergunta(dados.pergunta, dados.nivel);
+    } 
+    // 🔹 Se terminou todas as perguntas e já está no nível máximo
     else if (dados.status === "maximo") {
       document.getElementById("pergunta-texto").textContent = "🏆 Você já está no nível máximo!";
-    }
-    // 🔹 Terminou nível
+    } 
+    // 🔹 Caso antigo: terminou o nível mas backend não retornou próximo nível
     else if (dados.status === "final-nivel") {
       document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
-    }
+    } 
+    // 🔹 Caso não tenha perguntas
     else {
       document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
     }
@@ -539,16 +545,45 @@ async function carregarPerguntas() {
   }
 }
 
-function mostrarPergunta(dados) {
-  const perguntaTexto = document.getElementById("pergunta-texto");
-  const respostaInput = document.getElementById("resposta-input");
+async function mostrarPergunta() {
+  try {
+    const response = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
+    const data = await response.json();
 
-  perguntaTexto.textContent = dados.pergunta;
-  document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
-  respostaInput.dataset.perguntaId = dados.id || "";
+    const perguntaTexto = document.getElementById("pergunta-texto");
+    const respostaInput = document.getElementById("resposta-input");
+    const mensagemFeedback = document.getElementById("mensagem-feedback");
 
-  respostaInput.value = "";
-  document.getElementById("mensagem-feedback").textContent = "";
+    if (data.pergunta) {
+      perguntaTexto.textContent = data.pergunta;
+      document.getElementById("nivel-aluno").textContent = data.nivel;
+      nivelAtual = data.nivel;
+
+      // 🔹 Salva o ID da pergunta para o verificarResposta()
+      if (data.id) {
+        respostaInput.dataset.perguntaId = data.id;
+      } else {
+        console.warn("⚠️ Nenhum ID recebido da pergunta!");
+        delete respostaInput.dataset.perguntaId;
+      }
+
+      // 🔹 Limpa resposta e mensagem antiga
+      respostaInput.value = "";
+      mensagemFeedback.textContent = "";
+
+    } else if (data.status === "final-nivel") {
+      perguntaTexto.textContent = "🎉 Terminaste todas as perguntas!";
+      delete respostaInput.dataset.perguntaId;
+    } else {
+      perguntaTexto.textContent = "Nenhuma pergunta disponível.";
+      delete respostaInput.dataset.perguntaId;
+    }
+
+  } catch (err) {
+    console.error("Erro ao buscar pergunta:", err);
+    document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
+    delete document.getElementById("resposta-input").dataset.perguntaId;
+  }
 }
     
 async function verificarResposta() {
@@ -562,25 +597,38 @@ async function verificarResposta() {
     return;
   }
 
+  if (!perguntaId) {
+    mensagemEl.textContent = "⚠️ Nenhuma pergunta carregada.";
+    return;
+  }
+
   try {
     const response = await fetch("https://beckend-exaap.onrender.com/verificar-resposta", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno, resposta, pergunta_id: perguntaId }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: nomeAluno,
+        resposta: resposta,
+        pergunta_id: perguntaId
+      }),
     });
 
     const data = await response.json();
 
     if (data.acertou) {
-      mensagemEl.textContent = data.subiu_nivel
-        ? `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`
-        : "✔️ Resposta correta!";
+      if (data.subiu_nivel) {
+        mensagemEl.textContent = `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`;
+      } else {
+        mensagemEl.textContent = "✔️ Resposta correta!";
+      }
 
       respostaInput.value = "";
 
       setTimeout(() => {
         mensagemEl.textContent = "";
-        carregarPerguntas(); // 🔹 Busca a próxima pergunta já com nível atualizado
+        proximaPergunta(); // 🔹 Agora avança direto para a próxima pergunta
       }, 1500);
 
     } else {
@@ -594,59 +642,40 @@ async function verificarResposta() {
 }
 
 async function proximaPergunta() {
-  try {
-    const resposta = await fetch(`https://beckend-exaap.onrender.com/proxima-pergunta`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
-    });
+  const resposta = await fetch(`https://beckend-exaap.onrender.com/proxima-pergunta`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: nomeAluno })
+  });
 
-    const dados = await resposta.json();
+  const dados = await resposta.json();
 
-    if (dados.mensagem && dados.novo_nivel) {
-      // 🔹 Subiu de nível
-      nivelAtual = dados.novo_nivel;
-      document.getElementById("nivel-aluno").textContent = dados.novo_nivel.toUpperCase();
-
-      const mensagemEl = document.getElementById("mensagem-feedback");
-      mensagemEl.textContent = `🚀 ${dados.mensagem}`;
-
-      setTimeout(() => {
-        mensagemEl.textContent = "";
-      }, 2000);
-    }
-
-    if (dados.pergunta) {
-      document.getElementById("pergunta-texto").textContent = dados.pergunta;
-      document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
-      document.getElementById("resposta-input").dataset.perguntaId = dados.id || "";
-    } 
-    else if (dados.status === "final-nivel") {
-      document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas deste nível!";
-      
-      setTimeout(() => {
-        subirNivel();
-      }, 1500);
-    } 
-    else if (dados.status === "maximo") {
-      document.getElementById("pergunta-texto").textContent = "🏆 Você já está no nível máximo!";
-    } 
-    else {
-      document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
-    }
-
-  } catch (erro) {
-    console.error("Erro ao buscar próxima pergunta:", erro);
-    document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
+  if (dados.pergunta) {
+    document.getElementById("pergunta-texto").textContent = dados.pergunta;
+    document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
+    document.getElementById("resposta-input").dataset.perguntaId = dados.id || "";
+  } 
+  else if (dados.status === "final-nivel") {
+    // Mensagem final antes de subir de nível
+    document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas deste nível!";
+    
+    // Chama subirNivel após um pequeno delay
+    setTimeout(() => {
+      subirNivel(); 
+    }, 1500);
+  } 
+  else {
+    document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
   }
 }
 
+    
 async function subirNivel() {
   try {
     const resposta = await fetch('https://beckend-exaap.onrender.com/subir-nivel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: nomeAluno })
+      body: JSON.stringify({ nome: nomeAluno }) // 🔹 Agora envia o nome
     });
 
     const dados = await resposta.json();
@@ -656,9 +685,11 @@ async function subirNivel() {
       document.getElementById('nivel-aluno').textContent = dados.novo_nivel.toUpperCase();
       perguntaAtual = 0;
 
+      // 🔹 Mensagem temporária de parabéns
       const mensagemEl = document.getElementById('mensagem-feedback');
       mensagemEl.textContent = `🚀 Parabéns! Agora você está no nível ${dados.novo_nivel.toUpperCase()}!`;
 
+      // 🔹 Espera um pouco antes de carregar a primeira pergunta do novo nível
       setTimeout(async () => {
         mensagemEl.textContent = "";
 
