@@ -564,7 +564,7 @@ async function mostrarPergunta() {
 async function verificarResposta() {
   const respostaInput = document.getElementById('resposta-input');
   const resposta = respostaInput.value.trim();
-  const perguntaId = respostaInput.dataset.perguntaId; // 🔹 ID salvo no carregar pergunta
+  const perguntaId = respostaInput.dataset.perguntaId;
   const mensagemEl = document.getElementById('mensagem-feedback');
 
   if (!resposta) {
@@ -586,7 +586,7 @@ async function verificarResposta() {
       body: JSON.stringify({
         nome: nomeAluno,
         resposta: resposta,
-        pergunta_id: perguntaId // 🔹 Agora enviamos o ID da pergunta
+        pergunta_id: perguntaId
       }),
     });
 
@@ -603,7 +603,7 @@ async function verificarResposta() {
 
       setTimeout(() => {
         mensagemEl.textContent = "";
-        mostrarPergunta();
+        proximaPergunta(); // 🔹 Agora avança direto para a próxima pergunta
       }, 1500);
 
     } else {
@@ -616,12 +616,46 @@ async function verificarResposta() {
   }
 }
 
+async function proximaPergunta() {
+  try {
+    const resposta = await fetch("https://beckend-exaap.onrender.com/proxima-pergunta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: nomeAluno })
+    });
+
+    const dados = await resposta.json();
+    const perguntaTexto = document.getElementById("pergunta-texto");
+    const respostaInput = document.getElementById("resposta-input");
+    const mensagemFeedback = document.getElementById("mensagem-feedback");
+
+    if (dados.pergunta) {
+      perguntaTexto.textContent = dados.pergunta;
+      document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
+      nivelAtual = dados.nivel;
+      respostaInput.dataset.perguntaId = dados.id;
+
+      respostaInput.value = "";
+      mensagemFeedback.textContent = "";
+    } else if (dados.status === "final-nivel") {
+      perguntaTexto.textContent = "🎉 Terminaste todas as perguntas!";
+      delete respostaInput.dataset.perguntaId;
+    } else if (dados.erro) {
+      mensagemFeedback.textContent = "⚠️ " + dados.erro;
+    }
+
+  } catch (err) {
+    console.error("Erro ao buscar próxima pergunta:", err);
+    document.getElementById("mensagem-feedback").textContent = "Erro ao carregar próxima pergunta.";
+  }
+}
+    
 async function subirNivel() {
   try {
     const resposta = await fetch('https://beckend-exaap.onrender.com/subir-nivel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: nomeAluno }) // 🔹 Agora envia o nome, não o email
+      body: JSON.stringify({ nome: nomeAluno }) // 🔹 Agora envia o nome
     });
 
     const dados = await resposta.json();
@@ -635,10 +669,27 @@ async function subirNivel() {
       const mensagemEl = document.getElementById('mensagem-feedback');
       mensagemEl.textContent = `🚀 Parabéns! Agora você está no nível ${dados.novo_nivel.toUpperCase()}!`;
 
-      // 🔹 Espera um pouco antes de carregar a nova pergunta
+      // 🔹 Espera um pouco antes de carregar a primeira pergunta do novo nível
       setTimeout(async () => {
         mensagemEl.textContent = "";
-        await carregarPerguntas();
+
+        const proxPergunta = await fetch(`https://beckend-exaap.onrender.com/proxima-pergunta`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome: nomeAluno })
+        });
+
+        const dadosPergunta = await proxPergunta.json();
+
+        if (dadosPergunta.pergunta) {
+          document.getElementById("pergunta-texto").textContent = dadosPergunta.pergunta;
+          document.getElementById("nivel-aluno").textContent = dadosPergunta.nivel.toUpperCase();
+          document.getElementById("resposta-input").dataset.perguntaId = dadosPergunta.id || "";
+        } else if (dadosPergunta.status === "final-nivel") {
+          document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
+        } else {
+          document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
+        }
       }, 1500);
 
     } else if (dados.erro) {
@@ -651,6 +702,7 @@ async function subirNivel() {
 }
 
 carregarPerguntas();
+
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
