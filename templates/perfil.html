@@ -617,38 +617,33 @@ async function verificarResposta() {
 }
 
 async function proximaPergunta() {
-  try {
-    const resposta = await fetch("https://beckend-exaap.onrender.com/proxima-pergunta", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeAluno })
-    });
+  const resposta = await fetch(`https://beckend-exaap.onrender.com/proxima-pergunta`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome: nomeAluno })
+  });
 
-    const dados = await resposta.json();
-    const perguntaTexto = document.getElementById("pergunta-texto");
-    const respostaInput = document.getElementById("resposta-input");
-    const mensagemFeedback = document.getElementById("mensagem-feedback");
+  const dados = await resposta.json();
 
-    if (dados.pergunta) {
-      perguntaTexto.textContent = dados.pergunta;
-      document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
-      nivelAtual = dados.nivel;
-      respostaInput.dataset.perguntaId = dados.id;
-
-      respostaInput.value = "";
-      mensagemFeedback.textContent = "";
-    } else if (dados.status === "final-nivel") {
-      perguntaTexto.textContent = "🎉 Terminaste todas as perguntas!";
-      delete respostaInput.dataset.perguntaId;
-    } else if (dados.erro) {
-      mensagemFeedback.textContent = "⚠️ " + dados.erro;
-    }
-
-  } catch (err) {
-    console.error("Erro ao buscar próxima pergunta:", err);
-    document.getElementById("mensagem-feedback").textContent = "Erro ao carregar próxima pergunta.";
+  if (dados.pergunta) {
+    document.getElementById("pergunta-texto").textContent = dados.pergunta;
+    document.getElementById("nivel-aluno").textContent = dados.nivel.toUpperCase();
+    document.getElementById("resposta-input").dataset.perguntaId = dados.id || "";
+  } 
+  else if (dados.status === "final-nivel") {
+    // Mensagem final antes de subir de nível
+    document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas deste nível!";
+    
+    // Chama subirNivel após um pequeno delay
+    setTimeout(() => {
+      subirNivel(); 
+    }, 1500);
+  } 
+  else {
+    document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
   }
 }
+
     
 async function subirNivel() {
   try {
