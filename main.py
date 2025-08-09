@@ -2730,8 +2730,31 @@ def remover_acentos(texto):
 
 @app.post("/subir-nivel")
 async def subir_nivel(data: dict = Body(...)):
+    import unicodedata
+
+    def remover_acentos(texto):
+        return ''.join(c for c in unicodedata.normalize('NFD', texto)
+                       if unicodedata.category(c) != 'Mn')
+
+    # Mapa de conversão de níveis para padronização
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avancado": "avancado",
+        "fluente": "fluente"
+    }
+
+    # Ordem dos níveis
+    proximo_nivel = {
+        "iniciante": "intermediario",
+        "intermediario": "avancado",
+        "avancado": "fluente"
+    }
+
     nome = data.get("nome", "").strip()
-    nome_normalizado = nome.lower()
+    nome_normalizado = remover_acentos(nome.lower())
 
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
     if not aluno_ref:
@@ -2739,10 +2762,12 @@ async def subir_nivel(data: dict = Body(...)):
 
     doc = aluno_ref[0]
     aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles", "").strip().lower()
-    nivel = mapa_niveis.get(nivel, nivel)
 
-    if not nivel:
+    nivel_atual = aluno.get("nivel_ingles", "").strip().lower()
+    nivel_atual = mapa_niveis.get(nivel_atual, nivel_atual)
+
+    # Se não tinha nível registrado, começa do iniciante
+    if not nivel_atual:
         doc.reference.update({
             "nivel_ingles": "iniciante",
             "progresso_ingles": 0
@@ -2750,45 +2775,79 @@ async def subir_nivel(data: dict = Body(...)):
         print(f"🎓 {aluno.get('nome', nome)} começou no nível INICIANTE.")
         return {"mensagem": "Começou do nível básico!", "novo_nivel": "iniciante"}
 
-    proximo = proximo_nivel.get(nivel)
-    if proximo:
+    # Sobe para o próximo nível, se houver
+    if nivel_atual in proximo_nivel:
+        novo_nivel = proximo_nivel[nivel_atual]
         doc.reference.update({
-            "nivel_ingles": proximo,
+            "nivel_ingles": novo_nivel,
             "progresso_ingles": 0
         })
-        print(f"🚀 {aluno.get('nome', nome)} subiu de {nivel.upper()} para {proximo.upper()}.")
-        return {"mensagem": "Subiu de nível!", "novo_nivel": proximo}
-    else:
-        print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
-        return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel}
+        print(f"🚀 {aluno.get('nome', nome)} subiu de {nivel_atual.upper()} para {novo_nivel.upper()}.")
+        return {"mensagem": "Subiu de nível!", "novo_nivel": novo_nivel}
+
+    # Se já está no máximo
+    print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
+    return {"mensagem": "Você já está no nível máximo!", "novo_nivel": nivel_atual}
+
 
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
+    import unicodedata
+
+    def remover_acentos(texto):
+        return ''.join(c for c in unicodedata.normalize('NFD', texto)
+                       if unicodedata.category(c) != 'Mn')
+
+    # Mapa de níveis
+    mapa_niveis = {
+        "basico": "iniciante",
+        "inicial": "iniciante",
+        "intermedio": "intermediario",
+        "medio": "intermediario",
+        "avancado": "avancado",
+        "fluente": "fluente"
+    }
+
     nome = data.get("nome", "").strip()
-    nome_normalizado = nome.lower()
+    nome_normalizado = remover_acentos(nome.lower())
 
     aluno_ref = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).get()
     if not aluno_ref:
         return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
 
-    doc = aluno_ref[0]
-    aluno = doc.to_dict()
-    nivel = aluno.get("nivel_ingles", "iniciante").strip().lower()
-    nivel = mapa_niveis.get(nivel, nivel)
-    progresso = aluno.get("progresso_ingles", 0)
+    aluno_doc = aluno_ref[0]
+    aluno = aluno_doc.to_dict()
 
-    perguntas_ref = db.collection("perguntas_ingles").where("nivel", "==", nivel).order_by("pergunta").stream()
-    perguntas = [p.to_dict() for p in perguntas_ref]
+    # Incrementa progresso
+    progresso = aluno.get("progresso_ingles", 0) + 1
+    db.collection("alunos").document(aluno_doc.id).update({
+        "progresso_ingles": progresso
+    })
+
+    # Determina nível
+    nivel_raw = aluno.get("nivel_ingles", "iniciante").strip().lower()
+    nivel = mapa_niveis.get(nivel_raw, "iniciante")
+
+    # Busca perguntas
+    perguntas_ref = db.collection("perguntas_ingles") \
+        .where("nivel", "==", nivel) \
+        .order_by("pergunta") \
+        .stream()
+
+    perguntas = [{"id": p.id, **p.to_dict()} for p in perguntas_ref]
 
     if progresso >= len(perguntas):
         return JSONResponse(content={"status": "final-nivel"})
 
     pergunta_atual = perguntas[progresso]
+
     return JSONResponse(content={
+        "id": pergunta_atual["id"],        # 🔹 Importante para verificar resposta
         "pergunta": pergunta_atual["pergunta"],
-        "numero": progresso,
-        "nivel": nivel
+        "nivel": nivel,
+        "numero": progresso
     })
+
 
 @app.post("/verificar-resposta")
 async def verificar_resposta(data: dict = Body(...)):
@@ -2839,12 +2898,12 @@ class VendaItem(BaseModel):
     preco: float  # Preço de venda
     quantidade: int
 
-# ROTA HTML
+
 @app.get("/registro", response_class=HTMLResponse)
 async def exibir_registro(request: Request):
     return templates.TemplateResponse("registro.html", {"request": request})
 
-# ENTRADA DE PRODUTOS
+
 @app.post("/registrar-entrada")
 async def registrar_entrada(itens: List[EntradaItem]):
     total = 0
@@ -2879,7 +2938,7 @@ async def registrar_entrada(itens: List[EntradaItem]):
 
     return {"status": "sucesso", "total_entrada": total}
 
-# CUSTOS OPERACIONAIS
+
 @app.post("/registrar-custo")
 async def registrar_custo(custos: List[CustoItem]):
     total = 0
