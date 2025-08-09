@@ -553,13 +553,19 @@ async function mostrarPergunta() {
   }
 }
     
-  async function verificarResposta() {
-  const resposta = document.getElementById('resposta-input').value.trim();
-  const perguntaId = document.getElementById('resposta-input').dataset.perguntaId; // 🔹 Pegando o ID salvo ao carregar a pergunta
+async function verificarResposta() {
+  const respostaInput = document.getElementById('resposta-input');
+  const resposta = respostaInput.value.trim();
+  const perguntaId = respostaInput.dataset.perguntaId; // 🔹 ID salvo no carregar pergunta
   const mensagemEl = document.getElementById('mensagem-feedback');
 
   if (!resposta) {
     mensagemEl.textContent = "⚠️ Escreve uma resposta antes de verificar.";
+    return;
+  }
+
+  if (!perguntaId) {
+    mensagemEl.textContent = "⚠️ Nenhuma pergunta carregada.";
     return;
   }
 
@@ -585,7 +591,7 @@ async function mostrarPergunta() {
         mensagemEl.textContent = "✔️ Resposta correta!";
       }
 
-      document.getElementById('resposta-input').value = "";
+      respostaInput.value = "";
 
       setTimeout(() => {
         mensagemEl.textContent = "";
