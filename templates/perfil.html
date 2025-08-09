@@ -525,31 +525,39 @@ async function mostrarPergunta() {
     const response = await fetch(`https://beckend-exaap.onrender.com/pergunta-ingles?nome=${encodeURIComponent(nomeAluno)}`);
     const data = await response.json();
 
+    const perguntaTexto = document.getElementById("pergunta-texto");
+    const respostaInput = document.getElementById("resposta-input");
+    const mensagemFeedback = document.getElementById("mensagem-feedback");
+
     if (data.pergunta) {
-      document.getElementById("pergunta-texto").textContent = data.pergunta;
+      perguntaTexto.textContent = data.pergunta;
       document.getElementById("nivel-aluno").textContent = data.nivel;
       nivelAtual = data.nivel;
 
-      // 🔹 Salva o ID da pergunta no input para usar no verificarResposta()
+      // 🔹 Salva o ID da pergunta para o verificarResposta()
       if (data.id) {
-        document.getElementById("resposta-input").dataset.perguntaId = data.id;
+        respostaInput.dataset.perguntaId = data.id;
+      } else {
+        console.warn("⚠️ Nenhum ID recebido da pergunta!");
+        delete respostaInput.dataset.perguntaId;
       }
 
-      // 🔹 Limpa qualquer resposta anterior
-      document.getElementById("resposta-input").value = "";
-      document.getElementById("mensagem-feedback").textContent = "";
+      // 🔹 Limpa resposta e mensagem antiga
+      respostaInput.value = "";
+      mensagemFeedback.textContent = "";
 
     } else if (data.status === "final-nivel") {
-      document.getElementById("pergunta-texto").textContent = "🎉 Terminaste todas as perguntas!";
-      document.getElementById("resposta-input").removeAttribute("data-pergunta-id");
+      perguntaTexto.textContent = "🎉 Terminaste todas as perguntas!";
+      delete respostaInput.dataset.perguntaId;
     } else {
-      document.getElementById("pergunta-texto").textContent = "Nenhuma pergunta disponível.";
-      document.getElementById("resposta-input").removeAttribute("data-pergunta-id");
+      perguntaTexto.textContent = "Nenhuma pergunta disponível.";
+      delete respostaInput.dataset.perguntaId;
     }
 
   } catch (err) {
     console.error("Erro ao buscar pergunta:", err);
     document.getElementById("pergunta-texto").textContent = "Erro ao carregar a pergunta.";
+    delete document.getElementById("resposta-input").dataset.perguntaId;
   }
 }
     
