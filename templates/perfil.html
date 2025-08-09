@@ -541,53 +541,55 @@ async function mostrarPergunta() {
   }
 }
     
-   async function verificarResposta() {
-    const resposta = document.getElementById('resposta-input').value.trim();
-    const mensagemEl = document.getElementById('mensagem-feedback');
+  async function verificarResposta() {
+  const resposta = document.getElementById('resposta-input').value.trim();
+  const perguntaId = document.getElementById('resposta-input').dataset.perguntaId; // 🔹 Pegando o ID salvo ao carregar a pergunta
+  const mensagemEl = document.getElementById('mensagem-feedback');
 
-    if (!resposta) {
-      mensagemEl.textContent = "⚠️ Escreve uma resposta antes de verificar.";
-      return;
-    }
+  if (!resposta) {
+    mensagemEl.textContent = "⚠️ Escreve uma resposta antes de verificar.";
+    return;
+  }
 
-    try {
-      const response = await fetch("https://beckend-exaap.onrender.com/verificar-resposta", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nome: nomeAluno,
-          resposta: resposta,
-        }),
-      });
+  try {
+    const response = await fetch("https://beckend-exaap.onrender.com/verificar-resposta", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: nomeAluno,
+        resposta: resposta,
+        pergunta_id: perguntaId // 🔹 Agora enviamos o ID da pergunta
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.acertou) {
-        if (data.subiu_nivel) {
-          mensagemEl.textContent = `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`;
-        } else {
-          mensagemEl.textContent = "✔️ Resposta correta!";
-        }
-
-        document.getElementById('resposta-input').value = "";
-
-        setTimeout(() => {
-          mensagemEl.textContent = "";
-          mostrarPergunta();
-        }, 1500);
-
+    if (data.acertou) {
+      if (data.subiu_nivel) {
+        mensagemEl.textContent = `🎉 Parabéns! Subiste para o nível ${data.novo_nivel.toUpperCase()}!`;
       } else {
-        mensagemEl.textContent = "❌ Resposta incorreta. Tenta novamente!";
+        mensagemEl.textContent = "✔️ Resposta correta!";
       }
 
-    } catch (error) {
-      console.error("Erro ao verificar resposta:", error);
-      mensagemEl.textContent = "Erro na verificação. Tenta mais tarde.";
+      document.getElementById('resposta-input').value = "";
+
+      setTimeout(() => {
+        mensagemEl.textContent = "";
+        mostrarPergunta();
+      }, 1500);
+
+    } else {
+      mensagemEl.textContent = "❌ Resposta incorreta. Tenta novamente!";
     }
+
+  } catch (error) {
+    console.error("Erro ao verificar resposta:", error);
+    mensagemEl.textContent = "Erro na verificação. Tenta mais tarde.";
   }
-    
+}
+
   async function subirNivel() {
     try {
       const resposta = await fetch('/subir-nivel', {
