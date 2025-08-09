@@ -616,25 +616,31 @@ async function verificarResposta() {
   }
 }
 
-  async function subirNivel() {
-    try {
-      const resposta = await fetch('/subir-nivel', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: "{{ aluno.email }}" })
-      });
+ async function subirNivel() {
+  try {
+    const resposta = await fetch('https://beckend-exaap.onrender.com/subir-nivel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: nomeAluno }) // 🔹 Agora envia o nome, não o email
+    });
 
-      const dados = await resposta.json();
+    const dados = await resposta.json();
+
+    if (dados.novo_nivel) {
       nivelAtual = dados.novo_nivel;
-      document.getElementById('nivel-aluno').textContent = dados.novo_nivel;
+      document.getElementById('nivel-aluno').textContent = dados.novo_nivel.toUpperCase();
       perguntaAtual = 0;
       await carregarPerguntas();
-    } catch (error) {
-      console.error("Erro ao subir de nível:", error);
+    } else if (dados.erro) {
+      console.error("Erro ao subir de nível:", dados.erro);
     }
+
+  } catch (error) {
+    console.error("Erro ao subir de nível:", error);
   }
-    
-  carregarPerguntas();
+}
+
+carregarPerguntas();
 
 window.toggleVisibilidade = function () {
   const dividaEl = document.getElementById("valor-divida");
