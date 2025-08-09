@@ -2743,62 +2743,6 @@ async def pergunta_ingles(nome: str):
             print(f"🏆 {aluno.get('nome', nome)} já está no nível FLUENTE.")
             return JSONResponse(content={"status": "maximo", "mensagem": "Você já está no nível máximo!"})
 
-
-@app.get("/ajustar-progresso-ingles")
-async def ajustar_progresso_ingles():
-    alunos_ref = db.collection("alunos").stream()
-    count = 0
-
-    for aluno_doc in alunos_ref:
-        aluno_data = aluno_doc.to_dict()
-        update_data = {}
-
-        if "progresso_ingles" not in aluno_data:
-            update_data["progresso_ingles"] = 0
-        if "progresso_ingles1" not in aluno_data:
-            update_data["progresso_ingles1"] = 0
-        if "progresso_ingles2" not in aluno_data:
-            update_data["progresso_ingles2"] = 0
-        if "progresso_ingles3" not in aluno_data:
-            update_data["progresso_ingles3"] = 0
-        if "progresso_ingles4" not in aluno_data:
-            update_data["progresso_ingles4"] = 0
-
-        if update_data:
-            aluno_doc.reference.update(update_data)
-            count += 1
-
-    return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
-
-
-@app.post("/ajustar-progresso-ingles")
-async def ajustar_progresso_ingles():
-    alunos_ref = db.collection("alunos").stream()
-    count = 0
-
-    for aluno_doc in alunos_ref:
-        aluno_data = aluno_doc.to_dict()
-        update_data = {}
-
-        # Cria campos de progresso por nível se não existirem
-        if "progresso_ingles" not in aluno_data:
-            update_data["progresso_ingles"] = 0
-        if "progresso_ingles1" not in aluno_data:
-            update_data["progresso_ingles1"] = 0
-        if "progresso_ingles2" not in aluno_data:
-            update_data["progresso_ingles2"] = 0
-        if "progresso_ingles3" not in aluno_data:
-            update_data["progresso_ingles3"] = 0
-        if "progresso_ingles4" not in aluno_data:
-            update_data["progresso_ingles4"] = 0
-
-        if update_data:
-            aluno_doc.reference.update(update_data)
-            count += 1
-
-    return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
-
-
 @app.post("/proxima-pergunta")
 async def proxima_pergunta(data: dict = Body(...)):
     import unicodedata
