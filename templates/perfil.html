@@ -175,7 +175,7 @@
         <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
           <strong style="font-size: 10px;">Por pagar:</strong>
           <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
-          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
+          <button data-action="toggleVisibilidade" style="margin-left: 10px;">👁️</button><br>
         </p>
 
         <strong style="font-size: 13px;">Nível de Inglês:</strong>
@@ -190,54 +190,50 @@
   </div>
 
   <div class="acoes">
-    <div class="acao" onclick="toggleAulas()">
+    <div class="acao" data-action="toggleAulas">
       <i>📘</i>
       <span>Ver Aulas</span>
     </div>
-    <div class="acao" onclick="verNotificacao()">
+    <div class="acao" data-action="verNotificacao">
       <i>🔔👨‍🏫</i>
       <span>Sala de aula</span>
     </div>
-    <div class="acao" onclick="verHorario()">
+    <div class="acao" data-action="verHorario">
       <i>📅</i>
       <span>Ver Horário</span>
     </div>
-    <div class="acao" onclick="toggle('sec-notas')">
+    <div class="acao" data-action="toggleNotas">
       <i>📝</i>
       <span>Ver Notas</span>
     </div>
-    <div class="acao" onclick="toggleProfessor()">
+    <div class="acao" data-action="toggleProfessor">
       <i>👨‍🏫</i>
       <span>Ver Professor</span>
     </div>
   </div>
 
-<!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto;">
-  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
-  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+  <!-- Desafio de Inglês -->
+  <div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto;">
+    <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+    <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+    <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
 
-  <div style="display: flex; gap: 10px; align-items: center;">
-    <input
-      type="text"
-      id="resposta-input"
-      placeholder="Escreve a resposta..."
-      style="flex: 1; padding: 8px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc;"
-    />
-    <button
-      onclick="verificarResposta()"
-      style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
-      Verificar
-    </button>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input
+        type="text"
+        id="resposta-input"
+        placeholder="Escreve a resposta..."
+        style="flex: 1; padding: 8px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc;"
+      />
+      <button data-action="verificarResposta" style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
+        Verificar
+      </button>
+    </div>
+
+    <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
   </div>
 
-  <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
-</div>
-
-
-<div class="footer">
-
+  <div class="footer">
     <div class="item active">
       <i>👤</i>
       O Meu Perfil
@@ -274,7 +270,7 @@
   <!-- Seção para chamadas ao vivo -->
   <div id="info-aula" style="display:none;">
     <span id="sala-id"></span>
-    <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
+    <button data-action="entrarNaAulaDireto">Entrar na Aula</button>
   </div>
 
   <script type="module">
@@ -317,12 +313,13 @@
     }
   });
 
-  window.toggleAulas = async function () {
+  // Todas as funções que respondem a ações
+  async function toggleAulas() {
     const div = document.getElementById("sec-aula");
     const aulasDadas = document.getElementById("aulas-dadas");
     const aulasRestantes = document.getElementById("aulas-restantes");
-    const listaAulas = document.getElementById("lista-aulas"); 
-    
+    const listaAulas = document.getElementById("lista-aulas");
+
     if (div.style.display === "block") {
       div.style.display = "none";
       return;
@@ -359,43 +356,43 @@
     }
 
     div.style.display = "block";
-  };
+  }
 
-  window.toggleProfessor = function () {
+  async function toggleProfessor() {
     const container = document.getElementById("professor-nome");
     if (container.style.display === "block") {
       container.style.display = "none";
       return;
     }
-    fetch(`/meu-professor-status/${nomeAluno}`)
-      .then(response => response.json())
-      .then(data => {
-        const statusIcon = data.online ? '🟢' : '⚪';
-        const statusText = data.online ? 'Online' : 'Offline';
-        container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-        container.style.display = "block";
-      })
-      .catch(() => {
-        container.innerHTML = "Professor não encontrado.";
-        container.style.display = "block";
-      });
-  };
+    try {
+      const response = await fetch(`/meu-professor-status/${nomeAluno}`);
+      const data = await response.json();
+      const statusIcon = data.online ? '🟢' : '⚪';
+      const statusText = data.online ? 'Online' : 'Offline';
+      container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+      container.style.display = "block";
+    } catch {
+      container.innerHTML = "Professor não encontrado.";
+      container.style.display = "block";
+    }
+  }
 
-  window.verNotificacao = function () {
-    fetch("/verificar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(response => response.json())
-    .then(data => {
+  async function verNotificacao() {
+    try {
+      const response = await fetch("/verificar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      });
+      const data = await response.json();
       const notificacaoEl = document.getElementById("notificacao-mensagem");
       const contadorAulas = document.getElementById("contador-aulas");
+
       if (data.notificacao === true) {
         window.professorEmailAtual = data.professor_email;
         notificacaoEl.innerHTML = `
           A tua aula irá começar
-          <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
+          <button class="notificar-btn" data-action="desativarNotificacaoERedirecionar">Vista</button>
         `;
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
@@ -403,26 +400,30 @@
         notificacaoEl.style.display = "none";
         contadorAulas.innerText = "";
       }
-    });
-  };
+    } catch (error) {
+      console.error("Erro ao verificar notificação:", error);
+    }
+  }
 
-  window.desativarNotificacaoERedirecionar = function () {
-    fetch("/desativar-notificacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aluno: nomeAluno })
-    })
-    .then(() => {
+  async function desativarNotificacaoERedirecionar() {
+    try {
+      await fetch("/desativar-notificacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aluno: nomeAluno })
+      });
       document.getElementById("notificacao-mensagem").style.display = "none";
       document.getElementById("contador-aulas").innerText = "";
       if (window.professorEmailAtual) {
         const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
         window.location.href = `/sala_virtual_aluno/${sala}`;
       }
-    });
-  };
+    } catch (error) {
+      console.error("Erro ao desativar notificação:", error);
+    }
+  }
 
-  window.verHorario = async function () {
+  async function verHorario() {
     const container = document.getElementById("sec-horario");
     const listaHorario = document.getElementById("lista-horario");
 
@@ -459,7 +460,7 @@
     }
 
     container.style.display = "block";
-  };
+  }
 
   function traduzirDia(diaAbreviado) {
     const dias = {
@@ -472,6 +473,10 @@
       "Dom": "Domingo"
     };
     return dias[diaAbreviado] || diaAbreviado;
+  }
+
+  function toggleNotas() {
+    toggle('sec-notas');
   }
 
   function toggle(id) {
@@ -495,7 +500,7 @@
     if (salaId) {
       window.location.href = `/sala_virtual_aluno/${salaId}`;
     }
-  } 
+  }
     
 let perguntas = [];
 let perguntaAtual = 0;
@@ -743,15 +748,6 @@ window.toggleVisibilidade = function () {
     inglesEl.textContent = "{{ aluno.nivel_ingles }}";
   }
 }; 
-window.verNotificacao = verNotificacao;
-window.desativarNotificacaoERedirecionar = desativarNotificacaoERedirecionar;
-window.verHorario = verHorario;
-window.toggle = toggle;
-window.toggleProfessor = toggleProfessor;
-window.entrarNaAulaDireto = entrarNaAulaDireto;
-window.verificarResposta = verificarResposta;
-window.toggleVisibilidade = toggleVisibilidade;
-window.toggleAulas = toggleAulas;         
 </script>
 </body>
 </html>
