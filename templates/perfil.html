@@ -213,28 +213,26 @@
   </div>
 
 <!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
+<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto;">
   <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
   <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
   <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
 
-  <input type="text" id="resposta-input" placeholder="Escreve a resposta..." style="width: 100%; padding: 8px; font-size: 14px; margin-bottom: 60px;" />
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <input
+      type="text"
+      id="resposta-input"
+      placeholder="Escreve a resposta..."
+      style="flex: 1; padding: 8px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc;"
+    />
+    <button
+      onclick="verificarResposta()"
+      style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
+      Verificar
+    </button>
+  </div>
 
-  <button onclick="verificarResposta()" style="
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    padding: 12px;
-    background: #1abc9c;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;">
-    Verificar
-  </button>
-
-  <p id="mensagem-feedback" style="margin-top: 10px;"></p>
+  <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
 
 
