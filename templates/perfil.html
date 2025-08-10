@@ -223,13 +223,18 @@ p a {
       <span>Ver Professor</span>
     </div>
   </div>
-<!-- Botão para abrir o desafio -->
-<button 
-    id="btn-desafio"
-    onclick="toggleDesafio()"
-    style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
-    Desafio
-</button>
+<!-- Link para ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Botão para abrir o desafio (centralizado) -->
+<div style="display: flex; justify-content: center; margin: 20px 0;">
+  <button 
+      id="btn-desafio"
+      onclick="toggleDesafio()"
+      style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px;">
+      <i class="fa-solid fa-puzzle-piece"></i> Desafio
+  </button>
+</div>
 
 <!-- Desafio de Inglês (inicialmente escondido) -->
 <div id="container-desafio" style="display: none;">
@@ -239,8 +244,8 @@ p a {
     <!-- Botão de fechar -->
     <button 
       onclick="fecharDesafio()"
-      style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 18px; cursor: pointer;">
-      x
+      style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888;">
+      <i class="fa-solid fa-xmark"></i>
     </button>
 
     <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
@@ -261,6 +266,8 @@ p a {
         Verificar
       </button>
     </div>
+
+    <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
   </div>
 </div>
 
@@ -276,6 +283,7 @@ function fecharDesafio() {
     document.getElementById('container-desafio').style.display = 'none';
 }
 </script>
+
 
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
