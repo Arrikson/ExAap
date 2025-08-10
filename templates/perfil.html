@@ -397,189 +397,145 @@
     }
   });
 
-  // ---- Ações principais (torna-as globais) ----
-  window.toggleAulas = async function () {
-    const div = document.getElementById("sec-aula");
-    const aulasDadas = document.getElementById("aulas-dadas");
-    const aulasRestantes = document.getElementById("aulas-restantes");
-    const listaAulas = document.getElementById("lista-aulas");
+ // ---- Ações principais (versão com modal) ----
 
-    if (div.style.display === "block") {
-      div.style.display = "none";
-      return;
+// 📘 Ver Aulas
+window.toggleAulas = async function () {
+  let aulasDadas = "...carregando...";
+  let aulasRestantes = "";
+  let listaHTML = "";
+
+  try {
+    const response = await fetch("/ver-aulas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+
+    if (data.erro) {
+      aulasDadas = "Erro ao carregar as aulas.";
+    } else {
+      aulasDadas = `✅ Já teve: ${data.aulas_dadas} aulas`;
+      aulasRestantes = `📌 Faltam: ${data.restantes} aulas`;
+      listaHTML = (data.aulas || [])
+        .map((aula, i) => `<li>${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}</li>`)
+        .join("");
     }
-
-    aulasDadas.textContent = "...carregando...";
-    aulasRestantes.textContent = "";
-    listaAulas.innerHTML = "";
-
-    try {
-      const response = await fetch("/ver-aulas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-
-      if (data.erro) {
-        aulasDadas.textContent = "Erro ao carregar as aulas.";
-        aulasRestantes.textContent = "";
-        listaAulas.innerHTML = "";
-        return;
-      }
-
-      aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
-      aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
-      listaAulas.innerHTML = "";
-      (data.aulas || []).forEach((aula, i) => {
-        const li = document.createElement("li");
-        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
-        listaAulas.appendChild(li);
-      });
-    } catch (err) {
-      console.error("Erro toggleAulas:", err);
-      aulasDadas.textContent = "❌ Erro ao buscar dados.";
-      aulasRestantes.textContent = "";
-      listaAulas.innerHTML = "";
-    }
-
-    div.style.display = "block";
-  };
-
-  window.toggleProfessor = async function () {
-    const container = document.getElementById("professor-nome");
-    if (container.style.display === "block") {
-      container.style.display = "none";
-      return;
-    }
-    container.innerHTML = "Carregando...";
-    try {
-      const res = await fetch(`/meu-professor-status/${encodeURIComponent(nomeAluno)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const statusIcon = data.online ? '🟢' : '⚪';
-      const statusText = data.online ? 'Online' : 'Offline';
-      container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
-      container.style.display = "block";
-    } catch (e) {
-      console.error("Erro toggleProfessor:", e);
-      container.innerHTML = "Professor não encontrado.";
-      container.style.display = "block";
-    }
-  };
-
-  window.verNotificacao = async function () {
-    try {
-      const response = await fetch("/verificar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const notificacaoEl = document.getElementById("notificacao-mensagem");
-      const contadorAulas = document.getElementById("contador-aulas");
-      if (data.notificacao === true) {
-        window.professorEmailAtual = data.professor_email;
-        // trocar onclick inline por data-action para robustez poderia ser melhor,
-        // mas mantemos compatibilidade com desativarNotificacaoERedirecionar global.
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
-      }
-    } catch (e) {
-      console.error("Erro verNotificacao:", e);
-    }
-  };
-
-  window.desativarNotificacaoERedirecionar = async function () {
-    try {
-      await fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      document.getElementById("contador-aulas").innerText = "";
-      if (window.professorEmailAtual) {
-        const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      }
-    } catch (e) {
-      console.error("Erro desativarNotificacaoERedirecionar:", e);
-    }
-  };
-
-  window.verHorario = async function () {
-    const container = document.getElementById("sec-horario");
-    const listaHorario = document.getElementById("lista-horario");
-
-    if (container.style.display === "block") {
-      container.style.display = "none";
-      return;
-    }
-
-    listaHorario.innerHTML = "Carregando...";
-
-    try {
-      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      listaHorario.innerHTML = "";
-
-      if (data.erro) {
-        const li = document.createElement("li");
-        li.textContent = "⚠️ Horário não encontrado.";
-        listaHorario.appendChild(li);
-      } else {
-        for (const [dia, horarios] of Object.entries(data.horario || {})) {
-          const diaItem = document.createElement("li");
-          diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
-          listaHorario.appendChild(diaItem);
-
-          (horarios || []).forEach(h => {
-            const horaItem = document.createElement("li");
-            horaItem.textContent = `- ${h}`;
-            horaItem.style.marginLeft = "15px";
-            listaHorario.appendChild(horaItem);
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Erro verHorario:", e);
-      listaHorario.innerHTML = "<li>❌ Erro ao buscar horário.</li>";
-    }
-
-    container.style.display = "block";
-  };
-
-  function traduzirDia(diaAbreviado) {
-    const dias = {
-      "Seg": "Segunda-feira",
-      "Ter": "Terça-feira",
-      "Qua": "Quarta-feira",
-      "Qui": "Quinta-feira",
-      "Sex": "Sexta-feira",
-      "Sab": "Sábado",
-      "Dom": "Domingo"
-    };
-    return dias[diaAbreviado] || diaAbreviado;
+  } catch (err) {
+    aulasDadas = "❌ Erro ao buscar dados.";
   }
 
-  window.toggle = function (id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  abrirModal(`
+    <h2>📘 Aulas</h2>
+    <p>${aulasDadas}</p>
+    <p>${aulasRestantes}</p>
+    <ul>${listaHTML}</ul>
+  `);
+};
+
+// 👨‍🏫 Ver Professor
+window.toggleProfessor = async function () {
+  let professorInfo = "Carregando...";
+  try {
+    const res = await fetch(`/meu-professor-status/${encodeURIComponent(nomeAluno)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const statusIcon = data.online ? '🟢' : '⚪';
+    const statusText = data.online ? 'Online' : 'Offline';
+    professorInfo = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
+  } catch {
+    professorInfo = "Professor não encontrado.";
+  }
+  abrirModal(`<h2>👨‍🏫 Professor</h2><p>${professorInfo}</p>`);
+};
+
+// 🔔 Sala de aula / Notificação
+window.verNotificacao = async function () {
+  try {
+    const response = await fetch("/verificar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+
+    if (data.notificacao === true) {
+      window.professorEmailAtual = data.professor_email;
+      abrirModal(`
+        <h2>🔔 Aula</h2>
+        <p>A tua aula irá começar</p>
+        <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Entrar</button>
+      `);
+    } else {
+      abrirModal(`<h2>🔔 Aula</h2><p>Nenhuma notificação no momento.</p>`);
+    }
+  } catch {
+    abrirModal(`<h2>🔔 Aula</h2><p>❌ Erro ao verificar notificações.</p>`);
+  }
+};
+
+// Desativar notificação e redirecionar para sala
+window.desativarNotificacaoERedirecionar = async function () {
+  try {
+    await fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+    fecharModal();
+    if (window.professorEmailAtual) {
+      const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
+      window.location.href = `/sala_virtual_aluno/${sala}`;
+    }
+  } catch (e) {
+    console.error("Erro desativarNotificacaoERedirecionar:", e);
+  }
+};
+
+// 📅 Horário
+window.verHorario = async function () {
+  let listaHTML = "<li>Carregando...</li>";
+
+  try {
+    const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.erro) {
+      listaHTML = "<li>⚠️ Horário não encontrado.</li>";
+    } else {
+      listaHTML = Object.entries(data.horario || {})
+        .map(([dia, horarios]) =>
+          `<li><strong>📅 ${traduzirDia(dia)}:</strong></li>` +
+          (horarios || []).map(h => `<li style="margin-left:15px">- ${h}</li>`).join("")
+        )
+        .join("");
+    }
+  } catch {
+    listaHTML = "<li>❌ Erro ao buscar horário.</li>";
+  }
+
+  abrirModal(`<h2>📅 Horário</h2><ul>${listaHTML}</ul>`);
+};
+
+// Tradução de dias
+function traduzirDia(diaAbreviado) {
+  const dias = {
+    "Seg": "Segunda-feira",
+    "Ter": "Terça-feira",
+    "Qua": "Quarta-feira",
+    "Qui": "Quinta-feira",
+    "Sex": "Sexta-feira",
+    "Sab": "Sábado",
+    "Dom": "Domingo"
   };
+  return dias[diaAbreviado] || diaAbreviado;
+}
 
   window.fazerLogout = function () {
     const nomeAlunoForm = document.getElementById("aluno-id")?.value || nomeAluno;
@@ -865,15 +821,6 @@
   };
 
   console.log("Funções exportadas para window: toggleAulas, verNotificacao, verHorario, toggleProfessor, verificarResposta, proximaPergunta, subirNivel, carregarPerguntas");
-   // ---- Modal genérico ----
-window.abrirModal = function (conteudoHTML) {
-  document.getElementById("modal-body").innerHTML = conteudoHTML;
-  document.getElementById("modal-overlay").style.display = "flex";
-};
-
-window.fecharModal = function () {
-  document.getElementById("modal-overlay").style.display = "none";
-};
 </script>
 
 </body>
