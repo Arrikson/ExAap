@@ -189,27 +189,39 @@
     </div>
   </div>
 
-  <div class="acoes">
-    <div class="acao" onclick="toggleAulas()">
-      <i>📘</i>
-      <span>Ver Aulas</span>
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <img src="/static/perfil.png" alt="Perfil" />
+    <div class="info">
+      <h2>Olá, {{ aluno.nome }} 👋</h2>
+      <p>B.I: {{ aluno.bilhete }}</p>
+
+      <div class="saldo">
+        <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
+          <strong style="font-size: 10px;">Por pagar:</strong>
+          <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
+          <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
+        </p>
+
+        <strong style="font-size: 13px;">Nível de Inglês:</strong>
+        <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
+      </div>
+
+      <div class="carrossel-indicadores">
+        <span></span>
+        <span style="opacity: 0.3;"></span>
+      </div>
     </div>
-    <div class="acao" onclick="verNotificacao()">
-      <i>🔔👨‍🏫</i>
-      <span>Sala de aula</span>
-    </div>
-    <div class="acao" onclick="verHorario()">
-      <i>📅</i>
-      <span>Ver Horário</span>
-    </div>
-    <div class="acao" onclick="toggle('sec-notas')">
-      <i>📝</i>
-      <span>Ver Notas</span>
-    </div>
-    <div class="acao" onclick="toggleProfessor()">
-      <i>👨‍🏫</i>
-      <span>Ver Professor</span>
-    </div>
+  </div>
+
+  <div id="acoes-container" class="acoes">
+    <div class="acao" data-func="toggleAulas"><i>📘</i><span>Ver Aulas</span></div>
+    <div class="acao" data-func="verNotificacao"><i>🔔👨‍🏫</i><span>Sala de aula</span></div>
+    <div class="acao" data-func="verHorario"><i>📅</i><span>Ver Horário</span></div>
+    <div class="acao" data-func="toggleNotas"><i>📝</i><span>Ver Notas</span></div>
+    <div class="acao" data-func="toggleProfessor"><i>👨‍🏫</i><span>Ver Professor</span></div>
   </div>
 
 <!-- Desafio de Inglês -->
@@ -277,7 +289,7 @@
     <button onclick="entrarNaAulaDireto()">Entrar na Aula</button>
   </div>
 
-  <script type="module">
+ <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getFirestore, doc, onSnapshot, updateDoc
@@ -291,14 +303,6 @@
     messagingSenderId: "664710895978",
     appId: "1:664710895978:web:304790f37d7561d9b1ed13"
   };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const nomeAluno = "{{ aluno.nome }}";
-  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  const infoAulaDiv = document.getElementById("info-aula");
-  const salaIdSpan = document.getElementById("sala-id");
 
   onSnapshot(chamadaRef, (docSnap) => {
     if (docSnap.exists()) {
@@ -316,6 +320,39 @@
       }
     }
   });
+
+   const acoesContainer = document.getElementById("acoes-container");
+
+  acoesContainer.addEventListener("click", (e) => {
+    let alvo = e.target;
+    while (alvo && !alvo.classList.contains("acao")) {
+      alvo = alvo.parentElement;
+    }
+    if (!alvo) return;
+
+    const funcName = alvo.dataset.func;
+
+    switch (funcName) {
+      case "toggleAulas": toggleAulas(); break;
+      case "verNotificacao": verNotificacao(); break;
+      case "verHorario": verHorario(); break;
+      case "toggleNotas": toggle('sec-notas'); break;
+      case "toggleProfessor": toggleProfessor(); break;
+    }
+  });
+
+    // Adicionando event listeners individuais para os botões específicos
+  document.querySelector(".acao:nth-child(1)").addEventListener("click", toggleAulas);
+  document.querySelector(".acao:nth-child(2)").addEventListener("click", verNotificacao);
+  document.querySelector(".acao:nth-child(3)").addEventListener("click", verHorario);
+  document.querySelector(".acao:nth-child(4)").addEventListener("click", () => toggle('sec-notas'));
+  document.querySelector(".acao:nth-child(5)").addEventListener("click", toggleProfessor);
+
+  document.querySelector("#valor-divida + button").addEventListener("click", toggleVisibilidade);
+
+  document.querySelector("#resposta-input + button").addEventListener("click", verificarResposta);
+
+  document.querySelector("#info-aula button").addEventListener("click", entrarNaAulaDireto);
 
   window.toggleAulas = async function () {
     const div = document.getElementById("sec-aula");
@@ -743,15 +780,6 @@ window.toggleVisibilidade = function () {
     inglesEl.textContent = "{{ aluno.nivel_ingles }}";
   }
 };
-window.verNotificacao = verNotificacao;
-window.desativarNotificacaoERedirecionar = desativarNotificacaoERedirecionar;
-window.verHorario = verHorario;
-window.toggle = toggle;
-window.toggleProfessor = toggleProfessor;
-window.entrarNaAulaDireto = entrarNaAulaDireto;
-window.verificarResposta = verificarResposta;
-window.toggleVisibilidade = toggleVisibilidade;
-window.toggleAulas = toggleAulas;    
 </script>
 </body>
 </html>
