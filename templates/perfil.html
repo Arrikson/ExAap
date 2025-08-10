@@ -864,7 +864,8 @@
     }
   };
 
-  // ---- Modal genérico ----
+  console.log("Funções exportadas para window: toggleAulas, verNotificacao, verHorario, toggleProfessor, verificarResposta, proximaPergunta, subirNivel, carregarPerguntas");
+   // ---- Modal genérico ----
 window.abrirModal = function (conteudoHTML) {
   document.getElementById("modal-body").innerHTML = conteudoHTML;
   document.getElementById("modal-overlay").style.display = "flex";
@@ -873,8 +874,6 @@ window.abrirModal = function (conteudoHTML) {
 window.fecharModal = function () {
   document.getElementById("modal-overlay").style.display = "none";
 };
-
-  console.log("Funções exportadas para window: toggleAulas, verNotificacao, verHorario, toggleProfessor, verificarResposta, proximaPergunta, subirNivel, carregarPerguntas");
 </script>
 
 </body>
