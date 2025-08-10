@@ -232,6 +232,14 @@ p a {
     Desafio
 </button>
 
+<!-- Botão para abrir o desafio -->
+<button 
+    id="btn-desafio"
+    onclick="toggleDesafio()"
+    style="padding: 10px 16px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">
+    Desafio
+</button>
+
 <!-- Desafio de Inglês (inicialmente escondido) -->
 <div id="container-desafio" style="display: none;">
   <div class="jogo-ingles" id="jogo-ingles" 
@@ -264,6 +272,19 @@ p a {
     </div>
   </div>
 </div>
+
+<script>
+function toggleDesafio() {
+    const desafio = document.getElementById('container-desafio');
+    desafio.style.display = (desafio.style.display === 'none' || desafio.style.display === '') 
+        ? 'block' 
+        : 'none';
+}
+
+function fecharDesafio() {
+    document.getElementById('container-desafio').style.display = 'none';
+}
+</script>
 
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
