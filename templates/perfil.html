@@ -224,26 +224,46 @@ p a {
     </div>
   </div>
 
-<!-- Desafio de Inglês -->
-<div class="jogo-ingles" id="jogo-ingles" style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto;">
-  <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
-  <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-  <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+<!-- Botão para abrir o desafio -->
+<button 
+    id="btn-desafio"
+    onclick="toggleDesafio()"
+    style="padding: 10px 16px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">
+    Desafio
+</button>
 
-  <div style="display: flex; gap: 10px; align-items: center;">
-    <input
-      type="text"
-      id="resposta-input"
-      placeholder="Escreve a resposta..."
-      style="flex: 1; padding: 8px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc;"
-    />
-    <button
-      id="btn-verificar"
-      onclick="verificarResposta()"
-      style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
-      Verificar
+<!-- Desafio de Inglês (inicialmente escondido) -->
+<div id="container-desafio" style="display: none;">
+  <div class="jogo-ingles" id="jogo-ingles" 
+       style="margin: 15px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-height: 300px; overflow-y: auto; position: relative;">
+    
+    <!-- Botão de fechar -->
+    <button 
+      onclick="fecharDesafio()"
+      style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 18px; cursor: pointer;">
+      ❌
     </button>
+
+    <h3 style="margin-top: 0;">🧠 Desafio de Inglês</h3>
+    <p><strong>Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+    <p id="pergunta-texto" style="margin: 10px 0;">Loading...</p>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input
+        type="text"
+        id="resposta-input"
+        placeholder="Escreve a resposta..."
+        style="flex: 1; padding: 8px; font-size: 14px; border-radius: 8px; border: 1px solid #ccc;"
+      />
+      <button
+        id="btn-verificar"
+        onclick="verificarResposta()"
+        style="padding: 10px 16px; background: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
+        Verificar
+      </button>
+    </div>
   </div>
+</div>
 
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
@@ -462,6 +482,17 @@ p a {
       console.error("Erro desativarNotificacaoERedirecionar:", e);
     }
   };
+
+  function toggleDesafio() {
+    const desafio = document.getElementById('container-desafio');
+    desafio.style.display = (desafio.style.display === 'none' || desafio.style.display === '') 
+        ? 'block' 
+        : 'none';
+}
+
+function fecharDesafio() {
+    document.getElementById('container-desafio').style.display = 'none';
+}
 
   window.verHorario = async function () {
     const container = document.getElementById("sec-horario");
