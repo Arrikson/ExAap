@@ -183,13 +183,13 @@ p a {
       <p>B.I: {{ aluno.bilhete }}</p>
 
       <div class="saldo">
-        <p style="margin: 0; font-size: 12px; font-family: 'Arial', sans-serif;">
-          <strong style="font-size: 11px;">Por pagar:</strong>
+        <p style="margin: 0; font-size: 13px; font-family: 'Arial', sans-serif;">
+          <strong style="font-size: 10px;">Por pagar:</strong>
           <span id="valor-divida" data-real="{{ total_gasto }}">Kz {{ total_gasto }},00</span>
           <button onclick="toggleVisibilidade()" style="margin-left: 10px;">👁️</button><br>
         </p>
 
-        <strong style="font-size: 12px;">Nível de Inglês:</strong>
+        <strong style="font-size: 13px;">Nível de Inglês:</strong>
         <span id="nivel-ingles">{{ aluno.nivel_ingles }}</span>
       </div>
 
@@ -246,7 +246,7 @@ p a {
 
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
-  
+
   <div class="footer">
     <div class="item active">
       <i>👤</i>
@@ -341,32 +341,6 @@ p a {
   });
 
   // ---- Ações principais (torna-as globais) ----
- const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  const infoAulaDiv = document.getElementById("info-aula");
-  const salaIdSpan = document.getElementById("sala-id");
-
-  onSnapshot(chamadaRef, (docSnap) => {
-    try {
-      if (docSnap.exists()) {
-        const dados = docSnap.data();
-        if (dados.status === "pendente") {
-          salaIdSpan.textContent = dados.sala;
-          infoAulaDiv.style.display = "block";
-          const aceitar = confirm(📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?);
-          updateDoc(chamadaRef, {
-            status: aceitar ? "aceito" : "rejeitado"
-          });
-          if (aceitar) {
-            window.location.href = /sala_virtual_aluno/${dados.sala};
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Erro no onSnapshot:", e);
-    }
-  });
-
-  // ---- Ações principais (torna-as globais) ----
   window.toggleAulas = async function () {
     const div = document.getElementById("sec-aula");
     const aulasDadas = document.getElementById("aulas-dadas");
@@ -389,7 +363,7 @@ p a {
         body: JSON.stringify({ aluno: nomeAluno })
       });
 
-      if (!response.ok) throw new Error(HTTP ${response.status});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
 
@@ -400,12 +374,12 @@ p a {
         return;
       }
 
-      aulasDadas.textContent = ✅ Já teve: ${data.aulas_dadas} aulas;
-      aulasRestantes.textContent = 📌 Faltam: ${data.restantes} aulas;
+      aulasDadas.textContent = `✅ Já teve: ${data.aulas_dadas} aulas`;
+      aulasRestantes.textContent = `📌 Faltam: ${data.restantes} aulas`;
       listaAulas.innerHTML = "";
       (data.aulas || []).forEach((aula, i) => {
         const li = document.createElement("li");
-        li.textContent = ${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario};
+        li.textContent = `${i + 1}. 📅 ${aula.data} 🕐 ${aula.horario}`;
         listaAulas.appendChild(li);
       });
     } catch (err) {
@@ -426,12 +400,12 @@ p a {
     }
     container.innerHTML = "Carregando...";
     try {
-      const res = await fetch(/meu-professor-status/${encodeURIComponent(nomeAluno)});
-      if (!res.ok) throw new Error(HTTP ${res.status});
+      const res = await fetch(`/meu-professor-status/${encodeURIComponent(nomeAluno)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const statusIcon = data.online ? '🟢' : '⚪';
       const statusText = data.online ? 'Online' : 'Offline';
-      container.innerHTML = ${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>;
+      container.innerHTML = `${statusIcon} Professor: ${data.professor} <span class="status-icon">(${statusText})</span>`;
       container.style.display = "block";
     } catch (e) {
       console.error("Erro toggleProfessor:", e);
@@ -447,7 +421,7 @@ p a {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ aluno: nomeAluno })
       });
-      if (!response.ok) throw new Error(HTTP ${response.status});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       const notificacaoEl = document.getElementById("notificacao-mensagem");
       const contadorAulas = document.getElementById("contador-aulas");
@@ -455,10 +429,10 @@ p a {
         window.professorEmailAtual = data.professor_email;
         // trocar onclick inline por data-action para robustez poderia ser melhor,
         // mas mantemos compatibilidade com desativarNotificacaoERedirecionar global.
-        notificacaoEl.innerHTML = 
+        notificacaoEl.innerHTML = `
           A tua aula irá começar
           <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Vista</button>
-        ;
+        `;
         notificacaoEl.style.display = "block";
         contadorAulas.innerText = "(1)";
       } else {
@@ -480,8 +454,8 @@ p a {
       document.getElementById("notificacao-mensagem").style.display = "none";
       document.getElementById("contador-aulas").innerText = "";
       if (window.professorEmailAtual) {
-        const sala = encodeURIComponent(${window.professorEmailAtual}-${nomeAluno});
-        window.location.href = /sala_virtual_aluno/${sala};
+        const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
+        window.location.href = `/sala_virtual_aluno/${sala}`;
       }
     } catch (e) {
       console.error("Erro desativarNotificacaoERedirecionar:", e);
@@ -500,8 +474,8 @@ p a {
     listaHorario.innerHTML = "Carregando...";
 
     try {
-      const res = await fetch(/ver-horario-aluno/${encodeURIComponent(nomeAluno)});
-      if (!res.ok) throw new Error(HTTP ${res.status});
+      const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       listaHorario.innerHTML = "";
 
@@ -512,12 +486,12 @@ p a {
       } else {
         for (const [dia, horarios] of Object.entries(data.horario || {})) {
           const diaItem = document.createElement("li");
-          diaItem.innerHTML = <strong>📅 ${traduzirDia(dia)}:</strong>;
+          diaItem.innerHTML = `<strong>📅 ${traduzirDia(dia)}:</strong>`;
           listaHorario.appendChild(diaItem);
 
           (horarios || []).forEach(h => {
             const horaItem = document.createElement("li");
-            horaItem.textContent = - ${h};
+            horaItem.textContent = `- ${h}`;
             horaItem.style.marginLeft = "15px";
             listaHorario.appendChild(horaItem);
           });
@@ -833,7 +807,7 @@ p a {
     }
   };
 
-
+  // fim do módulo
   console.log("Funções exportadas para window: toggleAulas, verNotificacao, verHorario, toggleProfessor, verificarResposta, proximaPergunta, subirNivel, carregarPerguntas");
 </script>
 
