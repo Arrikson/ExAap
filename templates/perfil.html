@@ -288,19 +288,37 @@ function fecharDesafio() {
 </div>
 
   <div class="footer">
-    <div class="item active">
-      <i>👤</i>
-      O Meu Perfil
-    </div>
-    <div class="item">
-      <i>💳</i>
-      Pagamentos
-    </div>
-    <div class="item">
-      <i>📂</i>
-      Menu
-    </div>
+  <div class="item active" onclick="abrirPerfil()">
+    <i>👤</i>
+    O Meu Perfil
   </div>
+  <div class="item" onclick="abrirPagamentos()">
+    <i>💳</i>
+    Pagamentos
+  </div>
+  <div class="item" onclick="abrirMenu()">
+    <i>📂</i>
+    Menu
+  </div>
+</div>
+
+<script>
+function abrirPerfil() {
+  // Aqui você coloca a navegação para o perfil
+  window.location.href = '/perfil'; 
+}
+
+function abrirMenu() {
+  // Aqui a navegação para o menu
+  window.location.href = '/menu';
+}
+
+function abrirPagamentos() {
+  // Redireciona para a página de controle de pagamentos
+  window.location.href = '/pagamentos'; 
+}
+</script>
+
 
   <!-- Seção para exibir detalhes das aulas -->
   <div id="sec-aula" style="display:none;">
