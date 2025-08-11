@@ -3023,6 +3023,7 @@ async def registrar_pagamento(data: PagamentoIn):
 async def pagamentos(request: Request):
     campos_obrigatorios = {
         "aluno": "",
+        "preco_aula": 0,
         "total_aulas": 0,
         "valor_mensal": 0,
         "ultimo_pagamento": None
