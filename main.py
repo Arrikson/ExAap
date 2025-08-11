@@ -3020,6 +3020,10 @@ async def registrar_pagamento(data: PagamentoIn):
 
     return {"message": "Pagamento registrado com sucesso"}
 
+@app.get("/pagamentos", response_class=HTMLResponse)
+async def pagamentos(request: Request):
+    return templates.TemplateResponse("pagamento.html", {"request": request})
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
