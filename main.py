@@ -3021,7 +3021,33 @@ async def registrar_pagamento(data: PagamentoIn):
 
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
+    campos_obrigatorios = {
+        "aluno": "",
+        "total_aulas": 0,
+        "valor_mensal": 0,
+        "ultimo_pagamento": None
+    }
+
+    # Buscar todos os documentos
+    alunos_ref = db.collection("alunos_professor").stream()
+
+    for doc in alunos_ref:
+        data = doc.to_dict()
+        atualizado = False
+        novos_dados = {}
+
+        # Garante que cada campo exista
+        for campo, valor_padrao in campos_obrigatorios.items():
+            if campo not in data:
+                novos_dados[campo] = valor_padrao
+                atualizado = True
+
+        # Se adicionou algo novo, atualiza no Firestore
+        if atualizado:
+            db.collection("alunos_professor").document(doc.id).update(novos_dados)
+
     return templates.TemplateResponse("pagamentos.html", {"request": request})
+
 
 
 @app.get("/admin", response_class=HTMLResponse)
