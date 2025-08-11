@@ -2928,7 +2928,6 @@ async def pagina_pagamentos(aluno_nome: str, request: Request):
     return templates.TemplateResponse("pagamentos.html", {"request": request, "aluno_nome": aluno_nome})
 
 
-
 @app.get("/api/historico-pagamentos/{aluno_nome}")
 async def historico_pagamentos_api(aluno_nome: str):
     aluno_normalizado = aluno_nome.strip().lower()
@@ -3022,7 +3021,7 @@ async def registrar_pagamento(data: PagamentoIn):
 
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
-    return templates.TemplateResponse("pagamento.html", {"request": request})
+    return templates.TemplateResponse("pagamentos.html", {"request": request})
 
 
 @app.get("/admin", response_class=HTMLResponse)
