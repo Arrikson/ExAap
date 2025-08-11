@@ -2918,6 +2918,109 @@ async def verificar_resposta(data: dict = Body(...)):
         return JSONResponse(content={"acertou": False})
 
 
+@app.get("/pagamentos/{aluno_nome}", response_class=HTMLResponse)
+async def pagina_pagamentos(aluno_nome: str, request: Request):
+    """
+    Serve a página de pagamentos para o aluno. Não faz fetchs servidor-side aqui —
+    o JS da página vai chamar a API '/api/historico-pagamentos/{aluno_nome}'.
+    """
+    # passa o nome para o template (será injetado de forma segura)
+    return templates.TemplateResponse("pagamentos.html", {"request": request, "aluno_nome": aluno_nome})
+
+
+
+@app.get("/api/historico-pagamentos/{aluno_nome}")
+async def historico_pagamentos_api(aluno_nome: str):
+    aluno_normalizado = aluno_nome.strip().lower()
+
+    # busca vinculo (aluno_professor)
+    vinculos = db.collection("alunos_professor") \
+                 .where("aluno", "==", aluno_normalizado) \
+                 .limit(1).stream()
+    vinculo_doc = next(vinculos, None)
+    if not vinculo_doc:
+        raise HTTPException(status_code=404, detail="Aluno/vínculo não encontrado")
+
+    vinculo_data = vinculo_doc.to_dict()
+    total_aulas = int(vinculo_data.get("total_aulas", 0))
+    valor_mensal = total_aulas * 1250  # 1.250 Kz por aula
+
+    # busca pagamentos já registados
+    pagamentos_query = db.collection("pagamentos") \
+                         .where("aluno", "==", aluno_normalizado) \
+                         .stream()
+
+    pagamentos = []
+    seen = set()
+    for doc in pagamentos_query:
+        d = doc.to_dict()
+        mes = int(d.get("mes", 0))
+        ano = int(d.get("ano", 0))
+        key = (ano, mes)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        pagamentos.append({
+            "mes": mes,
+            "ano": ano,
+            "valor": int(d.get("valor", valor_mensal)),
+            "pago": bool(d.get("pago", False)),
+            "data_registro": d.get("data_registro", None)
+        })
+
+    # garantir que o mês corrente esteja sempre presente (se não existir, adiciona como não pago)
+    hoje = datetime.utcnow()
+    mes_atual = hoje.month
+    ano_atual = hoje.year
+    if not any(p["mes"] == mes_atual and p["ano"] == ano_atual for p in pagamentos):
+        pagamentos.append({
+            "mes": mes_atual,
+            "ano": ano_atual,
+            "valor": valor_mensal,
+            "pago": False,
+            "data_registro": None
+        })
+
+    # ordenar por ano/mes descendente (mais recente primeiro)
+    pagamentos.sort(key=lambda x: (x["ano"], x["mes"]), reverse=True)
+    return JSONResponse(content=pagamentos)
+
+
+class PagamentoIn(BaseModel):
+    aluno_nome: str
+    mes: int  # 1..12
+    ano: int
+    pago: bool
+
+@app.post("/api/registrar-pagamento")
+async def registrar_pagamento(data: PagamentoIn):
+    aluno_normalizado = data.aluno_nome.strip().lower()
+
+    # buscar vinculo para obter total_aulas (para calcular valor caso não venha)
+    vinculos = db.collection("alunos_professor") \
+                 .where("aluno", "==", aluno_normalizado) \
+                 .limit(1).stream()
+    vinculo_doc = next(vinculos, None)
+    if not vinculo_doc:
+        raise HTTPException(status_code=404, detail="Aluno/vínculo não encontrado")
+
+    total_aulas = int(vinculo_doc.to_dict().get("total_aulas", 0))
+    valor_mensal = total_aulas * 1250
+
+    doc_id = f"{aluno_normalizado}_{data.ano}_{data.mes}"
+    db.collection("pagamentos").document(doc_id).set({
+        "aluno": aluno_normalizado,
+        "mes": data.mes,
+        "ano": data.ano,
+        "valor": valor_mensal,
+        "pago": bool(data.pago),
+        "data_registro": datetime.utcnow().isoformat()
+    })
+
+    return {"message": "Pagamento registrado com sucesso"}
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
