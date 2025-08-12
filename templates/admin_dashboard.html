@@ -472,13 +472,22 @@ async function marcarPagoMes(id, campo, statusAtual) {
   }
 }
 
+// Helper para pegar o primeiro campo válido
+function getField(obj, ...keys) {
+  if (!obj) return undefined;
+  for (const k of keys) {
+    if (obj[k] !== undefined) return obj[k];
+  }
+  return undefined;
+}
+
 // ---------- Listar pagamentos de professores ----------
 async function carregarPagamentosProf() {
   try {
     const res = await fetch("/listar-pagamentos-prof");
     if (!res.ok) throw new Error(`Status ${res.status}`);
-    const profs = await res.json();
 
+    const profs = await res.json();
     const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
     tbody.innerHTML = "";
 
@@ -497,7 +506,8 @@ async function carregarPagamentosProf() {
           <td><a href="#" onclick="verMesesProf('${id}'); return false;">${nome}</a></td>
           <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
           <td>
-            <button onclick="marcarPagoProf('${id}', ${mensapro})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+            <button onclick="marcarPagoProf('${id}', ${mensapro})" 
+              style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
               PAGO
             </button>
           </td>
@@ -512,11 +522,12 @@ async function carregarPagamentosProf() {
   }
 }
 
-// ---------- Ver detalhes de meses pagos do professor ----------
+// ---------- Ver meses pagos ----------
 async function verMesesProf(id) {
   try {
     const res = await fetch(`/detalhes-pagamento-prof/${id}`);
     if (!res.ok) throw new Error(`Status ${res.status}`);
+
     const dados = await res.json();
 
     const nomeProf = getField(dados, "professor", "nome_professor") ||
@@ -537,14 +548,14 @@ async function verMesesProf(id) {
     dados.meses.forEach(m => {
       const cor = m.status ? "status-verde" : "status-vermelho";
       const texto = m.status ? "PAGA" : "Não paga";
-      const campo = m.campo || (`mensapro${(m.mes ? (["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].indexOf(m.mes)+1) : "")}`);
 
       tbody.innerHTML += `
         <tr>
           <td>${m.mes}</td>
           <td><span class="status-circulo ${cor}"></span>${texto}</td>
           <td>
-            <button onclick="marcarPagoMesProf('${id}', '${campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+            <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" 
+              style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
               PAGO
             </button>
           </td>
@@ -559,7 +570,7 @@ async function verMesesProf(id) {
   }
 }
 
-// ---------- Marcar pagamento de mês (professores) ----------
+// ---------- Marcar pagamento de um mês ----------
 async function marcarPagoMesProf(id, campo, statusAtual) {
   try {
     const novoStatus = !statusAtual;
@@ -571,8 +582,8 @@ async function marcarPagoMesProf(id, campo, statusAtual) {
     if (!res.ok) throw new Error(`Status ${res.status}`);
     verMesesProf(id);
   } catch (err) {
-    console.error("Erro ao marcar pagamento de mês (professor):", err);
-    alert("Falha ao atualizar o pagamento do professor.");
+    console.error("Erro ao marcar pagamento do mês (professor):", err);
+    alert("Falha ao atualizar o pagamento.");
   }
 }
 
