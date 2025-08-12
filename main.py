@@ -3051,6 +3051,31 @@ async def pagamentos(request: Request):
     return templates.TemplateResponse("pagamentos.html", {"request": request})
 
 
+@app.get("/listar-pagamentos")
+async def listar_pagamentos():
+    alunos_ref = db.collection("alunos_professor").stream()
+    alunos = []
+    for doc in alunos_ref:
+        data = doc.to_dict()
+        alunos.append({
+            "id": doc.id,
+            "nome": data.get("aluno", ""),
+            "mensalidade": data.get("mensalidade", False)
+        })
+    return JSONResponse(alunos)
+
+@app.post("/atualizar-pagamento")
+async def atualizar_pagamento(payload: dict):
+    aluno_id = payload.get("id")
+    mensalidade = payload.get("mensalidade")
+    if aluno_id is None:
+        return JSONResponse({"error": "ID não informado"}, status_code=400)
+    
+    db.collection("alunos_professor").document(aluno_id).update({
+        "mensalidade": mensalidade
+    })
+    return JSONResponse({"status": "ok"})
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
