@@ -3019,6 +3019,7 @@ async def registrar_pagamento(data: PagamentoIn):
 
     return {"message": "Pagamento registrado com sucesso"}
 
+
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
     campos_obrigatorios = {
@@ -3027,10 +3028,12 @@ async def pagamentos(request: Request):
         "total_aulas": 0,
         "valor_mensal": 0,
         "ultimo_pagamento": None,
-        "mensalidade": False  
     }
 
-    # Buscar todos os documentos
+    # Campos de mensalidades para 12 meses
+    for i in range(1, 13):
+        campos_obrigatorios[f"mensalidade{i}"] = False
+
     alunos_ref = db.collection("alunos_professor").stream()
 
     for doc in alunos_ref:
@@ -3038,17 +3041,55 @@ async def pagamentos(request: Request):
         atualizado = False
         novos_dados = {}
 
-        # Garante que cada campo exista
         for campo, valor_padrao in campos_obrigatorios.items():
             if campo not in data:
                 novos_dados[campo] = valor_padrao
                 atualizado = True
 
-        # Se adicionou algo novo, atualiza no Firestore
         if atualizado:
             db.collection("alunos_professor").document(doc.id).update(novos_dados)
 
     return templates.TemplateResponse("pagamentos.html", {"request": request})
+
+@app.get("/detalhes-pagamento/{aluno_id}")
+async def detalhes_pagamento(aluno_id: str):
+    doc_ref = db.collection("alunos_professor").document(aluno_id).get()
+    if not doc_ref.exists:
+        return JSONResponse({"error": "Aluno não encontrado"}, status_code=404)
+
+    data = doc_ref.to_dict()
+    meses = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ]
+    lista_meses = []
+    for i, mes in enumerate(meses, start=1):
+        lista_meses.append({
+            "mes": mes,
+            "status": data.get(f"mensalidade{i}", False),
+            "campo": f"mensalidade{i}"
+        })
+
+    return JSONResponse({
+        "aluno": data.get("aluno", ""),
+        "meses": lista_meses
+    })
+
+
+@app.post("/atualizar-pagamento-mes")
+async def atualizar_pagamento_mes(payload: dict):
+    aluno_id = payload.get("id")
+    campo = payload.get("campo")
+    status = payload.get("status")
+
+    if not aluno_id or not campo:
+        return JSONResponse({"error": "Dados incompletos"}, status_code=400)
+
+    db.collection("alunos_professor").document(aluno_id).update({
+        campo: status
+    })
+    return JSONResponse({"status": "ok"})
+
 
 
 @app.get("/listar-pagamentos")
