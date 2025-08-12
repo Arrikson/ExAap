@@ -3130,7 +3130,7 @@ async def listar_pagamentos_prof():
 
     for doc in docs:
         data = doc.to_dict()
-        email_prof = data.get("professor")  # campo que tem o email do professor
+        email_prof = data.get("professor")  
 
         # Buscar dados do professor na coleção professores_online
         prof_doc = db.collection("professores_online").where("email", "==", email_prof).limit(1).stream()
@@ -3194,18 +3194,6 @@ async def detalhes_pagamento_prof(prof_id: str):
         "meses": lista_meses
     })
 
-
-# 🔹 3. Atualizar um mês específico
-class PagamentoProfUpdate(BaseModel):
-    id: str
-    campo: str
-    status: bool
-
-@app.post("/atualizar-pagamento-mes-prof")
-async def atualizar_pagamento_mes_prof(dados: PagamentoProfUpdate):
-    doc_ref = db.collection("alunos_professor").document(dados.id)
-    doc_ref.update({dados.campo: dados.status})
-    return JSONResponse(content={"sucesso": True})
 
 class PagamentoProfUpdate(BaseModel):
     id: str
