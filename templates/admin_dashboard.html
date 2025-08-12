@@ -484,7 +484,7 @@ function getField(obj, ...keys) {
 // ---------- Listar pagamentos de professores ----------
 async function carregarPagamentosProf() {
   try {
-    const res = await fetch("/listar-pagamentos-prof");
+    const res = await fetch("/listar-professores-online");
     if (!res.ok) throw new Error(`Status ${res.status}`);
 
     const profs = await res.json();
@@ -515,13 +515,10 @@ async function carregarPagamentosProf() {
       `;
     });
 
-    console.log("Pagamentos de professores carregados:", profs.length);
   } catch (err) {
-    console.error("Erro ao carregar pagamentos de professores:", err);
-    alert("Falha ao carregar lista de pagamentos dos professores.");
+    console.error("Erro ao carregar pagamentos dos professores:", err);
   }
 }
-
 // ---------- Ver meses pagos ----------
 async function verMesesProf(id) {
   try {
