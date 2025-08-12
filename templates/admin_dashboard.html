@@ -446,63 +446,136 @@ async function marcarPagoMes(id, campo, statusAtual) {
   verMeses(id);
 }
 
+// helper: tenta vários nomes de campo e retorna o primeiro definido
+function getField(obj, ...keys) {
+  if (!obj) return undefined;
+  for (const k of keys) {
+    if (obj[k] !== undefined) return obj[k];
+  }
+  return undefined;
+}
+
+// ---------- Marcar pagamento de mês (alunos) ----------
+async function marcarPagoMes(id, campo, statusAtual) {
+  try {
+    const novoStatus = !statusAtual;
+    const res = await fetch("/atualizar-pagamento-mes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, campo, status: novoStatus })
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    verMeses(id);
+  } catch (err) {
+    console.error("Erro ao marcar pagamento de mês (aluno):", err);
+    alert("Falha ao atualizar o pagamento do aluno.");
+  }
+}
+
+// ---------- Listar pagamentos de professores ----------
 async function carregarPagamentosProf() {
-  const res = await fetch("/listar-pagamentos-prof");
-  const profs = await res.json();
-  const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
-  tbody.innerHTML = "";
-  profs.forEach(p => {
-    const statusCor = p.mensapro ? "status-verde" : "status-vermelho";
-    const statusTexto = p.mensapro ? "PAGA" : "Não paga";
-    tbody.innerHTML += `
-      <tr>
-        <td><a href="#" onclick="verMesesProf('${p.id}')">${p.nome}</a></td>
-        <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-        <td>
-          <button onclick="marcarPagoProf('${p.id}', ${p.mensapro})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-            PAGO
-          </button>
-        </td>
-      </tr>`;
-  });
+  try {
+    const res = await fetch("/listar-pagamentos-prof");
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    const profs = await res.json();
+
+    const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
+    tbody.innerHTML = "";
+
+    profs.forEach(p => {
+      const id = getField(p, "id", "_id", "docId") || "";
+      const nome = getField(p, "nome_professor", "nome", "professor") ||
+                   (p.dados_professor && (p.dados_professor.nome || p.dados_professor.displayName)) ||
+                   p.email_professor || p.email || "Sem nome";
+      const mensapro = !!getField(p, "mensapro", "mensapro1");
+
+      const statusCor = mensapro ? "status-verde" : "status-vermelho";
+      const statusTexto = mensapro ? "PAGA" : "Não paga";
+
+      tbody.innerHTML += `
+        <tr>
+          <td><a href="#" onclick="verMesesProf('${id}'); return false;">${nome}</a></td>
+          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+          <td>
+            <button onclick="marcarPagoProf('${id}', ${mensapro})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+              PAGO
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    console.log("Pagamentos de professores carregados:", profs.length);
+  } catch (err) {
+    console.error("Erro ao carregar pagamentos de professores:", err);
+    alert("Falha ao carregar lista de pagamentos dos professores.");
+  }
 }
 
+// ---------- Ver detalhes de meses pagos do professor ----------
 async function verMesesProf(id) {
-  const res = await fetch(`/detalhes-pagamento-prof/${id}`);
-  const dados = await res.json();
+  try {
+    const res = await fetch(`/detalhes-pagamento-prof/${id}`);
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    const dados = await res.json();
 
-  document.getElementById("nome-prof").textContent = dados.professor;
-  const tbody = document.getElementById("tabela-meses-prof");
-  tbody.innerHTML = "";
+    const nomeProf = getField(dados, "professor", "nome_professor") ||
+                     (dados.dados_professor && (dados.dados_professor.nome || dados.dados_professor.displayName)) ||
+                     dados.email_professor || dados.email || "Professor não encontrado";
 
-  dados.meses.forEach(m => {
-    const cor = m.status ? "status-verde" : "status-vermelho";
-    const texto = m.status ? "PAGA" : "Não paga";
-    tbody.innerHTML += `
-      <tr>
-        <td>${m.mes}</td>
-        <td><span class="status-circulo ${cor}"></span>${texto}</td>
-        <td>
-          <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-            PAGO
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+    if (!dados || !Array.isArray(dados.meses)) {
+      console.error("Estrutura de dados inesperada:", dados);
+      alert("Os dados do professor não foram encontrados corretamente!");
+      return;
+    }
 
-  document.getElementById("detalhes-prof").style.display = "block";
+    document.getElementById("nome-prof").textContent = nomeProf;
+
+    const tbody = document.getElementById("tabela-meses-prof");
+    tbody.innerHTML = "";
+
+    dados.meses.forEach(m => {
+      const cor = m.status ? "status-verde" : "status-vermelho";
+      const texto = m.status ? "PAGA" : "Não paga";
+      const campo = m.campo || (`mensapro${(m.mes ? (["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].indexOf(m.mes)+1) : "")}`);
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${m.mes}</td>
+          <td><span class="status-circulo ${cor}"></span>${texto}</td>
+          <td>
+            <button onclick="marcarPagoMesProf('${id}', '${campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+              PAGO
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("detalhes-prof").style.display = "block";
+  } catch (err) {
+    console.error("Erro ao buscar detalhes do professor:", err);
+    alert("Falha ao buscar os detalhes do professor.");
+  }
 }
 
+// ---------- Marcar pagamento de mês (professores) ----------
 async function marcarPagoMesProf(id, campo, statusAtual) {
-  const novoStatus = !statusAtual;
-  await fetch("/atualizar-pagamento-mes-prof", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, campo, status: novoStatus })
-  });
-  verMesesProf(id);
-} 
+  try {
+    const novoStatus = !statusAtual;
+    const res = await fetch("/atualizar-pagamento-mes-prof", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, campo, status: novoStatus })
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    verMesesProf(id);
+  } catch (err) {
+    console.error("Erro ao marcar pagamento de mês (professor):", err);
+    alert("Falha ao atualizar o pagamento do professor.");
+  }
+}
+
 </script>
 </body>
 </html>
