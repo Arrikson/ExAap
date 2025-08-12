@@ -3026,7 +3026,8 @@ async def pagamentos(request: Request):
         "preco_aula": 0,
         "total_aulas": 0,
         "valor_mensal": 0,
-        "ultimo_pagamento": None
+        "ultimo_pagamento": None,
+        "mensalidade": False  
     }
 
     # Buscar todos os documentos
