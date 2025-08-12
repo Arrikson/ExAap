@@ -3207,28 +3207,25 @@ async def atualizar_pagamento_mes_prof(dados: PagamentoProfUpdate):
     doc_ref.update({dados.campo: dados.status})
     return JSONResponse(content={"sucesso": True})
 
+class PagamentoProfUpdate(BaseModel):
+    id: str
+    campo: str
+    status: bool
+
 @app.post("/atualizar-pagamento-prof")
-async def atualizar_pagamento_prof(payload: dict):
-    prof_id = payload.get("id")
-    campo = payload.get("campo")  # Pode vir "mensapro" ou "mensaproX"
-    status = payload.get("status")
+async def atualizar_pagamento_prof(dados: PagamentoProfUpdate):
+    prof_id = dados.id
+    campo = dados.campo
+    status = dados.status
 
-    if not prof_id:
-        return JSONResponse({"error": "ID do professor não informado"}, status_code=400)
-
-    # Se campo for "mensapro" significa que queremos alterar todos os meses
     if campo == "mensapro":
         atualizacoes = {f"mensapro{i}": status for i in range(1, 13)}
         db.collection("professores").document(prof_id).update(atualizacoes)
     else:
-        # Atualiza apenas o campo específico (ex: mensapro5)
-        db.collection("professores").document(prof_id).update({
-            campo: status
-        })
+        db.collection("professores").document(prof_id).update({campo: status})
 
     return JSONResponse({"status": "ok"})
-
-
+    
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
