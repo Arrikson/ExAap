@@ -3030,10 +3030,15 @@ async def pagamentos(request: Request):
         "ultimo_pagamento": None,
     }
 
-    # Campos de mensalidades para 12 meses
+    # Campos de mensalidades de alunos (12 meses)
     for i in range(1, 13):
         campos_obrigatorios[f"mensalidade{i}"] = False
 
+    # Campos de mensalidades de professores (12 meses)
+    for i in range(1, 13):
+        campos_obrigatorios[f"mensapro{i}"] = False
+
+    # Atualizar todos os documentos na coleção
     alunos_ref = db.collection("alunos_professor").stream()
 
     for doc in alunos_ref:
@@ -3050,6 +3055,7 @@ async def pagamentos(request: Request):
             db.collection("alunos_professor").document(doc.id).update(novos_dados)
 
     return templates.TemplateResponse("pagamentos.html", {"request": request})
+
 
 @app.get("/detalhes-pagamento/{aluno_id}")
 async def detalhes_pagamento(aluno_id: str):
