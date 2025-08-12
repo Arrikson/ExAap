@@ -584,6 +584,23 @@ async function marcarPagoMesProf(id, campo, statusAtual) {
   }
 }
 
+// Marcar pagamento geral do professor
+async function marcarPagoProf(id, statusAtual) {
+  try {
+    const novoStatus = !statusAtual;
+    const res = await fetch("/atualizar-pagamento-prof", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, campo: "mensapro", status: novoStatus })
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    carregarPagamentosProf(); // Atualiza a lista depois
+  } catch (err) {
+    console.error("Erro ao marcar pagamento do professor:", err);
+    alert("Falha ao atualizar o pagamento do professor.");
+  }
+}
+  
 </script>
 </body>
 </html>
