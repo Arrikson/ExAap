@@ -202,80 +202,41 @@
       </div>
     </div>
 
-<!-- Tabela de meses (detalhes do aluno) -->
-<div id="detalhes-aluno" style="display:none; margin-top:15px; position: relative; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-
-  <!-- Botão Fechar -->
-  <button 
-    onclick="document.getElementById('detalhes-aluno').style.display='none'" 
-    style="
-      position: absolute; 
-      top: 8px; 
-      right: 8px; 
-      background: #ff4d4d; 
-      color: white; 
-      border: none; 
-      font-size: 14px; 
-      font-weight: bold; 
-      border-radius: 50%; 
-      width: 28px; 
-      height: 28px; 
-      cursor: pointer; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    ">
-    ✕
-  </button>
-
-  <h3 id="nome-aluno" style="margin-top:0;"></h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Mês</th>
-        <th>Status</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-meses"></tbody>
-  </table>
+<!-- Controle de Pagamentos (Alunos) -->
+<div class="card">
+  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos')">💰 Controle de Pagamentos - Alunos</button>
+  <div class="section" id="controle-pagamentos">
+    <button class="btn" onclick="carregarPagamentos()">Atualizar</button>
+    <table id="tabela-pagamentos">
+      <thead>
+        <tr>
+          <th>Aluno</th>
+          <th>Status</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
-<!-- Tabela de meses (detalhes do professor) -->
-<div id="detalhes-prof" style="display:none; margin-top:15px; position: relative; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-
-  <!-- Botão Fechar -->
-  <button 
-    onclick="document.getElementById('detalhes-prof').style.display='none'" 
-    style="
-      position: absolute; 
-      top: 8px; 
-      right: 8px; 
-      background: #ff4d4d; 
-      color: white; 
-      border: none; 
-      font-size: 14px; 
-      font-weight: bold; 
-      border-radius: 50%; 
-      width: 28px; 
-      height: 28px; 
-      cursor: pointer; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    ">
-    ✕
-  </button>
-
-  <h3 id="nome-prof" style="margin-top:0;"></h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Mês</th>
-        <th>Status</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-meses-prof"></tbody>
-  </table>
+<!-- Controle de Pagamentos (Professores) -->
+<div class="card">
+  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">💰 Controle de Pagamentos - Professores</button>
+  <div class="section" id="controle-pagamentos-prof">
+    <button class="btn" onclick="carregarPagamentosProf()">Atualizar</button>
+    <table id="tabela-pagamentos-prof">
+      <thead>
+        <tr>
+          <th>Professor</th>
+          <th>Status</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
-
     
 <script>
   function alternarVisibilidade(id) {
