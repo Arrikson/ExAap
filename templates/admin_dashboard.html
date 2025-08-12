@@ -206,7 +206,10 @@
 <div class="card">
   <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos')">💰 Controle de Pagamentos - Alunos</button>
   <div class="section" id="controle-pagamentos">
-    <button class="btn" onclick="carregarPagamentos()">Atualizar</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button class="btn" onclick="carregarPagamentos()">🔄 Atualizar</button>
+      <button class="btn btn-fechar" onclick="alternarVisibilidade('controle-pagamentos')">❌ Fechar</button>
+    </div>
     <table id="tabela-pagamentos">
       <thead>
         <tr>
@@ -224,7 +227,10 @@
 <div class="card">
   <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">💰 Controle de Pagamentos - Professores</button>
   <div class="section" id="controle-pagamentos-prof">
-    <button class="btn" onclick="carregarPagamentosProf()">Atualizar</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button class="btn" onclick="carregarPagamentosProf()">🔄 Atualizar</button>
+      <button class="btn btn-fechar" onclick="alternarVisibilidade('controle-pagamentos-prof')">❌ Fechar</button>
+    </div>
     <table id="tabela-pagamentos-prof">
       <thead>
         <tr>
@@ -237,7 +243,9 @@
     </table>
   </div>
 </div>
-    
+
+<style>.btn-fechar { background-color: #dc3545; color: white; font-weight: bold; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; } .btn-fechar:hover { background-color: #b02a37; }</style>
+   
 <script>
   function alternarVisibilidade(id) {
     const el = document.getElementById(id);
