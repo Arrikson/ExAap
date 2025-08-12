@@ -102,6 +102,19 @@
       border-radius: 8px;
       border: 1px solid #ccc;
     }
+    .status-circulo {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .status-verde {
+      background-color: green;
+    }
+    .status-vermelho {
+      background-color: red;
+    }
     @media (max-width: 600px) {
       .container {
         flex-direction: column;
@@ -188,6 +201,25 @@
         <button class="btn" onclick="enviarMensagem()">Enviar Mensagem</button>
       </div>
     </div>
+
+    <!-- Novo Controle de Pagamentos -->
+    <div class="card">
+      <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos')">💰 Controle de Pagamentos</button>
+      <div class="section" id="controle-pagamentos">
+        <button class="btn" onclick="carregarPagamentos()">Atualizar</button>
+        <table id="tabela-pagamentos">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Status</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
 <script>
@@ -331,7 +363,39 @@
 
     document.getElementById("mensagem-texto").value = "";
   }
+
+  async function carregarPagamentos() {
+    const res = await fetch("/listar-pagamentos");
+    const alunos = await res.json();
+    const tbody = document.querySelector("#tabela-pagamentos tbody");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+      const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
+      const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
+      tbody.innerHTML += `
+        <tr>
+          <td>${a.nome}</td>
+          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+          <td>
+            <button onclick="marcarPago('${a.id}', ${a.mensalidade})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+              PAGO
+            </button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  async function marcarPago(id, statusAtual) {
+    const novoStatus = !statusAtual;
+    await fetch("/atualizar-pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, mensalidade: novoStatus })
+    });
+    carregarPagamentos();
+  }
 </script>
 </body>
 </html>
+
 
