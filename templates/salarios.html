@@ -114,51 +114,64 @@
     <p><strong>Salário mensal estimado:</strong> {{ salario_mensal }} Kz</p>
   </div>
 
-  <div class="table-container">
-    <h2>Histórico de Pagamentos</h2>
-    <table id="tabela-pagamentos">
-      <thead>
-        <tr>
-          <th>Mês</th>
-          <th>Data de Pagamento</th>
-          <th>Valor</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Preenchido via JavaScript -->
-      </tbody>
-    </table>
-  </div>
+<div class="table-container">
+  <h2>Histórico de Pagamentos</h2>
+  <table id="tabela-pagamentos">
+    <thead>
+      <tr>
+        <th>Mês</th>
+        <th>Data de Pagamento</th>
+        <th>Valor</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+ 
+    </tbody>
+  </table>
+</div>
 
   <script>
-    // Função para preencher a tabela de pagamentos
-    function carregarTabelaPagamentos(pagamentos) {
-      const tbody = document.querySelector("#tabela-pagamentos tbody");
-      tbody.innerHTML = "";
 
-      if (!pagamentos || pagamentos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">Nenhum pagamento registrado.</td></tr>`;
-        return;
-      }
+  function carregarTabelaPagamentos(professores, emailProf) {
+    const tbody = document.querySelector("#tabela-pagamentos tbody");
+    tbody.innerHTML = "";
 
-      pagamentos.forEach(p => {
-        const statusClasse = p.status === "PAGO" ? "status-pago" : "status-nao-pago";
-        tbody.innerHTML += `
-          <tr>
-            <td>${p.mes || "-"}</td>
-            <td>${p.data || "-"}</td>
-            <td>${p.valor ? p.valor + " Kz" : "-"}</td>
-            <td class="${statusClasse}">${p.status || "-"}</td>
-          </tr>
-        `;
-      });
+
+    const professor = professores.find(p => p.email === emailProf);
+    if (!professor) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">Professor não encontrado.</td></tr>`;
+      return;
     }
 
-    // Passa os dados vindos do backend diretamente para a função
-    document.addEventListener("DOMContentLoaded", function() {
-      carregarTabelaPagamentos({{ pagamentos | tojson | safe }});
+    const pagamentos = professor.pagamentos;
+
+    if (!pagamentos || pagamentos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">Nenhum pagamento registrado.</td></tr>`;
+      return;
+    }
+
+    pagamentos.forEach(p => {
+      const status = p.data_pagamento ? "PAGO" : "NÃO PAGO";
+      const statusClasse = status === "PAGO" ? "status-pago" : "status-nao-pago";
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.mes || "-"}</td>
+          <td>${p.data_pagamento || "-"}</td>
+          <td>${p.valor_pago ? Number(p.valor_pago).toLocaleString('pt-BR') + " Kz" : "-"}</td>
+          <td class="${statusClasse}">${status}</td>
+        </tr>
+      `;
     });
+  }
+
+  // Passa os dados vindos do backend diretamente para a função
+  document.addEventListener("DOMContentLoaded", function() {
+    // Aqui você define o email do professor que quer exibir
+    const emailProf = "fulano@email.com"; 
+    carregarTabelaPagamentos({{ professores | tojson | safe }}, emailProf);
+  });
   </script>
 
 </body>
