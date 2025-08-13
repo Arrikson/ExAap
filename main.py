@@ -3122,6 +3122,84 @@ async def atualizar_pagamento(payload: dict):
     })
     return JSONResponse({"status": "ok"})
 
+class PagamentoProfIn(BaseModel):
+    id: str
+    mensapro1: bool
+
+class PagamentoMesProfIn(BaseModel):
+    id: str
+    campo: str
+    status: bool
+
+@app.get("/listar-pagamentos-prof")
+async def listar_pagamentos_prof():
+    try:
+        docs = db.collection("alunos_professor").stream()
+        professores_dict = {}
+
+        for doc in docs:
+            dados = doc.to_dict()
+            prof_email = dados.get("professor")
+            if prof_email not in professores_dict:
+                professores_dict[prof_email] = {
+                    "id": doc.id,
+                    "professor": prof_email,
+                    "mensapro1": dados.get("mensapro1", False)
+                }
+
+        return list(professores_dict.values())
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.post("/atualizar-pagamento-prof")
+async def atualizar_pagamento_prof(item: PagamentoProfIn):
+    try:
+        db.collection("alunos_professor").document(item.id).update({
+            "mensapro1": item.mensapro1
+        })
+        return {"message": "Pagamento atualizado com sucesso"}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.get("/detalhes-pagamento-prof/{id}")
+async def detalhes_pagamento_prof(id: str):
+    try:
+        doc_ref = db.collection("alunos_professor").document(id).get()
+        if not doc_ref.exists:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+        dados = doc_ref.to_dict()
+        meses_nomes = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ]
+
+        meses = []
+        for i, mes_nome in enumerate(meses_nomes, start=1):
+            campo = f"mensapro{i}"
+            meses.append({
+                "mes": mes_nome,
+                "campo": campo,
+                "status": dados.get(campo, False)
+            })
+
+        return {"professor": dados.get("professor"), "meses": meses}
+    except HTTPException:
+        raise
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.post("/atualizar-pagamento-mes-prof")
+async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
+    try:
+        db.collection("alunos_professor").document(item.id).update({
+            item.campo: item.status
+        })
+        return {"message": "Pagamento mensal atualizado com sucesso"}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
