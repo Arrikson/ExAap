@@ -2374,7 +2374,7 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Buscar professor (usando FieldFilter)
+        # Buscar professor
         prof_ref = db.collection("professores_online").where(
             filter=FieldFilter("email", "==", email)
         ).limit(1).stream()
@@ -2390,8 +2390,20 @@ async def ver_salarios(request: Request):
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Capturar pagamentos
-        pagamentos = professor.get("pagamentos", [])
+        # Processar pagamentos como dict de meses
+        pagamentos_raw = professor.get("pagamentos", {}) or {}
+        pagamentos = []
+
+        if isinstance(pagamentos_raw, dict):
+            for mes, pagamento in pagamentos_raw.items():
+                if not isinstance(pagamento, dict):
+                    pagamento = {}
+                pagamentos.append({
+                    "mes": str(mes) or "",
+                    "data_pagamento": str(pagamento.get("data_pagamento") or ""),
+                    "valor_pago": pagamento.get("valor_pago") or 0,
+                    "email_professor": str(pagamento.get("email_professor") or "")
+                })
 
         # Buscar alunos vinculados ao professor
         vinculos = db.collection("alunos_professor").where(
@@ -2406,7 +2418,7 @@ async def ver_salarios(request: Request):
         for doc in vinculos:
             dados = doc.to_dict()
             try:
-                aluno_nome = dados.get("aluno", "Desconhecido").title()
+                aluno_nome = str(dados.get("aluno", "Desconhecido")).title()
                 qtd_total = int(dados.get("total_aulas", 0))
                 qtd_dadas = int(dados.get("aulas_dadas", 0))
 
@@ -2418,7 +2430,7 @@ async def ver_salarios(request: Request):
                 for d in datas:
                     detalhes_aulas.append({
                         "nome_aluno": aluno_nome,
-                        "data": d,
+                        "data": str(d),
                         "disciplina": dados.get("dados_aluno", {}).get("disciplina", "N/A")
                     })
             except Exception as e:
@@ -2445,7 +2457,7 @@ async def ver_salarios(request: Request):
             "valor_por_aula": valor_por_aula,
             "total_a_receber": saldo_atual,
             "aulas": detalhes_aulas,
-            "pagamentos": pagamentos  # <-- adicionado aqui
+            "pagamentos": pagamentos  # sempre lista de dicts seguros
         })
 
     except Exception as e:
@@ -3184,23 +3196,25 @@ async def detalhes_pagamento_prof(request: Request):
         for doc in docs:
             dados = doc.to_dict() or {}
             salario_info = dados.get("salario", {}) or {}
+
+            # Como no Firebase 'pagamentos' é sempre um dict de meses
             pagamentos_info = dados.get("pagamentos", {}) or {}
-            
-            # Garante que todos os valores sejam strings ou números, nunca None ou Undefined
             pagamentos_list = []
+
             for mes, pagamento in pagamentos_info.items():
-                pagamento = pagamento or {}
+                if not isinstance(pagamento, dict):
+                    pagamento = {}
                 pagamentos_list.append({
-                    "mes": mes or "",
-                    "data_pagamento": pagamento.get("data_pagamento") or "",
-                    "valor_pago": pagamento.get("valor_pago") or 0,
-                    "email_professor": pagamento.get("email_professor") or ""
+                    "mes": str(mes) or "",
+                    "data_pagamento": str(pagamento.get("data_pagamento") or ""),
+                    "valor_pago": float(pagamento.get("valor_pago") or 0),
+                    "email_professor": str(pagamento.get("email_professor") or "")
                 })
 
             professores.append({
-                "nome": dados.get("nome") or "",
-                "email": dados.get("email") or "",
-                "saldo_atual": salario_info.get("saldo_atual") or 0,
+                "nome": str(dados.get("nome_completo") or dados.get("nome") or ""),
+                "email": str(dados.get("email") or ""),
+                "saldo_atual": float(salario_info.get("saldo_atual") or 0),
                 "pagamentos": pagamentos_list
             })
         
@@ -3209,11 +3223,12 @@ async def detalhes_pagamento_prof(request: Request):
             "salario.html",
             {
                 "request": request,
-                "professores": professores or []  # garante lista vazia se não houver professores
+                "professores": professores or []
             }
         )
     
     except Exception as e:
+        print(f"❌ Erro ao carregar detalhes de pagamento: {e}")
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
