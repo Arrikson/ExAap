@@ -442,42 +442,53 @@
     document.getElementById("mensagem-texto").value = "";
   }
 
-  async function carregarPagamentos() {
+async function carregarPagamentos() {
     const res = await fetch("/listar-pagamentos");
     const alunos = await res.json();
     const tbody = document.querySelector("#tabela-pagamentos tbody");
     tbody.innerHTML = "";
+
     alunos.forEach(a => {
-      const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
-      const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
-      tbody.innerHTML += `
-        <tr>
-          <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
-          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-          <td>
-            <button onclick="marcarPago('${a.id}', ${a.mensalidade})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-              PAGO
-            </button>
-          </td>
-        </tr>
-      `;
+        const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
+        const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
+
+        tbody.innerHTML += `
+            <tr>
+              <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
+              <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+              <td>
+                <button onclick="marcarPago('${a.id}', ${a.mensalidade})" 
+                        style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+                  PAGO
+                </button>
+              </td>
+            </tr>
+        `;
     });
-  }
-
-  async function marcarPago(id, statusAtual) {
-  const novoStatus = !statusAtual;
-
-  await fetch("/atualizar-pagamento", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: id, mensalidade: novoStatus })
-  });
-
-  // Atualiza a lista de pagamentos após marcar
-  carregarPagamentos();
 }
 
-  async function verMeses(id) {
+async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
+    if (!statusAtual) { // Se ainda não estava pago
+        await fetch("/registrar-pagamento-prof", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: id,
+                professor: professor,
+                valor_pago: saldoAtual
+            })
+        });
+    } else {
+        await fetch("/atualizar-pagamento-prof", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, mensapro1: false })
+        });
+    }
+    carregarPagamentosProf();
+}
+
+async function verMeses(id) {
     const res = await fetch(`/detalhes-pagamento/${id}`);
     const dados = await res.json();
 
@@ -486,35 +497,37 @@
     tbody.innerHTML = "";
 
     dados.meses.forEach(m => {
-      const cor = m.status ? "status-verde" : "status-vermelho";
-      const texto = m.status ? "PAGA" : "Não paga";
-      tbody.innerHTML += `
-        <tr>
-          <td>${m.mes}</td>
-          <td><span class="status-circulo ${cor}"></span>${texto}</td>
-          <td>
-            <button onclick="marcarPagoMes('${id}', '${m.campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-              PAGO
-            </button>
-          </td>
-        </tr>
-      `;
+        const cor = m.status ? "status-verde" : "status-vermelho";
+        const texto = m.status ? "PAGA" : "Não paga";
+
+        tbody.innerHTML += `
+            <tr>
+              <td>${m.mes}</td>
+              <td><span class="status-circulo ${cor}"></span>${texto}</td>
+              <td>
+                <button onclick="marcarPagoMes('${id}', '${m.campo}', ${m.status})" 
+                        style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+                  PAGO
+                </button>
+              </td>
+            </tr>
+        `;
     });
 
     document.getElementById("detalhes-aluno").style.display = "block";
-  }
+}
 
-  async function marcarPagoMes(id, campo, statusAtual) {
+async function marcarPagoMes(id, campo, statusAtual) {
     const novoStatus = !statusAtual;
     await fetch("/atualizar-pagamento-mes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, campo, status: novoStatus })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, campo, status: novoStatus })
     });
     verMeses(id);
-  }
+}
 
-  async function carregarPagamentosProf() {
+async function carregarPagamentosProf() {
     try {
         const res = await fetch("/listar-pagamentos-prof");
         const professores = await res.json();
@@ -531,7 +544,7 @@
                   <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
                   <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
                   <td>
-                    <button onclick="marcarPagoProf('${p.id}', ${p.mensapro1})" 
+                    <button onclick="marcarPagoProf('${p.id}', ${p.mensapro1}, '${p.professor}', ${p.saldo_atual})" 
                             style="background:${p.mensapro1 ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
                       ${p.mensapro1 ? "PAGO" : "NÃO PAGO"}
                     </button>
@@ -544,17 +557,7 @@
     }
 }
 
-  async function marcarPagoProf(id, statusAtual) {
-    const novoStatus = !statusAtual;
-    await fetch("/atualizar-pagamento-prof", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, mensapro1: novoStatus })
-    });
-    carregarPagamentosProf();
-  }
-
-  async function verMesesProf(id) {
+async function verMesesProf(id) {
     const res = await fetch(`/detalhes-pagamento-prof/${id}`);
     const dados = await res.json();
 
@@ -563,34 +566,35 @@
     tbody.innerHTML = "";
 
     dados.meses.forEach(m => {
-      const cor = m.status ? "status-verde" : "status-vermelho";
-      const texto = m.status ? "PAGO" : "NÃO PAGO";
-      tbody.innerHTML += `
-        <tr>
-          <td>${m.mes}</td>
-          <td><span class="status-circulo ${cor}"></span>${texto}</td>
-          <td>
-            <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" 
-                    style="background:${m.status ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-              ${m.status ? "PAGO" : "NÃO PAGO"}
-            </button>
-          </td>
-        </tr>
-      `;
+        const cor = m.status ? "status-verde" : "status-vermelho";
+        const texto = m.status ? "PAGO" : "NÃO PAGO";
+
+        tbody.innerHTML += `
+            <tr>
+              <td>${m.mes}</td>
+              <td><span class="status-circulo ${cor}"></span>${texto}</td>
+              <td>
+                <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" 
+                        style="background:${m.status ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                  ${m.status ? "PAGO" : "NÃO PAGO"}
+                </button>
+              </td>
+            </tr>
+        `;
     });
 
     document.getElementById("detalhes-prof").style.display = "block";
-  }
+}
 
-  async function marcarPagoMesProf(id, campo, statusAtual) {
+async function marcarPagoMesProf(id, campo, statusAtual) {
     const novoStatus = !statusAtual;
     await fetch("/atualizar-pagamento-mes-prof", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, campo, status: novoStatus })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, campo, status: novoStatus })
     });
     verMesesProf(id);
-  }
+}
 
 </script>
 </body>
