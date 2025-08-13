@@ -3232,6 +3232,41 @@ async def detalhes_pagamento_prof(request: Request):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
+@app.get("/detalhes-pagamento-prof-json")
+async def detalhes_pagamento_prof_json():
+    try:
+        professores = []
+        docs = db.collection("professores_online").stream()
+        
+        for doc in docs:
+            dados = doc.to_dict() or {}
+            salario_info = dados.get("salario", {}) or {}
+            pagamentos_info = dados.get("pagamentos", {}) or {}
+            pagamentos_list = []
+
+            for mes, pagamento in pagamentos_info.items():
+                if not isinstance(pagamento, dict):
+                    pagamento = {}
+                pagamentos_list.append({
+                    "mes": str(mes) or "",
+                    "data_pagamento": str(pagamento.get("data_pagamento") or ""),
+                    "valor_pago": float(pagamento.get("valor_pago") or 0),
+                    "email_professor": str(pagamento.get("email_professor") or ""),
+                    "pago": bool(pagamento.get("pago") or False)
+                })
+
+            professores.append({
+                "nome": str(dados.get("nome_completo") or dados.get("nome") or ""),
+                "email": str(dados.get("email") or ""),
+                "saldo_atual": float(salario_info.get("saldo_atual") or 0),
+                "pagamentos": pagamentos_list
+            })
+
+        return professores
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+
 @app.post("/atualizar-pagamento-mes-prof")
 async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
     try:
