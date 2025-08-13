@@ -556,29 +556,42 @@ async function carregarPagamentosProf() {
     }
 }
 
-async function verMesesProf(id) {
+async function verMesesProf(emailProf) {
     try {
-        const res = await fetch(`/detalhes-pagamento-prof/${id}`);
+        const res = await fetch(`/detalhes-pagamento-prof`);
         if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
-        
-        const dados = await res.json();
+
+        const professores = await res.json();
+
+        // Filtra pelo professor selecionado
+        const prof = professores.find(p => p.email === emailProf);
+        if (!prof) {
+            alert("Professor não encontrado.");
+            return;
+        }
 
         // Atualiza nome do professor
-        document.getElementById("nome-prof").textContent = dados.professor;
+        document.getElementById("nome-prof").textContent = prof.nome;
 
         // Limpa tabela
         const tbody = document.getElementById("tabela-meses-prof");
         tbody.innerHTML = "";
 
         // Preenche com os dados da API
-        dados.meses.forEach(m => {
+        prof.pagamentos.forEach(m => {
             const tr = document.createElement("tr");
 
             tr.innerHTML = `
                 <td>${m.mes}</td>
-                <td>${m.data_pagamento}</td>
-                <td>${Number(m.valor_pago).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td>${m.email_professor}</td>
+                <td>${m.data_pagamento || "-"}</td>
+                <td>${Number(m.valor_pago || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>${m.email_professor || ""}</td>
+                <td>
+                    <button class="btn btn-sm ${m.pago ? 'btn-success' : 'btn-secondary'}"
+                        onclick="marcarPagoMesProf('${emailProf}', '${m.mes}', ${m.pago || false})">
+                        ${m.pago ? "Pago" : "Pagar"}
+                    </button>
+                </td>
             `;
 
             tbody.appendChild(tr);
@@ -593,15 +606,14 @@ async function verMesesProf(id) {
     }
 }
 
-
-async function marcarPagoMesProf(id, campo, statusAtual) {
+async function marcarPagoMesProf(emailProf, mes, statusAtual) {
     const novoStatus = !statusAtual;
     await fetch("/atualizar-pagamento-mes-prof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, campo, status: novoStatus })
+        body: JSON.stringify({ email_professor: emailProf, mes, status: novoStatus })
     });
-    verMesesProf(id);
+    verMesesProf(emailProf); 
 }
 
 </script>
