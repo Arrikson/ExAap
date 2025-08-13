@@ -3187,30 +3187,44 @@ async def atualizar_pagamento_prof(item: PagamentoProfIn):
 @app.get("/detalhes-pagamento-prof/{id}")
 async def detalhes_pagamento_prof(id: str):
     try:
-        doc_ref = db.collection("alunos_professor").document(id).get()
+        # Buscar professor pelo ID no professores_online
+        doc_ref = db.collection("professores_online").document(id).get()
         if not doc_ref.exists:
             raise HTTPException(status_code=404, detail="Professor não encontrado")
 
         dados = doc_ref.to_dict()
-        meses_nomes = [
+
+        # Verificar se existe o campo 'pagamentos'
+        pagamentos = dados.get("pagamentos", {})
+        if not isinstance(pagamentos, dict):
+            pagamentos = {}
+
+        meses = []
+        for mes_nome, info in pagamentos.items():
+            meses.append({
+                "mes": mes_nome,
+                "data_pagamento": info.get("data_pagamento", "Não informado"),
+                "valor_pago": info.get("valor_pago", 0),
+                "email_professor": info.get("email_professor", dados.get("email", "Desconhecido"))
+            })
+
+        # Ordenar meses pela ordem do ano
+        ordem_meses = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ]
+        meses.sort(key=lambda x: ordem_meses.index(x["mes"]) if x["mes"] in ordem_meses else 99)
 
-        meses = []
-        for i, mes_nome in enumerate(meses_nomes, start=1):
-            campo = f"mensapro{i}"
-            meses.append({
-                "mes": mes_nome,
-                "campo": campo,
-                "status": dados.get(campo, False)
-            })
+        return {
+            "professor": dados.get("nome", dados.get("email", "Desconhecido")),
+            "meses": meses
+        }
 
-        return {"professor": dados.get("professor"), "meses": meses}
     except HTTPException:
         raise
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+        
 
 @app.post("/atualizar-pagamento-mes-prof")
 async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
