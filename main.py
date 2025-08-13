@@ -3218,6 +3218,52 @@ async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
+class RegistrarPagamentoProfIn(BaseModel):
+    id: str
+    professor: str
+    valor_pago: float
+
+@app.post("/registrar-pagamento-prof")
+async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
+    try:
+        # Data e hora atuais
+        agora = datetime.now()
+        mes_atual_num = agora.month
+        mes_atual_nome = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ][mes_atual_num - 1]
+        
+        data_pagamento = agora.strftime("%d/%m/%Y %H:%M:%S")
+
+        # Atualizar no "alunos_professor" o status do mês
+        campo_mes = f"mensapro{mes_atual_num}"
+        db.collection("alunos_professor").document(item.id).update({
+            campo_mes: True
+        })
+
+        # Registrar histórico no "professores_online"
+        prof_ref = db.collection("professores_online") \
+            .where(filter=FieldFilter("email", "==", item.professor.strip().lower())) \
+            .limit(1).stream()
+
+        for prof_doc in prof_ref:
+            db.collection("professores_online").document(prof_doc.id).update({
+                "salario.saldo_atual": 0,
+                f"pagamentos.{mes_atual_nome}": {
+                    "data_pagamento": data_pagamento,
+                    "valor_pago": item.valor_pago,
+                    "email_professor": item.professor
+                }
+            })
+            break
+
+        return {"message": "Pagamento registrado com sucesso"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
