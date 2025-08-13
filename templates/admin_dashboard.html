@@ -244,7 +244,6 @@
     <tbody id="tabela-meses"></tbody>
   </table>
 </div>
-<!-- Controle de Pagamento de Professores -->
 <!-- Controle de Pagamento de Professores --> 
 <div class="card">
   <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">
@@ -267,26 +266,26 @@
       <tbody></tbody>
     </table>
 
-    <!-- Tabela de meses (detalhes do professor) -->
-    <div id="detalhes-prof" style="display:none; margin-top:15px; position: relative;">
-      <button onclick="document.getElementById('detalhes-prof').style.display='none'" 
-              style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 18px; cursor: pointer;">
-        ❌
-      </button>
-      <h3 id="nome-prof" style="margin-top:0;"></h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-meses-prof"></tbody>
-      </table>
-    </div>
-  </div>
+   <!-- Tabela de meses (detalhes do professor) -->
+<div id="detalhes-prof" style="display:none; margin-top:15px; position: relative;">
+  <button onclick="document.getElementById('detalhes-prof').style.display='none'" 
+          style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 18px; cursor: pointer;">
+    ❌
+  </button>
+  <h3 id="nome-prof" style="margin-top:0;"></h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Mês</th>
+        <th>Data Pagamento</th>
+        <th>Valor Pago (R$)</th>
+        <th>Email do Professor</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-meses-prof"></tbody>
+  </table>
 </div>
+
 
 
 <script>
@@ -558,33 +557,42 @@ async function carregarPagamentosProf() {
 }
 
 async function verMesesProf(id) {
-    const res = await fetch(`/detalhes-pagamento-prof/${id}`);
-    const dados = await res.json();
+    try {
+        const res = await fetch(`/detalhes-pagamento-prof/${id}`);
+        if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
+        
+        const dados = await res.json();
 
-    document.getElementById("nome-prof").textContent = dados.professor;
-    const tbody = document.getElementById("tabela-meses-prof");
-    tbody.innerHTML = "";
+        // Atualiza nome do professor
+        document.getElementById("nome-prof").textContent = dados.professor;
 
-    dados.meses.forEach(m => {
-        const cor = m.status ? "status-verde" : "status-vermelho";
-        const texto = m.status ? "PAGO" : "NÃO PAGO";
+        // Limpa tabela
+        const tbody = document.getElementById("tabela-meses-prof");
+        tbody.innerHTML = "";
 
-        tbody.innerHTML += `
-            <tr>
-              <td>${m.mes}</td>
-              <td><span class="status-circulo ${cor}"></span>${texto}</td>
-              <td>
-                <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" 
-                        style="background:${m.status ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                  ${m.status ? "PAGO" : "NÃO PAGO"}
-                </button>
-              </td>
-            </tr>
-        `;
-    });
+        // Preenche com os dados da API
+        dados.meses.forEach(m => {
+            const tr = document.createElement("tr");
 
-    document.getElementById("detalhes-prof").style.display = "block";
+            tr.innerHTML = `
+                <td>${m.mes}</td>
+                <td>${m.data_pagamento}</td>
+                <td>${Number(m.valor_pago).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>${m.email_professor}</td>
+            `;
+
+            tbody.appendChild(tr);
+        });
+
+        // Exibe a seção de detalhes
+        document.getElementById("detalhes-prof").style.display = "block";
+
+    } catch (err) {
+        console.error("Erro ao carregar meses do professor:", err);
+        alert("Erro ao carregar detalhes do professor.");
+    }
 }
+
 
 async function marcarPagoMesProf(id, campo, statusAtual) {
     const novoStatus = !statusAtual;
