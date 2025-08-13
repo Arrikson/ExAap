@@ -2390,7 +2390,10 @@ async def ver_salarios(request: Request):
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Buscar alunos vinculados ao professor (usando FieldFilter)
+        # Capturar pagamentos
+        pagamentos = professor.get("pagamentos", [])
+
+        # Buscar alunos vinculados ao professor
         vinculos = db.collection("alunos_professor").where(
             filter=FieldFilter("professor", "==", email)
         ).stream()
@@ -2441,12 +2444,14 @@ async def ver_salarios(request: Request):
             "total_aulas": total_aulas,
             "valor_por_aula": valor_por_aula,
             "total_a_receber": saldo_atual,
-            "aulas": detalhes_aulas
+            "aulas": detalhes_aulas,
+            "pagamentos": pagamentos  # <-- adicionado aqui
         })
 
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
+
 
 @app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
 async def ver_custos_aluno(request: Request, nome: str):
