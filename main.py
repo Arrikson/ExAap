@@ -3097,7 +3097,6 @@ async def atualizar_pagamento_mes(payload: dict):
     return JSONResponse({"status": "ok"})
 
 
-
 @app.get("/listar-pagamentos")
 async def listar_pagamentos():
     alunos_ref = db.collection("alunos_professor").stream()
@@ -3123,97 +3122,6 @@ async def atualizar_pagamento(payload: dict):
     })
     return JSONResponse({"status": "ok"})
 
-@app.get("/listar-pagamentos-prof")
-async def listar_pagamentos_prof():
-    docs = db.collection("alunos_professor").stream()
-    professores = []
-
-    for doc in docs:
-        data = doc.to_dict()
-        email_prof = data.get("professor")  
-
-        # Buscar dados do professor na coleção professores_online
-        prof_doc = db.collection("professores_online").where("email", "==", email_prof).limit(1).stream()
-        nome_prof = "Professor não encontrado"
-        outros_dados = {}
-
-        for p in prof_doc:
-            prof_data = p.to_dict()
-            nome_prof = prof_data.get("nome", "Sem nome")
-            outros_dados = prof_data  # pega todos os dados do professor
-
-        professores.append({
-            "id": doc.id,
-            "nome_professor": nome_prof,
-            "email_professor": email_prof,
-            "mensapro": data.get("mensapro1", False),  # mês 1 como referência
-            "dados_professor": outros_dados
-        })
-
-    return JSONResponse(content=professores)
-
-
-# 🔹 2. Detalhar pagamentos mês a mês
-@app.get("/detalhes-pagamento-prof/{prof_id}")
-async def detalhes_pagamento_prof(prof_id: str):
-    doc_ref = db.collection("alunos_professor").document(prof_id).get()
-    if not doc_ref.exists:
-        return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
-
-    data = doc_ref.to_dict()
-    email_prof = data.get("professor")
-
-    # Buscar dados do professor na coleção professores_online
-    prof_doc = db.collection("professores_online").where("email", "==", email_prof).limit(1).stream()
-    nome_prof = "Professor não encontrado"
-    outros_dados = {}
-
-    for p in prof_doc:
-        prof_data = p.to_dict()
-        nome_prof = prof_data.get("nome", "Sem nome")
-        outros_dados = prof_data
-
-    meses = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ]
-
-    lista_meses = []
-    for i, nome_mes in enumerate(meses, start=1):
-        campo = f"mensapro{i}"
-        lista_meses.append({
-            "mes": nome_mes,
-            "status": data.get(campo, False),
-            "campo": campo
-        })
-
-    return JSONResponse(content={
-        "professor": nome_prof,
-        "email_professor": email_prof,
-        "dados_professor": outros_dados,
-        "meses": lista_meses
-    })
-
-
-class PagamentoProfUpdate(BaseModel):
-    id: str
-    campo: str
-    status: bool
-
-@app.post("/atualizar-pagamento-prof")
-async def atualizar_pagamento_prof(dados: PagamentoProfUpdate):
-    prof_id = dados.id
-    campo = dados.campo
-    status = dados.status
-
-    if campo == "mensapro":
-        atualizacoes = {f"mensapro{i}": status for i in range(1, 13)}
-        db.collection("professores").document(prof_id).update(atualizacoes)
-    else:
-        db.collection("professores").document(prof_id).update({campo: status})
-
-    return JSONResponse({"status": "ok"})
-    
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
