@@ -558,46 +558,42 @@ async function carregarPagamentosProf() {
 
 async function verMesesProf(emailProf) {
     try {
+        // Faz a requisição e pega o HTML da página
         const res = await fetch(`/detalhes-pagamento-prof`);
         if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
 
-        const professores = await res.json();
+        const htmlText = await res.text();
 
-        // Filtra pelo professor selecionado
-        const prof = professores.find(p => p.email === emailProf);
-        if (!prof) {
+        // Cria um DOM temporário para extrair os dados do HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, "text/html");
+
+        // Pega a lista de professores do HTML (supondo que esteja em uma tabela com id="tabela-professores")
+        const linhas = doc.querySelectorAll("#tabela-professores tbody tr");
+
+        let profEncontrado = null;
+        linhas.forEach(linha => {
+            const cols = linha.querySelectorAll("td");
+            const email = cols[1]?.textContent.trim();
+            if (email === emailProf) {
+                profEncontrado = {
+                    nome: cols[0]?.textContent.trim(),
+                    email: email,
+                    pagamentos: [] // Aqui você pode extrair os pagamentos se já estiverem no HTML
+                };
+            }
+        });
+
+        if (!profEncontrado) {
             alert("Professor não encontrado.");
             return;
         }
 
-        // Atualiza nome do professor
-        document.getElementById("nome-prof").textContent = prof.nome;
+        // Atualiza o nome do professor
+        document.getElementById("nome-prof").textContent = profEncontrado.nome;
 
-        // Limpa tabela
-        const tbody = document.getElementById("tabela-meses-prof");
-        tbody.innerHTML = "";
-
-        // Preenche com os dados da API
-        prof.pagamentos.forEach(m => {
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td>${m.mes}</td>
-                <td>${m.data_pagamento || "-"}</td>
-                <td>${Number(m.valor_pago || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td>${m.email_professor || ""}</td>
-                <td>
-                    <button class="btn btn-sm ${m.pago ? 'btn-success' : 'btn-secondary'}"
-                        onclick="marcarPagoMesProf('${emailProf}', '${m.mes}', ${m.pago || false})">
-                        ${m.pago ? "Pago" : "Pagar"}
-                    </button>
-                </td>
-            `;
-
-            tbody.appendChild(tr);
-        });
-
-        // Exibe a seção de detalhes
+        // Aqui você pode abrir um modal ou atualizar a tabela de meses
+        // dependendo de como os dados vêm no HTML
         document.getElementById("detalhes-prof").style.display = "block";
 
     } catch (err) {
