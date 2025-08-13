@@ -2383,21 +2383,19 @@ async def ver_salarios(request: Request):
         prof_id = None
 
         for doc in prof_ref:
-            professor = doc.to_dict()
+            professor = doc.to_dict() or {}
             prof_id = doc.id
             break
 
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Garantir que professor é dict seguro
         if not isinstance(professor, dict):
             professor = {}
 
-        # Processar pagamentos como lista de dicts seguros
+        # Processar pagamentos
         pagamentos_raw = professor.get("pagamentos", {}) or {}
         pagamentos = []
-
         if isinstance(pagamentos_raw, dict):
             for mes, pagamento in pagamentos_raw.items():
                 if not isinstance(pagamento, dict):
@@ -2409,7 +2407,7 @@ async def ver_salarios(request: Request):
                     "email_professor": str(pagamento.get("email_professor") or "")
                 })
 
-        # Buscar alunos vinculados ao professor
+        # Buscar alunos vinculados
         vinculos = db.collection("alunos_professor").where(
             filter=FieldFilter("professor", "==", email)
         ).stream()
@@ -2429,15 +2427,12 @@ async def ver_salarios(request: Request):
                 total_aulas += qtd_total
                 aulas_dadas += qtd_dadas
 
-                # Coletar detalhes das aulas
                 datas = dados.get("datas_aulas", []) or []
                 for d in datas:
-                    disciplina = str(
-                        dados.get("dados_aluno", {}).get("disciplina") or "N/A"
-                    )
+                    disciplina = str(dados.get("dados_aluno", {}).get("disciplina") or "N/A")
                     detalhes_aulas.append({
                         "nome_aluno": aluno_nome,
-                        "data": str(d),
+                        "data": str(d or ""),
                         "disciplina": disciplina
                     })
             except Exception as e:
@@ -2455,15 +2450,20 @@ async def ver_salarios(request: Request):
             }
         })
 
-        # Retornar template com dados 100% serializáveis
+        # Garantir que nenhum valor seja Undefined
+        def safe_value(val):
+            if isinstance(val, Undefined):
+                return ""
+            return val if val is not None else ""
+
         return templates.TemplateResponse("salarios.html", {
             "request": request,
-            "nome": str(professor.get("nome_completo") or "Professor"),
-            "salario_mensal": salario_mensal,
-            "saldo_atual": saldo_atual,
-            "total_aulas": total_aulas,
-            "valor_por_aula": valor_por_aula,
-            "total_a_receber": saldo_atual,
+            "nome": safe_value(professor.get("nome_completo") or "Professor"),
+            "salario_mensal": int(salario_mensal),
+            "saldo_atual": int(saldo_atual),
+            "total_aulas": int(total_aulas),
+            "valor_por_aula": int(valor_por_aula),
+            "total_a_receber": int(saldo_atual),
             "aulas": detalhes_aulas,
             "pagamentos": pagamentos
         })
@@ -2471,7 +2471,7 @@ async def ver_salarios(request: Request):
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
-
+        
 
 @app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
 async def ver_custos_aluno(request: Request, nome: str):
