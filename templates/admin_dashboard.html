@@ -420,6 +420,19 @@
     });
   }
 
+  async function marcarPago(id, statusAtual) {
+  const novoStatus = !statusAtual;
+
+  await fetch("/atualizar-pagamento", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: id, mensalidade: novoStatus })
+  });
+
+  // Atualiza a lista de pagamentos após marcar
+  carregarPagamentos();
+}
+
   async function verMeses(id) {
     const res = await fetch(`/detalhes-pagamento/${id}`);
     const dados = await res.json();
