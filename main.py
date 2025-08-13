@@ -2390,7 +2390,11 @@ async def ver_salarios(request: Request):
         if not professor or not prof_id:
             return HTMLResponse(content="Professor não encontrado.", status_code=404)
 
-        # Processar pagamentos como dict de meses
+        # Garantir que professor é dict seguro
+        if not isinstance(professor, dict):
+            professor = {}
+
+        # Processar pagamentos como lista de dicts seguros
         pagamentos_raw = professor.get("pagamentos", {}) or {}
         pagamentos = []
 
@@ -2399,9 +2403,9 @@ async def ver_salarios(request: Request):
                 if not isinstance(pagamento, dict):
                     pagamento = {}
                 pagamentos.append({
-                    "mes": str(mes) or "",
+                    "mes": str(mes or ""),
                     "data_pagamento": str(pagamento.get("data_pagamento") or ""),
-                    "valor_pago": pagamento.get("valor_pago") or 0,
+                    "valor_pago": int(pagamento.get("valor_pago") or 0),
                     "email_professor": str(pagamento.get("email_professor") or "")
                 })
 
@@ -2416,29 +2420,32 @@ async def ver_salarios(request: Request):
         detalhes_aulas = []
 
         for doc in vinculos:
-            dados = doc.to_dict()
+            dados = doc.to_dict() or {}
             try:
-                aluno_nome = str(dados.get("aluno", "Desconhecido")).title()
-                qtd_total = int(dados.get("total_aulas", 0))
-                qtd_dadas = int(dados.get("aulas_dadas", 0))
+                aluno_nome = str(dados.get("aluno") or "Desconhecido").title()
+                qtd_total = int(dados.get("total_aulas") or 0)
+                qtd_dadas = int(dados.get("aulas_dadas") or 0)
 
                 total_aulas += qtd_total
                 aulas_dadas += qtd_dadas
 
                 # Coletar detalhes das aulas
-                datas = dados.get("datas_aulas", [])
+                datas = dados.get("datas_aulas", []) or []
                 for d in datas:
+                    disciplina = str(
+                        dados.get("dados_aluno", {}).get("disciplina") or "N/A"
+                    )
                     detalhes_aulas.append({
                         "nome_aluno": aluno_nome,
                         "data": str(d),
-                        "disciplina": dados.get("dados_aluno", {}).get("disciplina", "N/A")
+                        "disciplina": disciplina
                     })
             except Exception as e:
                 print(f"⚠️ Erro ao processar aluno: {e}")
                 continue
 
-        salario_mensal = total_aulas * valor_por_aula
-        saldo_atual = aulas_dadas * valor_por_aula
+        salario_mensal = int(total_aulas * valor_por_aula)
+        saldo_atual = int(aulas_dadas * valor_por_aula)
 
         # Atualizar no Firestore
         db.collection("professores_online").document(prof_id).update({
@@ -2448,16 +2455,17 @@ async def ver_salarios(request: Request):
             }
         })
 
+        # Retornar template com dados 100% serializáveis
         return templates.TemplateResponse("salarios.html", {
             "request": request,
-            "nome": professor.get("nome_completo", "Professor"),
+            "nome": str(professor.get("nome_completo") or "Professor"),
             "salario_mensal": salario_mensal,
             "saldo_atual": saldo_atual,
             "total_aulas": total_aulas,
             "valor_por_aula": valor_por_aula,
             "total_a_receber": saldo_atual,
             "aulas": detalhes_aulas,
-            "pagamentos": pagamentos  # sempre lista de dicts seguros
+            "pagamentos": pagamentos
         })
 
     except Exception as e:
