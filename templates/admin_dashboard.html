@@ -268,13 +268,15 @@
     const tbody = document.querySelector("#tabela-alunos tbody");
     tbody.innerHTML = "";
     alunos.forEach(a => {
-      tbody.innerHTML += <tr>
-        <td>${a.nome}</td>
-        <td>${a.disciplina}</td>
-        <td>${a.online ? "✅" : "❌"}</td>
-        <td>${a.vinculado ? "Sim" : "Não"}</td>
-        <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
-      </tr>;
+      tbody.innerHTML += `
+        <tr>
+          <td>${a.nome}</td>
+          <td>${a.disciplina}</td>
+          <td>${a.online ? "✅" : "❌"}</td>
+          <td>${a.vinculado ? "Sim" : "Não"}</td>
+          <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+        </tr>
+      `;
     });
   }
 
@@ -284,7 +286,9 @@
     const tbody = document.querySelector("#tabela-disponiveis tbody");
     tbody.innerHTML = "";
     dados.forEach(aluno => {
-      tbody.innerHTML += <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>;
+      tbody.innerHTML += `
+        <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>
+      `;
     });
   }
 
@@ -295,18 +299,21 @@
     const select = document.getElementById("lista-professores");
     tbody.innerHTML = "";
     if (select) {
-      select.innerHTML = 
+      select.innerHTML = `
         <option disabled selected>Selecione o professor</option>
-        <option value="todos">Todos os Professores</option>;
+        <option value="todos">Todos os Professores</option>
+      `;
     }
     profs.forEach(p => {
-      tbody.innerHTML += <tr>
-        <td>${p.email}</td>
-        <td>${p.online ? "✅" : "❌"}</td>
-        <td><button onclick="removerProfessor('${p.email}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
-      </tr>;
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.email}</td>
+          <td>${p.online ? "✅" : "❌"}</td>
+          <td><button onclick="removerProfessor('${p.email}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+        </tr>
+      `;
       if (select && p.email) {
-        select.innerHTML += <option value="${p.email}">${p.email}</option>;
+        select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
       }
     });
   }
@@ -317,7 +324,9 @@
     const tbody = document.querySelector("#tabela-aulas tbody");
     tbody.innerHTML = "";
     chamadas.forEach(ch => {
-      tbody.innerHTML += <tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>;
+      tbody.innerHTML += `
+        <tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>
+      `;
     });
   }
 
@@ -327,12 +336,14 @@
     const tbody = document.querySelector("#tabela-aulas-dadas tbody");
     tbody.innerHTML = "";
     dados.forEach(item => {
-      tbody.innerHTML += <tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>;
+      tbody.innerHTML += `
+        <tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>
+      `;
     });
   }
 
   async function removerAluno(nome) {
-    if (confirm(Deseja mesmo remover o aluno "${nome}"?)) {
+    if (confirm(`Deseja mesmo remover o aluno "${nome}"?`)) {
       await fetch("/remover-aluno", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -343,7 +354,7 @@
   }
 
   async function removerProfessor(email) {
-    if (confirm(Deseja mesmo remover o professor "${email}"?)) {
+    if (confirm(`Deseja mesmo remover o professor "${email}"?`)) {
       await fetch("/remover-professor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -387,63 +398,64 @@
     document.getElementById("mensagem-texto").value = "";
   }
 
-async function carregarPagamentos() {
-  const res = await fetch("/listar-pagamentos");
-  const alunos = await res.json();
-  const tbody = document.querySelector("#tabela-pagamentos tbody");
-  tbody.innerHTML = "";
-  alunos.forEach(a => {
-    const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
-    const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
-    tbody.innerHTML += 
-      <tr>
-        <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
-        <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-        <td>
-          <button onclick="marcarPago('${a.id}', ${a.mensalidade})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-            PAGO
-          </button>
-        </td>
-      </tr>;
-  });
-}
+  async function carregarPagamentos() {
+    const res = await fetch("/listar-pagamentos");
+    const alunos = await res.json();
+    const tbody = document.querySelector("#tabela-pagamentos tbody");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+      const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
+      const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
+      tbody.innerHTML += `
+        <tr>
+          <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
+          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+          <td>
+            <button onclick="marcarPago('${a.id}', ${a.mensalidade})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+              PAGO
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-async function verMeses(id) {
-  const res = await fetch(/detalhes-pagamento/${id});
-  const dados = await res.json();
+  async function verMeses(id) {
+    const res = await fetch(`/detalhes-pagamento/${id}`);
+    const dados = await res.json();
 
-  document.getElementById("nome-aluno").textContent = dados.aluno;
-  const tbody = document.getElementById("tabela-meses");
-  tbody.innerHTML = "";
+    document.getElementById("nome-aluno").textContent = dados.aluno;
+    const tbody = document.getElementById("tabela-meses");
+    tbody.innerHTML = "";
 
-  dados.meses.forEach(m => {
-    const cor = m.status ? "status-verde" : "status-vermelho";
-    const texto = m.status ? "PAGA" : "Não paga";
-    tbody.innerHTML += 
-      <tr>
-        <td>${m.mes}</td>
-        <td><span class="status-circulo ${cor}"></span>${texto}</td>
-        <td>
-          <button onclick="marcarPagoMes('${id}', '${m.campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-            PAGO
-          </button>
-        </td>
-      </tr>
-    ;
-  });
+    dados.meses.forEach(m => {
+      const cor = m.status ? "status-verde" : "status-vermelho";
+      const texto = m.status ? "PAGA" : "Não paga";
+      tbody.innerHTML += `
+        <tr>
+          <td>${m.mes}</td>
+          <td><span class="status-circulo ${cor}"></span>${texto}</td>
+          <td>
+            <button onclick="marcarPagoMes('${id}', '${m.campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+              PAGO
+            </button>
+          </td>
+        </tr>
+      `;
+    });
 
-  document.getElementById("detalhes-aluno").style.display = "block";
-}
+    document.getElementById("detalhes-aluno").style.display = "block";
+  }
 
-async function marcarPagoMes(id, campo, statusAtual) {
-  const novoStatus = !statusAtual;
-  await fetch("/atualizar-pagamento-mes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, campo, status: novoStatus })
-  });
-  verMeses(id);
-}
+  async function marcarPagoMes(id, campo, statusAtual) {
+    const novoStatus = !statusAtual;
+    await fetch("/atualizar-pagamento-mes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, campo, status: novoStatus })
+    });
+    verMeses(id);
+  }
 </script>
 </body>
 </html>
