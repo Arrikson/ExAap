@@ -137,41 +137,43 @@
     const tbody = document.querySelector("#tabela-pagamentos tbody");
     tbody.innerHTML = "";
 
-
+    // Localiza o professor pelo email
     const professor = professores.find(p => p.email === emailProf);
     if (!professor) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">Professor não encontrado.</td></tr>`;
-      return;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Professor não encontrado.</td></tr>`;
+        return;
     }
 
     const pagamentos = professor.pagamentos;
 
     if (!pagamentos || pagamentos.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#777;">Nenhum pagamento registrado.</td></tr>`;
-      return;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Nenhum pagamento registrado.</td></tr>`;
+        return;
     }
 
     pagamentos.forEach(p => {
-      const status = p.data_pagamento ? "PAGO" : "NÃO PAGO";
-      const statusClasse = status === "PAGO" ? "status-pago" : "status-nao-pago";
+        const pago = Boolean(p.data_pagamento && p.data_pagamento.trim() !== "");
+        const status = pago ? "PAGO" : "NÃO PAGO";
+        const statusClasse = pago ? "status-pago" : "status-nao-pago";
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${p.mes || "-"}</td>
-          <td>${p.data_pagamento || "-"}</td>
-          <td>${p.valor_pago ? Number(p.valor_pago).toLocaleString('pt-BR') + " Kz" : "-"}</td>
-          <td class="${statusClasse}">${status}</td>
-        </tr>
-      `;
+        tbody.innerHTML += `
+            <tr>
+                <td>${p.mes || "-"}</td>
+                <td>${p.data_pagamento || "-"}</td>
+                <td>${p.valor_pago ? Number(p.valor_pago).toLocaleString('pt-BR') + " Kz" : "-"}</td>
+                <td>${p.email_professor || "-"}</td>
+                <td class="${statusClasse}">${status}</td>
+            </tr>
+        `;
     });
-  }
+}
 
-  // Passa os dados vindos do backend diretamente para a função
-  document.addEventListener("DOMContentLoaded", function() {
+// Passa os dados vindos do backend diretamente para a função
+document.addEventListener("DOMContentLoaded", function() {
     // Aqui você define o email do professor que quer exibir
     const emailProf = "fulano@email.com"; 
     carregarTabelaPagamentos({{ professores | tojson | safe }}, emailProf);
-  });
+});
   </script>
 
 </body>
