@@ -3214,43 +3214,40 @@ async def detalhes_pagamento_prof(id: str):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
-class PagamentoProfessor(BaseModel):
-    mes: str
-    data_pagamento: str  # formato: "YYYY-MM-DD"
-    valor_pago: float
-    email_professor: str
-
-@app.post("/detalhes-pagamento-prof/{id}")
-async def registrar_pagamento_prof(id: str, pagamento: PagamentoProfessor):
+@app.get("/detalhes-pagamento-prof", response_class=HTMLResponse)
+async def detalhes_pagamento_prof(request: Request):
     try:
-        # Buscar professor no Firestore
-        doc_ref = db.collection("professores_online").document(id)
-        doc = doc_ref.get()
-
-        if not doc.exists:
-            raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-        dados = doc.to_dict()
-
-        # Garantir que exista o campo 'pagamentos'
-        pagamentos = dados.get("pagamentos", {})
-        if not isinstance(pagamentos, dict):
-            pagamentos = {}
-
-        # Atualizar ou criar entrada para o mês
-        pagamentos[pagamento.mes] = {
-            "data_pagamento": pagamento.data_pagamento,
-            "valor_pago": pagamento.valor_pago,
-            "email_professor": pagamento.email_professor
-        }
-
-        # Salvar no Firestore
-        doc_ref.update({"pagamentos": pagamentos})
-
-        return {"status": "sucesso", "mensagem": f"Pagamento de {pagamento.mes} registrado com sucesso."}
-
-    except HTTPException:
-        raise
+        professores = []
+        
+        # Busca todos os professores com informações de salário e pagamentos
+        docs = db.collection("professores_online").stream()
+        
+        for doc in docs:
+            dados = doc.to_dict()
+            salario_info = dados.get("salario", {})
+            pagamentos_info = dados.get("pagamentos", {})
+            
+            professores.append({
+                "nome": dados.get("nome", ""),
+                "email": dados.get("email", ""),
+                "saldo_atual": salario_info.get("saldo_atual", 0),
+                "pagamentos": [
+                    {
+                        "mes": mes,
+                        "data_pagamento": pagamento.get("data_pagamento", ""),
+                        "valor_pago": pagamento.get("valor_pago", 0),
+                        "email_professor": pagamento.get("email_professor", "")
+                    }
+                    for mes, pagamento in pagamentos_info.items()
+                ]
+            })
+        
+        # Renderiza o HTML salario.html e passa os dados
+        return templates.TemplateResponse(
+            "salario.html",
+            {"request": request, "professores": professores}
+        )
+    
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
