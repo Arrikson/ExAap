@@ -3173,17 +3173,6 @@ async def listar_pagamentos_prof():
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-
-@app.post("/atualizar-pagamento-prof")
-async def atualizar_pagamento_prof(item: PagamentoProfIn):
-    try:
-        db.collection("alunos_professor").document(item.id).update({
-            "mensapro1": item.mensapro1
-        })
-        return {"message": "Pagamento atualizado com sucesso"}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
 @app.get("/detalhes-pagamento-prof/{id}")
 async def detalhes_pagamento_prof(id: str):
     try:
@@ -3225,6 +3214,46 @@ async def detalhes_pagamento_prof(id: str):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
+class PagamentoProfessor(BaseModel):
+    mes: str
+    data_pagamento: str  # formato: "YYYY-MM-DD"
+    valor_pago: float
+    email_professor: str
+
+@app.post("/detalhes-pagamento-prof/{id}")
+async def registrar_pagamento_prof(id: str, pagamento: PagamentoProfessor):
+    try:
+        # Buscar professor no Firestore
+        doc_ref = db.collection("professores_online").document(id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+        dados = doc.to_dict()
+
+        # Garantir que exista o campo 'pagamentos'
+        pagamentos = dados.get("pagamentos", {})
+        if not isinstance(pagamentos, dict):
+            pagamentos = {}
+
+        # Atualizar ou criar entrada para o mês
+        pagamentos[pagamento.mes] = {
+            "data_pagamento": pagamento.data_pagamento,
+            "valor_pago": pagamento.valor_pago,
+            "email_professor": pagamento.email_professor
+        }
+
+        # Salvar no Firestore
+        doc_ref.update({"pagamentos": pagamentos})
+
+        return {"status": "sucesso", "mensagem": f"Pagamento de {pagamento.mes} registrado com sucesso."}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 @app.post("/atualizar-pagamento-mes-prof")
 async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
