@@ -3141,15 +3141,33 @@ async def listar_pagamentos_prof():
             dados = doc.to_dict()
             prof_email = dados.get("professor")
             if prof_email not in professores_dict:
+                # Buscar o saldo atual do professor
+                saldo_atual = 0
+                try:
+                    prof_ref = db.collection("professores_online") \
+                        .where(filter=FieldFilter("email", "==", prof_email.strip().lower())) \
+                        .limit(1).stream()
+                    
+                    for prof_doc in prof_ref:
+                        professor_data = prof_doc.to_dict()
+                        salario_info = professor_data.get("salario", {})
+                        saldo_atual = salario_info.get("saldo_atual", 0)
+                        break
+                except Exception as saldo_err:
+                    print(f"⚠️ Erro ao buscar saldo do professor {prof_email}: {saldo_err}")
+
                 professores_dict[prof_email] = {
                     "id": doc.id,
                     "professor": prof_email,
-                    "mensapro1": dados.get("mensapro1", False)
+                    "mensapro1": dados.get("mensapro1", False),
+                    "saldo_atual": saldo_atual
                 }
 
         return list(professores_dict.values())
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 @app.post("/atualizar-pagamento-prof")
 async def atualizar_pagamento_prof(item: PagamentoProfIn):
