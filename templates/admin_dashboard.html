@@ -244,8 +244,8 @@
     <tbody id="tabela-meses"></tbody>
   </table>
 </div>
-
-    <div class="card">
+<!-- Controle de Pagamento de Professores -->
+<div class="card">
   <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">
     💰 Controle de Pagamento de Professores
   </button>
@@ -267,13 +267,10 @@
 
     <!-- Tabela de meses (detalhes do professor) -->
     <div id="detalhes-prof" style="display:none; margin-top:15px; position: relative;">
-
-      <!-- Botão Fechar -->
       <button onclick="document.getElementById('detalhes-prof').style.display='none'" 
               style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 18px; cursor: pointer;">
         ❌
       </button>
-
       <h3 id="nome-prof" style="margin-top:0;"></h3>
       <table>
         <thead>
