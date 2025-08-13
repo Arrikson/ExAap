@@ -3173,47 +3173,6 @@ async def listar_pagamentos_prof():
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@app.get("/detalhes-pagamento-prof/{id}")
-async def detalhes_pagamento_prof(id: str):
-    try:
-        # Buscar professor pelo ID no professores_online
-        doc_ref = db.collection("professores_online").document(id).get()
-        if not doc_ref.exists:
-            raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-        dados = doc_ref.to_dict()
-
-        # Verificar se existe o campo 'pagamentos'
-        pagamentos = dados.get("pagamentos", {})
-        if not isinstance(pagamentos, dict):
-            pagamentos = {}
-
-        meses = []
-        for mes_nome, info in pagamentos.items():
-            meses.append({
-                "mes": mes_nome,
-                "data_pagamento": info.get("data_pagamento", "Não informado"),
-                "valor_pago": info.get("valor_pago", 0),
-                "email_professor": info.get("email_professor", dados.get("email", "Desconhecido"))
-            })
-
-        # Ordenar meses pela ordem do ano
-        ordem_meses = [
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-        ]
-        meses.sort(key=lambda x: ordem_meses.index(x["mes"]) if x["mes"] in ordem_meses else 99)
-
-        return {
-            "professor": dados.get("nome", dados.get("email", "Desconhecido")),
-            "meses": meses
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-        
 @app.get("/detalhes-pagamento-prof", response_class=HTMLResponse)
 async def detalhes_pagamento_prof(request: Request):
     try:
@@ -3223,29 +3182,35 @@ async def detalhes_pagamento_prof(request: Request):
         docs = db.collection("professores_online").stream()
         
         for doc in docs:
-            dados = doc.to_dict()
-            salario_info = dados.get("salario", {})
-            pagamentos_info = dados.get("pagamentos", {})
+            dados = doc.to_dict() or {}
+            salario_info = dados.get("salario", {}) or {}
+            pagamentos_info = dados.get("pagamentos", {}) or {}
             
+            # Garante que todos os valores sejam strings ou números, nunca None ou Undefined
+            pagamentos_list = []
+            for mes, pagamento in pagamentos_info.items():
+                pagamento = pagamento or {}
+                pagamentos_list.append({
+                    "mes": mes or "",
+                    "data_pagamento": pagamento.get("data_pagamento") or "",
+                    "valor_pago": pagamento.get("valor_pago") or 0,
+                    "email_professor": pagamento.get("email_professor") or ""
+                })
+
             professores.append({
-                "nome": dados.get("nome", ""),
-                "email": dados.get("email", ""),
-                "saldo_atual": salario_info.get("saldo_atual", 0),
-                "pagamentos": [
-                    {
-                        "mes": mes,
-                        "data_pagamento": pagamento.get("data_pagamento", ""),
-                        "valor_pago": pagamento.get("valor_pago", 0),
-                        "email_professor": pagamento.get("email_professor", "")
-                    }
-                    for mes, pagamento in pagamentos_info.items()
-                ]
+                "nome": dados.get("nome") or "",
+                "email": dados.get("email") or "",
+                "saldo_atual": salario_info.get("saldo_atual") or 0,
+                "pagamentos": pagamentos_list
             })
         
-        # Renderiza o HTML salario.html e passa os dados
+        # Renderiza o HTML salario.html e passa os dados sempre como lista
         return templates.TemplateResponse(
             "salario.html",
-            {"request": request, "professores": professores}
+            {
+                "request": request,
+                "professores": professores or []  # garante lista vazia se não houver professores
+            }
         )
     
     except Exception as e:
