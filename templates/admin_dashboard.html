@@ -202,50 +202,81 @@
       </div>
     </div>
 
-<!-- Controle de Pagamentos (Alunos) -->
-<div class="card">
-  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos')">💰 Controle de Pagamentos - Alunos</button>
-  <div class="section" id="controle-pagamentos">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <button class="btn" onclick="carregarPagamentos()">🔄 Atualizar</button>
-      <button class="btn btn-fechar" onclick="alternarVisibilidade('controle-pagamentos')">❌ Fechar</button>
-    </div>
-    <table id="tabela-pagamentos">
-      <thead>
-        <tr>
-          <th>Aluno</th>
-          <th>Status</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<!-- Tabela de meses (detalhes do aluno) -->
+<div id="detalhes-aluno" style="display:none; margin-top:15px; position: relative; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+  <!-- Botão Fechar -->
+  <button 
+    onclick="document.getElementById('detalhes-aluno').style.display='none'" 
+    style="
+      position: absolute; 
+      top: 8px; 
+      right: 8px; 
+      background: #ff4d4d; 
+      color: white; 
+      border: none; 
+      font-size: 14px; 
+      font-weight: bold; 
+      border-radius: 50%; 
+      width: 28px; 
+      height: 28px; 
+      cursor: pointer; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">
+    ✕
+  </button>
+
+  <h3 id="nome-aluno" style="margin-top:0;"></h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Mês</th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-meses"></tbody>
+  </table>
 </div>
 
-<!-- Controle de Pagamentos (Professores) -->
-<div class="card">
-  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">💰 Controle de Pagamentos - Professores</button>
-  <div class="section" id="controle-pagamentos-prof">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <button class="btn" onclick="carregarPagamentosProf()">🔄 Atualizar</button>
-      <button class="btn btn-fechar" onclick="alternarVisibilidade('controle-pagamentos-prof')">❌ Fechar</button>
-    </div>
-    <table id="tabela-pagamentos-prof">
-      <thead>
-        <tr>
-          <th>Professor</th>
-          <th>Status</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<!-- Tabela de meses (detalhes do professor) -->
+<div id="detalhes-prof" style="display:none; margin-top:15px; position: relative; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+  <!-- Botão Fechar -->
+  <button 
+    onclick="document.getElementById('detalhes-prof').style.display='none'" 
+    style="
+      position: absolute; 
+      top: 8px; 
+      right: 8px; 
+      background: #ff4d4d; 
+      color: white; 
+      border: none; 
+      font-size: 14px; 
+      font-weight: bold; 
+      border-radius: 50%; 
+      width: 28px; 
+      height: 28px; 
+      cursor: pointer; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">
+    ✕
+  </button>
+
+  <h3 id="nome-prof" style="margin-top:0;"></h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Mês</th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-meses-prof"></tbody>
+  </table>
 </div>
 
-<style>.btn-fechar { background-color: #dc3545; color: white; font-weight: bold; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; } .btn-fechar:hover { background-color: #b02a37; }</style>
-   
+    
 <script>
   function alternarVisibilidade(id) {
     const el = document.getElementById(id);
@@ -269,13 +300,13 @@
     const tbody = document.querySelector("#tabela-alunos tbody");
     tbody.innerHTML = "";
     alunos.forEach(a => {
-      tbody.innerHTML += `<tr>
+      tbody.innerHTML += <tr>
         <td>${a.nome}</td>
         <td>${a.disciplina}</td>
         <td>${a.online ? "✅" : "❌"}</td>
         <td>${a.vinculado ? "Sim" : "Não"}</td>
         <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
-      </tr>`;
+      </tr>;
     });
   }
 
@@ -285,7 +316,7 @@
     const tbody = document.querySelector("#tabela-disponiveis tbody");
     tbody.innerHTML = "";
     dados.forEach(aluno => {
-      tbody.innerHTML += `<tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>`;
+      tbody.innerHTML += <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>;
     });
   }
 
@@ -296,18 +327,18 @@
     const select = document.getElementById("lista-professores");
     tbody.innerHTML = "";
     if (select) {
-      select.innerHTML = `
+      select.innerHTML = 
         <option disabled selected>Selecione o professor</option>
-        <option value="todos">Todos os Professores</option>`;
+        <option value="todos">Todos os Professores</option>;
     }
     profs.forEach(p => {
-      tbody.innerHTML += `<tr>
+      tbody.innerHTML += <tr>
         <td>${p.email}</td>
         <td>${p.online ? "✅" : "❌"}</td>
         <td><button onclick="removerProfessor('${p.email}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
-      </tr>`;
+      </tr>;
       if (select && p.email) {
-        select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
+        select.innerHTML += <option value="${p.email}">${p.email}</option>;
       }
     });
   }
@@ -318,7 +349,7 @@
     const tbody = document.querySelector("#tabela-aulas tbody");
     tbody.innerHTML = "";
     chamadas.forEach(ch => {
-      tbody.innerHTML += `<tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>`;
+      tbody.innerHTML += <tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>;
     });
   }
 
@@ -328,12 +359,12 @@
     const tbody = document.querySelector("#tabela-aulas-dadas tbody");
     tbody.innerHTML = "";
     dados.forEach(item => {
-      tbody.innerHTML += `<tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>`;
+      tbody.innerHTML += <tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>;
     });
   }
 
   async function removerAluno(nome) {
-    if (confirm(`Deseja mesmo remover o aluno "${nome}"?`)) {
+    if (confirm(Deseja mesmo remover o aluno "${nome}"?)) {
       await fetch("/remover-aluno", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -344,7 +375,7 @@
   }
 
   async function removerProfessor(email) {
-    if (confirm(`Deseja mesmo remover o professor "${email}"?`)) {
+    if (confirm(Deseja mesmo remover o professor "${email}"?)) {
       await fetch("/remover-professor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -396,7 +427,7 @@ async function carregarPagamentos() {
   alunos.forEach(a => {
     const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
     const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
-    tbody.innerHTML += `
+    tbody.innerHTML += 
       <tr>
         <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
         <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
@@ -405,12 +436,12 @@ async function carregarPagamentos() {
             PAGO
           </button>
         </td>
-      </tr>`;
+      </tr>;
   });
 }
 
 async function verMeses(id) {
-  const res = await fetch(`/detalhes-pagamento/${id}`);
+  const res = await fetch(/detalhes-pagamento/${id});
   const dados = await res.json();
 
   document.getElementById("nome-aluno").textContent = dados.aluno;
@@ -420,7 +451,7 @@ async function verMeses(id) {
   dados.meses.forEach(m => {
     const cor = m.status ? "status-verde" : "status-vermelho";
     const texto = m.status ? "PAGA" : "Não paga";
-    tbody.innerHTML += `
+    tbody.innerHTML += 
       <tr>
         <td>${m.mes}</td>
         <td><span class="status-circulo ${cor}"></span>${texto}</td>
@@ -430,7 +461,7 @@ async function verMeses(id) {
           </button>
         </td>
       </tr>
-    `;
+    ;
   });
 
   document.getElementById("detalhes-aluno").style.display = "block";
@@ -446,161 +477,63 @@ async function marcarPagoMes(id, campo, statusAtual) {
   verMeses(id);
 }
 
-// helper: tenta vários nomes de campo e retorna o primeiro definido
-function getField(obj, ...keys) {
-  if (!obj) return undefined;
-  for (const k of keys) {
-    if (obj[k] !== undefined) return obj[k];
-  }
-  return undefined;
-}
-
-// ---------- Marcar pagamento de mês (alunos) ----------
-async function marcarPagoMes(id, campo, statusAtual) {
-  try {
-    const novoStatus = !statusAtual;
-    const res = await fetch("/atualizar-pagamento-mes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, campo, status: novoStatus })
-    });
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    verMeses(id);
-  } catch (err) {
-    console.error("Erro ao marcar pagamento de mês (aluno):", err);
-    alert("Falha ao atualizar o pagamento do aluno.");
-  }
-}
-
-// Helper para pegar o primeiro campo válido
-function getField(obj, ...keys) {
-  if (!obj) return undefined;
-  for (const k of keys) {
-    if (obj[k] !== undefined) return obj[k];
-  }
-  return undefined;
-}
-
-// ---------- Listar pagamentos de professores ----------
 async function carregarPagamentosProf() {
-  try {
-    const res = await fetch("/listar-professores-online");
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-
-    const profs = await res.json();
-    const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
-    tbody.innerHTML = "";
-
-    profs.forEach(p => {
-      const id = getField(p, "id", "_id", "docId") || "";
-      const nome = getField(p, "nome_professor", "nome", "professor") ||
-                   (p.dados_professor && (p.dados_professor.nome || p.dados_professor.displayName)) ||
-                   p.email_professor || p.email || "Sem nome";
-      const mensapro = !!getField(p, "mensapro", "mensapro1");
-
-      const statusCor = mensapro ? "status-verde" : "status-vermelho";
-      const statusTexto = mensapro ? "PAGA" : "Não paga";
-
-      tbody.innerHTML += `
-        <tr>
-          <td><a href="#" onclick="verMesesProf('${id}'); return false;">${nome}</a></td>
-          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-          <td>
-            <button onclick="marcarPagoProf('${id}', ${mensapro})" 
-              style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-              PAGO
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-  } catch (err) {
-    console.error("Erro ao carregar pagamentos dos professores:", err);
-  }
+  const res = await fetch("/listar-pagamentos-prof");
+  const profs = await res.json();
+  const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
+  tbody.innerHTML = "";
+  profs.forEach(p => {
+    const statusCor = p.mensapro ? "status-verde" : "status-vermelho";
+    const statusTexto = p.mensapro ? "PAGA" : "Não paga";
+    tbody.innerHTML += 
+      <tr>
+        <td><a href="#" onclick="verMesesProf('${p.id}')">${p.nome}</a></td>
+        <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+        <td>
+          <button onclick="marcarPagoProf('${p.id}', ${p.mensapro})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+            PAGO
+          </button>
+        </td>
+      </tr>;
+  });
 }
-// ---------- Ver meses pagos ----------
+
 async function verMesesProf(id) {
-  try {
-    const res = await fetch(`/detalhes-pagamento-prof/${id}`);
-    if (!res.ok) throw new Error(`Status ${res.status}`);
+  const res = await fetch(/detalhes-pagamento-prof/${id});
+  const dados = await res.json();
 
-    const dados = await res.json();
+  document.getElementById("nome-prof").textContent = dados.professor;
+  const tbody = document.getElementById("tabela-meses-prof");
+  tbody.innerHTML = "";
 
-    const nomeProf = getField(dados, "professor", "nome_professor") ||
-                     (dados.dados_professor && (dados.dados_professor.nome || dados.dados_professor.displayName)) ||
-                     dados.email_professor || dados.email || "Professor não encontrado";
+  dados.meses.forEach(m => {
+    const cor = m.status ? "status-verde" : "status-vermelho";
+    const texto = m.status ? "PAGA" : "Não paga";
+    tbody.innerHTML += 
+      <tr>
+        <td>${m.mes}</td>
+        <td><span class="status-circulo ${cor}"></span>${texto}</td>
+        <td>
+          <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
+            PAGO
+          </button>
+        </td>
+      </tr>
+    ;
+  });
 
-    if (!dados || !Array.isArray(dados.meses)) {
-      console.error("Estrutura de dados inesperada:", dados);
-      alert("Os dados do professor não foram encontrados corretamente!");
-      return;
-    }
-
-    document.getElementById("nome-prof").textContent = nomeProf;
-
-    const tbody = document.getElementById("tabela-meses-prof");
-    tbody.innerHTML = "";
-
-    dados.meses.forEach(m => {
-      const cor = m.status ? "status-verde" : "status-vermelho";
-      const texto = m.status ? "PAGA" : "Não paga";
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${m.mes}</td>
-          <td><span class="status-circulo ${cor}"></span>${texto}</td>
-          <td>
-            <button onclick="marcarPagoMesProf('${id}', '${m.campo}', ${m.status})" 
-              style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-              PAGO
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-    document.getElementById("detalhes-prof").style.display = "block";
-  } catch (err) {
-    console.error("Erro ao buscar detalhes do professor:", err);
-    alert("Falha ao buscar os detalhes do professor.");
-  }
+  document.getElementById("detalhes-prof").style.display = "block";
 }
 
-// ---------- Marcar pagamento de um mês ----------
 async function marcarPagoMesProf(id, campo, statusAtual) {
-  try {
-    const novoStatus = !statusAtual;
-    const res = await fetch("/atualizar-pagamento-mes-prof", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, campo, status: novoStatus })
-    });
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    verMesesProf(id);
-  } catch (err) {
-    console.error("Erro ao marcar pagamento do mês (professor):", err);
-    alert("Falha ao atualizar o pagamento.");
-  }
-}
-
-// Marcar pagamento geral do professor
-async function marcarPagoProf(id, statusAtual) {
-  try {
-    const novoStatus = !statusAtual;
-    const res = await fetch("/atualizar-pagamento-prof", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, campo: "mensapro", status: novoStatus })
-    });
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    carregarPagamentosProf(); // Atualiza a lista depois
-  } catch (err) {
-    console.error("Erro ao marcar pagamento do professor:", err);
-    alert("Falha ao atualizar o pagamento do professor.");
-  }
-}
-  
+  const novoStatus = !statusAtual;
+  await fetch("/atualizar-pagamento-mes-prof", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, campo, status: novoStatus })
+  });
+  verMesesProf(id);
+} 
 </script>
 </body>
 </html>
