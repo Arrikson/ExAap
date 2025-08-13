@@ -245,6 +245,7 @@
   </table>
 </div>
 <!-- Controle de Pagamento de Professores -->
+<!-- Controle de Pagamento de Professores --> 
 <div class="card">
   <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">
     💰 Controle de Pagamento de Professores
@@ -259,6 +260,7 @@
         <tr>
           <th>Professor</th>
           <th>Status Atual</th>
+          <th>Valor a Pagar (R$)</th>
           <th>Ação</th>
         </tr>
       </thead>
@@ -285,6 +287,7 @@
     </div>
   </div>
 </div>
+
 
 <script>
   function alternarVisibilidade(id) {
@@ -512,28 +515,34 @@
   }
 
   async function carregarPagamentosProf() {
-    const res = await fetch("/listar-pagamentos-prof");
-    const professores = await res.json();
-    const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
-    tbody.innerHTML = "";
+    try {
+        const res = await fetch("/listar-pagamentos-prof");
+        const professores = await res.json();
+        const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
+        tbody.innerHTML = "";
 
-    professores.forEach(p => {
-      const statusCor = p.mensapro1 ? "status-verde" : "status-vermelho";
-      const statusTexto = p.mensapro1 ? "PAGO" : "NÃO PAGO";
-      tbody.innerHTML += `
-        <tr>
-          <td><a href="#" onclick="verMesesProf('${p.id}')">${p.professor}</a></td>
-          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-          <td>
-            <button onclick="marcarPagoProf('${p.id}', ${p.mensapro1})" 
-                    style="background:${p.mensapro1 ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-              ${p.mensapro1 ? "PAGO" : "NÃO PAGO"}
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-  }
+        professores.forEach(p => {
+            const statusCor = p.mensapro1 ? "status-verde" : "status-vermelho";
+            const statusTexto = p.mensapro1 ? "PAGO" : "NÃO PAGO";
+
+            tbody.innerHTML += `
+                <tr>
+                  <td><a href="#" onclick="verMesesProf('${p.id}')">${p.professor}</a></td>
+                  <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+                  <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
+                  <td>
+                    <button onclick="marcarPagoProf('${p.id}', ${p.mensapro1})" 
+                            style="background:${p.mensapro1 ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                      ${p.mensapro1 ? "PAGO" : "NÃO PAGO"}
+                    </button>
+                  </td>
+                </tr>
+            `;
+        });
+    } catch (error) {
+        console.error("Erro ao carregar pagamentos de professores:", error);
+    }
+}
 
   async function marcarPagoProf(id, statusAtual) {
     const novoStatus = !statusAtual;
