@@ -3312,6 +3312,75 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
+
+class AtualizarPagamentoProfIn(BaseModel):
+    id: str
+    professor: str = None  
+    valor_pago: float = 0  
+    mensapro1: bool = None  
+
+@app.post("/atualizar-pagamento-prof")
+async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
+    try:
+        doc_ref = db.collection("alunos_professor").document(item.id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return JSONResponse(status_code=404, content={"detail": "Professor não encontrado"})
+
+        dados = doc.to_dict()
+
+        # Se enviou mensapro1, significa que quer reiniciar pagamento
+        if item.mensapro1 is not None:
+            doc_ref.update({"mensapro1": item.mensapro1})
+            return {"message": "Pagamento reiniciado com sucesso"}
+
+        # Caso contrário, registrar pagamento
+        # Encontra o primeiro mês que não está pago
+        meses = [f"mensapro{i}" for i in range(1, 13)]
+        mes_atualizado = None
+        for mes in meses:
+            if not dados.get(mes, False):
+                mes_atualizado = mes
+                break
+
+        if not mes_atualizado:
+            # Todos pagos → reinicia
+            doc_ref.update({mes: False for mes in meses})
+            mes_atualizado = "mensapro1"
+
+        # Atualiza mês para True
+        doc_ref.update({mes_atualizado: True})
+
+        # Atualiza Firestore professores_online
+        prof_query = db.collection("professores_online") \
+            .where(filter=FieldFilter("email", "==", item.professor.strip().lower())) \
+            .limit(1).stream()
+
+        mes_num = int(mes_atualizado.replace("mensapro", ""))
+        mes_nome = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ][mes_num - 1]
+
+        data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        for prof_doc in prof_query:
+            db.collection("professores_online").document(prof_doc.id).update({
+                f"pagamentos.{mes_nome}": {
+                    "data_pagamento": data_atualizacao,
+                    "valor_pago": item.valor_pago,
+                    "email_professor": item.professor,
+                    "status": "PAGO"
+                },
+                "salario.saldo_atual": 0
+            })
+            break
+
+        return {"message": f"Pagamento atualizado com sucesso: {mes_atualizado}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
         
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
