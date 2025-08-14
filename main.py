@@ -3196,19 +3196,14 @@ async def listar_pagamentos_prof():
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
-
+        
 class RegistrarPagamentoProfIn(BaseModel):
     id: str  # ID do aluno/professor na coleção alunos_professor
     professor: str  # email do professor
-    valor_pago: float = 0  # valor pago (opcional, se for necessário)
+    valor_pago: float = 0  # valor pago (opcional)
 
 @app.post("/atualizar-pagamento-prof")
 async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
-    """
-    Atualiza o status de pagamento do professor:
-    - Atualiza o primeiro mês que estiver False (mensapro1 → mensapro12).
-    - Se todos estiverem True, reinicia para o ano seguinte (zera todos e atualiza mensapro1).
-    """
     try:
         # Obter documento do professor na coleção alunos_professor
         doc_ref = db.collection("alunos_professor").document(item.id)
@@ -3229,18 +3224,14 @@ async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
         # Se todos os meses estão pagos, reinicia para o próximo ano
         if not mes_atualizado:
             # Zera todos os meses
-            for mes in meses:
-                doc_ref.update({mes: False})
+            doc_ref.update({mes: False for mes in meses})
             mes_atualizado = "mensapro1"
 
         # Atualiza o mês encontrado para True
         doc_ref.update({mes_atualizado: True})
 
-        # Registrar histórico no "professores_online"
-        prof_ref = db.collection("professores_online") \
-            .where(filter=FieldFilter("email", "==", item.professor.strip().lower())) \
-            .limit(1).stream()
-
+        # Atualizar histórico de pagamentos na coleção professores_online
+        prof_query = db.collection("professores_online").where("email", "==", item.professor.strip().lower()).limit(1).stream()
         mes_num = int(mes_atualizado.replace("mensapro", ""))
         mes_nome = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -3249,13 +3240,15 @@ async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
 
         data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        for prof_doc in prof_ref:
+        for prof_doc in prof_query:
             db.collection("professores_online").document(prof_doc.id).update({
                 f"pagamentos.{mes_nome}": {
-                    "data_atualizacao": data_atualizacao,
-                    "status": "Atualizado",
-                    "email_professor": item.professor
-                }
+                    "data_pagamento": data_atualizacao,
+                    "valor_pago": item.valor_pago,
+                    "email_professor": item.professor,
+                    "status": "PAGO"
+                },
+                "salario.saldo_atual": 0  # opcional: zera o saldo atual após pagamento
             })
             break
 
