@@ -3110,7 +3110,6 @@ async def atualizar_pagamento(payload: dict):
 class PagamentoProfIn(BaseModel):
     id: str
     mensapro1: bool
-
 class PagamentoMesProfIn(BaseModel):
     id: str
     campo: str
@@ -3128,15 +3127,33 @@ async def listar_pagamentos_prof():
             if prof_email not in professores_dict:
                 # Buscar o saldo atual do professor
                 saldo_atual = 0
+                pagamentos_list = []
+                nome_professor = ""
                 try:
                     prof_ref = db.collection("professores_online") \
                         .where(filter=FieldFilter("email", "==", prof_email.strip().lower())) \
                         .limit(1).stream()
                     
                     for prof_doc in prof_ref:
-                        professor_data = prof_doc.to_dict()
-                        salario_info = professor_data.get("salario", {})
-                        saldo_atual = salario_info.get("saldo_atual", 0)
+                        professor_data = prof_doc.to_dict() or {}
+                        nome_professor = professor_data.get("nome_completo") or professor_data.get("nome") or ""
+                        
+                        # Saldo atual
+                        salario_info = professor_data.get("salario", {}) or {}
+                        saldo_atual = int(salario_info.get("saldo_atual", 0))
+                        
+                        # Pagamentos detalhados
+                        pagamentos_info = professor_data.get("pagamentos", {}) or {}
+                        if isinstance(pagamentos_info, dict):
+                            for mes, pagamento in pagamentos_info.items():
+                                if not isinstance(pagamento, dict):
+                                    pagamento = {}
+                                pagamentos_list.append({
+                                    "mes": str(mes or ""),
+                                    "data_pagamento": str(pagamento.get("data_pagamento") or ""),
+                                    "valor_pago": float(pagamento.get("valor_pago") or 0),
+                                    "email_professor": str(pagamento.get("email_professor") or "")
+                                })
                         break
                 except Exception as saldo_err:
                     print(f"⚠️ Erro ao buscar saldo do professor {prof_email}: {saldo_err}")
@@ -3148,23 +3165,23 @@ async def listar_pagamentos_prof():
                     if not dados.get(mes, False):
                         proximo_mes = mes
                         break
-                # Se todos os meses forem True, considera que reinicia no mensapro1
                 if not proximo_mes:
                     proximo_mes = "mensapro1"
 
                 professores_dict[prof_email] = {
                     "id": doc.id,
                     "professor": prof_email,
+                    "nome": nome_professor,
+                    "saldo_atual": saldo_atual,
                     "proximo_mes_a_pagar": proximo_mes,
-                    "saldo_atual": saldo_atual
+                    "pagamentos": pagamentos_list
                 }
 
         return list(professores_dict.values())
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
+        
 
 class RegistrarPagamentoProfIn(BaseModel):
     id: str  # ID do aluno/professor na coleção alunos_professor
