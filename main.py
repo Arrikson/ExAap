@@ -3141,10 +3141,21 @@ async def listar_pagamentos_prof():
                 except Exception as saldo_err:
                     print(f"⚠️ Erro ao buscar saldo do professor {prof_email}: {saldo_err}")
 
+                # Checar o próximo mês a ser pago (primeiro False de mensapro1 → mensapro12)
+                meses = [f"mensapro{i}" for i in range(1, 13)]
+                proximo_mes = None
+                for mes in meses:
+                    if not dados.get(mes, False):
+                        proximo_mes = mes
+                        break
+                # Se todos os meses forem True, considera que reinicia no mensapro1
+                if not proximo_mes:
+                    proximo_mes = "mensapro1"
+
                 professores_dict[prof_email] = {
                     "id": doc.id,
                     "professor": prof_email,
-                    "mensapro1": dados.get("mensapro1", False),
+                    "proximo_mes_a_pagar": proximo_mes,
                     "saldo_atual": saldo_atual
                 }
 
@@ -3152,6 +3163,7 @@ async def listar_pagamentos_prof():
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 
 class RegistrarPagamentoProfIn(BaseModel):
