@@ -2384,6 +2384,17 @@ def debug_campos_vazios(data, prefix=""):
             else:
                 debug_campos_vazios(v, caminho)
 
+def remover_undefined(obj):
+    """
+    Remove todos os campos com valor Undefined de forma recursiva.
+    """
+    if isinstance(obj, dict):
+        return {k: remover_undefined(v) for k, v in obj.items() if v is not Undefined}
+    elif isinstance(obj, list):
+        return [remover_undefined(v) for v in obj if v is not Undefined]
+    else:
+        return obj
+
 from google.cloud import firestore
 
 @app.get("/salarios", response_class=HTMLResponse)
