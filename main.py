@@ -3170,7 +3170,7 @@ async def detalhes_pagamento_prof(request: Request):
         
         # Renderiza template com dados 100% seguros
         return templates.TemplateResponse(
-            "salario.html",
+            "salarios.html",
             {
                 "request": request,
                 "professores": professores
