@@ -2945,8 +2945,8 @@ async def registrar_pagamento(data: PagamentoIn):
     return {"message": "Pagamento registrado com sucesso"}
 
 
-@app.get("/salario", response_class=HTMLResponse)
-async def salario(request: Request):
+@app.get("/salarios", response_class=HTMLResponse)
+async def salarios(request: Request):
     try:
         email = request.query_params.get("email")
         if not email:
@@ -2974,6 +2974,7 @@ async def salario(request: Request):
             saldo_atual = int(safe_value(salario_info.get("saldo_atual"), 0))
             break
 
+        # Renderiza o template passando o saldo
         return templates.TemplateResponse("salario.html", {
             "request": request,
             "saldo_atual": saldo_atual
