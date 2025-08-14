@@ -3232,10 +3232,15 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
         
         data_pagamento = agora.strftime("%d/%m/%Y %H:%M:%S")
 
-        # Atualizar no "alunos_professor" o status do mês
+        # Campo referente ao mês atual (mensapro1, mensapro2, etc.)
         campo_mes = f"mensapro{mes_atual_num}"
+
+        # Atualizar na coleção "alunos_professor":
+        # - Marca o mês atual como pago
+        # - Define mensapro1 como True (status geral do pagamento do professor)
         db.collection("alunos_professor").document(item.id).update({
-            campo_mes: True
+            campo_mes: True,
+            "mensapro1": True
         })
 
         # Registrar histórico no "professores_online"
