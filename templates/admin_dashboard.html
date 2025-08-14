@@ -534,8 +534,10 @@ async function carregarPagamentosProf() {
         tbody.innerHTML = "";
 
         professores.forEach(p => {
-            const statusCor = p.mensapro1 ? "status-verde" : "status-vermelho";
-            const statusTexto = p.mensapro1 ? "PAGO" : "NÃO PAGO";
+            // Se o próximo mês a pagar for mensapro1, considera que ainda não pagou nada, status vermelho
+            // Se for outro mês, significa que já pagou os meses anteriores, status verde
+            const statusCor = p.proximo_mes_a_pagar === "mensapro1" ? "status-vermelho" : "status-verde";
+            const statusTexto = p.proximo_mes_a_pagar === "mensapro1" ? "NÃO PAGO" : "PAGO";
 
             tbody.innerHTML += `
                 <tr>
@@ -543,9 +545,9 @@ async function carregarPagamentosProf() {
                   <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
                   <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
                   <td>
-                    <button onclick="marcarPagoProf('${p.id}', ${p.mensapro1}, '${p.professor}', ${p.saldo_atual})" 
-                            style="background:${p.mensapro1 ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                      ${p.mensapro1 ? "PAGO" : "NÃO PAGO"}
+                    <button onclick="marcarPagoProf('${p.id}', '${p.proximo_mes_a_pagar}', '${p.professor}', ${p.saldo_atual})" 
+                            style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                      ${statusTexto}
                     </button>
                   </td>
                 </tr>
