@@ -2962,22 +2962,43 @@ async def salarios(request: Request):
                 return default
             return val
 
-        # Buscar no Firestore
+        # Buscar no Firestore apenas o professor com o email informado
         prof_ref = db.collection("professores_online").where(
             filter=FieldFilter("email", "==", email)
         ).limit(1).stream()
 
         saldo_atual = 0
+        nome_professor = ""
+        pagamentos_list = []
+
         for doc in prof_ref:
             professor = doc.to_dict() or {}
+            nome_professor = safe_value(professor.get("nome_completo") or professor.get("nome"), "")
+
+            # Saldo atual
             salario_info = safe_value(professor.get("salario"), {}) or {}
             saldo_atual = int(safe_value(salario_info.get("saldo_atual"), 0))
-            break
 
-        # Renderiza o template passando o saldo
-        return templates.TemplateResponse("salarios.html", {
+            # Pagamentos
+            pagamentos_info = professor.get("pagamentos", {}) or {}
+            if isinstance(pagamentos_info, dict):
+                for mes, pagamento in pagamentos_info.items():
+                    if not isinstance(pagamento, dict):
+                        pagamento = {}
+                    pagamentos_list.append({
+                        "mes": str(mes or ""),
+                        "data_pagamento": str(pagamento.get("data_pagamento") or ""),
+                        "valor_pago": float(pagamento.get("valor_pago") or 0),
+                        "email_professor": str(pagamento.get("email_professor") or "")
+                    })
+            break  # só deve haver 1 professor
+
+        # Renderiza o template passando saldo e histórico de pagamentos
+        return templates.TemplateResponse("salario.html", {
             "request": request,
-            "saldo_atual": saldo_atual
+            "nome": nome_professor,
+            "saldo_atual": saldo_atual,
+            "pagamentos": pagamentos_list
         })
 
     except Exception as e:
