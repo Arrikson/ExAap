@@ -575,29 +575,41 @@ async function verMesesProf(emailProf) {
         // Atualiza o nome do professor
         document.getElementById("nome-prof").textContent = data.nome;
 
-        // Preenche a tabela de meses
+        // Atualiza o saldo atual
+        document.getElementById("saldo-prof").textContent = `${Number(data.saldo_atual).toFixed(2)} Kz`;
+
+        // Preenche a tabela de meses/pagamentos
         const tbody = document.getElementById("tabela-meses");
         tbody.innerHTML = "";
 
-        data.pagamentos.forEach(pagamento => {
-            const statusCor = pagamento.data_pagamento ? "status-verde" : "status-vermelho";
-            const statusTexto = pagamento.data_pagamento ? "PAGO" : "NÃO PAGO";
+        if (data.pagamentos && data.pagamentos.length > 0) {
+            data.pagamentos.forEach(pagamento => {
+                const statusCor = pagamento.valor_pago > 0 ? "status-verde" : "status-vermelho";
+                const statusTexto = pagamento.valor_pago > 0 ? "PAGO" : "NÃO PAGO";
 
-            tbody.innerHTML += `
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${pagamento.mes}</td>
+                        <td>${pagamento.data_pagamento || "-"}</td>
+                        <td>R$ ${Number(pagamento.valor_pago).toFixed(2)}</td>
+                        <td>${pagamento.email_professor || "-"}</td>
+                        <td><span class="${statusCor}">${statusTexto}</span></td>
+                        <td>
+                            <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.valor_pago})" 
+                                    style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                                ${statusTexto}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `
                 <tr>
-                    <td>${pagamento.mes}</td>
-                    <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-                    <td>${pagamento.data_pagamento || "-"}</td>
-                    <td>R$ ${Number(pagamento.valor_pago).toFixed(2)}</td>
-                    <td>
-                        <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.data_pagamento})" 
-                                style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                            ${statusTexto}
-                        </button>
-                    </td>
+                    <td colspan="6" style="color:#777;">Nenhum pagamento registrado.</td>
                 </tr>
             `;
-        });
+        }
 
         // Mostra o modal ou div de detalhes
         document.getElementById("detalhes-prof").style.display = "block";
