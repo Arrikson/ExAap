@@ -3198,14 +3198,14 @@ async def listar_pagamentos_prof():
         
         
 class RegistrarPagamentoProfIn(BaseModel):
-    id: str  # ID do aluno/professor na coleção alunos_professor
-    professor: str  # email do professor
-    valor_pago: float = 0  # valor pago (opcional)
+    id: str               # ID do documento na coleção alunos_professor
+    professor: str        # email do professor
+    valor_pago: float = 0 # valor pago
 
 @app.post("/atualizar-pagamento-prof")
 async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
     try:
-        # Obter documento do professor na coleção alunos_professor
+        # Obter documento do professor/aluno na coleção alunos_professor
         doc_ref = db.collection("alunos_professor").document(item.id)
         doc = doc_ref.get()
         if not doc.exists:
@@ -3215,15 +3215,10 @@ async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
         meses = [f"mensapro{i}" for i in range(1, 13)]
 
         # Encontrar o primeiro mês que não está pago
-        mes_atualizado = None
-        for mes in meses:
-            if not dados.get(mes, False):
-                mes_atualizado = mes
-                break
+        mes_atualizado = next((mes for mes in meses if not dados.get(mes, False)), None)
 
         # Se todos os meses estão pagos, reinicia para o próximo ano
         if not mes_atualizado:
-            # Zera todos os meses
             doc_ref.update({mes: False for mes in meses})
             mes_atualizado = "mensapro1"
 
@@ -3231,7 +3226,10 @@ async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
         doc_ref.update({mes_atualizado: True})
 
         # Atualizar histórico de pagamentos na coleção professores_online
-        prof_query = db.collection("professores_online").where("email", "==", item.professor.strip().lower()).limit(1).stream()
+        prof_query = db.collection("professores_online") \
+                       .where("email", "==", item.professor.strip().lower()) \
+                       .limit(1).stream()
+
         mes_num = int(mes_atualizado.replace("mensapro", ""))
         mes_nome = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -3248,7 +3246,7 @@ async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
                     "email_professor": item.professor,
                     "status": "PAGO"
                 },
-                "salario.saldo_atual": 0  # opcional: zera o saldo atual após pagamento
+                "salario.saldo_atual": 0  
             })
             break
 
