@@ -2364,26 +2364,25 @@ async def ver_horario_aluno(nome: str):
         return {"erro": f"Erro ao buscar horário: {str(e)}"}
 
 
-from google.cloud.firestore_v1._helpers import Undefined
-
-def debug_undefined(data, prefix=""):
+def debug_campos_vazios(data, prefix=""):
     """
-    Percorre um dicionário ou lista e imprime todos os campos com valor Undefined.
+    Percorre um dicionário ou lista e imprime todos os campos com valor None ou ausentes.
     """
     if isinstance(data, dict):
         for k, v in data.items():
             caminho = f"{prefix}.{k}" if prefix else k
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
+            if v is None:
+                print(f"⚠️ Campo vazio encontrado: {caminho}")
             else:
-                debug_undefined(v, caminho)
+                debug_campos_vazios(v, caminho)
     elif isinstance(data, list):
         for i, v in enumerate(data):
             caminho = f"{prefix}[{i}]"
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
+            if v is None:
+                print(f"⚠️ Campo vazio encontrado: {caminho}")
             else:
-                debug_undefined(v, caminho)
+                debug_campos_vazios(v, caminho)
+
 
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
@@ -2410,7 +2409,7 @@ async def ver_salarios(request: Request):
 
         for doc in prof_ref:
             professor = doc.to_dict() or {}
-            debug_undefined(professor)  # <<< Aqui vamos ver no log quais campos estão como Undefined
+            debug_campos_vazios(professor)  # <<< Verifica campos vazios no professor
             prof_id = doc.id
             break
 
@@ -2446,7 +2445,7 @@ async def ver_salarios(request: Request):
 
         for doc in vinculos:
             dados = doc.to_dict() or {}
-            debug_undefined(dados)  # <<< Também verificando campos Undefined nos dados do aluno
+            debug_campos_vazios(dados)  # <<< Verifica campos vazios no aluno
 
             dados["aluno"] = safe_value(dados.get("aluno"), "Desconhecido")
             dados["total_aulas"] = int(safe_value(dados.get("total_aulas"), 0))
