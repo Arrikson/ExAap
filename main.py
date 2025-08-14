@@ -95,25 +95,6 @@ if not os.path.exists(PROFESSORES_JSON):
 gerar_html_professores()
 
 
-def debug_undefined(data, prefix=""):
-    """
-    Percorre um dicionário ou lista e imprime todos os campos com valor Undefined.
-    """
-    if isinstance(data, dict):
-        for k, v in data.items():
-            caminho = f"{prefix}.{k}" if prefix else k
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
-            else:
-                debug_undefined(v, caminho)
-    elif isinstance(data, list):
-        for i, v in enumerate(data):
-            caminho = f"{prefix}[{i}]"
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
-            else:
-                debug_undefined(v, caminho)
-
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -2383,7 +2364,26 @@ async def ver_horario_aluno(nome: str):
         return {"erro": f"Erro ao buscar horário: {str(e)}"}
 
 
-from google.cloud.firestore_v1 import FieldFilter
+from google.cloud.firestore_v1._helpers import Undefined
+
+def debug_undefined(data, prefix=""):
+    """
+    Percorre um dicionário ou lista e imprime todos os campos com valor Undefined.
+    """
+    if isinstance(data, dict):
+        for k, v in data.items():
+            caminho = f"{prefix}.{k}" if prefix else k
+            if v is Undefined:
+                print(f"⚠️ Campo Undefined encontrado: {caminho}")
+            else:
+                debug_undefined(v, caminho)
+    elif isinstance(data, list):
+        for i, v in enumerate(data):
+            caminho = f"{prefix}[{i}]"
+            if v is Undefined:
+                print(f"⚠️ Campo Undefined encontrado: {caminho}")
+            else:
+                debug_undefined(v, caminho)
 
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
@@ -2395,7 +2395,6 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Função para tratar valores ausentes ou inválidos
         def safe_value(val, default=""):
             if val is None:
                 return default
@@ -2411,6 +2410,7 @@ async def ver_salarios(request: Request):
 
         for doc in prof_ref:
             professor = doc.to_dict() or {}
+            debug_undefined(professor)  # <<< Aqui vamos ver no log quais campos estão como Undefined
             prof_id = doc.id
             break
 
@@ -2446,8 +2446,8 @@ async def ver_salarios(request: Request):
 
         for doc in vinculos:
             dados = doc.to_dict() or {}
+            debug_undefined(dados)  # <<< Também verificando campos Undefined nos dados do aluno
 
-            # Garantir campos obrigatórios com valor padrão
             dados["aluno"] = safe_value(dados.get("aluno"), "Desconhecido")
             dados["total_aulas"] = int(safe_value(dados.get("total_aulas"), 0))
             dados["aulas_dadas"] = int(safe_value(dados.get("aulas_dadas"), 0))
@@ -2499,6 +2499,7 @@ async def ver_salarios(request: Request):
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
+
 
 @app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
 async def ver_custos_aluno(request: Request, nome: str):
