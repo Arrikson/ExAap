@@ -1,180 +1,70 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Salário do Professor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Nunito', sans-serif;
-      background: #f4f4f8;
-      color: #333;
-      padding-bottom: 70px;
-    }
+    <meta charset="UTF-8">
+    <title>Salário do Professor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background: #f4f4f8;
+            color: #333;
+            padding-bottom: 50px;
+        }
 
-    .header-bai {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      padding: 30px 40px;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      text-align: center;
-    }
+        .header {
+            background: linear-gradient(135deg, #00c9ff, #92fe9d);
+            padding: 30px 40px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
 
-    .header-bai h1 {
-      font-family: 'Heebo', sans-serif;
-      font-size: 36px;
-      color: #fff;
-      margin: 0;
-    }
+        .header h1 {
+            font-family: 'Heebo', sans-serif;
+            font-size: 32px;
+            color: #fff;
+            margin: 0;
+        }
 
-    .info {
-      max-width: 700px;
-      margin: 40px auto;
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
-    }
+        .card {
+            max-width: 500px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
+            text-align: center;
+        }
 
-    .info p {
-      font-size: 22px;
-      margin: 20px 0;
-      font-weight: 600;
-      color: #444;
-    }
+        .card p {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+            color: #444;
+        }
 
-    .info strong {
-      color: #222;
-    }
-
-    /* Tabela de pagamentos */
-    .table-container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.07);
-      padding: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 16px;
-    }
-
-    thead {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      color: #fff;
-    }
-
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-    }
-
-    tbody tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    tbody tr:hover {
-      background-color: #f1faff;
-    }
-
-    th {
-      font-weight: 700;
-    }
-
-    td {
-      font-weight: 500;
-    }
-
-    .status-pago {
-      color: green;
-      font-weight: bold;
-    }
-
-    .status-nao-pago {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
+        .valor {
+            font-size: 40px;
+            font-weight: bold;
+            color: #00b894;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="header-bai">
-    <h1>Salário de {{ nome }}</h1>
-  </div>
+    <div class="header">
+        <h1>Salário</h1>
+    </div>
 
-  <div class="info">
-    <p><strong>Total de aulas previstas:</strong> {{ total_aulas }}</p>
-    <p><strong>Valor por aula:</strong> {{ valor_por_aula }} Kz</p>
-    <p><strong>Saldo atual:</strong> {{ saldo_atual }} Kz</p>
-    <p><strong>Salário mensal estimado:</strong> {{ salario_mensal }} Kz</p>
-  </div>
-
-<div class="table-container">
-  <h2>Histórico de Pagamentos</h2>
-  <table id="tabela-pagamentos">
-    <thead>
-      <tr>
-        <th>Mês</th>
-        <th>Data de Pagamento</th>
-        <th>Valor</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
- 
-    </tbody>
-  </table>
-</div>
-
-  <script>
-
-  function carregarTabelaPagamentos(professores, emailProf) {
-    const tbody = document.querySelector("#tabela-pagamentos tbody");
-    tbody.innerHTML = "";
-
-    // Localiza o professor pelo email
-    const professor = professores.find(p => p.email === emailProf);
-    if (!professor) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Professor não encontrado.</td></tr>`;
-        return;
-    }
-
-    const pagamentos = professor.pagamentos;
-
-    if (!pagamentos || pagamentos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Nenhum pagamento registrado.</td></tr>`;
-        return;
-    }
-
-    pagamentos.forEach(p => {
-        const pago = Boolean(p.data_pagamento && p.data_pagamento.trim() !== "");
-        const status = pago ? "PAGO" : "NÃO PAGO";
-        const statusClasse = pago ? "status-pago" : "status-nao-pago";
-
-        tbody.innerHTML += `
-            <tr>
-                <td>${p.mes || "-"}</td>
-                <td>${p.data_pagamento || "-"}</td>
-                <td>${p.valor_pago ? Number(p.valor_pago).toLocaleString('pt-BR') + " Kz" : "-"}</td>
-                <td>${p.email_professor || "-"}</td>
-                <td class="${statusClasse}">${status}</td>
-            </tr>
-        `;
-    });
-}
-
-// Passa os dados vindos do backend diretamente para a função
-document.addEventListener("DOMContentLoaded", function() {
-    // Aqui você define o email do professor que quer exibir
-    const emailProf = "fulano@email.com"; 
-    carregarTabelaPagamentos({{ professores | tojson | safe }}, emailProf);
-});
-  </script>
+    <div class="card">
+        <p>O seu valor a receber no mês corrente é:</p>
+        <div class="valor">{{ saldo_atual }} Kz</div>
+    </div>
 
 </body>
+</html>
+
 </html>
