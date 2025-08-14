@@ -3154,6 +3154,11 @@ async def listar_pagamentos_prof():
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
+class RegistrarPagamentoProfIn(BaseModel):
+    id: str  # ID do aluno/professor na coleção alunos_professor
+    professor: str  # email do professor
+    valor_pago: float = 0  # valor pago (opcional, se for necessário)
+
 @app.post("/atualizar-pagamento-prof")
 async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
     """
