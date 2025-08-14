@@ -11,7 +11,6 @@ import uuid
 import re
 import pytz
 import unicodedata
-from jinja2.runtime import Undefined
 from collections import OrderedDict
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
@@ -2364,7 +2363,6 @@ async def ver_horario_aluno(nome: str):
 
 
 from google.cloud.firestore_v1 import FieldFilter
-from google.cloud.firestore_v1._helpers import Undefined  # importar o tipo especial
 
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
@@ -2376,10 +2374,8 @@ async def ver_salarios(request: Request):
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
 
-        # Função para tratar valores Undefined / None
+        # Função para tratar valores ausentes ou inválidos
         def safe_value(val, default=""):
-            if isinstance(val, Undefined):
-                return default
             if val is None:
                 return default
             return val
@@ -2482,7 +2478,6 @@ async def ver_salarios(request: Request):
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
-
 
 @app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
 async def ver_custos_aluno(request: Request, nome: str):
