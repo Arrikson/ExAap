@@ -560,42 +560,46 @@ async function carregarPagamentosProf() {
 
 async function verMesesProf(emailProf) {
     try {
-        // Faz a requisição e pega o HTML da página
-        const res = await fetch(`/detalhes-pagamento-prof`);
+        // Faz a requisição passando o email como query parameter
+        const res = await fetch(`/salarios?email=${encodeURIComponent(emailProf)}`);
         if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
 
-        const htmlText = await res.text();
+        // Recebe o JSON com nome, saldo e pagamentos
+        const data = await res.json();
 
-        // Cria um DOM temporário para extrair os dados do HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, "text/html");
-
-        // Pega a lista de professores do HTML (supondo que esteja em uma tabela com id="tabela-professores")
-        const linhas = doc.querySelectorAll("#tabela-professores tbody tr");
-
-        let profEncontrado = null;
-        linhas.forEach(linha => {
-            const cols = linha.querySelectorAll("td");
-            const email = cols[1]?.textContent.trim();
-            if (email === emailProf) {
-                profEncontrado = {
-                    nome: cols[0]?.textContent.trim(),
-                    email: email,
-                    pagamentos: [] // Aqui você pode extrair os pagamentos se já estiverem no HTML
-                };
-            }
-        });
-
-        if (!profEncontrado) {
+        if (!data || !data.nome) {
             alert("Professor não encontrado.");
             return;
         }
 
         // Atualiza o nome do professor
-        document.getElementById("nome-prof").textContent = profEncontrado.nome;
+        document.getElementById("nome-prof").textContent = data.nome;
 
-        // Aqui você pode abrir um modal ou atualizar a tabela de meses
-        // dependendo de como os dados vêm no HTML
+        // Preenche a tabela de meses
+        const tbody = document.getElementById("tabela-meses");
+        tbody.innerHTML = "";
+
+        data.pagamentos.forEach(pagamento => {
+            const statusCor = pagamento.data_pagamento ? "status-verde" : "status-vermelho";
+            const statusTexto = pagamento.data_pagamento ? "PAGO" : "NÃO PAGO";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${pagamento.mes}</td>
+                    <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+                    <td>${pagamento.data_pagamento || "-"}</td>
+                    <td>R$ ${Number(pagamento.valor_pago).toFixed(2)}</td>
+                    <td>
+                        <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.data_pagamento})" 
+                                style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                            ${statusTexto}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        // Mostra o modal ou div de detalhes
         document.getElementById("detalhes-prof").style.display = "block";
 
     } catch (err) {
