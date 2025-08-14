@@ -2994,7 +2994,7 @@ async def salarios(request: Request):
             break  # só deve haver 1 professor
 
         # Renderiza o template passando saldo e histórico de pagamentos
-        return templates.TemplateResponse("salario.html", {
+        return templates.TemplateResponse("salarios.html", {
             "request": request,
             "nome": nome_professor,
             "saldo_atual": saldo_atual,
