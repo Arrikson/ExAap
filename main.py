@@ -2384,6 +2384,7 @@ def debug_campos_vazios(data, prefix=""):
             else:
                 debug_campos_vazios(v, caminho)
 
+from google.cloud import firestore
 
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
@@ -2419,6 +2420,13 @@ async def ver_salarios(request: Request):
 
         if not isinstance(professor, dict):
             professor = {}
+
+        # 🔹 Remover campo ultimo_pagamento se existir
+        if "ultimo_pagamento" in professor:
+            print(f"🗑 Removendo campo 'ultimo_pagamento' do professor {prof_id}")
+            db.collection("professores_online").document(prof_id).update({
+                "ultimo_pagamento": firestore.DELETE_FIELD
+            })
 
         # Processar pagamentos
         pagamentos_raw = safe_value(professor.get("pagamentos"), {}) or {}
