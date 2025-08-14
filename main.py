@@ -2944,6 +2944,9 @@ async def registrar_pagamento(data: PagamentoIn):
 
     return {"message": "Pagamento registrado com sucesso"}
 
+@app.get("/salario", response_class=HTMLResponse)
+async def salario(request: Request):
+    return templates.TemplateResponse("salario.html", {"request": request})
 
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
