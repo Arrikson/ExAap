@@ -2975,7 +2975,7 @@ async def salarios(request: Request):
             break
 
         # Renderiza o template passando o saldo
-        return templates.TemplateResponse("salario.html", {
+        return templates.TemplateResponse("salarios.html", {
             "request": request,
             "saldo_atual": saldo_atual
         })
