@@ -2544,14 +2544,22 @@ async def obter_saldo_atual(request: Request):
 
         email = email.strip().lower()
 
+        # Função para tratar valores "Undefined" e None
+        def safe_value(val, default=""):
+            if str(type(val)).endswith("Undefined'>"):  # evita precisar importar Undefined
+                return default
+            if val is None:
+                return default
+            return val
+
         prof_ref = db.collection("professores_online").where(
             filter=FieldFilter("email", "==", email)
         ).limit(1).stream()
 
         for doc in prof_ref:
-            professor = doc.to_dict()
-            salario_info = professor.get("salario", {})
-            saldo_atual = salario_info.get("saldo_atual", 0)
+            professor = doc.to_dict() or {}
+            salario_info = safe_value(professor.get("salario"), {}) or {}
+            saldo_atual = int(safe_value(salario_info.get("saldo_atual"), 0))
             return JSONResponse(content={"saldo_atual": saldo_atual})
 
         return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
