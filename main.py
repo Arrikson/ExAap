@@ -2364,6 +2364,7 @@ async def ver_horario_aluno(nome: str):
 
 
 from google.cloud.firestore_v1 import FieldFilter
+from google.cloud.firestore_v1._helpers import Undefined  # importar o tipo especial
 
 @app.get("/salarios", response_class=HTMLResponse)
 async def ver_salarios(request: Request):
@@ -2374,6 +2375,14 @@ async def ver_salarios(request: Request):
         
         email = email.strip().lower()
         print(f"🔍 Verificando salário do professor: {email}")
+
+        # Função para tratar valores Undefined / None
+        def safe_value(val, default=""):
+            if isinstance(val, Undefined):
+                return default
+            if val is None:
+                return default
+            return val
 
         # Buscar professor
         prof_ref = db.collection("professores_online").where(
@@ -2395,17 +2404,17 @@ async def ver_salarios(request: Request):
             professor = {}
 
         # Processar pagamentos
-        pagamentos_raw = professor.get("pagamentos", {}) or {}
+        pagamentos_raw = safe_value(professor.get("pagamentos"), {}) or {}
         pagamentos = []
         if isinstance(pagamentos_raw, dict):
             for mes, pagamento in pagamentos_raw.items():
                 if not isinstance(pagamento, dict):
                     pagamento = {}
                 pagamentos.append({
-                    "mes": str(mes or ""),
-                    "data_pagamento": str(pagamento.get("data_pagamento") or ""),
-                    "valor_pago": int(pagamento.get("valor_pago") or 0),
-                    "email_professor": str(pagamento.get("email_professor") or "")
+                    "mes": str(safe_value(mes)),
+                    "data_pagamento": str(safe_value(pagamento.get("data_pagamento"))),
+                    "valor_pago": int(safe_value(pagamento.get("valor_pago"), 0)),
+                    "email_professor": str(safe_value(pagamento.get("email_professor")))
                 })
 
         # Buscar alunos vinculados
@@ -2420,21 +2429,28 @@ async def ver_salarios(request: Request):
 
         for doc in vinculos:
             dados = doc.to_dict() or {}
+
+            # Garantir campos obrigatórios com valor padrão
+            dados["aluno"] = safe_value(dados.get("aluno"), "Desconhecido")
+            dados["total_aulas"] = int(safe_value(dados.get("total_aulas"), 0))
+            dados["aulas_dadas"] = int(safe_value(dados.get("aulas_dadas"), 0))
+            dados["dados_aluno"] = safe_value(dados.get("dados_aluno"), {})
+            dados["dados_aluno"]["disciplina"] = safe_value(dados["dados_aluno"].get("disciplina"), "N/A")
+            dados["datas_aulas"] = safe_value(dados.get("datas_aulas"), [])
+
             try:
-                aluno_nome = str(dados.get("aluno") or "Desconhecido").title()
-                qtd_total = int(dados.get("total_aulas") or 0)
-                qtd_dadas = int(dados.get("aulas_dadas") or 0)
+                aluno_nome = str(dados["aluno"]).title()
+                qtd_total = dados["total_aulas"]
+                qtd_dadas = dados["aulas_dadas"]
 
                 total_aulas += qtd_total
                 aulas_dadas += qtd_dadas
 
-                datas = dados.get("datas_aulas", []) or []
-                for d in datas:
-                    disciplina = str(dados.get("dados_aluno", {}).get("disciplina") or "N/A")
+                for d in dados["datas_aulas"]:
                     detalhes_aulas.append({
                         "nome_aluno": aluno_nome,
-                        "data": str(d or ""),
-                        "disciplina": disciplina
+                        "data": str(safe_value(d)),
+                        "disciplina": dados["dados_aluno"]["disciplina"]
                     })
             except Exception as e:
                 print(f"⚠️ Erro ao processar aluno: {e}")
@@ -2451,20 +2467,14 @@ async def ver_salarios(request: Request):
             }
         })
 
-        # Garantir que nenhum valor seja Undefined
-        def safe_value(val):
-            if isinstance(val, Undefined):
-                return ""
-            return val if val is not None else ""
-
         return templates.TemplateResponse("salarios.html", {
             "request": request,
-            "nome": safe_value(professor.get("nome_completo") or "Professor"),
-            "salario_mensal": int(salario_mensal),
-            "saldo_atual": int(saldo_atual),
-            "total_aulas": int(total_aulas),
-            "valor_por_aula": int(valor_por_aula),
-            "total_a_receber": int(saldo_atual),
+            "nome": safe_value(professor.get("nome_completo"), "Professor"),
+            "salario_mensal": salario_mensal,
+            "saldo_atual": saldo_atual,
+            "total_aulas": total_aulas,
+            "valor_por_aula": valor_por_aula,
+            "total_a_receber": saldo_atual,
             "aulas": detalhes_aulas,
             "pagamentos": pagamentos
         })
@@ -2472,7 +2482,7 @@ async def ver_salarios(request: Request):
     except Exception as e:
         print(f"❌ Erro ao calcular salário: {e}")
         return HTMLResponse(content=f"Erro ao calcular salário: {str(e)}", status_code=500)
-        
+
 
 @app.get("/custos-aluno/{nome}", response_class=HTMLResponse)
 async def ver_custos_aluno(request: Request, nome: str):
