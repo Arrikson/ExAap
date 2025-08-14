@@ -3312,7 +3312,7 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-
+        
 @app.get("/admin", response_class=HTMLResponse)
 async def painel_admin(request: Request):
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
