@@ -558,66 +558,38 @@ async function carregarPagamentosProf() {
     }
 }
 
-async function verMesesProf(emailProf) {
+async function carregarPagamentosProf() {
     try {
-        // Faz a requisição para listar todos os professores/alunos vinculados
         const res = await fetch("/listar-pagamentos-prof");
-        if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
-
         const professores = await res.json();
-
-        // Filtra pelo email do professor (normalizado)
-        const data = professores.find(p => p.professor.toLowerCase() === emailProf.toLowerCase());
-        if (!data) {
-            alert("Professor não encontrado.");
-            return;
-        }
-
-        // Atualiza o nome do professor
-        document.getElementById("nome-prof").textContent = data.nome || data.professor;
-
-        // Atualiza o saldo atual
-        document.getElementById("saldo-prof").textContent = `${Number(data.saldo_atual).toFixed(2)} Kz`;
-
-        // Preenche a tabela de meses/pagamentos
-        const tbody = document.getElementById("tabela-meses");
+        const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
         tbody.innerHTML = "";
 
-        if (data.pagamentos && Array.isArray(data.pagamentos) && data.pagamentos.length > 0) {
-            data.pagamentos.forEach(pagamento => {
-                const statusCor = pagamento.valor_pago > 0 ? "status-verde" : "status-vermelho";
-                const statusTexto = pagamento.valor_pago > 0 ? "PAGO" : "NÃO PAGO";
+        professores.forEach(p => {
+            const statusCor = p.proximo_mes_a_pagar === "mensapro1" ? "status-vermelho" : "status-verde";
+            const statusTexto = p.proximo_mes_a_pagar === "mensapro1" ? "NÃO PAGO" : "PAGO";
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${pagamento.mes}</td>
-                        <td>${pagamento.data_pagamento || "-"}</td>
-                        <td>${Number(pagamento.valor_pago).toFixed(2)} Kz</td>
-                        <td>${pagamento.email_professor || "-"}</td>
-                        <td><span class="${statusCor}">${statusTexto}</span></td>
-                        <td>
-                            <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.valor_pago})" 
-                                    style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                                ${statusTexto}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            tbody.innerHTML = `
+            tbody.innerHTML += `
                 <tr>
-                    <td colspan="6" style="color:#777;">Nenhum pagamento registrado.</td>
+                  <td>
+                    <button onclick="verMesesProf('${p.professor}')" 
+                            style="background:transparent;color:blue;border:none;text-decoration:underline;cursor:pointer;">
+                      ${p.nome || p.professor}
+                    </button>
+                  </td>
+                  <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+                  <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
+                  <td>
+                    <button onclick="marcarPagoProf('${p.id}', '${p.proximo_mes_a_pagar}', '${p.professor}', ${p.saldo_atual})" 
+                            style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                      ${statusTexto}
+                    </button>
+                  </td>
                 </tr>
             `;
-        }
-
-        // Mostra o modal ou div de detalhes
-        document.getElementById("detalhes-prof").style.display = "block";
-
-    } catch (err) {
-        console.error("Erro ao carregar meses do professor:", err);
-        alert("Erro ao carregar detalhes do professor.");
+        });
+    } catch (error) {
+        console.error("Erro ao carregar pagamentos de professores:", error);
     }
 }
 
