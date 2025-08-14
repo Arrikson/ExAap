@@ -3184,65 +3184,6 @@ async def listar_pagamentos_prof():
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
         
-class RegistrarPagamentoProfIn(BaseModel):
-    id: str               # ID do documento na coleção alunos_professor
-    professor: str        # email do professor
-    valor_pago: float = 0 # valor pago
-
-@app.post("/atualizar-pagamento-prof")
-async def atualizar_pagamento_prof(item: RegistrarPagamentoProfIn):
-    try:
-        # Obter documento do professor/aluno na coleção alunos_professor
-        doc_ref = db.collection("alunos_professor").document(item.id)
-        doc = doc_ref.get()
-        if not doc.exists:
-            return JSONResponse(status_code=404, content={"detail": "Professor não encontrado"})
-
-        dados = doc.to_dict()
-        meses = [f"mensapro{i}" for i in range(1, 13)]
-
-        # Encontrar o primeiro mês que não está pago
-        mes_atualizado = next((mes for mes in meses if not dados.get(mes, False)), None)
-
-        # Se todos os meses estão pagos, reinicia para o próximo ano
-        if not mes_atualizado:
-            doc_ref.update({mes: False for mes in meses})
-            mes_atualizado = "mensapro1"
-
-        # Atualiza o mês encontrado para True
-        doc_ref.update({mes_atualizado: True})
-
-        # Atualizar histórico de pagamentos na coleção professores_online
-        prof_query = db.collection("professores_online") \
-                       .where("email", "==", item.professor.strip().lower()) \
-                       .limit(1).stream()
-
-        mes_num = int(mes_atualizado.replace("mensapro", ""))
-        mes_nome = [
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-        ][mes_num - 1]
-
-        data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        for prof_doc in prof_query:
-            db.collection("professores_online").document(prof_doc.id).update({
-                f"pagamentos.{mes_nome}": {
-                    "data_pagamento": data_atualizacao,
-                    "valor_pago": item.valor_pago,
-                    "email_professor": item.professor,
-                    "status": "PAGO"
-                },
-                "salario.saldo_atual": 0  
-            })
-            break
-
-        return {"message": f"Pagamento atualizado com sucesso: {mes_atualizado}"}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
 @app.get("/detalhes-pagamento-prof", response_class=HTMLResponse)
 async def detalhes_pagamento_prof(request: Request):
     try:
