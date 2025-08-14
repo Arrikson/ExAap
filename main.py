@@ -2944,9 +2944,45 @@ async def registrar_pagamento(data: PagamentoIn):
 
     return {"message": "Pagamento registrado com sucesso"}
 
+
 @app.get("/salario", response_class=HTMLResponse)
 async def salario(request: Request):
-    return templates.TemplateResponse("salario.html", {"request": request})
+    try:
+        email = request.query_params.get("email")
+        if not email:
+            return HTMLResponse(content="Email não informado", status_code=400)
+
+        email = email.strip().lower()
+
+        # Função para tratar valores "Undefined" e None
+        def safe_value(val, default=""):
+            if str(type(val)).endswith("Undefined'>"):
+                return default
+            if val is None:
+                return default
+            return val
+
+        # Buscar no Firestore
+        prof_ref = db.collection("professores_online").where(
+            filter=FieldFilter("email", "==", email)
+        ).limit(1).stream()
+
+        saldo_atual = 0
+        for doc in prof_ref:
+            professor = doc.to_dict() or {}
+            salario_info = safe_value(professor.get("salario"), {}) or {}
+            saldo_atual = int(safe_value(salario_info.get("saldo_atual"), 0))
+            break
+
+        return templates.TemplateResponse("salario.html", {
+            "request": request,
+            "saldo_atual": saldo_atual
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao carregar página de salário: {e}")
+        return HTMLResponse(content=f"Erro: {str(e)}", status_code=500)
+
 
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
