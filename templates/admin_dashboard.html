@@ -593,14 +593,27 @@ async function carregarPagamentosProf() {
     }
 }
 
-async function marcarPagoMesProf(emailProf, mes, statusAtual) {
-    const novoStatus = !statusAtual;
-    await fetch("/atualizar-pagamento-mes-prof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email_professor: emailProf, mes, status: novoStatus })
-    });
-    verMesesProf(emailProf); 
+async function marcarPagoMesProf(emailProf, mes, statusAtual, valorAtual = 0) {
+    try {
+        const novoStatus = !statusAtual;
+
+        // Envia a requisição de atualização para o backend
+        await fetch("/atualizar-pagamento-prof", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: mes,                   // ou algum ID único do pagamento/mês se necessário
+                professor: emailProf,      // email do professor
+                valor_pago: Number(valorAtual) // garante que seja float
+            })
+        });
+
+        // Atualiza a visualização na interface
+        verMesesProf(emailProf); 
+    } catch (err) {
+        console.error("Erro ao atualizar pagamento do professor:", err);
+        alert("Não foi possível atualizar o pagamento. Verifique o console.");
+    }
 }
 
 </script>
