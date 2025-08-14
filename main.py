@@ -94,28 +94,7 @@ if not os.path.exists(PROFESSORES_JSON):
     salvar_professores_local([])
 gerar_html_professores()
 
-def debug_undefined(data, prefix=""):
-    """
-    Percorre um dicionário ou lista e imprime todos os campos com valor Undefined.
-    """
-    if isinstance(data, dict):
-        for k, v in data.items():
-            caminho = f"{prefix}.{k}" if prefix else k
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
-            else:
-                debug_undefined(v, caminho)
-    elif isinstance(data, list):
-        for i, v in enumerate(data):
-            caminho = f"{prefix}[{i}]"
-            if v is Undefined:
-                print(f"⚠️ Campo Undefined encontrado: {caminho}")
-            else:
-                debug_undefined(v, caminho)
 
-# Dentro da tua função /salarios
-professor = doc.to_dict() or {}
-debug_undefined(professor)  
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
