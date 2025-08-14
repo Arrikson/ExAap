@@ -11,6 +11,7 @@ import uuid
 import re
 import pytz
 import unicodedata
+from jinja2.runtime import Undefined
 from collections import OrderedDict
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
