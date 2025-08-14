@@ -566,17 +566,14 @@ async function carregarPagamentosProf() {
         tbody.innerHTML = "";
 
         professores.forEach(p => {
+            // Se o próximo mês a pagar for mensapro1, considera que ainda não pagou nada, status vermelho
+            // Se for outro mês, significa que já pagou os meses anteriores, status verde
             const statusCor = p.proximo_mes_a_pagar === "mensapro1" ? "status-vermelho" : "status-verde";
             const statusTexto = p.proximo_mes_a_pagar === "mensapro1" ? "NÃO PAGO" : "PAGO";
 
             tbody.innerHTML += `
                 <tr>
-                  <td>
-                    <button onclick="verMesesProf('${p.professor}')" 
-                            style="background:transparent;color:blue;border:none;text-decoration:underline;cursor:pointer;">
-                      ${p.nome || p.professor}
-                    </button>
-                  </td>
+                  <td><a href="#" onclick="verMesesProf('${p.id}')">${p.professor}</a></td>
                   <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
                   <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
                   <td>
@@ -593,26 +590,65 @@ async function carregarPagamentosProf() {
     }
 }
 
-async function marcarPagoMesProf(emailProf, mes, statusAtual, valorAtual = 0) {
+async function verMesesProf(emailProf) {
     try {
-        const novoStatus = !statusAtual;
+        // Faz a requisição passando o email como query parameter
+        const res = await fetch(`/salarios?email=${encodeURIComponent(emailProf)}`);
+        if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
 
-        // Envia a requisição de atualização para o backend
-        await fetch("/atualizar-pagamento-prof", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id: mes,                   // ou algum ID único do pagamento/mês se necessário
-                professor: emailProf,      // email do professor
-                valor_pago: Number(valorAtual) // garante que seja float
-            })
-        });
+        // Recebe o JSON com nome, saldo e pagamentos
+        const data = await res.json();
 
-        // Atualiza a visualização na interface
-        verMesesProf(emailProf); 
+        if (!data || !data.nome) {
+            alert("Professor não encontrado.");
+            return;
+        }
+
+        // Atualiza o nome do professor
+        document.getElementById("nome-prof").textContent = data.nome;
+
+        // Atualiza o saldo atual
+        document.getElementById("saldo-prof").textContent = `${Number(data.saldo_atual).toFixed(2)} Kz`;
+
+        // Preenche a tabela de meses/pagamentos
+        const tbody = document.getElementById("tabela-meses");
+        tbody.innerHTML = "";
+
+        if (data.pagamentos && data.pagamentos.length > 0) {
+            data.pagamentos.forEach(pagamento => {
+                const statusCor = pagamento.valor_pago > 0 ? "status-verde" : "status-vermelho";
+                const statusTexto = pagamento.valor_pago > 0 ? "PAGO" : "NÃO PAGO";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${pagamento.mes}</td>
+                        <td>${pagamento.data_pagamento || "-"}</td>
+                        <td>R$ ${Number(pagamento.valor_pago).toFixed(2)}</td>
+                        <td>${pagamento.email_professor || "-"}</td>
+                        <td><span class="${statusCor}">${statusTexto}</span></td>
+                        <td>
+                            <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.valor_pago})" 
+                                    style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+                                ${statusTexto}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="color:#777;">Nenhum pagamento registrado.</td>
+                </tr>
+            `;
+        }
+
+        // Mostra o modal ou div de detalhes
+        document.getElementById("detalhes-prof").style.display = "block";
+
     } catch (err) {
-        console.error("Erro ao atualizar pagamento do professor:", err);
-        alert("Não foi possível atualizar o pagamento. Verifique o console.");
+        console.error("Erro ao carregar meses do professor:", err);
+        alert("Erro ao carregar detalhes do professor.");
     }
 }
 
