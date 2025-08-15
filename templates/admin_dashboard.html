@@ -467,26 +467,38 @@ async function carregarPagamentos() {
 }
 
 async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
-    // statusAtual vem do backend como true/false
-    if (!statusAtual) { // Se ainda não estava pago
-        await fetch("/registrar-pagamento-prof", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id: id,
-                professor: professor,
-                valor_pago: saldoAtual // Se for 0 → PAGO, senão NÃO PAGO
-            })
-        });
-    } else {
-        // Aqui, caso queira desfazer pagamento, pode zerar apenas o mês atual
-        await fetch("/atualizar-pagamento-prof", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, mensapro1: false })
-        });
+    try {
+        // Se ainda não estava pago → registra pagamento
+        if (!statusAtual) {
+            await fetch("/registrar-pagamento-prof", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: id,
+                    professor: professor,
+                    valor_pago: saldoAtual // Se for 0 → PAGO, senão NÃO PAGO
+                })
+            });
+        } else {
+            // Se já estava pago → atualiza pagamento (desfaz/reinicia) via atualizar-pagamento-prof
+            await fetch("/atualizar-pagamento-prof", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: id,
+                    professor: professor,
+                    valor_pago: 0 // Valor 0 indica que será marcado como PAGO novamente no backend
+                })
+            });
+        }
+
+        // Atualiza a tabela após operação
+        carregarPagamentosProf();
+
+    } catch (err) {
+        console.error("Erro ao atualizar pagamento do professor:", err);
+        alert("Ocorreu um erro ao atualizar o pagamento. Veja o console para detalhes.");
     }
-    carregarPagamentosProf();
 }
 
 async function verMeses(id) {
