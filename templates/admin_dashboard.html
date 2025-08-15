@@ -585,8 +585,6 @@ async function carregarPagamentosProf() {
         tbody.innerHTML = "";
 
         professores.forEach(p => {
-            // Se o próximo mês a pagar for mensapro1, considera que ainda não pagou nada, status vermelho
-            // Se for outro mês, significa que já pagou os meses anteriores, status verde
             const statusCor = p.proximo_mes_a_pagar === "mensapro1" ? "status-vermelho" : "status-verde";
             const statusTexto = p.proximo_mes_a_pagar === "mensapro1" ? "NÃO PAGO" : "PAGO";
 
@@ -600,6 +598,10 @@ async function carregarPagamentosProf() {
                             style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
                       ${statusTexto}
                     </button>
+                    <button onclick="verHistoricoPagamentos('${p.professor}')" 
+                            style="background:blue;color:white;border:none;padding:4px 8px;border-radius:4px; margin-left:5px;">
+                      Ver Histórico de Pagamentos
+                    </button>
                   </td>
                 </tr>
             `;
@@ -608,6 +610,11 @@ async function carregarPagamentosProf() {
         console.error("Erro ao carregar pagamentos de professores:", error);
     }
 }
+
+function verHistoricoPagamentos(nomeProfessor) {
+    window.location.href = `/ver-pagamentos?professor=${encodeURIComponent(nomeProfessor)}`;
+}
+
 
 async function verMesesProf(emailProf) {
     try {
