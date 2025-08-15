@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de Pagamentos - {{ professor }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #fff;
+            box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .status-pago {
+            color: green;
+            font-weight: bold;
+        }
+        .status-nao-pago {
+            color: red;
+            font-weight: bold;
+        }
+        .btn-voltar {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 15px;
+        }
+        .btn-voltar:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="btn-voltar">← Voltar</a>
+    <h1>Histórico de Pagamentos - {{ professor }}</h1>
+
+    {% if pagamentos and pagamentos|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Mês</th>
+                    <th>Data Pagamento</th>
+                    <th>Hora</th>
+                    <th>Valor Pago</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagamentos %}
+                    <tr>
+                        <td>{{ p.mes }}</td>
+                        <td>{{ p.data_pagamento or '-' }}</td>
+                        <td>{{ p.hora_pagamento or '-' }}</td>
+                        <td>R$ {{ "%.2f"|format(p.valor_pago) }}</td>
+                        <td class="{{ 'status-pago' if p.status|lower == 'pago' else 'status-nao-pago' }}">
+                            {{ p.status }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><em>Não há registros de pagamento para este professor.</em></p>
+    {% endif %}
+
+</body>
+</html>
