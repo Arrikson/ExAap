@@ -3327,69 +3327,78 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
-
 class AtualizarPagamentoProfIn(BaseModel):
     id: str
-    professor: str = None  
-    valor_pago: float = 0  
-    mensapro1: bool = None  
+    professor: str  # email do professor
+    valor_pago: float = 0  # valor pago (opcional)
 
 @app.post("/atualizar-pagamento-prof")
 async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
+    """
+    Atualiza o pagamento do professor:
+    - Procura do mensapro1 ao mensapro12 o primeiro que estiver False e atualiza para True.
+    - Se todos estiverem True, zera todos e começa novamente no mensapro1.
+    - Status PAGO ou NÃO PAGO depende do saldo_atual do professor.
+    - Atualiza histórico em professores_online e zera saldo.
+    """
     try:
+        # Obter documento do professor na coleção alunos_professor
         doc_ref = db.collection("alunos_professor").document(item.id)
         doc = doc_ref.get()
         if not doc.exists:
             return JSONResponse(status_code=404, content={"detail": "Professor não encontrado"})
 
         dados = doc.to_dict()
-
-        # Se enviou mensapro1, significa que quer reiniciar pagamento
-        if item.mensapro1 is not None:
-            doc_ref.update({"mensapro1": item.mensapro1})
-            return {"message": "Pagamento reiniciado com sucesso"}
-
-        # Caso contrário, registrar pagamento
-        # Encontra o primeiro mês que não está pago
         meses = [f"mensapro{i}" for i in range(1, 13)]
-        mes_atualizado = None
-        for mes in meses:
-            if not dados.get(mes, False):
-                mes_atualizado = mes
-                break
 
+        # Encontrar o primeiro mês que não está pago
+        mes_atualizado = next((mes for mes in meses if not dados.get(mes, False)), None)
+
+        # Se todos os meses estão pagos, reinicia e marca o primeiro
         if not mes_atualizado:
-            # Todos pagos → reinicia
             doc_ref.update({mes: False for mes in meses})
             mes_atualizado = "mensapro1"
 
-        # Atualiza mês para True
+        # Atualiza o mês encontrado para True
         doc_ref.update({mes_atualizado: True})
 
-        # Atualiza Firestore professores_online
-        prof_query = db.collection("professores_online") \
-            .where(filter=FieldFilter("email", "==", item.professor.strip().lower())) \
-            .limit(1).stream()
-
+        # Nome do mês e data
         mes_num = int(mes_atualizado.replace("mensapro", ""))
         mes_nome = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ][mes_num - 1]
-
         data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        for prof_doc in prof_query:
+        # Determinar status de pagamento baseado no saldo atual
+        status_pagamento = "PAGO" if item.valor_pago == 0 else "NÃO PAGO"
+
+        # Email do professor formatado
+        professor_email = item.professor.strip().lower()
+
+        # Procurar professor no "professores_online"
+        prof_ref = db.collection("professores_online") \
+            .where(filter=FieldFilter("email", "==", professor_email)) \
+            .limit(1).stream()
+
+        for prof_doc in prof_ref:
+            # Atualiza histórico de pagamentos e zera saldo
             db.collection("professores_online").document(prof_doc.id).update({
                 f"pagamentos.{mes_nome}": {
                     "data_pagamento": data_atualizacao,
                     "valor_pago": item.valor_pago,
-                    "email_professor": item.professor,
-                    "status": "PAGO"
+                    "status": status_pagamento,
+                    "email_professor": professor_email
                 },
                 "salario.saldo_atual": 0
             })
             break
+
+        # Atualiza saldo e status no alunos_professor
+        doc_ref.update({
+            "salario.saldo_atual": 0,
+            "salario.status": status_pagamento
+        })
 
         return {"message": f"Pagamento atualizado com sucesso: {mes_atualizado}"}
 
