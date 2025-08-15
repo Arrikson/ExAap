@@ -3256,8 +3256,9 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
     Atualiza o pagamento do professor:
     - Procura do mensapro1 ao mensapro12 o primeiro que estiver False e atualiza para True.
     - Se todos estiverem True, zera todos e começa novamente no mensapro1.
-    - Status PAGO ou NÃO PAGO depende de valor_pago.
+    - Status PAGO ou NÃO PAGO depende do saldo_atual do professor.
     - Atualiza histórico em professores_online e zera saldo.
+    - Registra data e hora exata do pagamento.
     """
     try:
         # Obter documento do professor na coleção alunos_professor
@@ -3270,11 +3271,7 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
         meses = [f"mensapro{i}" for i in range(1, 13)]
 
         # Encontrar o primeiro mês que não está pago
-        mes_atualizado = None
-        for mes in meses:
-            if not dados.get(mes, False):
-                mes_atualizado = mes
-                break
+        mes_atualizado = next((mes for mes in meses if not dados.get(mes, False)), None)
 
         # Se todos os meses estão pagos, reinicia e marca o primeiro
         if not mes_atualizado:
@@ -3284,16 +3281,20 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
         # Atualiza o mês encontrado para True
         doc_ref.update({mes_atualizado: True})
 
-        # Nome do mês e data
+        # Nome do mês e data/hora
         mes_num = int(mes_atualizado.replace("mensapro", ""))
         mes_nome = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ][mes_num - 1]
-        data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        # Determinar status de pagamento
-        status_pagamento = "PAGO" if item.valor_pago > 0 else "NÃO PAGO"
+        data_atual = datetime.now()
+        data_pagamento = data_atual.strftime("%d/%m/%Y")
+        hora_pagamento = data_atual.strftime("%H:%M:%S")
+        data_hora_formatada = f"{data_pagamento} {hora_pagamento}"
+
+        # Determinar status de pagamento baseado no saldo atual
+        status_pagamento = "PAGO" if item.valor_pago == 0 else "NÃO PAGO"
 
         # Email do professor formatado
         professor_email = item.professor.strip().lower()
@@ -3304,14 +3305,30 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
             .limit(1).stream()
 
         for prof_doc in prof_ref:
-            db.collection("professores_online").document(prof_doc.id).update({
+            prof_id = prof_doc.id
+
+            # Atualiza histórico de pagamentos
+            db.collection("professores_online").document(prof_id).update({
                 f"pagamentos.{mes_nome}": {
-                    "data_pagamento": data_atualizacao,
+                    "data_pagamento": data_pagamento,
+                    "hora_pagamento": hora_pagamento,
                     "valor_pago": item.valor_pago,
                     "status": status_pagamento,
                     "email_professor": professor_email
                 },
                 "salario.saldo_atual": 0
+            })
+
+            # Adiciona no histórico (lista)
+            db.collection("professores_online").document(prof_id).update({
+                "historico_pagamentos": firestore.ArrayUnion([{
+                    "mes": mes_nome,
+                    "data_pagamento": data_pagamento,
+                    "hora_pagamento": hora_pagamento,
+                    "valor_pago": item.valor_pago,
+                    "status": status_pagamento,
+                    "email_professor": professor_email
+                }])
             })
             break
 
@@ -3325,6 +3342,7 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+        
 
 
 class AtualizarPagamentoProfIn(BaseModel):
