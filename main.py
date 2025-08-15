@@ -3243,6 +3243,7 @@ async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
         return {"message": "Pagamento mensal atualizado com sucesso"}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+        
 
 class RegistrarPagamentoProfIn(BaseModel):
     id: str  # ID do aluno/professor na coleção alunos_professor
@@ -3253,9 +3254,10 @@ class RegistrarPagamentoProfIn(BaseModel):
 async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
     """
     Registra o pagamento do professor:
-    - Atualiza o primeiro mês que estiver False (mensapro1 → mensapro12).
-    - Se todos estiverem True, reinicia para o próximo ano (zera todos e atualiza mensapro1).
-    - Atualiza histórico em professores_online.
+    - Procura do mensapro1 ao mensapro12 o primeiro que estiver False e atualiza para True.
+    - Se todos estiverem True, zera todos e começa novamente no mensapro1.
+    - Status PAGO ou NÃO PAGO depende se saldo_atual == 0.
+    - Atualiza histórico em professores_online e zera saldo.
     """
     try:
         # Obter documento do professor na coleção alunos_professor
@@ -3274,43 +3276,57 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
                 mes_atualizado = mes
                 break
 
-        # Se todos os meses estão pagos, reinicia para o próximo ano
+        # Se todos os meses estão pagos, reinicia e marca o primeiro
         if not mes_atualizado:
-            for mes in meses:
-                doc_ref.update({mes: False})
+            doc_ref.update({mes: False for mes in meses})
             mes_atualizado = "mensapro1"
 
         # Atualiza o mês encontrado para True
         doc_ref.update({mes_atualizado: True})
 
-        # Registrar histórico no "professores_online"
-        prof_ref = db.collection("professores_online") \
-            .where(filter=FieldFilter("email", "==", item.professor.strip().lower())) \
-            .limit(1).stream()
-
+        # Nome do mês e data
         mes_num = int(mes_atualizado.replace("mensapro", ""))
         mes_nome = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ][mes_num - 1]
-
         data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
+        # Determinar status de pagamento
+        status_pagamento = "PAGO" if item.valor_pago == 0 else "NÃO PAGO"
+
+        # Registrar histórico no "professores_online"
+        professor_email = item.professor.strip().lower()
+        prof_ref = db.collection("professores_online") \
+            .where(filter=FieldFilter("email", "==", professor_email)) \
+            .limit(1).stream()
+
+        encontrado = False
         for prof_doc in prof_ref:
             db.collection("professores_online").document(prof_doc.id).update({
                 f"pagamentos.{mes_nome}": {
                     "data_pagamento": data_atualizacao,
                     "valor_pago": item.valor_pago,
-                    "email_professor": item.professor
+                    "status": status_pagamento,
+                    "email_professor": professor_email
                 },
-                "salario.saldo_atual": 0  # opcional: zera saldo
+                "salario.saldo_atual": 0
             })
+            encontrado = True
             break
+
+        # Caso não encontre no professores_online, zera saldo diretamente no alunos_professor
+        if not encontrado:
+            doc_ref.update({
+                "salario.saldo_atual": 0,
+                "salario.status": status_pagamento
+            })
 
         return {"message": f"Pagamento registrado com sucesso: {mes_atualizado}"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 
 class AtualizarPagamentoProfIn(BaseModel):
