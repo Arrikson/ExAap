@@ -3184,56 +3184,40 @@ async def listar_pagamentos_prof():
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
         
-@app.get("/detalhes-pagamento-prof", response_class=HTMLResponse)
-async def detalhes_pagamento_prof(request: Request):
+@app.get("/ver-pagamentos", response_class=HTMLResponse)
+async def ver_pagamentos(request: Request):
+    """
+    Exibe todos os registros da coluna pagamentos de professores_online
+    em uma página HTML.
+    """
     try:
-        professores = []
-        
-        # Busca todos os professores
-        docs = db.collection("professores_online").stream()
-        
-        for doc in docs:
-            dados = doc.to_dict() or {}
-            salario_info = dados.get("salario", {}) or {}
-            if not isinstance(salario_info, dict):
-                salario_info = {}
+        professores_data = []
+        professores_ref = db.collection("professores_online").stream()
 
-            # Processa pagamentos como lista segura
-            pagamentos_info = dados.get("pagamentos", {}) or {}
-            pagamentos_list = []
+        for doc in professores_ref:
+            dados = doc.to_dict()
+            email = dados.get("email", "Sem email")
+            pagamentos = dados.get("pagamentos", {})
 
-            if isinstance(pagamentos_info, dict):
-                for mes, pagamento in pagamentos_info.items():
-                    if not isinstance(pagamento, dict):
-                        pagamento = {}
-                    pagamentos_list.append({
-                        "mes": str(mes or ""),
-                        "data_pagamento": str(pagamento.get("data_pagamento") or ""),
-                        "valor_pago": float(pagamento.get("valor_pago") or 0),
-                        "email_professor": str(pagamento.get("email_professor") or "")
-                    })
+            for mes, info in pagamentos.items():
+                professores_data.append({
+                    "email_professor": email,
+                    "mes": mes,
+                    "data_pagamento": info.get("data_pagamento", ""),
+                    "hora_pagamento": info.get("hora_pagamento", ""),
+                    "valor_pago": info.get("valor_pago", 0),
+                    "status": info.get("status", "N/A")
+                })
 
-            professores.append({
-                "nome": str(dados.get("nome_completo") or dados.get("nome") or ""),
-                "email": str(dados.get("email") or ""),
-                "saldo_atual": float(salario_info.get("saldo_atual") or 0),
-                "pagamentos": pagamentos_list
-            })
-        
-        # Renderiza template com dados 100% seguros
+        # Renderiza o HTML
         return templates.TemplateResponse(
-            "salarios.html",
-            {
-                "request": request,
-                "professores": professores
-            }
+            "pagamentos_dashboard.html",
+            {"request": request, "pagamentos": professores_data}
         )
-    
+
     except Exception as e:
-        print(f"❌ Erro ao carregar detalhes de pagamento: {e}")
-        return JSONResponse(status_code=500, content={"detail": str(e)})
-
-
+        return HTMLResponse(content=f"<h3>Erro: {str(e)}</h3>", status_code=500)
+        
 @app.post("/atualizar-pagamento-mes-prof")
 async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
     try:
