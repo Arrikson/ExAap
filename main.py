@@ -3040,6 +3040,44 @@ async def pagamentos(request: Request):
             db.collection("alunos_professor").document(doc.id).update(novos_dados)
 
     return templates.TemplateResponse("pagamentos.html", {"request": request})
+    
+
+@app.get("/historico-pagamentos-prof/{prof_id}", response_class=HTMLResponse)
+async def historico_pagamentos_prof(request: Request, prof_id: str):
+    try:
+        # Busca o professor no Firestore
+        doc_ref = db.collection("professores_online").document(prof_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return templates.TemplateResponse(
+                "historico_pagamentos.html",
+                {"request": request, "professor": None, "historico": []}
+            )
+
+        dados_prof = doc.to_dict() or {}
+
+        # Pega o histórico salvo no campo 'historico_pagamentos'
+        historico = dados_prof.get("historico_pagamentos", [])
+
+        # Ordena do mais recente para o mais antigo (se tiver data)
+        historico.sort(key=lambda x: x.get("data", ""), reverse=True)
+
+        return templates.TemplateResponse(
+            "historico_pagamentos.html",
+            {
+                "request": request,
+                "professor": dados_prof.get("nome", "Professor sem nome"),
+                "historico": historico
+            }
+        )
+
+    except Exception as e:
+        print(f"Erro ao buscar histórico de pagamentos: {e}")
+        return templates.TemplateResponse(
+            "historico_pagamentos.html",
+            {"request": request, "professor": None, "historico": []}
+        )
 
 
 @app.get("/detalhes-pagamento/{aluno_id}")
