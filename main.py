@@ -3256,7 +3256,7 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
     Registra o pagamento do professor:
     - Procura do mensapro1 ao mensapro12 o primeiro que estiver False e atualiza para True.
     - Se todos estiverem True, zera todos e começa novamente no mensapro1.
-    - Status PAGO ou NÃO PAGO depende se saldo_atual == 0.
+    - Status PAGO ou NÃO PAGO depende se valor_pago == 0.
     - Atualiza histórico em professores_online e zera saldo.
     """
     try:
@@ -3295,8 +3295,10 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
         # Determinar status de pagamento
         status_pagamento = "PAGO" if item.valor_pago == 0 else "NÃO PAGO"
 
-        # Registrar histórico no "professores_online"
+        # Email do professor formatado
         professor_email = item.professor.strip().lower()
+
+        # Procurar professor no "professores_online"
         prof_ref = db.collection("professores_online") \
             .where(filter=FieldFilter("email", "==", professor_email)) \
             .limit(1).stream()
@@ -3315,18 +3317,16 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
             encontrado = True
             break
 
-        # Caso não encontre no professores_online, zera saldo diretamente no alunos_professor
-        if not encontrado:
-            doc_ref.update({
-                "salario.saldo_atual": 0,
-                "salario.status": status_pagamento
-            })
+        # Sempre zera o saldo_atual e atualiza status no alunos_professor
+        doc_ref.update({
+            "salario.saldo_atual": 0,
+            "salario.status": status_pagamento
+        })
 
         return {"message": f"Pagamento registrado com sucesso: {mes_atualizado}"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-
 
 
 class AtualizarPagamentoProfIn(BaseModel):
