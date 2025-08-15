@@ -3243,20 +3243,20 @@ async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
         return {"message": "Pagamento mensal atualizado com sucesso"}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
-        
 
-class RegistrarPagamentoProfIn(BaseModel):
-    id: str  # ID do aluno/professor na coleção alunos_professor
+
+class AtualizarPagamentoProfIn(BaseModel):
+    id: str
     professor: str  # email do professor
     valor_pago: float = 0  # valor pago (opcional)
 
-@app.post("/registrar-pagamento-prof")
-async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
+@app.post("/atualizar-pagamento-prof")
+async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
     """
-    Registra o pagamento do professor:
+    Atualiza o pagamento do professor:
     - Procura do mensapro1 ao mensapro12 o primeiro que estiver False e atualiza para True.
     - Se todos estiverem True, zera todos e começa novamente no mensapro1.
-    - Status PAGO ou NÃO PAGO depende se valor_pago == 0.
+    - Status PAGO ou NÃO PAGO depende de valor_pago.
     - Atualiza histórico em professores_online e zera saldo.
     """
     try:
@@ -3293,7 +3293,7 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
         data_atualizacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         # Determinar status de pagamento
-        status_pagamento = "PAGO" if item.valor_pago == 0 else "NÃO PAGO"
+        status_pagamento = "PAGO" if item.valor_pago > 0 else "NÃO PAGO"
 
         # Email do professor formatado
         professor_email = item.professor.strip().lower()
@@ -3303,7 +3303,6 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
             .where(filter=FieldFilter("email", "==", professor_email)) \
             .limit(1).stream()
 
-        encontrado = False
         for prof_doc in prof_ref:
             db.collection("professores_online").document(prof_doc.id).update({
                 f"pagamentos.{mes_nome}": {
@@ -3314,19 +3313,19 @@ async def registrar_pagamento_prof(item: RegistrarPagamentoProfIn):
                 },
                 "salario.saldo_atual": 0
             })
-            encontrado = True
             break
 
-        # Sempre zera o saldo_atual e atualiza status no alunos_professor
+        # Atualiza saldo e status no alunos_professor
         doc_ref.update({
             "salario.saldo_atual": 0,
             "salario.status": status_pagamento
         })
 
-        return {"message": f"Pagamento registrado com sucesso: {mes_atualizado}"}
+        return {"message": f"Pagamento atualizado com sucesso: {mes_atualizado}"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 
 class AtualizarPagamentoProfIn(BaseModel):
