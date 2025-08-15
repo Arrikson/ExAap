@@ -467,6 +467,7 @@ async function carregarPagamentos() {
 }
 
 async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
+    // statusAtual vem do backend como true/false
     if (!statusAtual) { // Se ainda não estava pago
         await fetch("/registrar-pagamento-prof", {
             method: "POST",
@@ -474,10 +475,11 @@ async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
             body: JSON.stringify({
                 id: id,
                 professor: professor,
-                valor_pago: saldoAtual
+                valor_pago: saldoAtual // Se for 0 → PAGO, senão NÃO PAGO
             })
         });
     } else {
+        // Aqui, caso queira desfazer pagamento, pode zerar apenas o mês atual
         await fetch("/atualizar-pagamento-prof", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
