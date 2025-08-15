@@ -111,21 +111,49 @@
     {% endif %}
 
     <script>
-        function gerarPDF() {
+        async function gerarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            doc.setFontSize(16);
-            doc.text("Histórico de Pagamentos - {{ professor }}", 14, 15);
+            // Carrega a logo da pasta static
+            const logoUrl = "/static/logo.png";
+            const logoImg = await fetch(logoUrl).then(r => r.blob());
+            const reader = new FileReader();
 
-            doc.autoTable({
-                startY: 25,
-                html: '#tabela-pagamentos',
-                styles: { fontSize: 10 },
-                headStyles: { fillColor: [0, 123, 255] }
-            });
+            reader.onloadend = function () {
+                const base64Logo = reader.result;
 
-            doc.save("historico_pagamentos_{{ professor }}.pdf");
+                // Adiciona logo
+                doc.addImage(base64Logo, "PNG", 14, 10, 25, 25);
+
+                // Informações da empresa
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("Sabi Lider - Comércio e Prestações de Serviços, (SU) LDA", 42, 15);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.text("NIF: 5002232529", 42, 21);
+                doc.text("Matrícula: 50039-24/241211", 42, 26);
+                doc.text("Sede: Luanda, Município de Cazenga,", 42, 31);
+                doc.text("Distrito Urbano de Cazenga, Centralidade da Marconi", 42, 36);
+
+                // Título da tabela
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Histórico de Pagamentos - {{ professor }}", 14, 50);
+
+                // Tabela
+                doc.autoTable({
+                    startY: 55,
+                    html: '#tabela-pagamentos',
+                    styles: { fontSize: 10 },
+                    headStyles: { fillColor: [0, 123, 255] }
+                });
+
+                // Salva PDF
+                doc.save("historico_pagamentos_{{ professor }}.pdf");
+            };
+            reader.readAsDataURL(logoImg);
         }
     </script>
 
