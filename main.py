@@ -3185,23 +3185,24 @@ async def listar_pagamentos_prof():
         
         
 @app.get("/ver-pagamentos", response_class=HTMLResponse)
-async def ver_pagamentos(request: Request):
+async def ver_pagamentos(request: Request, professor: str):
     """
-    Exibe todos os registros da coluna pagamentos de professores_online
-    em uma página HTML.
+    Exibe os registros da coluna pagamentos de um professor específico.
     """
     try:
         professores_data = []
-        professores_ref = db.collection("professores_online").stream()
-
-        for doc in professores_ref:
+        
+        # Busca apenas o professor específico pelo email
+        doc_ref = db.collection("professores_online").where("professor", "==", professor).stream()
+        
+        for doc in doc_ref:
             dados = doc.to_dict()
-            email = dados.get("email", "Sem email")
+            email_prof = dados.get("email", "Sem email")
             pagamentos = dados.get("pagamentos", {})
 
             for mes, info in pagamentos.items():
                 professores_data.append({
-                    "email_professor": email,
+                    "email_professor": email_prof,
                     "mes": mes,
                     "data_pagamento": info.get("data_pagamento", ""),
                     "hora_pagamento": info.get("hora_pagamento", ""),
@@ -3209,14 +3210,15 @@ async def ver_pagamentos(request: Request):
                     "status": info.get("status", "N/A")
                 })
 
-        # Renderiza o HTML
+        # Renderiza o HTML apenas com esse professor
         return templates.TemplateResponse(
             "pagamentos_dashboard.html",
-            {"request": request, "pagamentos": professores_data}
+            {"request": request, "pagamentos": professores_data, "professor": professor}
         )
 
     except Exception as e:
         return HTMLResponse(content=f"<h3>Erro: {str(e)}</h3>", status_code=500)
+
         
 @app.post("/atualizar-pagamento-mes-prof")
 async def atualizar_pagamento_mes_prof(item: PagamentoMesProfIn):
