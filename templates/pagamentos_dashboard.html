@@ -50,20 +50,39 @@
         .btn-voltar:hover {
             background-color: #5a6268;
         }
+        .btn-pdf {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 15px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .btn-pdf:hover {
+            background-color: #218838;
+        }
         .sem-registros {
             margin-top: 20px;
             color: #777;
             font-style: italic;
         }
     </style>
+    <!-- jsPDF e AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
     <a href="/" class="btn-voltar">← Voltar</a>
+    <button class="btn-pdf" onclick="gerarPDF()">📄 Exportar PDF</button>
+
     <h1>Histórico de Pagamentos - {{ professor }}</h1>
 
     {% if pagamentos and pagamentos|length > 0 %}
-        <table>
+        <table id="tabela-pagamentos">
             <thead>
                 <tr>
                     <th>Mês</th>
@@ -90,6 +109,25 @@
     {% else %}
         <p class="sem-registros">Não há registros de pagamento para este professor.</p>
     {% endif %}
+
+    <script>
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text("Histórico de Pagamentos - {{ professor }}", 14, 15);
+
+            doc.autoTable({
+                startY: 25,
+                html: '#tabela-pagamentos',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [0, 123, 255] }
+            });
+
+            doc.save("historico_pagamentos_{{ professor }}.pdf");
+        }
+    </script>
 
 </body>
 </html>
