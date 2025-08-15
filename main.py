@@ -3225,19 +3225,23 @@ async def listar_pagamentos_prof():
 @app.get("/ver-pagamentos", response_class=HTMLResponse)
 async def ver_pagamentos(request: Request, professor: str):
     """
-    Exibe os registros da coluna pagamentos de um professor específico.
+    Exibe os registros da coluna pagamentos de um professor específico
+    usando o email do professor como filtro.
     """
     try:
         professores_data = []
         
-        # Busca apenas o professor específico pelo email
-        doc_ref = db.collection("professores_online").where("professor", "==", professor).stream()
+        # Busca apenas o professor específico pelo email (corrigido)
+        doc_ref = db.collection("professores_online") \
+                    .where("email", "==", professor.strip().lower()) \
+                    .stream()
         
         for doc in doc_ref:
             dados = doc.to_dict()
             email_prof = dados.get("email", "Sem email")
             pagamentos = dados.get("pagamentos", {})
 
+            # Itera sobre cada mês salvo na coluna pagamentos
             for mes, info in pagamentos.items():
                 professores_data.append({
                     "email_professor": email_prof,
@@ -3248,14 +3252,19 @@ async def ver_pagamentos(request: Request, professor: str):
                     "status": info.get("status", "N/A")
                 })
 
-        # Renderiza o HTML apenas com esse professor
+        # Renderiza o HTML com apenas esse professor
         return templates.TemplateResponse(
             "pagamentos_dashboard.html",
-            {"request": request, "pagamentos": professores_data, "professor": professor}
+            {
+                "request": request,
+                "pagamentos": professores_data,
+                "professor": professor
+            }
         )
 
     except Exception as e:
         return HTMLResponse(content=f"<h3>Erro: {str(e)}</h3>", status_code=500)
+
 
         
 @app.post("/atualizar-pagamento-mes-prof")
