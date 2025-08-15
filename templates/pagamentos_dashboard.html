@@ -12,6 +12,7 @@
         }
         h1 {
             color: #333;
+            margin-bottom: 10px;
         }
         table {
             width: 100%;
@@ -49,6 +50,11 @@
         .btn-voltar:hover {
             background-color: #5a6268;
         }
+        .sem-registros {
+            margin-top: 20px;
+            color: #777;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -63,17 +69,17 @@
                     <th>Mês</th>
                     <th>Data Pagamento</th>
                     <th>Hora</th>
-                    <th>Valor Pago</th>
+                    <th>Valor Pago (Kz)</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                {% for p in pagamentos %}
+                {% for p in pagamentos|sort(attribute='mes') %}
                     <tr>
                         <td>{{ p.mes }}</td>
                         <td>{{ p.data_pagamento or '-' }}</td>
                         <td>{{ p.hora_pagamento or '-' }}</td>
-                        <td>R$ {{ "%.2f"|format(p.valor_pago) }}</td>
+                        <td>{{ "{:,.2f}".format(p.valor_pago).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
                         <td class="{{ 'status-pago' if p.status|lower == 'pago' else 'status-nao-pago' }}">
                             {{ p.status }}
                         </td>
@@ -82,7 +88,7 @@
             </tbody>
         </table>
     {% else %}
-        <p><em>Não há registros de pagamento para este professor.</em></p>
+        <p class="sem-registros">Não há registros de pagamento para este professor.</p>
     {% endif %}
 
 </body>
