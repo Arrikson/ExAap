@@ -1854,6 +1854,7 @@ async def registrar_aula(data: dict = Body(...)):
         doc_data = doc.to_dict()
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
         lista_aulas = doc_data.get("aulas", [])
+        aulas_passadas = doc_data.get("aulas_passadas", [])  # lista que irá acumular registros
 
         agora = datetime.now()
         nova_aula = {
@@ -1861,14 +1862,33 @@ async def registrar_aula(data: dict = Body(...)):
             "horario": agora.strftime("%H:%M")
         }
 
-        doc_ref.update({
-            "aulas_dadas": aulas_anteriores + 1,
+        # Incrementa a aula
+        novo_total = aulas_anteriores + 1
+
+        update_data = {
+            "aulas_dadas": novo_total,
             "aulas": lista_aulas + [nova_aula]
-        })
+        }
+
+        # Quando completar 7 aulas -> transferir
+        if novo_total >= 7:
+            registro_passado = {
+                "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
+                "mes": agora.strftime("%Y-%m"),
+                "total_aulas": 7
+            }
+
+            aulas_passadas.append(registro_passado)
+
+            update_data["aulas_dadas"] = 0  # reseta o ciclo
+            update_data["aulas_passadas"] = aulas_passadas
+
+        doc_ref.update(update_data)
 
         return {
-            "mensagem": f"✅ Aula registrada com sucesso (total: {aulas_anteriores + 1})",
-            "nova_aula": nova_aula
+            "mensagem": f"✅ Aula registrada com sucesso (total atual: {update_data['aulas_dadas']})",
+            "nova_aula": nova_aula,
+            "transferencia": registro_passado if novo_total >= 7 else None
         }
 
     except Exception as e:
