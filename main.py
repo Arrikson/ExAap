@@ -1854,7 +1854,8 @@ async def registrar_aula(data: dict = Body(...)):
         doc_data = doc.to_dict()
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
         lista_aulas = doc_data.get("aulas", [])
-        aulas_passadas = doc_data.get("aulas_passadas", [])  # lista que irá acumular registros
+        aulas_passadas = doc_data.get("aulas_passadas", [])  # histórico de aulas
+        valor_passado = doc_data.get("valor_passado", [])    # histórico de valores
 
         agora = datetime.now()
         nova_aula = {
@@ -1864,11 +1865,16 @@ async def registrar_aula(data: dict = Body(...)):
 
         # Incrementa a aula
         novo_total = aulas_anteriores + 1
+        valor_mensal = novo_total * 1250  # 💰 cálculo do valor acumulado
 
         update_data = {
             "aulas_dadas": novo_total,
-            "aulas": lista_aulas + [nova_aula]
+            "aulas": lista_aulas + [nova_aula],
+            "valor_mensal": valor_mensal
         }
+
+        registro_passado = None
+        registro_valor = None
 
         # Quando completar 7 aulas -> transferir
         if novo_total >= 7:
@@ -1878,23 +1884,34 @@ async def registrar_aula(data: dict = Body(...)):
                 "total_aulas": 7
             }
 
-            aulas_passadas.append(registro_passado)
+            registro_valor = {
+                "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
+                "mes": agora.strftime("%Y-%m"),
+                "valor_pago": valor_mensal
+            }
 
-            update_data["aulas_dadas"] = 0  # reseta o ciclo
+            aulas_passadas.append(registro_passado)
+            valor_passado.append(registro_valor)
+
+            # Resetar os contadores
+            update_data["aulas_dadas"] = 0
+            update_data["valor_mensal"] = 0
             update_data["aulas_passadas"] = aulas_passadas
+            update_data["valor_passado"] = valor_passado
 
         doc_ref.update(update_data)
 
         return {
             "mensagem": f"✅ Aula registrada com sucesso (total atual: {update_data['aulas_dadas']})",
             "nova_aula": nova_aula,
-            "transferencia": registro_passado if novo_total >= 7 else None
+            "transferencia_aulas": registro_passado if registro_passado else None,
+            "transferencia_valor": registro_valor if registro_valor else None
         }
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
-
+        
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
     try:
