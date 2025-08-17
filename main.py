@@ -1841,6 +1841,7 @@ async def registrar_aula(data: dict = Body(...)):
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
 
+        # 🔹 Busca vínculo aluno-professor
         query = db.collection("alunos_professor") \
                   .where("professor", "==", professor) \
                   .where("aluno", "==", aluno) \
@@ -1876,7 +1877,7 @@ async def registrar_aula(data: dict = Body(...)):
         registro_passado = None
         registro_valor = None
 
-        # Quando completar 7 aulas -> transferir
+        # 🔹 Quando completar 7 aulas -> transferir e zerar ciclo
         if novo_total >= 7:
             registro_passado = {
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
@@ -1899,7 +1900,30 @@ async def registrar_aula(data: dict = Body(...)):
             update_data["aulas_passadas"] = aulas_passadas
             update_data["valor_passado"] = valor_passado
 
+        # 🔹 Atualiza documento aluno-professor
         doc_ref.update(update_data)
+
+        # 🔹 Atualiza saldo_atual do professor na coleção "professores_online"
+        prof_ref = db.collection("professores_online").where(
+            filter=FieldFilter("email", "==", professor)
+        ).limit(1).stream()
+
+        prof_doc = next(prof_ref, None)
+        if prof_doc:
+            prof_doc_ref = db.collection("professores_online").document(prof_doc.id)
+            prof_data = prof_doc.to_dict() or {}
+            salario_info = prof_data.get("salario", {})
+
+            # soma ao saldo atual existente
+            saldo_atual = int(salario_info.get("saldo_atual", 0)) + (valor_mensal if novo_total < 7 else 0)
+
+            # se completou 7 aulas, transfere todo valor e zera o acumulado no aluno-professor
+            if novo_total >= 7:
+                saldo_atual = int(salario_info.get("saldo_atual", 0)) + registro_valor["valor_pago"]
+
+            prof_doc_ref.update({
+                "salario.saldo_atual": saldo_atual
+            })
 
         return {
             "mensagem": f"✅ Aula registrada com sucesso (total atual: {update_data['aulas_dadas']})",
@@ -1911,6 +1935,7 @@ async def registrar_aula(data: dict = Body(...)):
     except Exception as e:
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
+        
         
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
