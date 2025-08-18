@@ -1889,7 +1889,7 @@ async def registrar_aula(data: dict = Body(...)):
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
                 "mes": agora.strftime("%Y-%m"),
                 "valor_pago": valor_mensal,
-                "pago": "Não Pago"   # 🔹 novo campo
+                "pago": "Não Pago"   # 🔹 sempre garante a criação
             }
 
             aulas_passadas.append(registro_passado)
