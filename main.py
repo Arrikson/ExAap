@@ -1888,7 +1888,8 @@ async def registrar_aula(data: dict = Body(...)):
             registro_valor = {
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
                 "mes": agora.strftime("%Y-%m"),
-                "valor_pago": valor_mensal
+                "valor_pago": valor_mensal,
+                "pago": "Não Pago"   # 🔹 novo campo
             }
 
             aulas_passadas.append(registro_passado)
@@ -1935,7 +1936,7 @@ async def registrar_aula(data: dict = Body(...)):
     except Exception as e:
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
-        
+
         
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
