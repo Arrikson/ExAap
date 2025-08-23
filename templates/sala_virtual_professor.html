@@ -34,6 +34,7 @@
       width: 120px;
       height: 90px;
       border: 2px solid #fff;
+      object-fit: cover;
     }
 
     #info {
@@ -88,6 +89,44 @@
 
     #chamarAlunoBtn:hover {
       background-color: darkgreen;
+    }
+
+    /* ======== Responsividade para telas grandes ======== */
+    @media (min-width: 768px) {
+      body {
+        justify-content: center;
+        padding-top: 0;
+      }
+
+      video {
+        width: 75vw;    /* vídeo ocupa 75% da largura da tela */
+        max-width: 1200px;
+        height: auto;   /* altura proporcional */
+        max-height: 80vh; 
+      }
+
+      #localVideo {
+        width: 200px;
+        height: 150px;
+      }
+
+      #info, #status {
+        font-size: 18px;
+      }
+
+      #cronometro {
+        font-size: 32px;
+      }
+
+      #confirmarAulaBtn {
+        font-size: 18px;
+        padding: 12px 20px;
+      }
+
+      #chamarAlunoBtn {
+        font-size: 18px;
+        padding: 14px 26px;
+      }
     }
   </style>
 </head>
