@@ -36,12 +36,37 @@
       height: 90px;
       border: 2px solid #fff;
       border-radius: 0px;
+      object-fit: cover;
     }
 
     #status {
       margin-bottom: 12px;
       font-size: 16px;
       text-align: center;
+    }
+
+    /* ======== Responsividade para telas grandes ======== */
+    @media (min-width: 768px) {
+      body {
+        justify-content: center;
+        padding-top: 0;
+      }
+
+      video {
+        width: 75vw;    /* vídeo ocupa 75% da largura da tela */
+        max-width: 1200px;
+        height: auto;   /* altura proporcional */
+        max-height: 80vh; 
+      }
+
+      #localVideo {
+        width: 200px;
+        height: 150px;
+      }
+
+      #status {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
