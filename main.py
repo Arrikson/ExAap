@@ -3134,6 +3134,83 @@ async def pagamentos(request: Request):
     return templates.TemplateResponse("pagamentos.html", {"request": request})
     
 
+ANGOLA_TZ = pytz.timezone("Africa/Luanda")
+
+@app.post("/api/registrar-pagamento")
+async def registrar_pagamento(data: dict = Body(...)):
+    try:
+        aluno = data.get("aluno", "").strip().lower()
+        valor = data.get("valor", 0)
+
+        if not aluno or valor <= 0:
+            raise HTTPException(status_code=400, detail="Dados inválidos")
+
+        agora = datetime.now(ANGOLA_TZ)
+
+        # Nome do mês em português
+        MESES_PT = {
+            "January": "Janeiro", "February": "Fevereiro", "March": "Março",
+            "April": "Abril", "May": "Maio", "June": "Junho",
+            "July": "Julho", "August": "Agosto", "September": "Setembro",
+            "October": "Outubro", "November": "Novembro", "December": "Dezembro"
+        }
+        mes_atual = f"{MESES_PT[agora.strftime('%B')]}/{agora.strftime('%Y')}"
+        data_pagamento = agora.strftime("%Y-%m-%d")
+        hora_pagamento = agora.strftime("%H:%M:%S")
+
+        # Buscar vínculo em alunos_professor
+        alunos_prof_ref = db.collection("alunos_professor") \
+            .where("aluno", "==", aluno).limit(1).stream()
+
+        vinculo_id = None
+        vinculo_data = None
+        for doc in alunos_prof_ref:
+            vinculo_id = doc.id
+            vinculo_data = doc.to_dict()
+            break
+
+        if not vinculo_id:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado em alunos_professor")
+
+        # Montar registro do pagamento
+        pagamento = {
+            "mes": mes_atual,
+            "valor_pago": valor,
+            "data_pagamento": data_pagamento,
+            "hora_pagamento": hora_pagamento
+        }
+
+        # Atualizar documento
+        doc_ref = db.collection("alunos_professor").document(vinculo_id)
+        updates = {}
+
+        # Adicionar histórico no campo paga_passado
+        paga_passado = vinculo_data.get("paga_passado", [])
+        # Evita duplicar o mesmo mês
+        if any(p["mes"] == mes_atual for p in paga_passado):
+            raise HTTPException(status_code=400, detail=f"Pagamento para {mes_atual} já registrado")
+
+        paga_passado.append(pagamento)
+        updates["paga_passado"] = paga_passado
+
+        # Garantir que Valor_mensal exista (fixo em 1250 se não houver)
+        if "Valor_mensal" not in vinculo_data:
+            updates["Valor_mensal"] = 1250
+
+        # Zera o valor mensal do aluno após pagamento
+        updates["Valor_mensal_aluno"] = 0
+
+        doc_ref.update(updates)
+
+        return {
+            "status": "sucesso",
+            "mensagem": f"Pagamento de {valor} kz registrado para {aluno} no mês {mes_atual}"
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/historico-pagamentos-prof/{prof_id}", response_class=HTMLResponse)
 async def historico_pagamentos_prof(request: Request, prof_id: str):
     try:
