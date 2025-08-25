@@ -3311,10 +3311,16 @@ async def listar_pagamentos():
             aulas_dadas = vinculo_data.get("aulas_dadas", 0)
             total_gasto = aulas_dadas * 1250
 
-            # Aqui forçamos valor_mensal_aluno a ser igual ao valor_mensal da coleção
-            valor_mensal_aluno = vinculo_data.get("valor_mensal", 0)
+            valor_mensal = vinculo_data.get("valor_mensal", 0)
+            valor_mensal_aluno = vinculo_data.get("valor_mensal_aluno", 0)
 
-            # Se já houver histórico de pagamento, resgata
+            # Se o valor_mensal_aluno estiver diferente do valor_mensal -> atualiza no Firestore
+            if valor_mensal_aluno != valor_mensal:
+                db.collection("alunos_professor").document(vinculo_doc.id).update({
+                    "valor_mensal_aluno": valor_mensal
+                })
+                valor_mensal_aluno = valor_mensal  # Mantém sincronizado na resposta
+
             paga_passado = vinculo_data.get("paga_passado", [])
             break
 
@@ -3328,6 +3334,7 @@ async def listar_pagamentos():
         })
 
     return alunos_lista
+
 
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
