@@ -714,7 +714,10 @@ async def perfil(request: Request, nome: str):
         nome_normalizado = nome.strip().lower()
         print(f"🔍 Buscando dados do aluno: {nome_normalizado}")
 
-        query = db.collection("alunos").where("nome_normalizado", "==", nome_normalizado).limit(1).stream()
+        query = db.collection("alunos") \
+            .where("nome_normalizado", "==", nome_normalizado) \
+            .limit(1) \
+            .stream()
 
         aluno = None
         doc_id = None
@@ -751,6 +754,11 @@ async def perfil(request: Request, nome: str):
             vinculo_data = vinculo_doc.to_dict()
             aulas_dadas = vinculo_data.get("aulas_dadas", 0)
             total_gasto = aulas_dadas * 1250
+
+            # ✅ Atualizar valor_mensal_aluno com o valor calculado
+            db.collection("alunos_professor").document(vinculo_doc.id).update({
+                "valor_mensal_aluno": total_gasto
+            })
             break
 
         return templates.TemplateResponse("perfil.html", {
