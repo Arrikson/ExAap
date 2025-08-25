@@ -3311,7 +3311,7 @@ async def listar_pagamentos():
             aulas_dadas = vinculo_data.get("aulas_dadas", 0)
             total_gasto = aulas_dadas * 1250
 
-            # Valor mensal do aluno (se existir na coleção)
+            # Aqui forçamos valor_mensal_aluno a ser igual ao valor_mensal da coleção
             valor_mensal_aluno = vinculo_data.get("valor_mensal", 0)
 
             # Se já houver histórico de pagamento, resgata
@@ -3328,7 +3328,7 @@ async def listar_pagamentos():
         })
 
     return alunos_lista
-    
+
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
     aluno_id = payload.get("id")
