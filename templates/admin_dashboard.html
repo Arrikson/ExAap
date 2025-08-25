@@ -447,33 +447,48 @@
     document.getElementById("mensagem-texto").value = "";
   }
 
-async function carregarPagamentos() {
+async function marcarPago(alunoId, temDivida) { 
+    if (!temDivida) {
+        alert("Este aluno já está com o pagamento em dia.");
+        return;
+    }
+
+    // Buscar dados do aluno pelo ID
     const res = await fetch("/listar-pagamentos");
     const alunos = await res.json();
-    const tbody = document.querySelector("#tabela-pagamentos tbody");
-    tbody.innerHTML = "";
+    const aluno = alunos.find(a => a.id === alunoId);
+    if (!aluno) {
+        alert("Aluno não encontrado.");
+        return;
+    }
 
-    alunos.forEach(a => {
-        // Verifica se a dívida está preenchida e maior que 0
-        const temDivida = a.divida && Number(a.divida) > 0;
+    // Define mês/ano atuais
+    const hoje = new Date();
+    const mes = hoje.getMonth() + 1; // Janeiro = 1
+    const ano = hoje.getFullYear();
 
-        const statusCor = temDivida ? "status-vermelho" : "status-verde";
-        const statusTexto = temDivida ? "Não paga" : "PAGA";
+    // Pega o valor mensal (vem do backend em listar-pagamentos)
+    const valorMensal = aluno.Valor_mensal_aluno || 0;
 
-        tbody.innerHTML += `
-            <tr>
-              <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
-              <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-              <td>Kz ${a.divida ? a.divida : 0},00</td> <!-- 👈 mostra dívida -->
-              <td>
-                <button onclick="marcarPago('${a.id}', ${temDivida})" 
-                        style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-                  PAGO
-                </button>
-              </td>
-            </tr>
-        `;
+    // Faz a chamada para registrar pagamento no backend
+    const resposta = await fetch("/api/registrar-pagamento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            aluno_nome: aluno.nome,
+            mes: mes,
+            ano: ano,
+            valor_pago: valorMensal,
+            pago: true
+        })
     });
+
+    if (resposta.ok) {
+        alert(`Pagamento de ${aluno.nome} registrado para ${mes}/${ano} no valor de Kz ${valorMensal},00.`);
+        carregarPagamentos();
+    } else {
+        alert("Erro ao registrar pagamento.");
+    }
 }
 
 
