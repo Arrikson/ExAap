@@ -160,18 +160,17 @@
         myIdSpan.textContent = id;
       });
 
-    peer.on("call", (call) => {
-  statusSpan.textContent = "📞 Recebendo chamada...";
+      peer.on("call", (call) => {
+        statusSpan.textContent = "📞 Recebendo chamada...";
+        call.answer(localStream);
+        handleCallEvents(call);
+      });
 
-  if (!localStream) {
-    console.warn("⚠️ Nenhum localStream disponível, tentando reabrir câmera...");
-    startCamera().then(() => call.answer(localStream));
-  } else {
-    call.answer(localStream);
-  }
-
-  handleCallEvents(call);
-});
+      peer.on("error", (err) => {
+        console.error("Erro PeerJS:", err);
+        alert("Erro no PeerJS: " + err.message);
+      });
+    }
 
     function handleCallEvents(call) {
       call.on("stream", (remoteStream) => {
@@ -272,12 +271,7 @@
     });
   }
 
-async function init() {
-  await startCamera();
-  initPeer();
-}
-init();
-
+    startCamera().then(initPeer);
   </script>
 </body>
 </html>
