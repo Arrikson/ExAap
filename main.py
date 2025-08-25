@@ -2982,9 +2982,9 @@ async def historico_pagamentos_api(aluno_nome: str):
     return JSONResponse(content=pagamentos)
 
 
-class PagamentoIn(BaseModel):
+class PagamentoIn(BaseModel): 
     aluno_nome: str
-    mes: int  # 1..12
+    mes: int  
     ano: int
     pago: bool
 
@@ -2993,7 +2993,7 @@ class PagamentoIn(BaseModel):
 async def registrar_pagamento(data: PagamentoIn):
     aluno_normalizado = data.aluno_nome.strip().lower()
 
-    # buscar vínculo do aluno
+    # Buscar vínculo do aluno
     vinculos = db.collection("alunos_professor") \
                  .where("aluno", "==", aluno_normalizado) \
                  .limit(1).stream()
@@ -3004,32 +3004,31 @@ async def registrar_pagamento(data: PagamentoIn):
     doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
     vinculo_data = vinculo_doc.to_dict()
 
-    # Pega valor_mensal da coleção
-    valor_mensal = vinculo_data.get("valor_mensal", 0)
+    # Agora pega valor_mensal_aluno
+    valor_mensal_aluno = vinculo_data.get("valor_mensal_aluno", 0)
 
-    # Se for pagamento, registrar no histórico paga_passado
+    # Histórico de pagamentos
     paga_passado = vinculo_data.get("paga_passado", [])
 
     if data.pago:
         registro_pagamento = {
             "mes": data.mes,
             "ano": data.ano,
-            "valor_pago": valor_mensal,
+            "valor_pago": valor_mensal_aluno,
             "data_pagamento": datetime.utcnow().strftime("%Y-%m-%d"),
             "hora_pagamento": datetime.utcnow().strftime("%H:%M:%S")
         }
         paga_passado.append(registro_pagamento)
 
-        # Atualiza campos no documento do vínculo
+        # Atualiza histórico no documento
         doc_ref.update({
-            "paga_passado": paga_passado,
-            "Valor_mensal_aluno": 0   # 👈 Só zera quando pago
+            "paga_passado": paga_passado
         })
-    else:
-        # Se não pago, mantém o valor mensal
-        doc_ref.update({
-            "Valor_mensal_aluno": valor_mensal
-        })
+
+    # ✅ Sempre zera o valor_mensal_aluno depois do registro
+    doc_ref.update({
+        "valor_mensal_aluno": 0
+    })
 
     # Além disso, registrar em coleção de pagamentos individuais (opcional)
     doc_id = f"{aluno_normalizado}_{data.ano}_{data.mes}"
@@ -3037,7 +3036,7 @@ async def registrar_pagamento(data: PagamentoIn):
         "aluno": aluno_normalizado,
         "mes": data.mes,
         "ano": data.ano,
-        "valor": valor_mensal,
+        "valor": valor_mensal_aluno,
         "pago": bool(data.pago),
         "data_registro": datetime.utcnow().isoformat()
     })
