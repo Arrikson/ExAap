@@ -92,33 +92,43 @@
       }
     }
 
-    function initPeerAndConnect(peerIdDoProfessor) {
-      peer = new Peer();
+   async function initPeerAndConnect(peerIdDoProfessor) {
+  if (!localStream) {
+    console.warn("⚠️ localStream não encontrado, tentando abrir câmera novamente...");
+    await startCamera();
+  }
 
-      peer.on("open", () => {
-        statusEl.textContent = "🔗 Conectando ao professor...";
-        const call = peer.call(peerIdDoProfessor, localStream);
+  peer = new Peer();
 
-        call.on("stream", (remoteStream) => {
-          remoteVideo.srcObject = remoteStream;
-          statusEl.textContent = "✅ Conectado com o professor!";
-        });
+  peer.on("open", () => {
+    statusEl.textContent = "🔗 Conectando ao professor...";
+    const call = peer.call(peerIdDoProfessor, localStream);
 
-        call.on("close", () => {
-          statusEl.textContent = "🔌 Conexão encerrada.";
-        });
-
-        call.on("error", (err) => {
-          console.error("Erro na chamada:", err);
-          statusEl.textContent = "⚠️ Erro na chamada.";
-        });
-      });
-
-      peer.on("error", (err) => {
-        console.error("Erro PeerJS:", err);
-        statusEl.textContent = "❌ Erro no PeerJS.";
-      });
+    if (!call) {
+      statusEl.textContent = "❌ Falha ao iniciar chamada com o professor.";
+      return;
     }
+
+    call.on("stream", (remoteStream) => {
+      remoteVideo.srcObject = remoteStream;
+      statusEl.textContent = "✅ Conectado com o professor!";
+    });
+
+    call.on("close", () => {
+      statusEl.textContent = "🔌 Conexão encerrada.";
+    });
+
+    call.on("error", (err) => {
+      console.error("Erro na chamada:", err);
+      statusEl.textContent = "⚠️ Erro na chamada.";
+    });
+  });
+
+  peer.on("error", (err) => {
+    console.error("Erro PeerJS:", err);
+    statusEl.textContent = "❌ Erro no PeerJS.";
+  });
+}
 
     async function verificarPermissaoEConectar() {
       try {
@@ -147,22 +157,23 @@
       }
     }
 
-    async function buscarPeerIdEDiscar() {
-      try {
-        const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
-        const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
-        const data = await res.json();
+   async function buscarPeerIdEDiscar() {
+  try {
+    const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
+    const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
+    const data = await res.json();
 
-        if (data.peer_id) {
-          initPeerAndConnect(data.peer_id);
-        } else {
-          statusEl.textContent = "⚠️ ID do professor não encontrado.";
-        }
-      } catch (err) {
-        console.error("Erro ao buscar o ID do professor:", err);
-        statusEl.textContent = "❌ Erro ao buscar ID.";
-      }
+    if (data.peer_id) {
+      initPeerAndConnect(data.peer_id);
+    } else {
+      statusEl.textContent = "⚠️ ID do professor não encontrado, tentando novamente...";
+      setTimeout(buscarPeerIdEDiscar, 3000); // retry a cada 3s
     }
+  } catch (err) {
+    console.error("Erro ao buscar o ID do professor:", err);
+    statusEl.textContent = "❌ Erro ao buscar ID.";
+  }
+}
 
     startCamera().then((ok) => {
       if (ok) {
