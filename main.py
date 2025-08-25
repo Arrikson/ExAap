@@ -3305,9 +3305,9 @@ async def listar_pagamentos():
     for doc in alunos_ref:
         dados = doc.to_dict()
         nome_normalizado = dados.get("nome_normalizado", "").strip().lower()
-        total_gasto = 0
         paga_passado = []
         valor_mensal_aluno = 0
+        total_gasto = 0
 
         # Buscar vínculo em alunos_professor
         alunos_prof_ref = db.collection("alunos_professor") \
@@ -3316,19 +3316,12 @@ async def listar_pagamentos():
 
         for vinculo_doc in alunos_prof_ref:
             vinculo_data = vinculo_doc.to_dict()
-            aulas_dadas = vinculo_data.get("aulas_dadas", 0)
-            total_gasto = aulas_dadas * 1250
 
-            valor_mensal = vinculo_data.get("valor_mensal", 0)
+            # Agora só consulta valor_mensal_aluno
             valor_mensal_aluno = vinculo_data.get("valor_mensal_aluno", 0)
+            total_gasto = valor_mensal_aluno  
 
-            # Se o valor_mensal_aluno estiver diferente do valor_mensal -> atualiza no Firestore
-            if valor_mensal_aluno != valor_mensal:
-                db.collection("alunos_professor").document(vinculo_doc.id).update({
-                    "valor_mensal_aluno": valor_mensal
-                })
-                valor_mensal_aluno = valor_mensal  # Mantém sincronizado na resposta
-
+            # Histórico de pagamentos
             paga_passado = vinculo_data.get("paga_passado", [])
             break
 
@@ -3336,7 +3329,7 @@ async def listar_pagamentos():
             "id": doc.id,
             "nome": dados.get("nome"),
             "mensalidade": dados.get("mensalidade", False),
-            "divida": total_gasto,
+            "divida": total_gasto, 
             "valor_mensal_aluno": valor_mensal_aluno,
             "paga_passado": paga_passado
         })
