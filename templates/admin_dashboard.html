@@ -454,16 +454,19 @@ async function carregarPagamentos() {
     tbody.innerHTML = "";
 
     alunos.forEach(a => {
-        const statusCor = a.mensalidade ? "status-verde" : "status-vermelho";
-        const statusTexto = a.mensalidade ? "PAGA" : "Não paga";
+        // Verifica se a dívida está preenchida e maior que 0
+        const temDivida = a.divida && Number(a.divida) > 0;
+
+        const statusCor = temDivida ? "status-vermelho" : "status-verde";
+        const statusTexto = temDivida ? "Não paga" : "PAGA";
 
         tbody.innerHTML += `
             <tr>
               <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
               <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-              <td>Kz ${a.divida},00</td> <!-- 👈 nova coluna dívida -->
+              <td>Kz ${a.divida ? a.divida : 0},00</td> <!-- 👈 mostra dívida -->
               <td>
-                <button onclick="marcarPago('${a.id}', ${a.mensalidade})" 
+                <button onclick="marcarPago('${a.id}', ${temDivida})" 
                         style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
                   PAGO
                 </button>
