@@ -2980,11 +2980,12 @@ class PagamentoIn(BaseModel):
     ano: int
     pago: bool
 
+
 @app.post("/api/registrar-pagamento")
 async def registrar_pagamento(data: PagamentoIn):
     aluno_normalizado = data.aluno_nome.strip().lower()
 
-    # buscar vinculo para obter total_aulas (para calcular valor caso não venha)
+    # buscar vínculo do aluno
     vinculos = db.collection("alunos_professor") \
                  .where("aluno", "==", aluno_normalizado) \
                  .limit(1).stream()
@@ -2992,9 +2993,37 @@ async def registrar_pagamento(data: PagamentoIn):
     if not vinculo_doc:
         raise HTTPException(status_code=404, detail="Aluno/vínculo não encontrado")
 
-    total_aulas = int(vinculo_doc.to_dict().get("total_aulas", 0))
-    valor_mensal = total_aulas * 1250
+    doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
+    vinculo_data = vinculo_doc.to_dict()
 
+    # Pega valor_mensal da coleção
+    valor_mensal = vinculo_data.get("valor_mensal", 0)
+
+    # Se for pagamento, registrar no histórico paga_passado
+    paga_passado = vinculo_data.get("paga_passado", [])
+
+    if data.pago:
+        registro_pagamento = {
+            "mes": data.mes,
+            "ano": data.ano,
+            "valor_pago": valor_mensal,
+            "data_pagamento": datetime.utcnow().strftime("%Y-%m-%d"),
+            "hora_pagamento": datetime.utcnow().strftime("%H:%M:%S")
+        }
+        paga_passado.append(registro_pagamento)
+
+        # Atualiza campos no documento do vínculo
+        doc_ref.update({
+            "paga_passado": paga_passado,
+            "Valor_mensal_aluno": 0   # 👈 Só zera quando pago
+        })
+    else:
+        # Se não pago, mantém o valor mensal
+        doc_ref.update({
+            "Valor_mensal_aluno": valor_mensal
+        })
+
+    # Além disso, registrar em coleção de pagamentos individuais (opcional)
     doc_id = f"{aluno_normalizado}_{data.ano}_{data.mes}"
     db.collection("pagamentos").document(doc_id).set({
         "aluno": aluno_normalizado,
