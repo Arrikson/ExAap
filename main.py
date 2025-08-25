@@ -3336,16 +3336,21 @@ async def listar_pagamentos():
     return alunos_lista
 
 
-@app.get("/ver-pagamentos/{id}")
-async def ver_pagamentos(id: str):
-    aluno_ref = db.collection("alunos_professor").document(id).get()
-    
-    if not aluno_ref.exists:
+@app.get("/ver-pagamentos/{nome_aluno}")
+async def ver_pagamentos(nome_aluno: str):
+    # Normaliza o nome do aluno (igual no vincular_aluno)
+    nome_normalizado = nome_aluno.strip().lower()
+
+    # Buscar pelo campo "aluno" na coleção alunos_professor
+    alunos = db.collection("alunos_professor").where("aluno", "==", nome_normalizado).get()
+
+    if not alunos:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    dados = aluno_ref.to_dict()
-    pagamentos = dados.get("paga_passado", [])
-    
+    # Pega o primeiro resultado
+    aluno_ref = alunos[0].to_dict()
+    pagamentos = aluno_ref.get("paga_passado", [])
+
     return JSONResponse(content=pagamentos)
     
 
