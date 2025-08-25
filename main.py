@@ -3336,6 +3336,19 @@ async def listar_pagamentos():
     return alunos_lista
 
 
+@app.get("/ver-pagamentos/{id}")
+async def ver_pagamentos(id: str):
+    aluno_ref = db.collection("alunos_professor").document(id).get()
+    
+    if not aluno_ref.exists:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    dados = aluno_ref.to_dict()
+    pagamentos = dados.get("paga_passado", [])
+    
+    return JSONResponse(content=pagamentos)
+    
+
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
     aluno_id = payload.get("id")
