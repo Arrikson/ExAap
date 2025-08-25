@@ -3221,6 +3221,8 @@ async def listar_pagamentos():
         dados = doc.to_dict()
         nome_normalizado = dados.get("nome_normalizado", "").strip().lower()
         total_gasto = 0
+        paga_passado = []
+        valor_mensal_aluno = 0
 
         # Buscar vínculo em alunos_professor
         alunos_prof_ref = db.collection("alunos_professor") \
@@ -3231,17 +3233,25 @@ async def listar_pagamentos():
             vinculo_data = vinculo_doc.to_dict()
             aulas_dadas = vinculo_data.get("aulas_dadas", 0)
             total_gasto = aulas_dadas * 1250
+
+            # Valor mensal do aluno (se existir na coleção)
+            valor_mensal_aluno = vinculo_data.get("valor_mensal", 0)
+
+            # Se já houver histórico de pagamento, resgata
+            paga_passado = vinculo_data.get("paga_passado", [])
             break
 
         alunos_lista.append({
             "id": doc.id,
             "nome": dados.get("nome"),
             "mensalidade": dados.get("mensalidade", False),
-            "divida": total_gasto   # 👈 adicionando dívida
+            "divida": total_gasto,
+            "valor_mensal_aluno": valor_mensal_aluno,
+            "paga_passado": paga_passado
         })
 
     return alunos_lista
-
+    
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
     aluno_id = payload.get("id")
