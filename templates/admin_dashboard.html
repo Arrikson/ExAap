@@ -218,7 +218,8 @@
           <th>Nome</th>
           <th>Status Atual</th>
           <th>Dívida</th>
-          <th>Ação</th>
+          <th>Último Pagamento</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -237,8 +238,8 @@
         <thead>
           <tr>
             <th>Mês</th>
-            <th>Status</th>
-            <th>Ação</th>
+            <th>Ano</th>
+            <th>Valor</th>
           </tr>
         </thead>
         <tbody id="tabela-meses"></tbody>
@@ -513,19 +514,53 @@ async function carregarPagamentos() {
 
         tbody.innerHTML += `
             <tr>
-              <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
+              <td>${a.nome}</td>
               <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
               <td>Kz ${a.divida ? a.divida : 0},00</td>
               <td>${ultimoPagamento}</td>
               <td>
-                <button onclick="marcarPago('${a.id}', ${temDivida})" 
+                <button onclick="marcarPagoProf('${a.id}', ${temDivida}, '${a.professor}', ${a.divida ? a.divida : 0})" 
                         style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
                   PAGO
+                </button>
+                <button onclick="verPagamentos('${a.id}', '${a.nome}')" 
+                        style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px; margin-left:5px;">
+                  Ver Pagamentos
                 </button>
               </td>
             </tr>
         `;
     });
+}
+
+async function verPagamentos(id, nome) {
+    try {
+        const res = await fetch(`/ver-pagamentos/${id}`);
+        const data = await res.json();
+
+        document.getElementById("nome-aluno").innerText = `📌 Pagamentos de ${nome}`;
+        const tbody = document.getElementById("tabela-meses");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3">Nenhum pagamento encontrado</td></tr>`;
+        } else {
+            data.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                      <td>${p.mes}</td>
+                      <td>${p.ano}</td>
+                      <td>Kz ${p.valor_pago},00</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById("detalhes-aluno").style.display = "block";
+    } catch (err) {
+        console.error("Erro ao buscar pagamentos:", err);
+        alert("Erro ao carregar histórico de pagamentos.");
+    }
 }
   
 async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
