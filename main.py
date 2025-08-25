@@ -3185,16 +3185,33 @@ async def atualizar_pagamento_mes(payload: dict):
 
 @app.get("/listar-pagamentos")
 async def listar_pagamentos():
-    alunos_ref = db.collection("alunos_professor").stream()
-    alunos = []
+    alunos_ref = db.collection("alunos").stream()
+    alunos_lista = []
+
     for doc in alunos_ref:
-        data = doc.to_dict()
-        alunos.append({
+        dados = doc.to_dict()
+        nome_normalizado = dados.get("nome_normalizado", "").strip().lower()
+        total_gasto = 0
+
+        # Buscar vínculo em alunos_professor
+        alunos_prof_ref = db.collection("alunos_professor") \
+            .where("aluno", "==", nome_normalizado) \
+            .limit(1).stream()
+
+        for vinculo_doc in alunos_prof_ref:
+            vinculo_data = vinculo_doc.to_dict()
+            aulas_dadas = vinculo_data.get("aulas_dadas", 0)
+            total_gasto = aulas_dadas * 1250
+            break
+
+        alunos_lista.append({
             "id": doc.id,
-            "nome": data.get("aluno", ""),
-            "mensalidade": data.get("mensalidade", False)
+            "nome": dados.get("nome"),
+            "mensalidade": dados.get("mensalidade", False),
+            "divida": total_gasto   # 👈 adicionando dívida
         })
-    return JSONResponse(alunos)
+
+    return alunos_lista
 
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
