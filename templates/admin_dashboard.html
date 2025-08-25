@@ -109,7 +109,7 @@
   .status-verde { background-color: green; }
   .status-vermelho { background-color: red; }
 
-  /* RESPONSIVIDADE */
+
   @media (max-width: 700px) {
     .container { flex-direction: column; align-items: center; padding: 10px; }
     table, th, td { font-size: 12px; }
@@ -217,6 +217,7 @@
         <tr>
           <th>Nome</th>
           <th>Status Atual</th>
+          <th>Dívida</th>
           <th>Ação</th>
         </tr>
       </thead>
@@ -460,6 +461,7 @@ async function carregarPagamentos() {
             <tr>
               <td><a href="#" onclick="verMeses('${a.id}')">${a.nome}</a></td>
               <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+              <td>Kz ${a.divida},00</td> <!-- 👈 nova coluna dívida -->
               <td>
                 <button onclick="marcarPago('${a.id}', ${a.mensalidade})" 
                         style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
@@ -470,6 +472,7 @@ async function carregarPagamentos() {
         `;
     });
 }
+
 
 async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
     try {
