@@ -3338,20 +3338,24 @@ async def listar_pagamentos():
 
 @app.get("/ver-pagamentos/{nome_aluno}")
 async def ver_pagamentos(nome_aluno: str):
-    # Normaliza o nome do aluno (igual no vincular_aluno)
+    # Normaliza o nome do aluno
     nome_normalizado = nome_aluno.strip().lower()
 
     # Buscar pelo campo "aluno" na coleção alunos_professor
-    alunos = db.collection("alunos_professor").where("aluno", "==", nome_normalizado).get()
+    alunos_query = db.collection("alunos_professor").where("aluno", "==", nome_normalizado).stream()
 
-    if not alunos:
+    aluno_ref = None
+    for doc in alunos_query:
+        aluno_ref = doc.to_dict()
+        break
+
+    if not aluno_ref:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    # Pega o primeiro resultado
-    aluno_ref = alunos[0].to_dict()
+    # Pega o histórico de pagamentos (coluna paga_passado)
     pagamentos = aluno_ref.get("paga_passado", [])
 
-    return JSONResponse(content=pagamentos)
+    return JSONResponse(content={"aluno": nome_aluno, "historico_pagamentos": pagamentos})
     
 
 @app.post("/atualizar-pagamento")
