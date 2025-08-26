@@ -533,24 +533,27 @@ async function carregarPagamentos() {
     });
 }
 
-async function verPagamentos(id, nome) {
+async function verPagamentos(nomeNormalizado, nomeExibicao) {
     try {
-        const res = await fetch(`/ver-pagamentos/${id}`);
+        const res = await fetch(`/ver-pagamentos/${nomeNormalizado}`);
         const data = await res.json();
 
-        document.getElementById("nome-aluno").innerText = `📌 Pagamentos de ${nome}`;
+        document.getElementById("nome-aluno").innerText = `📌 Pagamentos de ${nomeExibicao}`;
         const tbody = document.getElementById("tabela-meses");
         tbody.innerHTML = "";
 
-        if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3">Nenhum pagamento encontrado</td></tr>`;
+        const historico = data.historico_pagamentos || [];
+
+        if (historico.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4">Nenhum pagamento encontrado</td></tr>`;
         } else {
-            data.forEach(p => {
+            historico.forEach(p => {
                 tbody.innerHTML += `
                     <tr>
                       <td>${p.mes}</td>
                       <td>${p.ano}</td>
-                      <td>Kz ${p.valor_pago},00</td>
+                      <td>Kz ${p.valor},00</td>
+                      <td>${p.status}</td>
                     </tr>
                 `;
             });
@@ -562,6 +565,7 @@ async function verPagamentos(id, nome) {
         alert("Erro ao carregar histórico de pagamentos.");
     }
 }
+
   
 async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
     try {
