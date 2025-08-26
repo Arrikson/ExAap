@@ -72,9 +72,10 @@
         white-space: nowrap;
         font-weight: bold;
       }
-      td:nth-of-type(1)::before { content: "Data"; }
-      td:nth-of-type(2)::before { content: "Valor"; }
-      td:nth-of-type(3)::before { content: "Status"; }
+      td:nth-of-type(1)::before { content: "Mês"; }
+      td:nth-of-type(2)::before { content: "Ano"; }
+      td:nth-of-type(3)::before { content: "Valor"; }
+      td:nth-of-type(4)::before { content: "Status"; }
     }
   </style>
 </head>
@@ -84,7 +85,8 @@
   <table id="tabelaPagamentos">
     <thead>
       <tr>
-        <th>Data</th>
+        <th>Mês</th>
+        <th>Ano</th>
         <th>Valor</th>
         <th>Status</th>
       </tr>
@@ -93,14 +95,14 @@
   </table>
 
   <script>
-    // Pega o ID do aluno pela URL (?id=...)
+    // Pega o nome do aluno pela URL (?aluno=...)
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
+    const aluno = urlParams.get("aluno");
 
-    if (!id) {
-      alert("❌ ID do aluno não informado na URL!");
+    if (!aluno) {
+      alert("❌ Nome do aluno não informado na URL!");
     } else {
-      fetch(`/ver-pagamentos/${id}`)
+      fetch(`/ver-pagamentos/${aluno}`)
         .then(res => {
           if (!res.ok) throw new Error("Erro ao buscar pagamentos");
           return res.json();
@@ -109,17 +111,20 @@
           const tbody = document.querySelector("#tabelaPagamentos tbody");
           tbody.innerHTML = "";
 
-          if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3">Nenhum pagamento registrado.</td></tr>`;
+          const historico = data.historico_pagamentos || [];
+
+          if (historico.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4">Nenhum pagamento registrado.</td></tr>`;
             return;
           }
 
-          data.forEach(p => {
+          historico.forEach(p => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${p.data || "-"}</td>
-              <td>${p.valor || "-"}</td>
-              <td class="${p.status === 'pago' ? 'status-pago' : 'status-pendente'}">
+              <td>${p.mes || "-"}</td>
+              <td>${p.ano || "-"}</td>
+              <td>Kz ${p.valor?.toLocaleString("pt-PT") || "-"}</td>
+              <td class="${p.status?.toLowerCase() === 'pago' ? 'status-pago' : 'status-pendente'}">
                 ${p.status || "-"}
               </td>
             `;
