@@ -536,6 +536,9 @@ async function carregarPagamentos() {
 async function verPagamentos(nomeNormalizado, nomeExibicao) {
     try {
         const res = await fetch(`/ver-pagamentos/${nomeNormalizado}`);
+        if (!res.ok) {
+            throw new Error(`Erro ${res.status} ao buscar pagamentos`);
+        }
         const data = await res.json();
 
         document.getElementById("nome-aluno").innerText = `📌 Pagamentos de ${nomeExibicao}`;
@@ -548,12 +551,23 @@ async function verPagamentos(nomeNormalizado, nomeExibicao) {
             tbody.innerHTML = `<tr><td colspan="4">Nenhum pagamento encontrado</td></tr>`;
         } else {
             historico.forEach(p => {
+                // garante valores padrão
+                const mes = p.mes || "-";
+                const ano = p.ano || "-";
+                const valor = p.valor ? `Kz ${Number(p.valor).toLocaleString("pt-AO")},00` : "Kz 0,00";
+                const status = p.status ? p.status : "Indefinido";
+
+                // cor no status
+                let statusClass = "";
+                if (status.toLowerCase() === "pago") statusClass = "style='color: green; font-weight: bold;'";
+                if (status.toLowerCase() === "não pago" || status.toLowerCase() === "nao pago") statusClass = "style='color: red; font-weight: bold;'";
+
                 tbody.innerHTML += `
                     <tr>
-                      <td>${p.mes}</td>
-                      <td>${p.ano}</td>
-                      <td>Kz ${p.valor},00</td>
-                      <td>${p.status}</td>
+                      <td>${mes}</td>
+                      <td>${ano}</td>
+                      <td>${valor}</td>
+                      <td ${statusClass}>${status}</td>
                     </tr>
                 `;
             });
