@@ -3341,23 +3341,26 @@ async def ver_pagamentos(nome_aluno: str):
     # Normaliza o nome do aluno
     nome_normalizado = nome_aluno.strip().lower()
 
-    # Buscar pelo campo "aluno" na coleção alunos_professor
-    alunos_query = db.collection("alunos_professor").where("aluno", "==", nome_normalizado).stream()
-
+    # Buscar todos e comparar normalizado
+    alunos_query = db.collection("alunos_professor").stream()
     aluno_ref = None
+
     for doc in alunos_query:
-        aluno_ref = doc.to_dict()
-        break
+        dados = doc.to_dict()
+        if dados.get("aluno", "").strip().lower() == nome_normalizado:
+            aluno_ref = dados
+            break
 
     if not aluno_ref:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+        raise HTTPException(status_code=404, detail=f"Aluno '{nome_aluno}' não encontrado")
 
-    # Pega o histórico de pagamentos (coluna paga_passado)
     pagamentos = aluno_ref.get("paga_passado", [])
 
-    return JSONResponse(content={"aluno": nome_aluno, "historico_pagamentos": pagamentos})
+    return JSONResponse(content={
+        "aluno": aluno_ref.get("aluno", nome_aluno),
+        "historico_pagamentos": pagamentos
+    })
     
-
 @app.post("/atualizar-pagamento")
 async def atualizar_pagamento(payload: dict):
     aluno_id = payload.get("id")
