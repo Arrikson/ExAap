@@ -632,6 +632,7 @@ async function listarMeusAlunos() {
         </div>
       `;
 
+      // Botão Dar Aula
       if (aluno.online) {
         const iniciarBtn = document.createElement('button');
         iniciarBtn.textContent = 'Dar Aula';
@@ -643,6 +644,17 @@ async function listarMeusAlunos() {
         card.appendChild(iniciarBtn);
       }
 
+      // Botão Informações
+      const infoBtn = document.createElement('button');
+      infoBtn.textContent = 'Informações';
+      infoBtn.className = 'botao-padrao';
+      infoBtn.onclick = (e) => {
+        e.stopPropagation();
+        exibirInformacoesAluno(aluno);
+      };
+      card.appendChild(infoBtn);
+
+      // Botão Desvincular
       const desvincularBtn = document.createElement('button');
       desvincularBtn.textContent = 'Desvincular';
       desvincularBtn.className = 'botao-padrao';
@@ -652,6 +664,7 @@ async function listarMeusAlunos() {
       };
       card.appendChild(desvincularBtn);
 
+      // Botão Horário
       const horarioBtn = document.createElement('button');
       horarioBtn.textContent = 'Horário';
       horarioBtn.className = 'botao-padrao';
@@ -662,6 +675,7 @@ async function listarMeusAlunos() {
       };
       card.appendChild(horarioBtn);
 
+      // Botão Aulas Dadas
       const aulasBtn = document.createElement('button');
       aulasBtn.textContent = 'Aulas dadas';
       aulasBtn.className = 'botao-padrao';
@@ -671,7 +685,7 @@ async function listarMeusAlunos() {
       };
       card.appendChild(aulasBtn);
 
-      container.appendChild(card); 
+      container.appendChild(card);
     });
 
   } catch (error) {
@@ -680,6 +694,37 @@ async function listarMeusAlunos() {
   }
 }
 
+// Função para exibir informações do aluno em modal moderno
+function exibirInformacoesAluno(aluno) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay-info';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-info';
+
+  modal.innerHTML = `
+    <h3>${aluno.nome}</h3>
+    <div class="info-row">
+      <span>Telefone:</span>
+      <span>
+        <a href="https://wa.me/${aluno.telefone}" target="_blank">${aluno.telefone || '-'}</a>
+        <button class="botao-padrao" onclick="navigator.clipboard.writeText('${aluno.telefone}')">Copiar</button>
+      </span>
+    </div>
+    <div class="info-row"><span>Província:</span> <span>${aluno.provincia || '-'}</span></div>
+    <div class="info-row"><span>Município:</span> <span>${aluno.municipio || '-'}</span></div>
+    <div class="info-row"><span>Bairro:</span> <span>${aluno.bairro || '-'}</span></div>
+    <div class="info-row"><span>Nível de Inglês:</span> <span>${aluno.nivel_ingles || '-'}</span></div>
+    <button class="botao-padrao fechar-btn">Fechar</button>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  modal.querySelector('.fechar-btn').onclick = () => overlay.remove();
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+}
+  
 async function verAulasDadas(nomeAluno) {
   try {
     const response = await fetch("/ver-aulas", {
@@ -738,43 +783,91 @@ async function carregarUltimasAulas(professorEmail) {
   carregarUltimasAulas(professorEmail);
   
  async function buscarAlunosDisponiveis() {
-    const email = "{{ professor.email }}";
-    try {
-      const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
-      const lista = await res.json();
-      const container = document.getElementById('alunos-disponiveis');
-      container.innerHTML = '<h2>Alunos Disponíveis</h2>';
+  const email = "{{ professor.email }}";
+  try {
+    const res = await fetch(`/alunos-disponiveis/${encodeURIComponent(email)}`);
+    const lista = await res.json();
+    const container = document.getElementById('alunos-disponiveis');
+    container.innerHTML = '<h2>Alunos Disponíveis</h2>';
 
-      if (lista.length === 0) {
-        container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
-        return;
-      }
-
-      lista.forEach(aluno => {
-        const card = document.createElement('div');
-        card.className = 'aluno-card';
-
-        const nomeAluno = aluno.nome;
-        const disciplina = aluno.disciplina;
-
-        card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <strong>${nomeAluno}</strong> - ${disciplina}
-            </div>
-            <button class="notificar-btn" onclick="vincularAluno('${nomeAluno}', '{{ professor.email }}')">
-              Vincular
-            </button>
-          </div>
-        `;
-
-        container.appendChild(card);
-      });
-    } catch (error) {
-      console.error("Erro ao buscar alunos disponíveis:", error);
-      alert("Erro ao buscar alunos disponíveis.");
+    if (lista.length === 0) {
+      container.innerHTML += '<p>Nenhum aluno disponível no momento.</p>';
+      return;
     }
+
+    lista.forEach(aluno => {
+      const card = document.createElement('div');
+      card.className = 'aluno-card';
+
+      const nomeAluno = aluno.nome;
+      const disciplina = aluno.disciplina;
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong>${nomeAluno}</strong> - ${disciplina}
+          </div>
+        </div>
+      `;
+
+      // Botão Informações
+      const infoBtn = document.createElement('button');
+      infoBtn.textContent = 'Informações';
+      infoBtn.className = 'botao-padrao';
+      infoBtn.onclick = (e) => {
+        e.stopPropagation();
+        exibirInformacoesAluno(aluno); 
+      };
+      card.appendChild(infoBtn);
+
+      // Botão Vincular
+      const vincularBtn = document.createElement('button');
+      vincularBtn.textContent = 'Vincular';
+      vincularBtn.className = 'botao-padrao';
+      vincularBtn.onclick = (e) => {
+        e.stopPropagation();
+        vincularAluno(nomeAluno, '{{ professor.email }}');
+      };
+      card.appendChild(vincularBtn);
+
+      container.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Erro ao buscar alunos disponíveis:", error);
+    alert("Erro ao buscar alunos disponíveis.");
   }
+}
+
+// Função modal já usada para ambos os casos
+function exibirInformacoesAluno(aluno) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay-info';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-info';
+
+  modal.innerHTML = `
+    <h3>${aluno.nome}</h3>
+    <div class="info-row">
+      <span>Telefone:</span>
+      <span>
+        <a href="https://wa.me/${aluno.telefone}" target="_blank">${aluno.telefone || '-'}</a>
+        <button class="botao-padrao" onclick="navigator.clipboard.writeText('${aluno.telefone}')">Copiar</button>
+      </span>
+    </div>
+    <div class="info-row"><span>Província:</span> <span>${aluno.provincia || '-'}</span></div>
+    <div class="info-row"><span>Município:</span> <span>${aluno.municipio || '-'}</span></div>
+    <div class="info-row"><span>Bairro:</span> <span>${aluno.bairro || '-'}</span></div>
+    <div class="info-row"><span>Nível de Inglês:</span> <span>${aluno.nivel_ingles || '-'}</span></div>
+    <button class="botao-padrao fechar-btn">Fechar</button>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  modal.querySelector('.fechar-btn').onclick = () => overlay.remove();
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+}
 
   async function vincularAluno(nomeAluno, professorEmail) {
     try {
