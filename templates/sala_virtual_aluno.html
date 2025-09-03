@@ -4,170 +4,312 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Conexão com o Professor</title>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      font-family: "Roboto", sans-serif;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      padding-top: 20px;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #000;
+    font-family: "Roboto", sans-serif;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-    video {
-      width: 90vw;
-      max-width: 400px;
-      height: 70vh;
-      border-radius: 0px;
-      border: 3px solid #fff;
-      margin-bottom: 12px;
-      object-fit: cover;
-    }
+  /* 🎥 Container dos vídeos */
+  .video-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-    #localVideo {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 120px;
-      height: 90px;
-      border: 2px solid #fff;
-      border-radius: 0px;
-    }
+  /* Vídeo remoto ocupa mais da tela para preencher */
+  #remoteVideo {
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+  }
 
-    #status {
-      margin-bottom: 12px;
-      font-size: 16px;
-      text-align: center;
-    }
-  </style>
+  /* Efeitos de desfoque superior/inferior */
+  .blur-top,
+  .blur-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 5%;
+    backdrop-filter: blur(15px) brightness(0.8);
+    -webkit-backdrop-filter: blur(15px) brightness(0.8);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .blur-top {
+    top: 0;
+  }
+
+  .blur-bottom {
+    bottom: 0;
+  }
+
+  /* Vídeo local (miniatura) */
+  #localVideo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 120px;
+    height: 90px;
+    border: 2px solid #fff;
+    z-index: 3;
+  }
+
+  /* Mensagens de status */
+  #status {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    z-index: 4;
+  }
+
+  /* Notificação (40s) */
+  #notificacao {
+    display: none;
+    position: absolute;
+    bottom: 120px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 5;
+  }
+
+  #notificacao button {
+    margin: 5px;
+    padding: 8px 16px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  #notificacao button#nao {
+    background: #dc3545;
+  }
+
+  /* Pagamento */
+  #pagamento {
+    display: none;
+    position: absolute;
+    bottom: 50px;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 6;
+    text-align: center;
+  }
+
+  #pagamento button {
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+</style>
 </head>
 <body>
+  <div class="video-container">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <div class="blur-top"></div>
+    <div class="blur-bottom"></div>
+  </div>
+
+  <video id="localVideo" autoplay muted playsinline></video>
   <div id="status">🔎 Buscando chamada do professor...</div>
 
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline></video>
+  <div id="notificacao">
+    <p>Está gostando da aula?</p>
+    <button id="sim">Sim</button>
+    <button id="nao">Não</button>
+  </div>
 
-  <!-- Firebase + PeerJS -->
+  <div id="pagamento">
+    <p>Precisa fazer o pagamento para continuar com as aulas.</p>
+    <button id="fazerPagamento">Fazer pagamento</button>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyChMkODt7BhNLD-fK5NrY6-LmjJL6DtBIE",
-      authDomain: "exap-8a935.firebaseapp.com",
-      projectId: "exap-8a935",
-      storageBucket: "exap-8a935.appspot.com",
-      messagingSenderId: "664710895978",
-      appId: "1:664710895978:web:304790f37d7561d9b1ed13"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+  const statusEl = document.getElementById("status");
+  const localVideo = document.getElementById("localVideo");
+  const remoteVideo = document.getElementById("remoteVideo");
+  const notificacao = document.getElementById("notificacao");
+  const pagamento = document.getElementById("pagamento");
+  const btnSim = document.getElementById("sim");
+  const btnNao = document.getElementById("nao");
+  const btnPagamento = document.getElementById("fazerPagamento");
 
-  <script>
-    const statusEl = document.getElementById("status");
-    const localVideo = document.getElementById("localVideo");
-    const remoteVideo = document.getElementById("remoteVideo");
+  const aluno = "{{ aluno }}";
+  const professor = "{{ professor }}";
 
-    const aluno = "{{ aluno }}";
-    const professor = "{{ professor }}";
+ let peer;
+let localStream;
 
-    let peer;
-    let localStream;
+async function startCamera() {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+    return true;
+  } catch (err) {
+    console.error("Erro ao acessar a câmera e microfone:", err);
+    statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Erro ao acessar a câmera/microfone`;
+    return false;
+  }
+}
 
-    async function startCamera() {
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = localStream;
-        return true;
-      } catch (err) {
-        console.error("Erro ao acessar a câmera e microfone:", err);
-        statusEl.textContent = "❌ Erro ao acessar a câmera/microfone";
-        return false;
-      }
-    }
+function initPeerAndConnect(peerIdDoProfessor) {
+  peer = new Peer();
+  peer.on("open", () => {
+    statusEl.innerHTML = `<i class="fa-solid fa-link"></i> Conectando ao professor...`;
+    const call = peer.call(peerIdDoProfessor, localStream);
 
-    function initPeerAndConnect(peerIdDoProfessor) {
-      peer = new Peer();
+    call.on("stream", async (remoteStream) => {
+      remoteVideo.srcObject = remoteStream;
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Conectado com o professor!`;
 
-      peer.on("open", () => {
-        statusEl.textContent = "🔗 Conectando ao professor...";
-        const call = peer.call(peerIdDoProfessor, localStream);
-
-        call.on("stream", (remoteStream) => {
-          remoteVideo.srcObject = remoteStream;
-          statusEl.textContent = "✅ Conectado com o professor!";
-        });
-
-        call.on("close", () => {
-          statusEl.textContent = "🔌 Conexão encerrada.";
-        });
-
-        call.on("error", (err) => {
-          console.error("Erro na chamada:", err);
-          statusEl.textContent = "⚠️ Erro na chamada.";
-        });
-      });
-
-      peer.on("error", (err) => {
-        console.error("Erro PeerJS:", err);
-        statusEl.textContent = "❌ Erro no PeerJS.";
-      });
-    }
-
-    async function verificarPermissaoEConectar() {
-      try {
-        const resp = await fetch(`/registrar-chamada`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            aluno: aluno,
-            professor: professor
-          })
-        });
-
-        const result = await resp.json();
-
-        if (resp.ok && result.sala) {
-          buscarPeerIdEDiscar();
-        } else {
-          statusEl.textContent = "❌ Conexão não autorizada.";
-          console.warn(result);
-        }
-      } catch (err) {
-        console.error("Erro ao verificar status:", err);
-        statusEl.textContent = "⚠️ Falha ao verificar a autorização.";
-      }
-    }
-
-    async function buscarPeerIdEDiscar() {
-      try {
-        const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
-        const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
-        const data = await res.json();
-
-        if (data.peer_id) {
-          initPeerAndConnect(data.peer_id);
-        } else {
-          statusEl.textContent = "⚠️ ID do professor não encontrado.";
-        }
-      } catch (err) {
-        console.error("Erro ao buscar o ID do professor:", err);
-        statusEl.textContent = "❌ Erro ao buscar ID.";
-      }
-    }
-
-    startCamera().then((ok) => {
-      if (ok) {
-        verificarPermissaoEConectar();
-      }
+      // Só inicia o cronômetro quando realmente conectado
+      await iniciarCronometro();
     });
-  </script>
+
+    call.on("close", () => {
+      statusEl.innerHTML = `<i class="fa-solid fa-plug-circle-xmark"></i> Conexão encerrada.`;
+    });
+
+    call.on("error", (err) => {
+      console.error("Erro na chamada:", err);
+    });
+  });
+
+  peer.on("error", (err) => {
+    console.error("Erro PeerJS:", err);
+  });
+}
+
+ async function verificarPermissaoEConectar() {
+  try {
+    const resp = await fetch(`/registrar-chamada`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: aluno, professor: professor })
+    });
+
+    const result = await resp.json();
+    if (resp.ok && result.sala) {
+      buscarPeerIdEDiscar();
+    } else {
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Conexão não autorizada.`;
+      console.warn(result);
+    }
+  } catch (err) {
+    console.error("Erro ao verificar status:", err);
+    statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Falha ao verificar a autorização.`;
+  }
+}
+
+async function buscarPeerIdEDiscar() {
+  try {
+    const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
+
+    let tentativas = 0;
+    const maxTentativas = 30; // até 1 minuto (2s cada tentativa)
+
+    statusEl.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> Aguardando o professor iniciar a chamada...`;
+
+    while (tentativas < maxTentativas) {
+      const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
+      const data = await res.json();
+
+      if (data.peer_id) {
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ID do professor encontrado, conectando...`;
+        initPeerAndConnect(data.peer_id);
+        return; // interrompe o loop assim que encontrar
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      tentativas++;
+    }
+
+    // só aparece após TODAS as tentativas falharem
+    statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Professor ausente.`;
+  } catch (err) {
+    console.error("Erro ao buscar o ID do professor:", err);
+    statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Erro ao buscar ID.`;
+  }
+}
+
+async function verificarSeDeveMostrarPagamento() {
+  try {
+    const res = await fetch(`/aulas_dadas?aluno=${encodeURIComponent(aluno)}`);
+    const data = await res.json();
+    const aulas = data.aulas || 0;
+    return aulas === 0 || aulas === 11; // primeira aula ou antes da 12ª
+  } catch (err) {
+    console.error("Erro ao obter número de aulas:", err);
+    return false;
+  }
+}
+
+async function iniciarCronometro() {
+  const mostrarPagamento = await verificarSeDeveMostrarPagamento();
+  if (!mostrarPagamento) return;
+
+  let segundos = 0;
+  const duracaoAula = 3600; // 1 hora
+  const intervalo = setInterval(() => {
+    segundos++;
+    if (segundos === 2400) {
+      // notificação somente no 40º minuto da chamada
+      notificacao.style.display = "block";
+    }
+    if (segundos >= duracaoAula) clearInterval(intervalo);
+  }, 1000);
+}
+
+startCamera().then(ok => {
+  if (ok) {
+    verificarPermissaoEConectar();
+  }
+});
+
+btnSim.onclick = () => {
+  notificacao.style.display = "none";
+  pagamento.style.display = "block";
+};
+
+btnNao.onclick = () => {
+  notificacao.style.display = "none";
+};
+
+btnPagamento.onclick = () => {
+  window.location.href = `/enviar_comprovativo?aluno_nome=${encodeURIComponent(aluno)}`;
+};
+
+</script>
 </body>
 </html>
