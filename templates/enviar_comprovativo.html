@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enviar Comprovativo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    #upload-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="file"], select, input[type="text"] {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: white;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    #submit-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background-color: #333;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 10px;
+    }
+
+    #submit-button:hover {
+      background-color: #000;
+    }
+
+    .iban-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .iban-label {
+      font-weight: bold;
+    }
+
+    .copy-icon {
+      cursor: pointer;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .copy-icon:hover {
+      color: #000;
+    }
+
+    .meses-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .meses-container button {
+      padding: 6px 12px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #333;
+      color: white;
+    }
+
+    .meses-container button:hover {
+      background-color: #000;
+    }
+
+    .valor-total {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>Envio de Comprovativo</h1>
+
+  <form id="comprovativo-form">
+    <div id="upload-section">
+      <label for="aluno">Nome do aluno:</label>
+      <input type="text" id="aluno" name="aluno_nome" required placeholder="Digite seu nome" value="{{ aluno_nome }}"/>
+
+      <label for="banco">Escolha o banco:</label>
+      <select id="banco" name="banco" required>
+        <option value="">Selecione...</option>
+        <option value="BAI">BAI</option>
+        <option value="BPC">BPC</option>
+        <option value="BNI">BNI</option>
+        <option value="Multicaixa Express">Multicaixa Express</option>
+      </select>
+
+      <div class="iban-container">
+        <span class="iban-label">IBAN BAI:</span>
+        <span class="copy-icon" onclick="copiarIBAN()" title="Copiar IBAN">📋</span>
+      </div>
+
+      <label>Meses a pagar:</label>
+      <div class="meses-container">
+        <button type="button" onclick="alterarMeses(-1)">−</button>
+        <input type="text" id="meses" name="meses" value="1" readonly style="text-align:center; width:50px;">
+        <button type="button" onclick="alterarMeses(1)">+</button>
+      </div>
+      <div class="valor-total" id="valorTotal">Valor total: 15.000,00 Kz</div>
+
+      <label for="comprovativo">Enviar comprovativo (PDF):</label>
+      <input type="file" id="comprovativo" name="comprovativo" accept="application/pdf" required>
+    </div>
+
+    <button type="submit" id="submit-button">Enviar Comprovativo</button>
+  </form>
+
+  <script>
+    const fileInput = document.getElementById('comprovativo');
+    const bancoSelect = document.getElementById('banco');
+    const form = document.getElementById('comprovativo-form');
+    const mesesInput = document.getElementById('meses');
+    const valorTotalEl = document.getElementById('valorTotal');
+
+    const limitesKB = {
+      BAI: 32,
+      BPC: 31,
+      BNI: 32,
+      "Multicaixa Express": 33
+    };
+
+    const valorMensal = 15000;
+    const descontoPorMes = 100;
+
+    function atualizarValorTotal() {
+      const meses = parseInt(mesesInput.value);
+      const desconto = meses * descontoPorMes;
+      const total = (meses * valorMensal) - desconto;
+      valorTotalEl.textContent = "Valor total: " + total.toLocaleString("pt-PT") + ",00 Kz";
+    }
+
+    function alterarMeses(delta) {
+      let meses = parseInt(mesesInput.value);
+      meses += delta;
+      if (meses < 1) meses = 1;
+      if (meses > 12) meses = 12;
+      mesesInput.value = meses;
+      atualizarValorTotal();
+    }
+
+    atualizarValorTotal();
+
+    function copiarIBAN() {
+      const iban = '004000008230978610166';
+      navigator.clipboard.writeText(iban).then(() => {
+        alert("IBAN copiado com sucesso!");
+      }, () => {
+        alert("Erro ao copiar IBAN.");
+      });
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const alunoNome = document.getElementById("aluno").value;
+      const banco = bancoSelect.value;
+      const file = fileInput.files[0];
+      const meses = parseInt(mesesInput.value);
+
+      if (!file || !banco || !alunoNome) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+      }
+
+      const tamanhoKB = file.size / 1024;
+      const limite = limitesKB[banco];
+
+      if (banco === "Multicaixa Express" && (tamanhoKB < 24 || tamanhoKB > 33)) {
+        alert(`Comprovativo inválido. O tamanho permitido para ${banco} deve estar entre 24 KB e 33 KB.\nTamanho atual: ${tamanhoKB.toFixed(2)} KB`);
+        return;
+      }
+
+      if (banco !== "Multicaixa Express" && tamanhoKB > limite) {
+        alert(`Comprovativo inválido. O tamanho máximo permitido para ${banco} é ${limite} KB.\nTamanho atual: ${tamanhoKB.toFixed(2)} KB`);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("aluno_nome", alunoNome);
+      formData.append("banco", banco);
+      formData.append("meses", meses);
+      formData.append("comprovativo", file);
+
+      try {
+        const response = await fetch("/upload_comprovativo", {
+          method: "POST",
+          body: formData
+        });
+
+        const html = await response.text(); // lê apenas uma vez
+
+        if (response.ok) {
+          document.open();
+          document.write(html);
+          document.close();
+        } else {
+          alert("❌ Erro ao enviar comprovativo:\n" + html);
+        }
+
+      } catch (error) {
+        alert("❌ Erro na requisição: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
