@@ -280,16 +280,23 @@ async function iniciarCronometro() {
   if (!mostrarPagamento) return;
 
   let segundos = 0;
-  const duracaoAula = 3600; // 1 hora
+  const duracaoAula = 40; // 40 segundos
   const intervalo = setInterval(() => {
     segundos++;
-    if (segundos === 2400) {
-      // notificação somente no 40º minuto da chamada
+
+    if (segundos === 20) {
+      // notificação no meio da chamada (20s)
       notificacao.style.display = "block";
     }
-    if (segundos >= duracaoAula) clearInterval(intervalo);
+
+    if (segundos >= duracaoAula) {
+      clearInterval(intervalo);
+      notificacao.style.display = "none"; 
+      encerrarChamada?.(); // encerra se a função existir
+    }
   }, 1000);
 }
+
 
 startCamera().then(ok => {
   if (ok) {
