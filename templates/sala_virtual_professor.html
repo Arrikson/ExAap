@@ -289,37 +289,36 @@ function handleCallEvents(call) {
 }
 
 
-    function iniciarCronometro() {
-      cronometro.style.display = "block";
-      tempoRestante = 3600; // reinicia 1 hora
+function iniciarCronometro() {
+  cronometro.style.display = "block";
+  tempoRestante = 60; // reinicia para 1 minuto (60 segundos)
 
-      intervalo = setInterval(() => {
-        if (tempoRestante <= 0) {
-          clearInterval(intervalo);
-          cronometro.textContent = "00:00:00";
-          encerrarChamada();
-          return;
-        }
-
-        tempoRestante--;
-        let horas = Math.floor(tempoRestante / 3600).toString().padStart(2, '0');
-        let minutos = Math.floor((tempoRestante % 3600) / 60).toString().padStart(2, '0');
-        let segundos = (tempoRestante % 60).toString().padStart(2, '0');
-        cronometro.textContent = `${horas}:${minutos}:${segundos}`;
-      }, 1000);
+  intervalo = setInterval(() => {
+    if (tempoRestante <= 0) {
+      clearInterval(intervalo);
+      cronometro.textContent = "00:00";
+      encerrarChamada();
+      return;
     }
 
-    function encerrarChamada() {
-      if (currentCall) {
-        currentCall.close();
-        remoteVideo.srcObject = null;
-        statusSpan.textContent = "⏱️ Aula encerrada";
-      }
+    tempoRestante--;
+    let minutos = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+    let segundos = (tempoRestante % 60).toString().padStart(2, '0');
+    cronometro.textContent = `${minutos}:${segundos}`;
+  }, 1000);
+}
 
-      confirmarAulaBtn.style.display = "inline-block";
-    }
+function encerrarChamada() {
+  if (currentCall) {
+    currentCall.close();
+    remoteVideo.srcObject = null;
+    statusSpan.textContent = "⏱️ Aula encerrada";
+  }
 
-   function registrarAula() {
+  confirmarAulaBtn.style.display = "inline-block";
+}
+
+function registrarAula() {
   const btn = document.getElementById("confirmarAulaBtn");
   btn.disabled = true; 
 
@@ -347,7 +346,7 @@ function handleCallEvents(call) {
   });
 }
 
-    startCamera().then(initPeer);
+startCamera().then(initPeer);
   </script>
 </body>
 </html>
