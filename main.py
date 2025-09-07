@@ -4045,3 +4045,37 @@ async def enviar_mensagem(msg: MensagemIn):
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
         )
+
+
+@app.get("/buscar-professor/{termo}")
+async def buscar_professor(termo: str):
+    try:
+        termo = termo.strip().lower()
+
+        # procurar pelo email ou nome
+        docs = db.collection("professores") \
+                 .where("email", "==", termo).stream()
+
+        doc = next(docs, None)
+
+        if not doc:
+            # caso não encontre por email, buscar por nome
+            docs = db.collection("professores") \
+                     .where("nome", "==", termo).stream()
+            doc = next(docs, None)
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+        dados = doc.to_dict()
+        return {
+            "nome": dados.get("nome"),
+            "email": dados.get("email"),
+            "disciplina": dados.get("disciplina", "N/D")
+        }
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao buscar professor", "erro": str(e)}
+        )
