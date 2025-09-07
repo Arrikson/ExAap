@@ -3986,3 +3986,62 @@ async def ajustar_progresso_ingles():
 
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
+
+@app.get("/chat/{prof_email}/{aluno_nome}")
+async def listar_mensagens(prof_email: str, aluno_nome: str):
+    try:
+        docs = db.collection("alunos_professor") \
+                 .where("professor", "==", prof_email.strip().lower()) \
+                 .where("aluno", "==", aluno_nome.strip().lower()) \
+                 .limit(1).stream()
+
+        doc = next(docs, None)
+        if not doc:
+            raise HTTPException(status_code=404, detail="Conversa não encontrada")
+
+        dados = doc.to_dict()
+        mensagens = dados.get("chat", [])
+        return {"mensagens": mensagens}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao buscar mensagens", "erro": str(e)}
+        )
+
+
+class MensagemIn(BaseModel):
+    professor_email: str
+    aluno_nome: str
+    autor: str   # "professor" ou "aluno"
+    texto: str
+
+@app.post("/chat/enviar")
+async def enviar_mensagem(msg: MensagemIn):
+    try:
+        docs = db.collection("alunos_professor") \
+                 .where("professor", "==", msg.professor_email.strip().lower()) \
+                 .where("aluno", "==", msg.aluno_nome.strip().lower()) \
+                 .limit(1).stream()
+
+        doc = next(docs, None)
+        if not doc:
+            raise HTTPException(status_code=404, detail="Conversa não encontrada")
+
+        ref = db.collection("alunos_professor").document(doc.id)
+
+        ref.update({
+            "chat": firestore.ArrayUnion([{
+                "autor": msg.autor,
+                "texto": msg.texto,
+                "enviado_em": datetime.now(timezone.utc).isoformat()
+            }])
+        })
+
+        return {"message": "Mensagem enviada com sucesso"}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
+        )
