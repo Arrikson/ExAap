@@ -4179,49 +4179,43 @@ async def enviar_mensagem(msg: MensagemIn):
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
         )
 
-@app.get("/buscar-professor/{email_professor}/{aluno_nome}")
-async def buscar_professor(email_professor: str, aluno_nome: str):
+@app.get("/buscar-professor/{termo}/{aluno_nome}")
+async def buscar_professor(termo: str, aluno_nome: str):
     try:
-        email_professor = email_professor.strip().lower()
+        termo = termo.strip().lower()
         aluno_nome_input = aluno_nome.strip().lower()
 
-        # 1️⃣ Validar se o aluno existe na coleção "alunos"
+        # Validar se o aluno existe
         alunos_ref = db.collection("alunos").stream()
         aluno_doc = None
         for doc in alunos_ref:
-            dados = doc.to_dict()
-            nome_banco = dados.get("nome", "").strip().lower()
-            if nome_banco == aluno_nome_input:
+            if doc.to_dict().get("nome", "").strip().lower() == aluno_nome_input:
                 aluno_doc = doc
                 break
-
         if not aluno_doc:
-            return JSONResponse(content={
-                "erro": "Aluno não encontrado"
-            }, status_code=404)
+            return JSONResponse({"erro": "Aluno não encontrado"}, status_code=404)
 
-        # 2️⃣ Procurar vínculo na coleção "alunos_professor"
+        # Procurar vínculo pelo email OU nome
         vinculo_ref = db.collection("alunos_professor") \
-                        .where("professor", "==", email_professor) \
                         .where("aluno", "==", aluno_nome_input) \
-                        .limit(1) \
                         .stream()
 
-        vinculo_doc = next(vinculo_ref, None)
+        professor_doc = None
+        for doc in vinculo_ref:
+            dados = doc.to_dict()
+            if dados.get("professor", "").strip().lower() == termo or \
+               dados.get("professor_nome", "").strip().lower() == termo:
+                professor_doc = dados
+                break
 
-        if not vinculo_doc:
-            return JSONResponse(content={
-                "erro": "Professor não vinculado a este aluno"
-            }, status_code=404)
+        if not professor_doc:
+            return JSONResponse({"erro": "Professor não encontrado/vinculado"}, status_code=404)
 
-        dados = vinculo_doc.to_dict()
-
-        # 3️⃣ Retornar dados completos do professor
         return JSONResponse(content={
-            "nome": dados.get("professor_nome", "N/D"),
-            "email": dados.get("professor"),
-            "disciplina": dados.get("disciplina", "N/D"),
-            "online": dados.get("online", False)
+            "nome": professor_doc.get("professor_nome", "N/D"),
+            "email": professor_doc.get("professor"),
+            "disciplina": professor_doc.get("disciplina", "N/D"),
+            "online": professor_doc.get("online", False)
         }, status_code=200)
 
     except Exception as e:
