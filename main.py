@@ -3998,7 +3998,7 @@ class MensagemIn(BaseModel):
 
 # 🔹 Página de chat (Frontend simples que consome o backend)
 @app.get("/chat-page", response_class=HTMLResponse)
-async def chat_page(request: Request, prof: str, aluno: str):
+async def chat_page(request: Request, prof: str):
     return f"""
     <html>
     <head>
@@ -4033,7 +4033,11 @@ async def chat_page(request: Request, prof: str, aluno: str):
 
       <script>
         const profEmail = "{prof}";
-        const alunoNome = "{aluno}";
+        let alunoNome = localStorage.getItem("alunoNome");
+        
+        if (!alunoNome) {{
+            alert("Aluno não identificado. Faça o login novamente.");
+        }}
 
         async function carregarMensagens() {{
           try {{
@@ -4058,7 +4062,6 @@ async def chat_page(request: Request, prof: str, aluno: str):
         async function enviarMensagem() {{
           const texto = document.getElementById("msg-input").value.trim();
           if (!texto) return;
-
           try {{
             await fetch("/chat/enviar", {{
               method: "POST",
