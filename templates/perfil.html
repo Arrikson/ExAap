@@ -585,9 +585,9 @@ function fecharDesafio() {
 
     if (!termo) return;
 
-    const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}`);
+    const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}/${encodeURIComponent(alunoNome)}`);
     if (!res.ok) {
-      alert("Professor não encontrado");
+      alert("Professor não encontrado ou não vinculado a este aluno");
       return;
     }
 
