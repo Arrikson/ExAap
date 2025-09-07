@@ -4047,30 +4047,27 @@ async def enviar_mensagem(msg: MensagemIn):
         )
 
 
-@app.get("/buscar-professor/{termo}")
-async def buscar_professor(termo: str):
+@app.get("/buscar-professor/{email_professor}/{aluno_nome}")
+async def buscar_professor(email_professor: str, aluno_nome: str):
     try:
-        termo = termo.strip().lower()
+        email_professor = email_professor.strip().lower()
+        aluno_nome = aluno_nome.strip().lower()
 
-        # procurar pelo email ou nome
-        docs = db.collection("professores") \
-                 .where("email", "==", termo).stream()
+        # procurar na coleção alunos_professor
+        docs = db.collection("alunos_professor") \
+                 .where("professor", "==", email_professor) \
+                 .where("aluno", "==", aluno_nome) \
+                 .limit(1).stream()
 
         doc = next(docs, None)
 
         if not doc:
-            # caso não encontre por email, buscar por nome
-            docs = db.collection("professores") \
-                     .where("nome", "==", termo).stream()
-            doc = next(docs, None)
-
-        if not doc:
-            raise HTTPException(status_code=404, detail="Professor não encontrado")
+            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
         dados = doc.to_dict()
         return {
-            "nome": dados.get("nome"),
-            "email": dados.get("email"),
+            "nome": dados.get("professor_nome", "N/D"),
+            "email": dados.get("professor"),
             "disciplina": dados.get("disciplina", "N/D")
         }
 
@@ -4079,3 +4076,4 @@ async def buscar_professor(termo: str):
             status_code=500,
             content={"detail": "Erro ao buscar professor", "erro": str(e)}
         )
+
