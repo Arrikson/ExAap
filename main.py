@@ -4068,7 +4068,6 @@ async def chat_page(request: Request, prof: str, aluno: str):
           }}
         }}
 
-        // Atualiza a cada 3 segundos
         setInterval(carregarMensagens, 3000);
         carregarMensagens();
       </script>
@@ -4076,41 +4075,31 @@ async def chat_page(request: Request, prof: str, aluno: str):
     </html>
     """
 
-
+# 🔹 Backend: listar mensagens
 @app.get("/chat/{prof_email}/{aluno_nome}")
 async def listar_mensagens(prof_email: str, aluno_nome: str):
     try:
         prof_email = prof_email.strip().lower()
         aluno_nome_input = aluno_nome.strip().lower()
 
-        alunos_ref = db.collection("alunos").stream()
-        aluno_doc = None
-        for doc in alunos_ref:
-            dados = doc.to_dict()
-            if dados.get("nome", "").strip().lower() == aluno_nome_input:
-                aluno_doc = doc
+        # 🔹 Busca vínculo na coleção real (alunos_professor)
+        vinculo_ref = db.collection("alunos_professor") \
+                        .stream()
+
+        vinculo_doc = None
+        for doc in vinculo_ref:
+            data = doc.to_dict()
+            aluno_db = str(data.get("aluno", "")).strip().lower()
+            prof_db = str(data.get("professor", "")).strip().lower()
+            if aluno_db == aluno_nome_input and prof_db == prof_email:
+                vinculo_doc = doc
                 break
 
-        if not aluno_doc:
-            raise HTTPException(status_code=404, detail="Aluno não encontrado")
-
-        vinculo_ref = db.collection("alunos_professor") \
-                        .where("professor", "==", prof_email) \
-                        .where("aluno", "==", aluno_nome_input) \
-                        .limit(1).stream()
-
-        vinculo_doc = next(vinculo_ref, None)
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
-        ref = db.collection("alunos_professor").document(vinculo_doc.id)
         dados = vinculo_doc.to_dict()
-
-        mensagens = dados.get("chat")
-        if mensagens is None:
-            ref.update({"chat": []})
-            mensagens = []
-
+        mensagens = dados.get("chat", [])
         return {"mensagens": mensagens}
 
     except Exception as e:
@@ -4120,37 +4109,23 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
             content={"detail": "Erro ao buscar mensagens", "erro": str(e)}
         )
 
-
-class MensagemIn(BaseModel):
-    professor_email: str
-    aluno_nome: str
-    autor: str
-    texto: str
-
-
-# 🔹 Enviar mensagem (salva no campo chat)
+# 🔹 Backend: enviar mensagem
 @app.post("/chat/enviar")
 async def enviar_mensagem(msg: MensagemIn):
     try:
         prof_email = msg.professor_email.strip().lower()
         aluno_nome_input = msg.aluno_nome.strip().lower()
 
-        alunos_ref = db.collection("alunos").stream()
-        aluno_doc = None
-        for doc in alunos_ref:
-            if doc.to_dict().get("nome", "").strip().lower() == aluno_nome_input:
-                aluno_doc = doc
+        vinculo_ref = db.collection("alunos_professor").stream()
+        vinculo_doc = None
+        for doc in vinculo_ref:
+            data = doc.to_dict()
+            aluno_db = str(data.get("aluno", "")).strip().lower()
+            prof_db = str(data.get("professor", "")).strip().lower()
+            if aluno_db == aluno_nome_input and prof_db == prof_email:
+                vinculo_doc = doc
                 break
 
-        if not aluno_doc:
-            raise HTTPException(status_code=404, detail="Aluno não encontrado")
-
-        vinculo_ref = db.collection("alunos_professor") \
-                        .where("professor", "==", prof_email) \
-                        .where("aluno", "==", aluno_nome_input) \
-                        .limit(1).stream()
-
-        vinculo_doc = next(vinculo_ref, None)
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
@@ -4166,10 +4141,7 @@ async def enviar_mensagem(msg: MensagemIn):
             "enviado_em": datetime.now(timezone.utc).isoformat()
         }
 
-        ref.update({
-            "chat": firestore.ArrayUnion([nova_msg])
-        })
-
+        ref.update({"chat": firestore.ArrayUnion([nova_msg])})
         return {"message": "Mensagem enviada com sucesso", "mensagem": nova_msg}
 
     except Exception as e:
@@ -4178,6 +4150,7 @@ async def enviar_mensagem(msg: MensagemIn):
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
         )
+
 
 @app.get("/buscar-professor/{termo}/{aluno_nome}")
 async def buscar_professor(termo: str, aluno_nome: str):
