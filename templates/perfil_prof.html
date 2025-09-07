@@ -185,7 +185,6 @@
       color: #00796b;
     }
 
-
     .btn-ver-aulas {
       margin-top: 10px;
       background-color: #ffc107;
@@ -274,7 +273,7 @@
       opacity: 0.85;
     }
 
-    
+    /* Modal info */
     .overlay-info {
       position: fixed;
       top: 0; left: 0;
@@ -287,7 +286,6 @@
       animation: fadeIn 0.3s ease;
     }
 
-   
     .modal-info {
       background: #fff;
       padding: 25px 30px;
@@ -308,7 +306,6 @@
       text-align: center;
     }
 
-  
     .info-row {
       display: flex;
       justify-content: space-between;
@@ -325,7 +322,6 @@
       color: #2c3e50;
     }
 
-    
     .fechar-btn {
       position: absolute;
       top: 12px;
@@ -342,7 +338,211 @@
       transform: scale(1.2);
     }
 
-    
+    /* ====== ALUNO ITEM ====== */
+    .aluno-item {
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      margin: 8px 0;
+      background: #f9f9fc;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .aluno-item:hover {
+      background: #eef3ff;
+    }
+
+    .aluno-nome {
+      font-weight: 600;
+      color: #333;
+      font-size: 15px;
+    }
+
+    .aluno-disciplina {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* ======== ESTILO DO CHAT ======== */
+    .chat-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .chat-modal {
+      background: #fff;
+      width: 95%;
+      max-width: 420px;
+      height: 80%;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      animation: slideUp 0.4s ease;
+      font-family: 'Nunito', sans-serif;
+      position: relative;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+    }
+
+    .chat-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .chat-header button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .chat-header button:hover {
+      color: #222;
+    }
+
+    .chat-search {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+
+    .chat-search input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .chat-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-list::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 10px;
+      margin-bottom: 8px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .chat-item:hover {
+      background: #e6f0ff;
+      transform: translateX(4px);
+    }
+
+    .chat-item i {
+      font-size: 20px;
+      color: #007bff;
+      margin-right: 10px;
+    }
+
+    .chat-item span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      background: #f4f4f8;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .message.professor {
+      background: #007bff;
+      color: #fff;
+      margin-left: auto;
+    }
+
+    .message.aluno {
+      background: #e6f0ff;
+      color: #333;
+      margin-right: auto;
+    }
+
+    .chat-input {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .chat-input button {
+      background: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-left: 8px;
+      font-size: 16px;
+      color: #000;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .chat-input button:hover {
+      opacity: 0.85;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -525,10 +725,11 @@
 
     alunos.forEach(a => {
       const div = document.createElement("div");
-      div.style.padding = "10px";
-      div.style.borderBottom = "1px solid #eee";
-      div.style.cursor = "pointer";
-      div.innerHTML = `<strong>${a.nome}</strong> - ${a.disciplina}`;
+      div.classList.add("aluno-item"); // usa estilo padronizado
+      div.innerHTML = `
+        <div class="aluno-nome">${a.nome}</div>
+        <div class="aluno-disciplina">${a.disciplina}</div>
+      `;
       div.onclick = () => abrirConversa(a.nome);
       lista.appendChild(div);
     });
@@ -536,9 +737,9 @@
 
   function filtrarAlunos() {
     const termo = document.getElementById("pesquisar-aluno").value.toLowerCase();
-    const itens = document.querySelectorAll("#lista-alunos-chat div");
+    const itens = document.querySelectorAll("#lista-alunos-chat .aluno-item");
     itens.forEach(div => {
-      div.style.display = div.innerText.toLowerCase().includes(termo) ? "block" : "none";
+      div.style.display = div.innerText.toLowerCase().includes(termo) ? "flex" : "none";
     });
   }
 
