@@ -8,7 +8,7 @@
   body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f5f7fa; /* fundo mais suave */
+    background: #f5f7fa;
     color: #2c3e50;
     max-width: 480px;
     margin: auto;
@@ -182,7 +182,7 @@
     display: block;
   }
 
-  /* === Modal e Notificação Atualizados === */
+  /* === Modal padrão === */
   .custom-modal-overlay {
     position: fixed;
     inset: 0;
@@ -251,6 +251,110 @@
     transform: scale(0.95);
   }
 
+  /* === Estilo para chat === */
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    max-height: 60vh;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid #dfe6e9;
+    background: #ffffff;
+  }
+
+  .chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: #f9fbfd;
+  }
+
+  .chat-message {
+    margin: 8px 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 75%;
+    word-wrap: break-word;
+    font-size: 14px;
+  }
+
+  .chat-message.professor {
+    background: #d1f7d6;
+    align-self: flex-start;
+  }
+
+  .chat-message.aluno {
+    background: #a8e4ff;
+    align-self: flex-end;
+  }
+
+  .chat-input {
+    display: flex;
+    border-top: 1px solid #dcdde1;
+    padding: 8px;
+    background: #f5f7fa;
+  }
+
+  .chat-input input {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 8px 12px;
+    outline: none;
+    font-size: 14px;
+  }
+
+  .chat-input button {
+    background: linear-gradient(45deg, #00c9ff, #92fe9d);
+    border: none;
+    color: #fff;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .chat-input button:hover {
+    transform: scale(1.1);
+  }
+
+  /* === Lista de professores no chat === */
+  .aluno-item {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .aluno-item:hover {
+    background: #eef4ff;
+  }
+
+  .aluno-nome {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .aluno-disciplina {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .chat-icon {
+    color: #007bff;
+    font-size: 18px;
+    margin-left: 10px;
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -261,7 +365,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
-
 </head>
 <body>
  <div class="top-bar">
@@ -393,7 +496,8 @@ function fecharDesafio() {
   <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
 
-  <div class="footer">
+<!-- Rodapé do aluno -->
+<div class="footer">
   <div class="item active" onclick="abrirPerfil()">
     <i class="fa-solid fa-user"></i>
     O Meu Perfil
@@ -403,11 +507,73 @@ function fecharDesafio() {
     Pagamentos
   </div>
   <div class="item" onclick="abrirInfoEmpresa()">
-  <i class="fa-solid fa-circle-info"></i>
-  Informações
+    <i class="fa-solid fa-circle-info"></i>
+    Informações
+  </div>
+  <div class="item" onclick="abrirChatAluno()">
+    <i class="fa-solid fa-comments"></i>
+    Chat
+  </div>
 </div>
 
-<!-- Link para ícones -->
+<!-- Modal do Chat do Aluno -->
+<div id="chat-modal-aluno" class="custom-modal-overlay" style="display:none;">
+  <div class="custom-modal">
+    <button class="custom-close-btn" onclick="fecharChatAluno()">&times;</button>
+    <h3>Conversar com Professor</h3>
+    <input type="text" id="pesquisar-professor" placeholder="Pesquisar professor..." 
+           onkeyup="filtrarProfessores()" 
+           style="width:100%;padding:8px;margin:10px 0;border:1px solid #ddd;border-radius:6px;">
+    <div id="lista-professores-chat" style="max-height:300px;overflow-y:auto;text-align:left;"></div>
+  </div>
+</div>
+
+<script>
+  async function abrirChatAluno() {
+    document.getElementById("chat-modal-aluno").style.display = "flex";
+    await carregarProfessoresChat();
+  }
+
+  function fecharChatAluno() {
+    document.getElementById("chat-modal-aluno").style.display = "none";
+  }
+
+  async function carregarProfessoresChat() {
+    const alunoNome = localStorage.getItem("alunoNome"); // salvo no login
+    const res = await fetch(`/meus-professores-status/${alunoNome}`);
+    const professores = await res.json();
+
+    const lista = document.getElementById("lista-professores-chat");
+    lista.innerHTML = "";
+
+    professores.forEach(p => {
+      const div = document.createElement("div");
+      div.classList.add("aluno-item"); // estilo quadrado arredondado já aplicado no CSS
+      div.innerHTML = `
+        <div class="aluno-nome">${p.nome}</div>
+        <div class="aluno-disciplina">${p.disciplina}</div>
+        <i class="fa-solid fa-comments chat-icon"></i>
+      `;
+      div.onclick = () => abrirConversaAluno(p.email, alunoNome);
+      lista.appendChild(div);
+    });
+  }
+
+  function filtrarProfessores() {
+    const termo = document.getElementById("pesquisar-professor").value.toLowerCase();
+    const itens = document.querySelectorAll("#lista-professores-chat .aluno-item");
+    itens.forEach(div => {
+      div.style.display = div.innerText.toLowerCase().includes(termo) ? "flex" : "none";
+    });
+  }
+
+  function abrirConversaAluno(profEmail, alunoNome) {
+    // Redireciona para a conversa com professor no mesmo estilo usado no professor
+    window.location.href = `/chat/${encodeURIComponent(profEmail)}/${encodeURIComponent(alunoNome)}`;
+  }
+</script>
+
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
