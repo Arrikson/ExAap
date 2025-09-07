@@ -3986,6 +3986,15 @@ async def ajustar_progresso_ingles():
 
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
+from pydantic import BaseModel
+from datetime import datetime, timezone
+
+class MensagemIn(BaseModel):
+    professor_email: str
+    aluno_nome: str
+    autor: str
+    texto: str
+
 
 # 🔹 Página de chat (Frontend simples que consome o backend)
 @app.get("/chat-page", response_class=HTMLResponse)
