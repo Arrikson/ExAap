@@ -494,64 +494,6 @@
   </div>
 </div>
 
-<script>
-let alunoSelecionado = ""; 
-let professorEmail = "";   
-let chatInterval = null;
-
-
-function abrirChat() {
-  document.getElementById("chat-modal").style.display = "block";
-  carregarMensagens();
-  // Atualizar mensagens a cada 3 segundos
-  chatInterval = setInterval(carregarMensagens, 3000);
-}
-
-
-function fecharChat() {
-  document.getElementById("chat-modal").style.display = "none";
-  clearInterval(chatInterval);
-}
-
-
-async function carregarMensagens() {
-  if (!alunoSelecionado || !professorEmail) return;
-  const res = await fetch(`/historico-mensagens/${alunoSelecionado}/${professorEmail}`);
-  const mensagens = await res.json();
-  const chatBox = document.getElementById("chat-mensagens");
-  chatBox.innerHTML = "";
-  mensagens.forEach(msg => {
-    const div = document.createElement("div");
-    div.style.marginBottom = "6px";
-    div.style.textAlign = msg.remetente === "professor" ? "right" : "left";
-    div.innerHTML = `<span style="background:${msg.remetente === "professor" ? '#007bff' : '#e6e6e6'}; color:${msg.remetente === "professor" ? 'white' : 'black'}; padding:5px 10px; border-radius:10px; display:inline-block;">${msg.mensagem}</span>`;
-    chatBox.appendChild(div);
-  });
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-
-async function enviarMensagem() {
-  const input = document.getElementById("chat-input");
-  const mensagem = input.value.trim();
-  if (!mensagem || !alunoSelecionado || !professorEmail) return;
-
-  await fetch("/enviar-mensagem", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      aluno: alunoSelecionado,
-      professor: professorEmail,
-      remetente: "professor",
-      mensagem: mensagem
-    })
-  });
-
-  input.value = "";
-  carregarMensagens();
-}
-</script>
-
 <!-- Formulário oculto para redirecionar ao perfil -->
 <form method="POST" action="/dados_professor" id="form-dados-prof" style="display:none;">
   <input type="hidden" name="email" id="prof-email-hidden">
@@ -687,6 +629,61 @@ async function mostrarAulasDoDia() {
   }
 }
 
+let alunoSelecionado = ""; 
+let professorEmail = "";   
+let chatInterval = null;
+
+
+function abrirChat() {
+  document.getElementById("chat-modal").style.display = "block";
+  carregarMensagens();
+  // Atualizar mensagens a cada 3 segundos
+  chatInterval = setInterval(carregarMensagens, 3000);
+}
+
+
+function fecharChat() {
+  document.getElementById("chat-modal").style.display = "none";
+  clearInterval(chatInterval);
+}
+
+async function carregarMensagens() {
+  if (!alunoSelecionado || !professorEmail) return;
+  const res = await fetch(`/historico-mensagens/${alunoSelecionado}/${professorEmail}`);
+  const mensagens = await res.json();
+  const chatBox = document.getElementById("chat-mensagens");
+  chatBox.innerHTML = "";
+  mensagens.forEach(msg => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "6px";
+    div.style.textAlign = msg.remetente === "professor" ? "right" : "left";
+    div.innerHTML = `<span style="background:${msg.remetente === "professor" ? '#007bff' : '#e6e6e6'}; color:${msg.remetente === "professor" ? 'white' : 'black'}; padding:5px 10px; border-radius:10px; display:inline-block;">${msg.mensagem}</span>`;
+    chatBox.appendChild(div);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
+async function enviarMensagem() {
+  const input = document.getElementById("chat-input");
+  const mensagem = input.value.trim();
+  if (!mensagem || !alunoSelecionado || !professorEmail) return;
+
+  await fetch("/enviar-mensagem", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      aluno: alunoSelecionado,
+      professor: professorEmail,
+      remetente: "professor",
+      mensagem: mensagem
+    })
+  });
+
+  input.value = "";
+  carregarMensagens();
+}
+  
 async function mostrarAulasDaSemana() {
   const professorEmail = "{{ professor.email }}";
 
