@@ -402,14 +402,13 @@
     </button>
 
     <h3 style="margin: 0 0 8px 0; font-size: 15px;">
-  <i class="fa-solid fa-brain"></i> Desafio de Inglês
-</h3>
-<p><strong><i class="fa-solid fa-language"></i> Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
-<p id="pergunta-texto" style="margin: 6px 0; font-size: 13px;">Loading...</p>
+      <i class="fa-solid fa-brain"></i> Desafio de Inglês
+    </h3>
+    <p><strong><i class="fa-solid fa-language"></i> Nível:</strong> <span id="nivel-aluno">{{ aluno.nivel_ingles }}</span></p>
+    <p id="pergunta-texto" style="margin: 6px 0; font-size: 13px;">Loading...</p>
 
-<!-- Link para ícones -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <!-- Link para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <div style="display: flex; gap: 8px; align-items: center;">
       <input
@@ -428,6 +427,8 @@
   </div>
 </div>
 
+<!-- Notificação centralizada -->
+<div id="notificacao-mensagem" class="notificacao-container"></div>
 
 <script>
 function toggleDesafio() {
@@ -465,6 +466,7 @@ function fecharDesafio() {
 
 
 <script>
+
 function abrirPerfil() {
   // Aqui você coloca a navegação para o perfil
   window.location.href = '/perfil'; 
@@ -962,76 +964,71 @@ window.verHorario = async function () {
   }
 };
 
-  window.verNotificacao = async function () {
-    try {
-      const response = await fetch("/verificar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+window.verNotificacao = async function () {
+  try {
+    const response = await fetch("/verificar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
 
-      const notificacaoEl = document.getElementById("notificacao-mensagem");
-      const contadorAulas = document.getElementById("contador-aulas");
-      const iconeSino = document.getElementById("icone-sino");
-      const textoSala = document.getElementById("texto-sala");
+    const notificacaoEl = document.getElementById("notificacao-mensagem");
+    const contadorAulas = document.getElementById("contador-aulas");
+    const iconeSino = document.getElementById("icone-sino");
+    const textoSala = document.getElementById("texto-sala");
 
-      if (data.notificacao === true) {
-        window.professorEmailAtual = data.professor_email;
+    if (data.notificacao === true) {
+      window.professorEmailAtual = data.professor_email;
 
-        notificacaoEl.innerHTML = `
-          A tua aula irá começar
-          <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Entrar</button>
-        `;
-        notificacaoEl.style.display = "block";
-        contadorAulas.innerText = "(1)";
+      notificacaoEl.innerHTML = `
+        <p>A tua aula irá começar</p>
+        <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Entrar</button>
+      `;
+      notificacaoEl.style.display = "block"; // agora usa o container centralizado
+      contadorAulas.innerText = "(1)";
 
-       
-        iconeSino.classList.add("notificacao-ativa");
-        textoSala.classList.add("notificacao-ativa");
-      } else {
-        notificacaoEl.style.display = "none";
-        contadorAulas.innerText = "";
+      iconeSino.classList.add("notificacao-ativa");
+      textoSala.classList.add("notificacao-ativa");
+    } else {
+      notificacaoEl.style.display = "none";
+      contadorAulas.innerText = "";
 
-        
-        iconeSino.classList.remove("notificacao-ativa");
-        textoSala.classList.remove("notificacao-ativa");
-      }
-    } catch (e) {
-      console.error("Erro verNotificacao:", e);
+      iconeSino.classList.remove("notificacao-ativa");
+      textoSala.classList.remove("notificacao-ativa");
     }
-  };
+  } catch (e) {
+    console.error("Erro verNotificacao:", e);
+  }
+};
 
-  window.desativarNotificacaoERedirecionar = async function () {
-    try {
-      await fetch("/desativar-notificacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: nomeAluno })
-      });
-      document.getElementById("notificacao-mensagem").style.display = "none";
-      document.getElementById("contador-aulas").innerText = "";
+window.desativarNotificacaoERedirecionar = async function () {
+  try {
+    await fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+    document.getElementById("notificacao-mensagem").style.display = "none";
+    document.getElementById("contador-aulas").innerText = "";
 
-      
-      document.getElementById("icone-sino").classList.remove("notificacao-ativa");
-      document.getElementById("texto-sala").classList.remove("notificacao-ativa");
+    document.getElementById("icone-sino").classList.remove("notificacao-ativa");
+    document.getElementById("texto-sala").classList.remove("notificacao-ativa");
 
-      if (window.professorEmailAtual) {
-        const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
-        window.location.href = `/sala_virtual_aluno/${sala}`;
-      }
-    } catch (e) {
-      console.error("Erro desativarNotificacaoERedirecionar:", e);
+    if (window.professorEmailAtual) {
+      const sala = encodeURIComponent(`${window.professorEmailAtual}-${nomeAluno}`);
+      window.location.href = `/sala_virtual_aluno/${sala}`;
     }
-  };
+  } catch (e) {
+    console.error("Erro desativarNotificacaoERedirecionar:", e);
+  }
+};
 
-
-  window.addEventListener("DOMContentLoaded", () => {
-    verNotificacao();
-    setInterval(verNotificacao, 5000);
-  });
-  
+window.addEventListener("DOMContentLoaded", () => {
+  verNotificacao();
+  setInterval(verNotificacao, 5000);
+});
   
  window.verificarResposta = async function () {
   const respostaInput = document.getElementById("resposta-input");
