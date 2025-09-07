@@ -3986,9 +3986,11 @@ async def ajustar_progresso_ingles():
 
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
-from pydantic import BaseModel
-from datetime import datetime, timezone
 
+
+from pydantic import BaseModel
+
+# 🔹 Modelo de mensagem
 class MensagemIn(BaseModel):
     professor_email: str
     aluno_nome: str
@@ -3996,7 +3998,7 @@ class MensagemIn(BaseModel):
     texto: str
 
 
-# 🔹 Página de chat (Frontend simples que consome o backend)
+# 🔹 Página de chat (Frontend)
 @app.get("/chat-page", response_class=HTMLResponse)
 async def chat_page(request: Request, prof: str):
     return f"""
@@ -4053,7 +4055,7 @@ async def chat_page(request: Request, prof: str):
               p.textContent = m.texto;
               div.appendChild(p);
             }});
-            div.scrollTop = div.scrollHeight; // rola para baixo
+            div.scrollTop = div.scrollHeight;
           }} catch (e) {{
             console.error("Erro carregarMensagens:", e);
           }}
@@ -4087,6 +4089,7 @@ async def chat_page(request: Request, prof: str):
     </html>
     """
 
+
 # 🔹 Backend: listar mensagens
 @app.get("/chat/{prof_email}/{aluno_nome}")
 async def listar_mensagens(prof_email: str, aluno_nome: str):
@@ -4094,10 +4097,8 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         prof_email = prof_email.strip().lower()
         aluno_nome_input = aluno_nome.strip().lower()
 
-        # 🔹 Busca vínculo na coleção real (alunos_professor)
-        vinculo_ref = db.collection("alunos_professor") \
-                        .stream()
-
+        # Busca vínculo na coleção real (alunos_professor)
+        vinculo_ref = db.collection("alunos_professor").stream()
         vinculo_doc = None
         for doc in vinculo_ref:
             data = doc.to_dict()
@@ -4110,9 +4111,15 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
+        ref = db.collection("alunos_professor").document(vinculo_doc.id)
         dados = vinculo_doc.to_dict()
-        mensagens = dados.get("chat", [])
-        return {"mensagens": mensagens}
+
+        # 🔹 Garante que o campo chat exista
+        if "chat" not in dados:
+            ref.update({"chat": []})
+            dados["chat"] = []
+
+        return {"mensagens": dados.get("chat", [])}
 
     except Exception as e:
         print("Erro listar_mensagens:", e)
@@ -4120,6 +4127,7 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
             status_code=500,
             content={"detail": "Erro ao buscar mensagens", "erro": str(e)}
         )
+
 
 # 🔹 Backend: enviar mensagem
 @app.post("/chat/enviar")
@@ -4144,6 +4152,7 @@ async def enviar_mensagem(msg: MensagemIn):
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
         doc_data = vinculo_doc.to_dict()
 
+        # 🔹 Garante que o campo chat exista
         if "chat" not in doc_data:
             ref.update({"chat": []})
 
@@ -4161,51 +4170,4 @@ async def enviar_mensagem(msg: MensagemIn):
         return JSONResponse(
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
-        )
-
-
-@app.get("/buscar-professor/{termo}/{aluno_nome}")
-async def buscar_professor(termo: str, aluno_nome: str):
-    try:
-        termo = termo.strip().lower()
-        aluno_nome_input = aluno_nome.strip().lower()
-
-        # Validar se o aluno existe
-        alunos_ref = db.collection("alunos").stream()
-        aluno_doc = None
-        for doc in alunos_ref:
-            if doc.to_dict().get("nome", "").strip().lower() == aluno_nome_input:
-                aluno_doc = doc
-                break
-        if not aluno_doc:
-            return JSONResponse({"erro": "Aluno não encontrado"}, status_code=404)
-
-        # Procurar vínculo pelo email OU nome
-        vinculo_ref = db.collection("alunos_professor") \
-                        .where("aluno", "==", aluno_nome_input) \
-                        .stream()
-
-        professor_doc = None
-        for doc in vinculo_ref:
-            dados = doc.to_dict()
-            if dados.get("professor", "").strip().lower() == termo or \
-               dados.get("professor_nome", "").strip().lower() == termo:
-                professor_doc = dados
-                break
-
-        if not professor_doc:
-            return JSONResponse({"erro": "Professor não encontrado/vinculado"}, status_code=404)
-
-        return JSONResponse(content={
-            "nome": professor_doc.get("professor_nome", "N/D"),
-            "email": professor_doc.get("professor"),
-            "disciplina": professor_doc.get("disciplina", "N/D"),
-            "online": professor_doc.get("online", False)
-        }, status_code=200)
-
-    except Exception as e:
-        print("Erro ao buscar professor:", e)
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro ao buscar professor", "erro": str(e)}
         )
