@@ -185,7 +185,6 @@
       color: #00796b;
     }
 
-    /* ===================== EXTRA DO PRIMEIRO ===================== */
 
     .btn-ver-aulas {
       margin-top: 10px;
@@ -275,7 +274,7 @@
       opacity: 0.85;
     }
 
-    /* Overlay fundo escuro */
+    
     .overlay-info {
       position: fixed;
       top: 0; left: 0;
@@ -288,7 +287,7 @@
       animation: fadeIn 0.3s ease;
     }
 
-    /* Modal container */
+   
     .modal-info {
       background: #fff;
       padding: 25px 30px;
@@ -309,7 +308,7 @@
       text-align: center;
     }
 
-    /* Linha de informação */
+  
     .info-row {
       display: flex;
       justify-content: space-between;
@@ -326,7 +325,7 @@
       color: #2c3e50;
     }
 
-    /* Fechar modal */
+    
     .fechar-btn {
       position: absolute;
       top: 12px;
@@ -343,7 +342,7 @@
       transform: scale(1.2);
     }
 
-    /* Animações */
+    
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -431,7 +430,7 @@
 </div>
 
 
-<!-- FUNDO ESCURO PARA DETECTAR CLIQUE FORA -->
+
 <div id="calendarOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.2); z-index:999;" onclick="fecharCalendarioSeForFora(event)">
   <!-- CAIXA CALENDÁRIO -->
   <div id="calendarContainer" onclick="event.stopPropagation()" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:15px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; max-height:85vh; overflow-y:auto; font-size:14px;">
