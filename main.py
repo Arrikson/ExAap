@@ -4051,29 +4051,50 @@ async def enviar_mensagem(msg: MensagemIn):
 async def buscar_professor(email_professor: str, aluno_nome: str):
     try:
         email_professor = email_professor.strip().lower()
-        aluno_nome = aluno_nome.strip().lower()
+        aluno_nome_input = aluno_nome.strip().lower()
 
-        # procurar na coleção alunos_professor
-        docs = db.collection("alunos_professor") \
-                 .where("professor", "==", email_professor) \
-                 .where("aluno", "==", aluno_nome) \
-                 .limit(1).stream()
+        # 1️⃣ Validar se o aluno existe na coleção "alunos"
+        alunos_ref = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos_ref:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == aluno_nome_input:
+                aluno_doc = doc
+                break
 
-        doc = next(docs, None)
+        if not aluno_doc:
+            return JSONResponse(content={
+                "erro": "Aluno não encontrado"
+            }, status_code=404)
 
-        if not doc:
-            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
+        # 2️⃣ Procurar vínculo na coleção "alunos_professor"
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("professor", "==", email_professor) \
+                        .where("aluno", "==", aluno_nome_input) \
+                        .limit(1) \
+                        .stream()
 
-        dados = doc.to_dict()
-        return {
+        vinculo_doc = next(vinculo_ref, None)
+
+        if not vinculo_doc:
+            return JSONResponse(content={
+                "erro": "Professor não vinculado a este aluno"
+            }, status_code=404)
+
+        dados = vinculo_doc.to_dict()
+
+        # 3️⃣ Retornar dados completos do professor
+        return JSONResponse(content={
             "nome": dados.get("professor_nome", "N/D"),
             "email": dados.get("professor"),
-            "disciplina": dados.get("disciplina", "N/D")
-        }
+            "disciplina": dados.get("disciplina", "N/D"),
+            "online": dados.get("online", False)
+        }, status_code=200)
 
     except Exception as e:
+        print("Erro ao buscar professor:", e)
         return JSONResponse(
             status_code=500,
             content={"detail": "Erro ao buscar professor", "erro": str(e)}
         )
-
