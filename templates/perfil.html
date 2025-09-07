@@ -680,12 +680,10 @@ async function verificarAulaAtiva() {
     const btn = document.getElementById("btn-aulas-ativas");
 
     if (data.peer_id) {
-      
       icone.classList.add("fa-beat-fade", "text-success");
       texto.textContent = "Aula Ativa";
       btn.classList.add("active");
 
-     
       const hora = new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
@@ -702,7 +700,6 @@ async function verificarAulaAtiva() {
 
       mostrarModalAulas(html);
     } else {
-      // Nenhuma aula ativa
       icone.classList.remove("fa-beat-fade", "text-success");
       texto.textContent = "Aulas Ativas";
       btn.classList.remove("active");
@@ -712,7 +709,8 @@ async function verificarAulaAtiva() {
   }
 }
 
-setInterval(verificarAulaAtiva, 2000);
+// 👉 só chama quando clicar no botão
+document.getElementById("btn-aulas-ativas").addEventListener("click", verificarAulaAtiva);
 
   
   function toggleDesafio() {
