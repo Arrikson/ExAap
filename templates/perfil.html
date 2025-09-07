@@ -521,10 +521,22 @@ function fecharDesafio() {
   <div class="custom-modal">
     <button class="custom-close-btn" onclick="fecharChatAluno()">&times;</button>
     <h3>Conversar com Professor</h3>
-    <input type="text" id="pesquisar-professor" placeholder="Pesquisar professor..." 
-           onkeyup="filtrarProfessores()" 
-           style="width:100%;padding:8px;margin:10px 0;border:1px solid #ddd;border-radius:6px;">
-    <div id="lista-professores-chat" style="max-height:300px;overflow-y:auto;text-align:left;"></div>
+
+    <!-- Campo de pesquisa + botão -->
+    <div class="chat-pesquisa" style="display:flex;gap:6px;align-items:center;margin:10px 0;">
+      <input type="text" id="pesquisar-professor" 
+             placeholder="Pesquisar professor..."
+             onkeyup="filtrarProfessores()" 
+             style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;">
+      <button onclick="forcarBuscaProfessor()" 
+              style="padding:8px 12px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer;">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+
+    <!-- Lista dinâmica -->
+    <div id="lista-professores-chat" 
+         style="max-height:300px;overflow-y:auto;text-align:left;"></div>
   </div>
 </div>
 
@@ -567,8 +579,35 @@ function fecharDesafio() {
     });
   }
 
+  async function forcarBuscaProfessor() {
+    const termo = document.getElementById("pesquisar-professor").value.trim();
+    const alunoNome = localStorage.getItem("alunoNome");
+
+    if (!termo) return;
+
+    const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}`);
+    if (!res.ok) {
+      alert("Professor não encontrado");
+      return;
+    }
+
+    const professor = await res.json();
+
+    const lista = document.getElementById("lista-professores-chat");
+    lista.innerHTML = "";
+
+    const div = document.createElement("div");
+    div.classList.add("aluno-item");
+    div.innerHTML = `
+      <div class="aluno-nome">${professor.nome}</div>
+      <div class="aluno-disciplina">${professor.disciplina}</div>
+      <i class="fa-solid fa-comments chat-icon"></i>
+    `;
+    div.onclick = () => abrirConversaAluno(professor.email, alunoNome);
+    lista.appendChild(div);
+  }
+
   function abrirConversaAluno(profEmail, alunoNome) {
-    // Redireciona para a conversa com professor no mesmo estilo usado no professor
     window.location.href = `/chat/${encodeURIComponent(profEmail)}/${encodeURIComponent(alunoNome)}`;
   }
 </script>
