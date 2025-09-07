@@ -470,28 +470,6 @@
   <button onclick="abrirMenuResumo()" title="Informações">
     <i class="fas fa-bars"></i>
   </button>
-  <button onclick="abrirChat()" title="Chat">
-    <i class="fas fa-comments"></i>
-  </button>
-</div>
-
-<!-- Modal do Chat -->
-<div id="chat-modal" class="chat-modal-overlay" style="display:none;">
-  <div class="chat-modal">
-    <button class="chat-close-btn" onclick="fecharChat()">&times;</button>
-    <h3>Chat com Aluno</h3>
-    
-    <!-- Lista de mensagens -->
-    <div id="chat-mensagens" class="chat-mensagens" style="height:300px; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-      <!-- Mensagens vão aparecer aqui -->
-    </div>
-    
-    <!-- Input para nova mensagem -->
-    <div style="display:flex; gap:5px;">
-      <input type="text" id="chat-input" placeholder="Digite a mensagem..." style="flex:1; padding:8px; border-radius:5px; border:1px solid #ccc;">
-      <button onclick="enviarMensagem()" style="padding:8px 12px; border:none; background:#007bff; color:white; border-radius:5px; cursor:pointer;">Enviar</button>
-    </div>
-  </div>
 </div>
 
 <!-- Formulário oculto para redirecionar ao perfil -->
@@ -629,61 +607,6 @@ async function mostrarAulasDoDia() {
   }
 }
 
-let alunoSelecionado = ""; 
-let professorEmail = "";   
-let chatInterval = null;
-
-
-function abrirChat() {
-  document.getElementById("chat-modal").style.display = "block";
-  carregarMensagens();
-  // Atualizar mensagens a cada 3 segundos
-  chatInterval = setInterval(carregarMensagens, 3000);
-}
-
-
-function fecharChat() {
-  document.getElementById("chat-modal").style.display = "none";
-  clearInterval(chatInterval);
-}
-
-async function carregarMensagens() {
-  if (!alunoSelecionado || !professorEmail) return;
-  const res = await fetch(`/historico-mensagens/${alunoSelecionado}/${professorEmail}`);
-  const mensagens = await res.json();
-  const chatBox = document.getElementById("chat-mensagens");
-  chatBox.innerHTML = "";
-  mensagens.forEach(msg => {
-    const div = document.createElement("div");
-    div.style.marginBottom = "6px";
-    div.style.textAlign = msg.remetente === "professor" ? "right" : "left";
-    div.innerHTML = `<span style="background:${msg.remetente === "professor" ? '#007bff' : '#e6e6e6'}; color:${msg.remetente === "professor" ? 'white' : 'black'}; padding:5px 10px; border-radius:10px; display:inline-block;">${msg.mensagem}</span>`;
-    chatBox.appendChild(div);
-  });
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-
-async function enviarMensagem() {
-  const input = document.getElementById("chat-input");
-  const mensagem = input.value.trim();
-  if (!mensagem || !alunoSelecionado || !professorEmail) return;
-
-  await fetch("/enviar-mensagem", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      aluno: alunoSelecionado,
-      professor: professorEmail,
-      remetente: "professor",
-      mensagem: mensagem
-    })
-  });
-
-  input.value = "";
-  carregarMensagens();
-}
-  
 async function mostrarAulasDaSemana() {
   const professorEmail = "{{ professor.email }}";
 
