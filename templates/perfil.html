@@ -517,26 +517,26 @@ function fecharDesafio() {
 </div>
 
 <!-- Modal do Chat do Aluno -->
-<div id="chat-modal-aluno" class="custom-modal-overlay" style="display:none;">
-  <div class="custom-modal">
-    <button class="custom-close-btn" onclick="fecharChatAluno()">&times;</button>
-    <h3>Conversar com Professor</h3>
+<div id="chat-modal-aluno" class="chat-overlay">
+  <div class="chat-modal">
+    <!-- Cabeçalho -->
+    <div class="chat-header">
+      <h3>Conversar com Professor</h3>
+      <button onclick="fecharChatAluno()">&times;</button>
+    </div>
 
-    <!-- Campo de pesquisa + botão -->
-    <div class="chat-pesquisa" style="display:flex;gap:6px;align-items:center;margin:10px 0;">
+    <!-- Barra de pesquisa -->
+    <div class="chat-search">
       <input type="text" id="pesquisar-professor" 
              placeholder="Pesquisar professor..."
-             onkeyup="filtrarProfessores()" 
-             style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;">
-      <button type="button" onclick="forcarBuscaProfessor()"
-             style="padding:8px 12px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer;">
+             onkeyup="filtrarProfessores()">
+      <button type="button" onclick="forcarBuscaProfessor()">
         <i class="fa-solid fa-magnifying-glass"></i>
-     </button>
+      </button>
     </div>
 
     <!-- Lista dinâmica -->
-    <div id="lista-professores-chat" 
-         style="max-height:300px;overflow-y:auto;text-align:left;"></div>
+    <div id="lista-professores-chat" class="chat-list"></div>
   </div>
 </div>
 
@@ -551,7 +551,7 @@ function fecharDesafio() {
     document.getElementById("chat-modal-aluno").style.display = "none";
   }
 
-  // 🔹 Carrega todos os professores do aluno (rota precisa existir no backend)
+  // 🔹 Carrega todos os professores do aluno
   async function carregarProfessoresChat() {
     const alunoNome = localStorage.getItem("alunoNome"); 
     if (!alunoNome) return;
@@ -566,8 +566,8 @@ function fecharDesafio() {
 
       professores.forEach(p => {
         const statusIcon = p.online
-          ? '<i class="fa-solid fa-circle text-success"></i>'
-          : '<i class="fa-regular fa-circle text-muted"></i>';
+          ? '<i class="fa-solid fa-circle" style="color:green;"></i>'
+          : '<i class="fa-regular fa-circle" style="color:gray;"></i>';
         const statusText = p.online ? 'Online' : 'Offline';
 
         const div = document.createElement("div");
@@ -595,53 +595,52 @@ function fecharDesafio() {
   }
 
   // 🔹 Busca forçada via rota /buscar-professor
- window.forcarBuscaProfessor = async function () {
-  const termo = document.getElementById("pesquisar-professor").value.trim();
-  const alunoNome = localStorage.getItem("alunoNome");
+  window.forcarBuscaProfessor = async function () {
+    const termo = document.getElementById("pesquisar-professor").value.trim();
+    const alunoNome = localStorage.getItem("alunoNome");
 
-  if (!termo) {
-    alert("Digite algo para pesquisar.");
-    return;
-  }
-  if (!alunoNome) {
-    alert("Aluno não identificado. Faça login novamente.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}/${encodeURIComponent(alunoNome)}`);
-    if (!res.ok) {
-      alert("Professor não encontrado ou não vinculado a este aluno");
+    if (!termo) {
+      alert("Digite algo para pesquisar.");
+      return;
+    }
+    if (!alunoNome) {
+      alert("Aluno não identificado. Faça login novamente.");
       return;
     }
 
-    const professor = await res.json();
-    const statusIcon = professor.online
-      ? '<i class="fa-solid fa-circle text-success"></i>'
-      : '<i class="fa-regular fa-circle text-muted"></i>';
-    const statusText = professor.online ? 'Online' : 'Offline';
+    try {
+      const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}/${encodeURIComponent(alunoNome)}`);
+      if (!res.ok) {
+        alert("Professor não encontrado ou não vinculado a este aluno");
+        return;
+      }
 
-    const lista = document.getElementById("lista-professores-chat");
-    lista.innerHTML = "";
+      const professor = await res.json();
+      const statusIcon = professor.online
+        ? '<i class="fa-solid fa-circle" style="color:green;"></i>'
+        : '<i class="fa-regular fa-circle" style="color:gray;"></i>';
+      const statusText = professor.online ? 'Online' : 'Offline';
 
-    const div = document.createElement("div");
-    div.classList.add("aluno-item");
-    div.innerHTML = `
-      <div class="aluno-nome">${professor.nome} ${statusIcon} <span class="status-text">(${statusText})</span></div>
-      <div class="aluno-disciplina">${professor.disciplina}</div>
-      <i class="fa-solid fa-comments chat-icon"></i>
-    `;
-    div.onclick = () => abrirConversaAluno(professor.email, alunoNome);
-    lista.appendChild(div);
-  } catch (e) {
-    console.error("Erro ao buscar professor:", e);
-    alert("Erro ao buscar professor.");
+      const lista = document.getElementById("lista-professores-chat");
+      lista.innerHTML = "";
+
+      const div = document.createElement("div");
+      div.classList.add("aluno-item");
+      div.innerHTML = `
+        <div class="aluno-nome">${professor.nome} ${statusIcon} <span class="status-text">(${statusText})</span></div>
+        <div class="aluno-disciplina">${professor.disciplina}</div>
+        <i class="fa-solid fa-comments chat-icon"></i>
+      `;
+      div.onclick = () => abrirConversaAluno(professor.email, alunoNome);
+      lista.appendChild(div);
+    } catch (e) {
+      console.error("Erro ao buscar professor:", e);
+      alert("Erro ao buscar professor.");
+    }
   }
-}
 
   // 🔹 Abre a página de chat
   function abrirConversaAluno(profEmail, alunoNome) {
-    // usa a rota /chat-page que você já tem
     window.location.href = `/chat-page?prof=${encodeURIComponent(profEmail)}&aluno=${encodeURIComponent(alunoNome)}`;
   }
 </script>
@@ -775,8 +774,14 @@ function abrirPagamentos() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Dados do template
+  // Dados do template (injetados pelo backend)
   const nomeAluno = "{{ aluno.nome }}";
+
+  // 🔹 Sempre salvar no localStorage ao carregar o perfil
+  if (nomeAluno && nomeAluno !== "{{ aluno.nome }}") {
+    localStorage.setItem("alunoNome", nomeAluno.trim().toLowerCase());
+    console.log("Aluno salvo no localStorage:", nomeAluno);
+  }
 
   // ---------------------------
   // FUNÇÕES / LÓGICA EXPOSAS
