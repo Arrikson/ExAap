@@ -3990,20 +3990,41 @@ async def ajustar_progresso_ingles():
 @app.get("/chat/{prof_email}/{aluno_nome}")
 async def listar_mensagens(prof_email: str, aluno_nome: str):
     try:
-        docs = db.collection("alunos_professor") \
-                 .where("professor", "==", prof_email.strip().lower()) \
-                 .where("aluno", "==", aluno_nome.strip().lower()) \
-                 .limit(1).stream()
+        prof_email = prof_email.strip().lower()
+        aluno_nome_input = aluno_nome.strip().lower()
 
-        doc = next(docs, None)
-        if not doc:
-            raise HTTPException(status_code=404, detail="Conversa não encontrada")
+        # 1️⃣ Validar se o aluno existe
+        alunos_ref = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos_ref:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == aluno_nome_input:
+                aluno_doc = doc
+                break
 
-        dados = doc.to_dict()
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+        # 2️⃣ Validar se existe vínculo do professor com o aluno
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("professor", "==", prof_email) \
+                        .where("aluno", "==", aluno_nome_input) \
+                        .limit(1) \
+                        .stream()
+
+        vinculo_doc = next(vinculo_ref, None)
+
+        if not vinculo_doc:
+            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
+
+        # 3️⃣ Retornar mensagens do chat
+        dados = vinculo_doc.to_dict()
         mensagens = dados.get("chat", [])
         return {"mensagens": mensagens}
 
     except Exception as e:
+        print("Erro listar_mensagens:", e)
         return JSONResponse(
             status_code=500,
             content={"detail": "Erro ao buscar mensagens", "erro": str(e)}
@@ -4016,19 +4037,40 @@ class MensagemIn(BaseModel):
     autor: str   # "professor" ou "aluno"
     texto: str
 
+
 @app.post("/chat/enviar")
 async def enviar_mensagem(msg: MensagemIn):
     try:
-        docs = db.collection("alunos_professor") \
-                 .where("professor", "==", msg.professor_email.strip().lower()) \
-                 .where("aluno", "==", msg.aluno_nome.strip().lower()) \
-                 .limit(1).stream()
+        prof_email = msg.professor_email.strip().lower()
+        aluno_nome_input = msg.aluno_nome.strip().lower()
 
-        doc = next(docs, None)
-        if not doc:
-            raise HTTPException(status_code=404, detail="Conversa não encontrada")
+        # 1️⃣ Validar se o aluno existe
+        alunos_ref = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos_ref:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == aluno_nome_input:
+                aluno_doc = doc
+                break
 
-        ref = db.collection("alunos_professor").document(doc.id)
+        if not aluno_doc:
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+        # 2️⃣ Validar vínculo com professor
+        vinculo_ref = db.collection("alunos_professor") \
+                        .where("professor", "==", prof_email) \
+                        .where("aluno", "==", aluno_nome_input) \
+                        .limit(1) \
+                        .stream()
+
+        vinculo_doc = next(vinculo_ref, None)
+
+        if not vinculo_doc:
+            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
+
+        # 3️⃣ Atualizar o chat
+        ref = db.collection("alunos_professor").document(vinculo_doc.id)
 
         ref.update({
             "chat": firestore.ArrayUnion([{
@@ -4041,6 +4083,7 @@ async def enviar_mensagem(msg: MensagemIn):
         return {"message": "Mensagem enviada com sucesso"}
 
     except Exception as e:
+        print("Erro enviar_mensagem:", e)
         return JSONResponse(
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
