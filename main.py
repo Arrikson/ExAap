@@ -4006,7 +4006,7 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         if not aluno_doc:
             raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-        # 2️⃣ Validar se existe vínculo do professor com o aluno
+        # 2️⃣ Buscar vínculo do professor com o aluno
         vinculo_ref = db.collection("alunos_professor") \
                         .where("professor", "==", prof_email) \
                         .where("aluno", "==", aluno_nome_input) \
@@ -4018,9 +4018,15 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
-        # 3️⃣ Retornar mensagens do chat
+        # 3️⃣ Retornar mensagens (ou inicializar caso não exista)
+        ref = db.collection("alunos_professor").document(vinculo_doc.id)
         dados = vinculo_doc.to_dict()
-        mensagens = dados.get("chat", [])
+
+        mensagens = dados.get("chat")
+        if mensagens is None:
+            ref.update({"chat": []})
+            mensagens = []
+
         return {"mensagens": mensagens}
 
     except Exception as e:
@@ -4072,15 +4078,22 @@ async def enviar_mensagem(msg: MensagemIn):
         # 3️⃣ Atualizar o chat
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
 
+        # Garante que o campo chat existe
+        doc_data = vinculo_doc.to_dict()
+        if "chat" not in doc_data:
+            ref.update({"chat": []})
+
+        nova_msg = {
+            "autor": msg.autor,
+            "texto": msg.texto,
+            "enviado_em": datetime.now(timezone.utc).isoformat()
+        }
+
         ref.update({
-            "chat": firestore.ArrayUnion([{
-                "autor": msg.autor,
-                "texto": msg.texto,
-                "enviado_em": datetime.now(timezone.utc).isoformat()
-            }])
+            "chat": firestore.ArrayUnion([nova_msg])
         })
 
-        return {"message": "Mensagem enviada com sucesso"}
+        return {"message": "Mensagem enviada com sucesso", "mensagem": nova_msg}
 
     except Exception as e:
         print("Erro enviar_mensagem:", e)
@@ -4088,7 +4101,6 @@ async def enviar_mensagem(msg: MensagemIn):
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
         )
-
 
 @app.get("/buscar-professor/{email_professor}/{aluno_nome}")
 async def buscar_professor(email_professor: str, aluno_nome: str):
