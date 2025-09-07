@@ -571,6 +571,7 @@ function fecharDesafio() {
     });
   }
 
+<script>
   function filtrarProfessores() {
     const termo = document.getElementById("pesquisar-professor").value.toLowerCase();
     const itens = document.querySelectorAll("#lista-professores-chat .aluno-item");
@@ -585,32 +586,44 @@ function fecharDesafio() {
 
     if (!termo) return;
 
-    const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}/${encodeURIComponent(alunoNome)}`);
-    if (!res.ok) {
-      alert("Professor não encontrado ou não vinculado a este aluno");
-      return;
+    try {
+      const res = await fetch(`/buscar-professor/${encodeURIComponent(termo)}/${encodeURIComponent(alunoNome)}`);
+      if (!res.ok) {
+        alert("Professor não encontrado ou não vinculado a este aluno");
+        return;
+      }
+
+      const professor = await res.json();
+
+      // monta status igual ao toggleProfessor
+      const statusIcon = professor.online
+        ? '<i class="fa-solid fa-circle text-success"></i>'
+        : '<i class="fa-regular fa-circle text-muted"></i>';
+      const statusText = professor.online ? 'Online' : 'Offline';
+
+      const lista = document.getElementById("lista-professores-chat");
+      lista.innerHTML = "";
+
+      const div = document.createElement("div");
+      div.classList.add("aluno-item");
+      div.innerHTML = `
+        <div class="aluno-nome">${professor.nome} ${statusIcon} <span class="status-text">(${statusText})</span></div>
+        <div class="aluno-disciplina">${professor.disciplina}</div>
+        <i class="fa-solid fa-comments chat-icon"></i>
+      `;
+      div.onclick = () => abrirConversaAluno(professor.email, alunoNome);
+      lista.appendChild(div);
+    } catch (e) {
+      console.error("Erro ao buscar professor:", e);
+      alert("Erro ao buscar professor.");
     }
-
-    const professor = await res.json();
-
-    const lista = document.getElementById("lista-professores-chat");
-    lista.innerHTML = "";
-
-    const div = document.createElement("div");
-    div.classList.add("aluno-item");
-    div.innerHTML = `
-      <div class="aluno-nome">${professor.nome}</div>
-      <div class="aluno-disciplina">${professor.disciplina}</div>
-      <i class="fa-solid fa-comments chat-icon"></i>
-    `;
-    div.onclick = () => abrirConversaAluno(professor.email, alunoNome);
-    lista.appendChild(div);
   }
 
   function abrirConversaAluno(profEmail, alunoNome) {
     window.location.href = `/chat/${encodeURIComponent(profEmail)}/${encodeURIComponent(alunoNome)}`;
   }
 </script>
+
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
