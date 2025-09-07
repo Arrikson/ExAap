@@ -3987,205 +3987,129 @@ async def ajustar_progresso_ingles():
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
 
+# 🔹 Modelo para enviar mensagens
+class Mensagem(BaseModel):
+    aluno: str
+    professor: str
+    remetente: str  # "aluno" ou "professor"
+    mensagem: str
 
-class MensagemIn(BaseModel):
-    professor_email: str
-    aluno_nome: str
-    autor: str
-    texto: str
-
-
-@app.get("/meus-professores-status/{aluno_nome}")
-async def meus_professores_status(aluno_nome: str):
+# 🔹 Rota atualizada para listar alunos com campos de chat
+@app.get("/meus-alunos-status/{prof_email}")
+async def meus_alunos_status(prof_email: str):
     try:
-        aluno_nome_input = aluno_nome.strip().lower()
-        docs = db.collection("alunos_professor").stream()
-        professores = []
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email.strip().lower()).stream()
 
+        alunos = []
         for doc in docs:
             d = doc.to_dict()
-            aluno_db = str(d.get("aluno", "")).strip().lower()
-            if aluno_db == aluno_nome_input:
-                # 🔹 Garante que o campo chat exista
-                if "chat" not in d:
-                    db.collection("alunos_professor").document(doc.id).update({"chat": []})
-                    d["chat"] = []
+            dados = d.get('dados_aluno', {})
 
-                professores.append({
-                    "nome": d.get("professor_nome", "N/D"),
-                    "email": d.get("professor", ""),
-                    "disciplina": d.get("disciplina", "N/D"),
-                    "online": d.get("online", False)
+            alunos.append({
+                'nome': dados.get('nome', d.get('aluno', '')),
+                'disciplina': dados.get('disciplina', ''),
+                'telefone': dados.get('telefone', ''),
+                'provincia': dados.get('provincia', ''),
+                'municipio': dados.get('municipio', ''),
+                'bairro': dados.get('bairro', ''),
+                'nivel_ingles': dados.get('nivel_ingles', ''),
+                'online': d.get('online', False),
+                
+                # 🔹 Campos para fluxo natural do chat
+                'ultimo_mensagem': d.get('ultimo_mensagem'),
+                'mensagens_nao_lidas': d.get('mensagens_nao_lidas', 0),
+                'status_chat': d.get('status_chat', 'ativo'),
+                'ultima_atividade': d.get('ultima_atividade'),
+                'conversa': d.get('conversa', [])  # histórico recente
+            })
+
+        return alunos
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)}
+        )
+
+# 🔹 Rota para enviar mensagens
+@app.post("/enviar-mensagem")
+async def enviar_mensagem(msg: Mensagem):
+    try:
+        aluno = msg.aluno.strip().lower()
+        professor = msg.professor.strip().lower()
+        remetente = msg.remetente
+        texto = msg.mensagem
+        timestamp = datetime.utcnow()
+
+        # 🔹 Criar ou atualizar documento na coleção chat_aluno_professor
+        doc_ref = db.collection("chat_aluno_professor").document(f"{aluno}_{professor}")
+        doc = doc_ref.get()
+        if doc.exists:
+            # Append nova mensagem
+            doc_ref.update({
+                "mensagens": firestore.ArrayUnion([{
+                    "remetente": remetente,
+                    "mensagem": texto,
+                    "timestamp": timestamp,
+                    "lida": False
+                }]),
+                "ultimo_mensagem": timestamp
+            })
+        else:
+            # Cria novo documento
+            doc_ref.set({
+                "aluno": aluno,
+                "professor": professor,
+                "mensagens": [{
+                    "remetente": remetente,
+                    "mensagem": texto,
+                    "timestamp": timestamp,
+                    "lida": False
+                }],
+                "ultimo_mensagem": timestamp
+            })
+
+        # 🔹 Atualiza alunos_professor
+        # Incrementa mensagens não lidas para o destinatário
+        docs_ap = db.collection("alunos_professor") \
+                    .where("aluno", "==", aluno) \
+                    .where("professor", "==", professor).stream()
+        for d_ap in docs_ap:
+            doc_ap_ref = db.collection("alunos_professor").document(d_ap.id)
+            if remetente == "aluno":
+                # Professor recebe a mensagem
+                doc_ap_ref.update({
+                    "mensagens_nao_lidas": firestore.Increment(1),
+                    "ultimo_mensagem": timestamp
+                })
+            else:
+                # Aluno recebe a mensagem
+                doc_ap_ref.update({
+                    "ultimo_mensagem": timestamp
                 })
 
-        return professores
+        return {"detail": "Mensagem enviada com sucesso"}
 
     except Exception as e:
-        print("Erro meus_professores_status:", e)
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro ao buscar professores", "erro": str(e)}
-        )
-
-
-
-@app.get("/chat-page", response_class=HTMLResponse)
-async def chat_page(request: Request, prof: str):
-    return f"""
-    <html>
-    <head>
-        <title>Chat com {prof}</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-        <style>
-          body {{ font-family: Arial, sans-serif; }}
-          #mensagens {{ max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px; }}
-          .msg-aluno {{ text-align:right; color:blue; margin:5px; }}
-          .msg-prof {{ text-align:left; color:green; margin:5px; }}
-          .input-area {{ display:flex; gap:5px; }}
-          input {{ flex:1; padding:5px; }}
-          button {{ padding:5px 10px; }}
-        </style>
-    </head>
-    <body>
-      <h3>Chat com {prof}</h3>
-      <div id="mensagens"></div>
-      <div class="input-area">
-        <input type="text" id="msg-input" placeholder="Digite sua mensagem...">
-        <button onclick="enviarMensagem()">Enviar</button>
-      </div>
-
-      <script>
-        const profEmail = "{prof}";
-        let alunoNome = localStorage.getItem("alunoNome");
-
-        if (!alunoNome) {{
-            alert("Aluno não identificado. Faça o login novamente.");
-        }}
-
-        async function carregarMensagens() {{
-          try {{
-            const res = await fetch(`/chat/${{encodeURIComponent(profEmail)}}/${{encodeURIComponent(alunoNome)}}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            const mensagens = data.mensagens || [];
-            const div = document.getElementById("mensagens");
-            div.innerHTML = "";
-            mensagens.forEach(m => {{
-              const p = document.createElement("p");
-              p.className = m.autor === "aluno" ? "msg-aluno" : "msg-prof";
-              p.textContent = m.texto;
-              div.appendChild(p);
-            }});
-            div.scrollTop = div.scrollHeight;
-          }} catch (e) {{
-            console.error("Erro carregarMensagens:", e);
-          }}
-        }}
-
-        async function enviarMensagem() {{
-          const texto = document.getElementById("msg-input").value.trim();
-          if (!texto) return;
-          try {{
-            await fetch("/chat/enviar", {{
-              method: "POST",
-              headers: {{ "Content-Type": "application/json" }},
-              body: JSON.stringify({{
-                professor_email: profEmail,
-                aluno_nome: alunoNome,
-                autor: "aluno",
-                texto: texto
-              }})
-            }});
-            document.getElementById("msg-input").value = "";
-            carregarMensagens();
-          }} catch (e) {{
-            console.error("Erro enviarMensagem:", e);
-          }}
-        }}
-
-        setInterval(carregarMensagens, 3000);
-        carregarMensagens();
-      </script>
-    </body>
-    </html>
-    """
-
-
-
-@app.get("/chat/{prof_email}/{aluno_nome}")
-async def listar_mensagens(prof_email: str, aluno_nome: str):
-    try:
-        prof_email = prof_email.strip().lower()
-        aluno_nome_input = aluno_nome.strip().lower()
-
-        vinculo_ref = db.collection("alunos_professor").stream()
-        vinculo_doc = None
-        for doc in vinculo_ref:
-            data = doc.to_dict()
-            aluno_db = str(data.get("aluno", "")).strip().lower()
-            prof_db = str(data.get("professor", "")).strip().lower()
-            if aluno_db == aluno_nome_input and prof_db == prof_email:
-                vinculo_doc = doc
-                break
-
-        if not vinculo_doc:
-            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
-
-        ref = db.collection("alunos_professor").document(vinculo_doc.id)
-        dados = vinculo_doc.to_dict()
-
-        if "chat" not in dados:
-            ref.update({"chat": []})
-            dados["chat"] = []
-
-        return {"mensagens": dados.get("chat", [])}
-
-    except Exception as e:
-        print("Erro listar_mensagens:", e)
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro ao buscar mensagens", "erro": str(e)}
-        )
-
-
-
-@app.post("/chat/enviar")
-async def enviar_mensagem(msg: MensagemIn):
-    try:
-        prof_email = msg.professor_email.strip().lower()
-        aluno_nome_input = msg.aluno_nome.strip().lower()
-
-        vinculo_ref = db.collection("alunos_professor").stream()
-        vinculo_doc = None
-        for doc in vinculo_ref:
-            data = doc.to_dict()
-            aluno_db = str(data.get("aluno", "")).strip().lower()
-            prof_db = str(data.get("professor", "")).strip().lower()
-            if aluno_db == aluno_nome_input and prof_db == prof_email:
-                vinculo_doc = doc
-                break
-
-        if not vinculo_doc:
-            raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
-
-        ref = db.collection("alunos_professor").document(vinculo_doc.id)
-        doc_data = vinculo_doc.to_dict()
-
-        if "chat" not in doc_data:
-            ref.update({"chat": []})
-
-        nova_msg = {
-            "autor": msg.autor,
-            "texto": msg.texto,
-            "enviado_em": datetime.now(timezone.utc).isoformat()
-        }
-
-        ref.update({"chat": firestore.ArrayUnion([nova_msg])})
-        return {"message": "Mensagem enviada com sucesso", "mensagem": nova_msg}
-
-    except Exception as e:
-        print("Erro enviar_mensagem:", e)
         return JSONResponse(
             status_code=500,
             content={"detail": "Erro ao enviar mensagem", "erro": str(e)}
+        )
+
+# 🔹 Rota para receber mensagens (histórico)
+@app.get("/historico-mensagens/{aluno}/{professor}")
+async def historico_mensagens(aluno: str, professor: str):
+    try:
+        doc_ref = db.collection("chat_aluno_professor").document(f"{aluno.strip().lower()}_{professor.strip().lower()}")
+        doc = doc_ref.get()
+        if doc.exists:
+            return doc.to_dict().get("mensagens", [])
+        else:
+            return []
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao buscar histórico de mensagens", "erro": str(e)}
         )
