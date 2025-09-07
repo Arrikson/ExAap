@@ -8,553 +8,342 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Nunito', sans-serif;
-      background: #f4f4f8;
-      color: #333;
-      padding-bottom: 70px;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    background: #f4f4f8;
+    color: #333;
+    padding-bottom: 70px;
+  }
 
-    .header-bai {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      padding: 20px;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+  .header-bai {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    padding: 20px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
 
-    .header-bai img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
+  .header-bai img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
 
-    .header-bai .info {
-      flex: 1;
-    }
+  .header-bai .info {
+    flex: 1;
+  }
 
-    .header-bai .info h2 {
-      margin: 0;
-      font-size: 20px;
-    }
+  .header-bai .info h2 {
+    margin: 0;
+    font-size: 20px;
+  }
 
-    .header-bai .info p {
-      margin: 2px 0;
-      font-size: 14px;
-    }
+  .header-bai .info p {
+    margin: 2px 0;
+    font-size: 14px;
+  }
 
-    .header-bai .saldo {
-      font-size: 16px;
-      font-weight: bold;
-    }
+  .header-bai .saldo {
+    font-size: 16px;
+    font-weight: bold;
+  }
 
-    .saldo-toggle {
-      background-color: #fff;
-      color: #000;
-      padding: 5px 10px;
-      font-size: 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
+  .saldo-toggle {
+    background-color: #fff;
+    color: #000;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
 
-    .logout-button {
-      position: fixed; 
-      top: 15px;
-      right: 20px;
-      background-color: #ff4d4f;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 13px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 1000; 
-    }
+  .btn-ver-aulas {
+    margin-top: 10px;
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 
-    .logout-button:hover {
-      background-color: #d9363e;
-    }
+  .day {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #f1f1f1;
+  }
 
-    /* 🔥 NOVO COMPONENTE DE AÇÕES */
-    .acoes-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      margin: 20px 15px;
-    }
+  .day.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+  }
 
-    .acao {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-align: center;
-    }
+  .time {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+    border-radius: 5px;
+    background: #f9f9f9;
+    cursor: pointer;
+  }
 
-    .acao i {
-      font-size: 26px;
-      color: #007bff;
-      margin-bottom: 8px;
-    }
+  .time.active {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+    border-color: #218838;
+  }
 
-    .acao span {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-    }
+  .botao-padrao {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    border: none;
+    border-radius: 16px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s ease;
+    text-align: center;
+    margin-top: 10px;
+    margin-right: 5px;
+  }
 
-    .acao:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
+  .botao-padrao:hover {
+    opacity: 0.85;
+  }
+  
+  .logout-button {
+    position: fixed; 
+    top: 15px;
+    right: 20px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 1000; 
+  }
 
-    .ultimas-aulas {
-      padding: 20px;
-    }
+  .logout-button:hover {
+    background-color: #d9363e;
+  }
 
-    .ultimas-aulas h3 {
-      margin-bottom: 15px;
-    }
+  .botao-menu {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin: 20px 15px;
+  }
 
-    .aula-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      cursor: pointer;
-    }
+  .botao-menu button {
+    flex: 1;
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    border: none;
+    border-radius: 16px;
+    padding: 15px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s ease;
+    text-align: center;
+  }
 
-    .aula-item i {
-      color: #007bff;
-      margin-right: 10px;
-    }
+  .botao-menu button:hover {
+    opacity: 0.85;
+  }
 
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-top: 1px solid #ccc;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      z-index: 100;
-    }
+  .ultimas-aulas {
+    padding: 20px;
+  }
 
-    .bottom-nav button {
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: #444;
-      cursor: pointer;
-    }
+  .ultimas-aulas h3 {
+    margin-bottom: 15px;
+  }
 
-    .secao-dinamica {
-      display: none;
-      padding: 20px;
-      margin: 10px 15px;
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-    }
+  .aula-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    cursor: pointer;
+  }
 
-    .secao-dinamica h4 {
-      margin-bottom: 10px;
-      color: #00796b;
-    }
+  .aula-item i {
+    color: #007bff;
+    margin-right: 10px;
+  }
 
-    .btn-ver-aulas {
-      margin-top: 10px;
-      background-color: #ffc107;
-      color: #000;
-      border: none;
-      padding: 10px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #ccc;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 100;
+  }
 
-    .day {
-      padding: 6px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-      background: #f1f1f1;
-    }
+  .bottom-nav button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #444;
+    cursor: pointer;
+  }
 
-    .day.active {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-    }
+  .secao-dinamica {
+    display: none;
+    padding: 20px;
+    margin: 10px 15px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  }
 
-    .time {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: center;
-      border-radius: 5px;
-      background: #f9f9f9;
-      cursor: pointer;
-    }
+  .secao-dinamica h4 {
+    margin-bottom: 10px;
+    color: #00796b;
+  }
 
-    .time.active {
-      background-color: #28a745;
-      color: white;
-      font-weight: bold;
-      border-color: #218838;
-    }
-
-    .botao-padrao {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      border: none;
-      border-radius: 16px;
-      padding: 10px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #000;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: 0.2s ease;
-      text-align: center;
-      margin-top: 10px;
-      margin-right: 5px;
-    }
-
-    .botao-padrao:hover {
-      opacity: 0.85;
-    }
-
+  @media (max-width: 700px) {
     .botao-menu {
-      display: flex;
-      justify-content: space-between;
       flex-wrap: nowrap;
-      gap: 10px;
-      margin: 20px 15px;
+      overflow-x: auto;
     }
 
     .botao-menu button {
-      flex: 1;
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      border: none;
-      border-radius: 16px;
-      padding: 15px 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #000;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: 0.2s ease;
-      text-align: center;
+      min-width: 120px;
+      flex: 0 0 auto;
     }
+  }
 
-    .botao-menu button:hover {
-      opacity: 0.85;
-    }
+  /* Overlay fundo escuro */
+  .overlay-info {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+  }
 
-    /* Modal info */
-    .overlay-info {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      animation: fadeIn 0.3s ease;
-    }
+  /* Modal container */
+  .modal-info {
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 18px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    animation: slideUp 0.4s ease;
+    font-family: 'Nunito', sans-serif;
+    position: relative;
+  }
 
-    .modal-info {
-      background: #fff;
-      padding: 25px 30px;
-      border-radius: 18px;
-      max-width: 420px;
-      width: 90%;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-      animation: slideUp 0.4s ease;
-      font-family: 'Nunito', sans-serif;
-      position: relative;
-    }
+  .modal-info h3 {
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+  }
 
-    .modal-info h3 {
-      margin-bottom: 15px;
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #2c3e50;
-      text-align: center;
-    }
+  /* Linha de informação */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    font-size: 1rem;
+    color: #444;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+  }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 10px 0;
-      font-size: 1rem;
-      color: #444;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 6px;
-    }
+  .info-row span:first-child {
+    font-weight: bold;
+    color: #2c3e50;
+  }
 
-    .info-row span:first-child {
-      font-weight: bold;
-      color: #2c3e50;
-    }
+  /* Botões (reaproveitando .botao-padrao já existente) */
+  .botao-padrao {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 600;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
 
-    .fechar-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: transparent;
-      color: #555;
-      font-size: 1.2rem;
-      cursor: pointer;
-      border: none;
-    }
+  .botao-padrao:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
 
-    .fechar-btn:hover {
-      color: #e74c3c;
-      transform: scale(1.2);
-    }
+  /* Fechar (ícone no canto) */
+  .fechar-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    color: #555;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+  }
 
-    /* ====== ALUNO ITEM ====== */
-    .aluno-item {
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
-      margin: 8px 0;
-      background: #f9f9fc;
-      border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+  .fechar-btn:hover {
+    color: #e74c3c;
+    transform: scale(1.2);
+  }
 
-    .aluno-item:hover {
-      background: #eef3ff;
-    }
+  /* Animações */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 
-    .aluno-nome {
-      font-weight: 600;
-      color: #333;
-      font-size: 15px;
-    }
-
-    .aluno-disciplina {
-      font-size: 13px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    /* ======== ESTILO DO CHAT ======== */
-    .chat-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .chat-modal {
-      background: #fff;
-      width: 95%;
-      max-width: 420px;
-      height: 80%;
-      border-radius: 18px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-      animation: slideUp 0.4s ease;
-      font-family: 'Nunito', sans-serif;
-      position: relative;
-    }
-
-    .chat-header {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #fff;
-    }
-
-    .chat-header h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .chat-header button {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    .chat-header button:hover {
-      color: #222;
-    }
-
-    .chat-search {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      background: #fafafa;
-    }
-
-    .chat-search input {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .chat-list {
-      flex: 1;
-      overflow-y: auto;
-      background: #fff;
-      padding: 10px;
-    }
-
-    .chat-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-list::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 10px;
-    }
-
-    .chat-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 10px;
-      margin-bottom: 8px;
-      background: #f9f9f9;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .chat-item:hover {
-      background: #e6f0ff;
-      transform: translateX(4px);
-    }
-
-    .chat-item i {
-      font-size: 20px;
-      color: #007bff;
-      margin-right: 10px;
-    }
-
-    .chat-item span {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 12px;
-      overflow-y: auto;
-      background: #f4f4f8;
-    }
-
-    .message {
-      max-width: 75%;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-      border-radius: 14px;
-      font-size: 14px;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-
-    .message.professor {
-      background: #007bff;
-      color: #fff;
-      margin-left: auto;
-    }
-
-    .message.aluno {
-      background: #e6f0ff;
-      color: #333;
-      margin-right: auto;
-    }
-
-    .chat-input {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      background: #fff;
-      border-top: 1px solid #ddd;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .chat-input button {
-      background: linear-gradient(135deg, #00c9ff, #92fe9d);
-      border: none;
-      border-radius: 12px;
-      padding: 10px 14px;
-      margin-left: 8px;
-      font-size: 16px;
-      color: #000;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .chat-input button:hover {
-      opacity: 0.85;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  </style>
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+</style>
+  
 </head>
-
  <!-- Botão de logout no canto superior direito -->
   <form method="POST" action="/logout_prof" style="position: fixed; top: 10px; right: 15px; z-index: 1000;">
     <input type="hidden" name="email" value="{{ professor.email }}">
@@ -574,33 +363,23 @@
     </div>
   </div>
 
-<!-- 🔥 MENU DE AÇÕES -->
-  <div class="acoes-container">
-    <div class="acao" onclick="toggleSection('meus-alunos', listarMeusAlunos)">
-      <i class="fa-solid fa-book"></i>
-      <span>Meus Alunos</span>
-    </div>
-    <div class="acao" onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">
-      <i class="fa-solid fa-user-plus"></i>
-      <span>Novos alunos disponíveis</span>
-    </div>
-    <div class="acao" onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">
-      <i class="fa-solid fa-calendar-days"></i>
-      <span>Aulas do dia</span>
-    </div>
-    <div class="acao" onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">
-      <i class="fa-solid fa-calendar-week"></i>
-      <span>Aulas da semana</span>
-    </div>
-  </div>
+<!-- Botões principais -->
+<div class="botao-menu">
+  <button onclick="toggleSection('meus-alunos', listarMeusAlunos)">Meus alunos</button>
+  <button onclick="toggleSection('alunos-disponiveis', buscarAlunosDisponiveis)">Novos alunos disponíveis</button>
+  <button onclick="toggleSection('aulas-dia', mostrarAulasDoDia)">Aulas do dia</button>
+  <button onclick="toggleSection('aulas-semana', mostrarAulasDaSemana)">Aulas da Semana</button>
+</div>
 
-<!-- Últimas aulas -->
-  <div class="ultimas-aulas" style="margin:20px; background:#ffffff; padding:16px 20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-    <h3>Últimas aulas dadas</h3>
-    <ul id="lista-ultimas-aulas" style="list-style:none; padding:0; margin:0;">
-      <li style="padding:12px 0; border-bottom:1px solid #eee; font-size:16px;">Carregando...</li>
-    </ul>
-  </div>
+<!-- 📚 Últimas Aulas Dadas -->
+<div class="ultimas-aulas" style="margin-top: 20px; background: #ffffff; padding: 16px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #333;">Últimas aulas dadas</h3>
+  <ul id="lista-ultimas-aulas" style="list-style: none; padding: 0; margin: 0;">
+    <li style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 17px; color: #444;">
+      Carregando...
+    </li>
+  </ul>
+</div>
 
 <!-- Seções dinâmicas -->
 <div id="alunos-disponiveis" class="secao-dinamica">
@@ -619,18 +398,19 @@
   <p>Telefone: {{ professor.telefone }}</p>
 </div>
 
-<div id="aulas-dia" class="secao-dinamica">
+<!-- Aulas do Dia -->
+<div id="aulas-dia" class="secao-dinamica" style="display:none; margin-top:10px; background:#f9f9f9; padding:10px; border-radius:8px;">
   <h4>Aulas de Hoje</h4>
   <div id="lista-aulas-dia"></div>
 </div>
 
-<div id="aulas-semana" class="secao-dinamica">
+<!-- Aulas da Semana -->
+<div id="aulas-semana" class="secao-dinamica" style="display:none; margin-top:10px; background:#eef; padding:10px; border-radius:8px;">
   <h4>Minhas Aulas da Semana</h4>
   <div id="lista-aulas-semana"></div>
 </div>
 
-
-
+<!-- FUNDO ESCURO PARA DETECTAR CLIQUE FORA -->
 <div id="calendarOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.2); z-index:999;" onclick="fecharCalendarioSeForFora(event)">
   <!-- CAIXA CALENDÁRIO -->
   <div id="calendarContainer" onclick="event.stopPropagation()" style="position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:15px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; max-height:85vh; overflow-y:auto; font-size:14px;">
@@ -690,83 +470,7 @@
   <button onclick="abrirMenuResumo()" title="Informações">
     <i class="fas fa-bars"></i>
   </button>
-  <button onclick="abrirChat()" title="Chat com Alunos">
-    <i class="fas fa-comments"></i>
-  </button>
 </div>
-
-<!-- Modal do Chat -->
-<div id="chat-modal" class="custom-modal-overlay" style="display:none;">
-  <div class="custom-modal">
-    <button class="custom-close-btn" onclick="fecharChat()">&times;</button>
-    <h3>Conversar com Aluno</h3>
-    <input type="text" id="pesquisar-aluno" placeholder="Pesquisar aluno..." onkeyup="filtrarAlunos()" style="width:100%;padding:8px;margin:10px 0;border:1px solid #ddd;border-radius:6px;">
-    <div id="lista-alunos-chat" style="max-height:300px;overflow-y:auto;text-align:left;"></div>
-  </div>
-</div>
-
-<script>
-  // 🔹 Abre o modal do chat
-  async function abrirChat() {
-    document.getElementById("chat-modal").style.display = "flex";
-    await carregarProfessoresChat();
-  }
-
-  // 🔹 Fecha o modal
-  function fecharChat() {
-    document.getElementById("chat-modal").style.display = "none";
-  }
-
-  // 🔹 Carrega todos os professores vinculados ao aluno
-  async function carregarProfessoresChat() {
-    const alunoNome = localStorage.getItem("alunoNome"); // aluno deve estar salvo no login
-    if (!alunoNome) {
-      alert("Aluno não identificado. Faça o login novamente.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`/meus-professores-status/${encodeURIComponent(alunoNome)}`);
-      if (!res.ok) throw new Error("Erro ao carregar professores");
-      const professores = await res.json();
-
-      const lista = document.getElementById("lista-alunos-chat");
-      lista.innerHTML = "";
-
-      professores.forEach(p => {
-        const statusIcon = p.online
-          ? '<i class="fa-solid fa-circle" style="color:green;"></i>'
-          : '<i class="fa-regular fa-circle" style="color:gray;"></i>';
-        const statusText = p.online ? 'Online' : 'Offline';
-
-        const div = document.createElement("div");
-        div.classList.add("aluno-item"); // estilo padronizado
-        div.innerHTML = `
-          <div class="aluno-nome">${p.nome} ${statusIcon} <span class="status-text">(${statusText})</span></div>
-          <div class="aluno-disciplina">${p.disciplina}</div>
-        `;
-        div.onclick = () => abrirConversa(p.email); // abre chat com este professor
-        lista.appendChild(div);
-      });
-    } catch (e) {
-      console.error("Erro carregar professores:", e);
-    }
-  }
-
-  // 🔹 Filtra professores pelo campo de busca
-  function filtrarAlunos() {
-    const termo = document.getElementById("pesquisar-aluno").value.toLowerCase();
-    const itens = document.querySelectorAll("#lista-alunos-chat .aluno-item");
-    itens.forEach(div => {
-      div.style.display = div.innerText.toLowerCase().includes(termo) ? "flex" : "none";
-    });
-  }
-
-  // 🔹 Abre a página de chat com o professor selecionado
-  function abrirConversa(profEmail) {
-    window.location.href = `/chat-page?prof=${encodeURIComponent(profEmail)}`;
-  }
-</script>
 
 <!-- Formulário oculto para redirecionar ao perfil -->
 <form method="POST" action="/dados_professor" id="form-dados-prof" style="display:none;">
