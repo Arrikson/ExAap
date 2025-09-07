@@ -3988,9 +3988,6 @@ async def ajustar_progresso_ingles():
 
 
 
-from pydantic import BaseModel
-
-# 🔹 Modelo de mensagem
 class MensagemIn(BaseModel):
     professor_email: str
     aluno_nome: str
@@ -3998,7 +3995,40 @@ class MensagemIn(BaseModel):
     texto: str
 
 
-# 🔹 Página de chat (Frontend)
+@app.get("/meus-professores-status/{aluno_nome}")
+async def meus_professores_status(aluno_nome: str):
+    try:
+        aluno_nome_input = aluno_nome.strip().lower()
+        docs = db.collection("alunos_professor").stream()
+        professores = []
+
+        for doc in docs:
+            d = doc.to_dict()
+            aluno_db = str(d.get("aluno", "")).strip().lower()
+            if aluno_db == aluno_nome_input:
+                # 🔹 Garante que o campo chat exista
+                if "chat" not in d:
+                    db.collection("alunos_professor").document(doc.id).update({"chat": []})
+                    d["chat"] = []
+
+                professores.append({
+                    "nome": d.get("professor_nome", "N/D"),
+                    "email": d.get("professor", ""),
+                    "disciplina": d.get("disciplina", "N/D"),
+                    "online": d.get("online", False)
+                })
+
+        return professores
+
+    except Exception as e:
+        print("Erro meus_professores_status:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro ao buscar professores", "erro": str(e)}
+        )
+
+
+
 @app.get("/chat-page", response_class=HTMLResponse)
 async def chat_page(request: Request, prof: str):
     return f"""
@@ -4008,19 +4038,10 @@ async def chat_page(request: Request, prof: str):
         <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
         <style>
           body {{ font-family: Arial, sans-serif; }}
-          #mensagens {{ 
-            max-height:400px; 
-            overflow-y:auto; 
-            border:1px solid #ccc; 
-            padding:10px; 
-            margin-bottom:10px;
-          }}
+          #mensagens {{ max-height:400px; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px; }}
           .msg-aluno {{ text-align:right; color:blue; margin:5px; }}
           .msg-prof {{ text-align:left; color:green; margin:5px; }}
-          .input-area {{
-            display:flex;
-            gap:5px;
-          }}
+          .input-area {{ display:flex; gap:5px; }}
           input {{ flex:1; padding:5px; }}
           button {{ padding:5px 10px; }}
         </style>
@@ -4036,7 +4057,7 @@ async def chat_page(request: Request, prof: str):
       <script>
         const profEmail = "{prof}";
         let alunoNome = localStorage.getItem("alunoNome");
-        
+
         if (!alunoNome) {{
             alert("Aluno não identificado. Faça o login novamente.");
         }}
@@ -4090,14 +4111,13 @@ async def chat_page(request: Request, prof: str):
     """
 
 
-# 🔹 Backend: listar mensagens
+
 @app.get("/chat/{prof_email}/{aluno_nome}")
 async def listar_mensagens(prof_email: str, aluno_nome: str):
     try:
         prof_email = prof_email.strip().lower()
         aluno_nome_input = aluno_nome.strip().lower()
 
-        # Busca vínculo na coleção real (alunos_professor)
         vinculo_ref = db.collection("alunos_professor").stream()
         vinculo_doc = None
         for doc in vinculo_ref:
@@ -4114,7 +4134,6 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
         dados = vinculo_doc.to_dict()
 
-        # 🔹 Garante que o campo chat exista
         if "chat" not in dados:
             ref.update({"chat": []})
             dados["chat"] = []
@@ -4129,7 +4148,7 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
         )
 
 
-# 🔹 Backend: enviar mensagem
+
 @app.post("/chat/enviar")
 async def enviar_mensagem(msg: MensagemIn):
     try:
@@ -4152,7 +4171,6 @@ async def enviar_mensagem(msg: MensagemIn):
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
         doc_data = vinculo_doc.to_dict()
 
-        # 🔹 Garante que o campo chat exista
         if "chat" not in doc_data:
             ref.update({"chat": []})
 
