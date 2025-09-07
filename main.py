@@ -3987,38 +3987,122 @@ async def ajustar_progresso_ingles():
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
 
 
+# 🔹 Página de chat (Frontend simples que consome o backend)
+@app.get("/chat-page", response_class=HTMLResponse)
+async def chat_page(request: Request, prof: str, aluno: str):
+    return f"""
+    <html>
+    <head>
+        <title>Chat com {prof}</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+        <style>
+          body {{ font-family: Arial, sans-serif; }}
+          #mensagens {{ 
+            max-height:400px; 
+            overflow-y:auto; 
+            border:1px solid #ccc; 
+            padding:10px; 
+            margin-bottom:10px;
+          }}
+          .msg-aluno {{ text-align:right; color:blue; margin:5px; }}
+          .msg-prof {{ text-align:left; color:green; margin:5px; }}
+          .input-area {{
+            display:flex;
+            gap:5px;
+          }}
+          input {{ flex:1; padding:5px; }}
+          button {{ padding:5px 10px; }}
+        </style>
+    </head>
+    <body>
+      <h3>Chat com {prof}</h3>
+      <div id="mensagens"></div>
+      <div class="input-area">
+        <input type="text" id="msg-input" placeholder="Digite sua mensagem...">
+        <button onclick="enviarMensagem()">Enviar</button>
+      </div>
+
+      <script>
+        const profEmail = "{prof}";
+        const alunoNome = "{aluno}";
+
+        async function carregarMensagens() {{
+          try {{
+            const res = await fetch(`/chat/${{encodeURIComponent(profEmail)}}/${{encodeURIComponent(alunoNome)}}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const mensagens = data.mensagens || [];
+            const div = document.getElementById("mensagens");
+            div.innerHTML = "";
+            mensagens.forEach(m => {{
+              const p = document.createElement("p");
+              p.className = m.autor === "aluno" ? "msg-aluno" : "msg-prof";
+              p.textContent = m.texto;
+              div.appendChild(p);
+            }});
+            div.scrollTop = div.scrollHeight; // rola para baixo
+          }} catch (e) {{
+            console.error("Erro carregarMensagens:", e);
+          }}
+        }}
+
+        async function enviarMensagem() {{
+          const texto = document.getElementById("msg-input").value.trim();
+          if (!texto) return;
+
+          try {{
+            await fetch("/chat/enviar", {{
+              method: "POST",
+              headers: {{ "Content-Type": "application/json" }},
+              body: JSON.stringify({{
+                professor_email: profEmail,
+                aluno_nome: alunoNome,
+                autor: "aluno",
+                texto: texto
+              }})
+            }});
+            document.getElementById("msg-input").value = "";
+            carregarMensagens();
+          }} catch (e) {{
+            console.error("Erro enviarMensagem:", e);
+          }}
+        }}
+
+        // Atualiza a cada 3 segundos
+        setInterval(carregarMensagens, 3000);
+        carregarMensagens();
+      </script>
+    </body>
+    </html>
+    """
+
+
 @app.get("/chat/{prof_email}/{aluno_nome}")
 async def listar_mensagens(prof_email: str, aluno_nome: str):
     try:
         prof_email = prof_email.strip().lower()
         aluno_nome_input = aluno_nome.strip().lower()
 
-        # 1️⃣ Validar se o aluno existe
         alunos_ref = db.collection("alunos").stream()
         aluno_doc = None
         for doc in alunos_ref:
             dados = doc.to_dict()
-            nome_banco = dados.get("nome", "").strip().lower()
-            if nome_banco == aluno_nome_input:
+            if dados.get("nome", "").strip().lower() == aluno_nome_input:
                 aluno_doc = doc
                 break
 
         if not aluno_doc:
             raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-        # 2️⃣ Buscar vínculo do professor com o aluno
         vinculo_ref = db.collection("alunos_professor") \
                         .where("professor", "==", prof_email) \
                         .where("aluno", "==", aluno_nome_input) \
-                        .limit(1) \
-                        .stream()
+                        .limit(1).stream()
 
         vinculo_doc = next(vinculo_ref, None)
-
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
-        # 3️⃣ Retornar mensagens (ou inicializar caso não exista)
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
         dados = vinculo_doc.to_dict()
 
@@ -4040,46 +4124,39 @@ async def listar_mensagens(prof_email: str, aluno_nome: str):
 class MensagemIn(BaseModel):
     professor_email: str
     aluno_nome: str
-    autor: str   # "professor" ou "aluno"
+    autor: str
     texto: str
 
 
+# 🔹 Enviar mensagem (salva no campo chat)
 @app.post("/chat/enviar")
 async def enviar_mensagem(msg: MensagemIn):
     try:
         prof_email = msg.professor_email.strip().lower()
         aluno_nome_input = msg.aluno_nome.strip().lower()
 
-        # 1️⃣ Validar se o aluno existe
         alunos_ref = db.collection("alunos").stream()
         aluno_doc = None
         for doc in alunos_ref:
-            dados = doc.to_dict()
-            nome_banco = dados.get("nome", "").strip().lower()
-            if nome_banco == aluno_nome_input:
+            if doc.to_dict().get("nome", "").strip().lower() == aluno_nome_input:
                 aluno_doc = doc
                 break
 
         if not aluno_doc:
             raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-        # 2️⃣ Validar vínculo com professor
         vinculo_ref = db.collection("alunos_professor") \
                         .where("professor", "==", prof_email) \
                         .where("aluno", "==", aluno_nome_input) \
-                        .limit(1) \
-                        .stream()
+                        .limit(1).stream()
 
         vinculo_doc = next(vinculo_ref, None)
-
         if not vinculo_doc:
             raise HTTPException(status_code=404, detail="Professor não vinculado a este aluno")
 
-        # 3️⃣ Atualizar o chat
         ref = db.collection("alunos_professor").document(vinculo_doc.id)
-
-        # Garante que o campo chat existe
         doc_data = vinculo_doc.to_dict()
+
         if "chat" not in doc_data:
             ref.update({"chat": []})
 
