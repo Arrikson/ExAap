@@ -706,35 +706,54 @@
 </div>
 
 <script>
+  // 🔹 Abre o modal do chat
   async function abrirChat() {
     document.getElementById("chat-modal").style.display = "flex";
-    await carregarAlunosChat();
+    await carregarProfessoresChat();
   }
 
+  // 🔹 Fecha o modal
   function fecharChat() {
     document.getElementById("chat-modal").style.display = "none";
   }
 
-  async function carregarAlunosChat() {
-    const profEmail = localStorage.getItem("professorEmail"); // deve estar salvo no login
-    const res = await fetch(`/meus-alunos-status/${profEmail}`);
-    const alunos = await res.json();
+  // 🔹 Carrega todos os professores vinculados ao aluno
+  async function carregarProfessoresChat() {
+    const alunoNome = localStorage.getItem("alunoNome"); // aluno deve estar salvo no login
+    if (!alunoNome) {
+      alert("Aluno não identificado. Faça o login novamente.");
+      return;
+    }
 
-    const lista = document.getElementById("lista-alunos-chat");
-    lista.innerHTML = "";
+    try {
+      const res = await fetch(`/meus-professores-status/${encodeURIComponent(alunoNome)}`);
+      if (!res.ok) throw new Error("Erro ao carregar professores");
+      const professores = await res.json();
 
-    alunos.forEach(a => {
-      const div = document.createElement("div");
-      div.classList.add("aluno-item"); // usa estilo padronizado
-      div.innerHTML = `
-        <div class="aluno-nome">${a.nome}</div>
-        <div class="aluno-disciplina">${a.disciplina}</div>
-      `;
-      div.onclick = () => abrirConversa(a.nome);
-      lista.appendChild(div);
-    });
+      const lista = document.getElementById("lista-alunos-chat");
+      lista.innerHTML = "";
+
+      professores.forEach(p => {
+        const statusIcon = p.online
+          ? '<i class="fa-solid fa-circle" style="color:green;"></i>'
+          : '<i class="fa-regular fa-circle" style="color:gray;"></i>';
+        const statusText = p.online ? 'Online' : 'Offline';
+
+        const div = document.createElement("div");
+        div.classList.add("aluno-item"); // estilo padronizado
+        div.innerHTML = `
+          <div class="aluno-nome">${p.nome} ${statusIcon} <span class="status-text">(${statusText})</span></div>
+          <div class="aluno-disciplina">${p.disciplina}</div>
+        `;
+        div.onclick = () => abrirConversa(p.email); // abre chat com este professor
+        lista.appendChild(div);
+      });
+    } catch (e) {
+      console.error("Erro carregar professores:", e);
+    }
   }
 
+  // 🔹 Filtra professores pelo campo de busca
   function filtrarAlunos() {
     const termo = document.getElementById("pesquisar-aluno").value.toLowerCase();
     const itens = document.querySelectorAll("#lista-alunos-chat .aluno-item");
@@ -743,8 +762,9 @@
     });
   }
 
-  function abrirConversa(aluno) {
-    window.location.href = `/chat?aluno=${encodeURIComponent(aluno)}`;
+  // 🔹 Abre a página de chat com o professor selecionado
+  function abrirConversa(profEmail) {
+    window.location.href = `/chat-page?prof=${encodeURIComponent(profEmail)}`;
   }
 </script>
 
