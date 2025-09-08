@@ -543,17 +543,17 @@ function fecharDesafio() {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <script>
-let alunoSelecionado = null;
+let professorSelecionado = null;
 let modalChatAberta = false;
 
-// Função para abrir modal de chat do aluno
+// Fechar modal principal
 function fecharChatAluno() {
   document.getElementById('chat-modal-aluno').style.display = 'none';
 }
 
-// Função para abrir chat com professor
+// Abrir chat direto com professor
 function abrirChatProfessor(professorEmail) {
-  alunoSelecionado = professorEmail;
+  professorSelecionado = professorEmail;
 
   // Evitar múltiplos modais
   if (modalChatAberta) {
@@ -597,7 +597,12 @@ function abrirChatProfessor(professorEmail) {
       await fetch("/enviar-mensagem", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({aluno: nomeAluno, professor: professorEmail, mensagem})
+        body: JSON.stringify({
+          aluno: nomeAluno,
+          professor: professorEmail,
+          mensagem,
+          remetente: "aluno"
+        })
       });
       input.value = "";
       carregarMensagens();
@@ -613,12 +618,14 @@ function abrirChatProfessor(professorEmail) {
       const msgs = await res.json();
       const container = modal.querySelector('#mensagens-chat');
       container.innerHTML = "";
+
       msgs.forEach(m => {
         const div = document.createElement('div');
         div.className = m.remetente === 'professor' ? 'msg-professor' : 'msg-aluno';
         div.textContent = m.mensagem;
         container.appendChild(div);
       });
+
       container.scrollTop = container.scrollHeight;
     } catch (err) {
       console.error("Erro ao buscar mensagens:", err);
@@ -632,29 +639,30 @@ function abrirChatProfessor(professorEmail) {
   }, 2000);
 }
 
-// Exemplo: função que lista professores para abrir chat
+// Buscar professores vinculados ao aluno
 async function listarProfessoresChat() {
   const container = document.getElementById('lista-professores-chat');
   container.innerHTML = '';
 
-  // Buscar professores do aluno
   try {
-    const res = await fetch(`/meu-professor-status/${encodeURIComponent(nomeAluno)}`);
-    const data = await res.json();
+    const res = await fetch(`/meus-professores-status/${encodeURIComponent(nomeAluno)}`);
+    const lista = await res.json();
 
-    if (!res.ok || !data.professor) {
+    if (!res.ok || lista.length === 0) {
       container.innerHTML = '<p>Nenhum professor encontrado.</p>';
       return;
     }
 
-    const profDiv = document.createElement('div');
-    profDiv.className = 'professor-item';
-    profDiv.innerHTML = `
-      <span>${data.professor} ${data.online ? '(Online)' : '(Offline)'}</span>
-      <button class="botao-padrao">Chat</button>
-    `;
-    profDiv.querySelector('button').onclick = () => abrirChatProfessor(data.professor);
-    container.appendChild(profDiv);
+    lista.forEach(prof => {
+      const profDiv = document.createElement('div');
+      profDiv.className = 'professor-item';
+      profDiv.innerHTML = `
+        <span>${prof.nome} - ${prof.disciplina} ${prof.online ? '(Online)' : '(Offline)'}</span>
+        <button class="botao-padrao">Chat</button>
+      `;
+      profDiv.querySelector('button').onclick = () => abrirChatProfessor(prof.nome);
+      container.appendChild(profDiv);
+    });
 
   } catch (err) {
     console.error("Erro ao listar professores:", err);
