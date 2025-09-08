@@ -323,7 +323,10 @@ class MensagemInfo(BaseModel):
     aluno: str
     professor: str
     mensagem: str
+    remetente: str  # 🔹 agora indicamos quem enviou: "aluno" ou "professor"
 
+
+# 🔹 Atualiza coleção e garante campos mínimos sempre que professor abre seus alunos
 @app.get("/meus-alunos-status/{prof_email}")
 async def meus_alunos_status(prof_email: str):
     try:
@@ -333,12 +336,16 @@ async def meus_alunos_status(prof_email: str):
         alunos = []
         for doc in docs:
             d = doc.to_dict()
-            # Criação automática de campos que ainda não existam
+
+            atualizacoes = {}
+            # Criar campos obrigatórios se não existirem
             if 'dados_aluno' not in d:
-                d['dados_aluno'] = {}
+                atualizacoes['dados_aluno'] = {}
             if 'chat' not in d:
-                d['chat'] = []  # Lista de mensagens
-                db.collection('alunos_professor').document(doc.id).update({'chat': []})
+                atualizacoes['chat'] = []
+
+            if atualizacoes:
+                db.collection('alunos_professor').document(doc.id).update(atualizacoes)
 
             dados = d.get('dados_aluno', {})
             alunos.append({
@@ -360,34 +367,46 @@ async def meus_alunos_status(prof_email: str):
             content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)}
         )
 
-# Rota para enviar mensagem
+
+# 🔹 Rota para enviar mensagem (aluno ou professor)
 @app.post("/enviar-mensagem")
 async def enviar_mensagem(info: MensagemInfo):
     try:
-        # Busca o aluno na coleção
+        aluno = info.aluno.strip().lower()
+        professor = info.professor.strip().lower()
+
         docs = db.collection('alunos_professor') \
-                 .where('aluno', '==', info.aluno.strip().lower()) \
-                 .where('professor', '==', info.professor.strip().lower()).stream()
+                 .where('aluno', '==', aluno) \
+                 .where('professor', '==', professor).stream()
 
         for doc in docs:
             doc_ref = db.collection('alunos_professor').document(doc.id)
-            # Adiciona a mensagem à lista de chat
+
             nova_msg = {
-                'remetente': 'professor',
+                'remetente': info.remetente.lower(),  # "aluno" ou "professor"
                 'mensagem': info.mensagem,
                 'timestamp': datetime.datetime.utcnow().isoformat()
             }
+
+            # Garante que o campo chat exista
+            d = doc.to_dict()
+            if 'chat' not in d:
+                doc_ref.update({'chat': []})
+
+            # Adiciona mensagem ao chat
             doc_ref.update({
                 'chat': firestore.ArrayUnion([nova_msg])
             })
+
             return {"status": "ok", "mensagem": "Mensagem enviada com sucesso"}
 
-        return JSONResponse(status_code=404, content={"detail": "Aluno não encontrado"})
+        return JSONResponse(status_code=404, content={"detail": "Aluno/Professor não encontrados"})
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-# Rota para receber mensagens (listar chat)
+
+# 🔹 Rota para buscar mensagens entre aluno e professor
 @app.get("/buscar-mensagens/{professor}/{aluno}")
 async def buscar_mensagens(professor: str, aluno: str):
     try:
@@ -398,14 +417,50 @@ async def buscar_mensagens(professor: str, aluno: str):
         for doc in docs:
             d = doc.to_dict()
             if 'chat' not in d:
-                d['chat'] = []
                 db.collection('alunos_professor').document(doc.id).update({'chat': []})
+                return []
             return d['chat']
 
         return []
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
+
+# 🔹 Status completo com last_seen
+@app.get("/alunos-status-completo/{prof_email}")
+async def alunos_status_completo(prof_email: str):
+    try:
+        docs = db.collection('alunos_professor') \
+                 .where('professor', '==', prof_email.strip().lower()).stream()
+
+        alunos = []
+        for doc in docs:
+            data = doc.to_dict()
+            nome = data.get("aluno")
+
+            aluno_query = db.collection("alunos").where("nome", "==", nome).limit(1).stream()
+            aluno_doc = next(aluno_query, None)
+
+            if aluno_doc and aluno_doc.exists:
+                aluno_data = aluno_doc.to_dict()
+                alunos.append({
+                    "nome": nome,
+                    "online": aluno_data.get("online", False),
+                    "last_seen": aluno_data.get("last_seen", "Desconhecido")
+                })
+            else:
+                alunos.append({
+                    "nome": nome,
+                    "online": False,
+                    "last_seen": "Desconhecido"
+                })
+
+        return alunos
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
+        
         
 @app.get("/alunos-status-completo/{prof_email}")
 async def alunos_status_completo(prof_email: str):
