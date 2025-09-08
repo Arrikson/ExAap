@@ -847,7 +847,12 @@ function abrirChatAluno(alunoNome) {
       await fetch("/enviar-mensagem", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({aluno: alunoNome, professor: "{{ professor.email }}", mensagem})
+        body: JSON.stringify({
+          aluno: alunoNome,
+          professor: "{{ professor.email }}",
+          mensagem,
+          remetente: "professor"   // 🔹 agora identifica quem está enviando
+        })
       });
       input.value = "";
       carregarMensagens();
@@ -881,7 +886,6 @@ function abrirChatAluno(alunoNome) {
     if (modalChatAberta) carregarMensagens();
   }, 2000);
 }
-
 
 let modalAberta = false;
 
