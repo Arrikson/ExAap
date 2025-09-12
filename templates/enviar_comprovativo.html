@@ -252,12 +252,7 @@
       const tamanhoKB = file.size / 1024;
       const limite = limitesKB[banco];
 
-      if (banco === "Multicaixa Express" && (tamanhoKB < 24 || tamanhoKB > 33)) {
-        alert(`Comprovativo inválido. O tamanho permitido para ${banco} deve estar entre 24 KB e 33 KB.\nTamanho atual: ${tamanhoKB.toFixed(2)} KB`);
-        return;
-      }
-
-      if (banco !== "Multicaixa Express" && tamanhoKB > limite) {
+      if (tamanhoKB > limite) {
         alert(`Comprovativo inválido. O tamanho máximo permitido para ${banco} é ${limite} KB.\nTamanho atual: ${tamanhoKB.toFixed(2)} KB`);
         return;
       }
