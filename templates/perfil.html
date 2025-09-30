@@ -492,8 +492,7 @@ function fecharDesafio() {
 }
 </script>
 
-
-  <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
+<p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
 
 <!-- Rodapé do aluno -->
@@ -545,6 +544,15 @@ function fecharDesafio() {
 <script>
 let professorSelecionado = null;
 let modalChatAberta = false;
+
+// ⚠️ nomeAluno precisa vir do backend ou Firebase
+let nomeAluno = window.nomeAluno || "aluno_teste"; 
+
+// 👉 Função que estava faltando
+function abrirChatAluno() {
+  document.getElementById('chat-modal-aluno').style.display = 'block';
+  listarProfessoresChat();
+}
 
 // Fechar modal principal
 function fecharChatAluno() {
@@ -660,7 +668,8 @@ async function listarProfessoresChat() {
         <span>${prof.nome} - ${prof.disciplina} ${prof.online ? '(Online)' : '(Offline)'}</span>
         <button class="botao-padrao">Chat</button>
       `;
-      profDiv.querySelector('button').onclick = () => abrirChatProfessor(prof.nome);
+      // ⚠️ usa prof.professor (email/id salvo), não prof.nome
+      profDiv.querySelector('button').onclick = () => abrirChatProfessor(prof.professor);
       container.appendChild(profDiv);
     });
 
@@ -688,6 +697,7 @@ listarProfessoresChat();
 </script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
 <script>
 
