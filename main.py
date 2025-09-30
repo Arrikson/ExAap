@@ -2583,45 +2583,6 @@ async def remover_professor(request: Request):
         return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
 
 
-@app.post("/enviar-mensagem-professor")
-async def enviar_mensagem_professor(request: Request):
-    dados = await request.json()
-    destino = dados.get("email", "").strip().lower()
-    texto = dados.get("mensagem", "").strip()
-
-    if not destino or not texto:
-        return {"erro": "Email e mensagem são obrigatórios"}
-
-    db_firestore = firestore.client()
-    doc_ref = db_firestore.collection("mensagens_professores").document(destino)
-
-    # Buscar mensagens anteriores (se existirem)
-    doc = doc_ref.get()
-    mensagens = doc.to_dict().get("mensagens", []) if doc.exists else []
-
-    # Adicionar nova mensagem com data
-    nova_mensagem = {
-        "texto": texto,
-        "data": datetime.now().strftime("%Y-%m-%d %H:%M")
-    }
-    mensagens.append(nova_mensagem)
-
-    # Atualizar no Firestore
-    doc_ref.set({"mensagens": mensagens})
-
-    return {"mensagem": "Mensagem enviada com sucesso"}
-
-@app.get("/mensagens-professor/{email}")
-async def mensagens_professor(email: str):
-    email = email.strip().lower()
-    db_firestore = firestore.client()
-    doc_ref = db_firestore.collection("mensagens_professores").document(email)
-    doc = doc_ref.get()
-    if doc.exists:
-        return {"mensagens": doc.to_dict().get("mensagens", [])}
-    return {"mensagens": []}
-
-
 # Data base fixa: Domingo, 3 de agosto de 2025, às 11h10
 data_base = datetime(2025, 8, 3, 11, 10)  # Domingo
 
