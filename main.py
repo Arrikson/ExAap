@@ -2259,7 +2259,7 @@ async def enviar_id_aula(request: Request):
 # Configurações 100ms
 HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
-TEMPLATE_ID: "68e132dba5ba8326e6eb9a2b"
+TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
 
 @app.post("/obter-sala-professor")
 async def obter_sala_professor(req: Request):
@@ -2269,30 +2269,41 @@ async def obter_sala_professor(req: Request):
     if not professor or not aluno:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
 
-    # Cria nome de sala ou código único
-    room_name = f"aula_{professor}_{aluno}"
+    room_name = f"aula_{professor}_{aluno}".replace(" ", "_")
 
-    # 1. Criar sala no 100ms via API de gerenciamento
-    url = f"{HMS_API_BASE}/rooms"
-    headers = {"Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}", "Content-Type": "application/json"}
-    body = {
-        "name": room_name,
-        "template_id": TEMPLATE_ID
+    # 1️⃣ Criar sala
+    url_sala = f"{HMS_API_BASE}/rooms"
+    headers = {
+        "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
+        "Content-Type": "application/json"
     }
-    resp = requests.post(url, headers=headers, json=body)
-    if not resp.ok:
-        # Se já existir, tentar obter sala existente
-        # (depende do painel 100ms permitir busca)
-        # Mas por simplicidade, retornar erro
-        return JSONResponse(status_code=500, content={"erro": "Não foi possível criar sala 100ms", "detalhe": resp.json()})
-    sala_info = resp.json()
-    room_code = sala_info.get("code")
-    if not room_code:
-        return JSONResponse(status_code=500, content={"erro": "Código da sala não retornado"})
+    body_sala = {"name": room_name, "template_id": TEMPLATE_ID}
+    resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
+    if not resp_sala.ok:
+        return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
 
-    # Salvar na coleção “alunos” também (opcional)
-    nome_aluno_doc = aluno.replace(" ", "")
-    db.collection("alunos").document(nome_aluno_doc).set({
+    sala_info = resp_sala.json()
+    room_id = sala_info.get("id")
+
+    if not room_id:
+        return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
+
+    # 2️⃣ Criar room code
+    url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
+    body_code = {"role": "anfitriao"}  # ou “professor”, conforme definido no painel
+    resp_code = requests.post(url_code, headers=headers, json=body_code)
+    if not resp_code.ok:
+        return JSONResponse(status_code=500, content={"erro": "Falha ao criar Room Code", "detalhe": resp_code.text})
+
+    code_info = resp_code.json()
+    room_code = code_info.get("data", {}).get("code")
+
+    if not room_code:
+        return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
+
+    # 3️⃣ Gravar no Firestore
+    aluno_doc = aluno.replace(" ", "")
+    db.collection("alunos").document(aluno_doc).set({
         "room_code": room_code,
         "professor_chamada": professor
     }, merge=True)
