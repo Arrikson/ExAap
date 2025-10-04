@@ -145,8 +145,10 @@
     selectIsConnectedToRoom,
     selectIsLocalVideoEnabled,
     selectIsLocalAudioEnabled,
+    selectVideoTrackByPeerID
   } from "https://cdn.jsdelivr.net/npm/@100mslive/hms-video-store@latest/dist/index.es.js";
 
+  // ==== ELEMENTOS ====
   const statusSpan = document.getElementById("status");
   const localVideo = document.getElementById("localVideo");
   const remoteVideo = document.getElementById("remoteVideo");
@@ -158,14 +160,14 @@
   const email = "{{ email }}";
   const aluno = "{{ aluno }}";
 
-  // Gerenciador 100ms
+  // ==== INICIALIZAÇÃO 100ms ====
   const hmsManager = new HMSReactiveStore();
   hmsManager.triggerOnSubscribe();
   const hmsStore = hmsManager.getStore();
   const hmsActions = hmsManager.getActions();
 
-  // Quando a sala estiver conectada
-  hmsStore.subscribe(connected => {
+  // ==== MONITORA CONEXÃO ====
+  hmsStore.subscribe((connected) => {
     if (connected) {
       statusSpan.textContent = "Sala conectada. Aguardando aluno...";
     } else {
@@ -173,47 +175,52 @@
     }
   }, selectIsConnectedToRoom);
 
-  // Quando o aluno entra na sala
-  hmsStore.subscribe(peers => {
-    peers.forEach(peer => {
+  // ==== MONITORA PEERS (aluno conectado) ====
+  hmsStore.subscribe((peers) => {
+    peers.forEach((peer) => {
       if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
-        hmsActions.attachVideo(peer.videoTrack, remoteVideo);
+        const trackId = peer.videoTrack;
+        hmsActions.attachVideo(trackId, remoteVideo);
         remoteVideo.autoplay = true;
         remoteVideo.playsInline = true;
-        statusSpan.textContent = "Aluno conectado!";
+        statusSpan.textContent = "🎥 Aluno conectado!";
         iniciarCronometro();
       }
     });
   }, selectPeers);
 
-  // Exibir vídeo local (professor)
-  hmsStore.subscribe(isVideoOn => {
+  // ==== EXIBIR VÍDEO LOCAL (professor) ====
+  hmsStore.subscribe((isVideoOn) => {
     if (isVideoOn) {
-      hmsActions.setLocalVideoEnabled(true);
-      hmsActions.setLocalAudioEnabled(true);
-      localVideo.autoplay = true;
-      localVideo.muted = true;
-      localVideo.playsInline = true;
+      const localPeerId = hmsStore.getState(selectLocalPeerID);
+      const trackId = hmsStore.getState(selectVideoTrackByPeerID(localPeerId));
+      if (trackId) {
+        hmsActions.attachVideo(trackId, localVideo);
+        localVideo.autoplay = true;
+        localVideo.muted = true;
+        localVideo.playsInline = true;
+      }
     }
   }, selectIsLocalVideoEnabled);
 
-  // Função para entrar na sala
+  // ==== ENTRAR NA SALA ====
   async function joinRoom(roomCode, userName) {
     try {
       const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode });
       await hmsActions.join({ userName, authToken });
-      return roomCode; // 🔹 retornamos o código da sala
+      return roomCode;
     } catch (err) {
       console.error("Erro ao entrar na sala 100ms:", err);
-      statusSpan.innerHTML = `Erro ao conectar à sala`;
+      statusSpan.textContent = "❌ Erro ao conectar à sala";
       return null;
     }
   }
 
-  // Inicialização do professor
+  // ==== INICIALIZAÇÃO DO PROFESSOR ====
   async function iniciarProfessor() {
     try {
       await startCamera();
+
       const resp = await fetch("/obter-sala-professor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -223,36 +230,38 @@
       const data = await resp.json();
       if (resp.ok && data.sala) {
         const roomCode = await joinRoom(data.sala, email);
-        statusSpan.textContent = "Sala criada, aguardando aluno...";
+        statusSpan.textContent = "✅ Sala criada, aguardando aluno...";
         chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
       } else {
-        statusSpan.textContent = "Falha ao obter sala";
+        console.error("Erro ao obter sala:", data);
+        statusSpan.textContent = "⚠️ Falha ao obter sala.";
       }
     } catch (err) {
-      console.error("Erro no professor init:", err);
-      statusSpan.textContent = "Erro ao iniciar chamada";
+      console.error("Erro ao iniciar professor:", err);
+      statusSpan.textContent = "❌ Erro ao iniciar chamada.";
     }
   }
 
-  // Ativar câmera/microfone
+  // ==== ACESSAR CÂMERA E MICROFONE ====
   async function startCamera() {
     try {
       await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 15 } },
         audio: { echoCancellation: true, noiseSuppression: true }
       });
-      hmsActions.setLocalVideoEnabled(true);
-      hmsActions.setLocalAudioEnabled(true);
+      await hmsActions.setLocalVideoEnabled(true);
+      await hmsActions.setLocalAudioEnabled(true);
     } catch (err) {
       console.error("Erro ao acessar câmera/microfone:", err);
-      statusSpan.textContent = "Erro ao acessar câmera/microfone";
+      statusSpan.textContent = "❌ Erro ao acessar câmera/microfone";
       throw err;
     }
   }
 
-  // Cronômetro da aula
-  let tempoRestante = 3900;
+  // ==== CRONÔMETRO ====
+  let tempoRestante = 3900; // 65 minutos
   let intervalo;
+
   function iniciarCronometro() {
     cronometro.style.display = "block";
     clearInterval(intervalo);
@@ -270,15 +279,16 @@
     }, 1000);
   }
 
+  // ==== ENCERRAR CHAMADA ====
   function encerrarChamada() {
     try {
       hmsActions.leave();
     } catch (_) {}
-    statusSpan.textContent = "Aula encerrada";
+    statusSpan.textContent = "⏹️ Aula encerrada";
     confirmarAulaBtn.style.display = "inline-block";
   }
 
-  // 🔹 Função atualizada para enviar o roomCode ao backend
+  // ==== ENVIAR ROOM CODE AO ALUNO ====
   async function enviarRoomCode(roomCode) {
     chamarAlunoBtn.style.display = "none";
     try {
@@ -301,39 +311,36 @@
     }
   }
 
-  // Confirmar aula
-  confirmarAulaBtn.onclick = () => {
-    fetch("/registrar-aula", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        professor: email.trim().toLowerCase(),
-        aluno: aluno.trim().toLowerCase()
-      })
-    })
-    .then(res => {
-      if (res.ok) {
-        alert("✔️ Aula registrada com sucesso!");
-        confirmarAulaBtn.style.display = "none";
-      } else {
-        throw new Error();
-      }
-    })
-    .catch(() => {
+  // ==== CONFIRMAR AULA ====
+  confirmarAulaBtn.onclick = async () => {
+    try {
+      const resp = await fetch("/registrar-aula", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor: email.trim().toLowerCase(),
+          aluno: aluno.trim().toLowerCase()
+        })
+      });
+
+      if (!resp.ok) throw new Error();
+      alert("✔️ Aula registrada com sucesso!");
+      confirmarAulaBtn.style.display = "none";
+    } catch {
       alert("❌ Falha ao registrar aula.");
-    });
+    }
   };
 
-  // Ativar áudio remoto
+  // ==== ATIVAR ÁUDIO REMOTO ====
   ativarAudioBtn.onclick = () => {
     remoteVideo.muted = false;
     if (remoteVideo.srcObject) {
-      remoteVideo.srcObject.getAudioTracks().forEach(t => (t.enabled = true));
+      remoteVideo.srcObject.getAudioTracks().forEach((t) => (t.enabled = true));
     }
     ativarAudioBtn.style.display = "none";
   };
 
-  // Iniciar o fluxo
+  // ==== INICIAR ====
   (async () => {
     await iniciarProfessor();
   })();
