@@ -2255,31 +2255,70 @@ async def enviar_id_aula(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
+
+# Configurações 100ms
+HMS_API_BASE = "https://api.100ms.live/v2"
+HMS_MANAGEMENT_TOKEN = "SEU_TOKEN_DE_GESTAO"  # obtido no painel 100ms
+TEMPLATE_ID = "SEU_TEMPLATE_ID"
+
+@app.post("/obter-sala-professor")
+async def obter_sala_professor(req: Request):
+    dados = await req.json()
+    professor = dados.get("professor", "").strip().lower()
+    aluno = dados.get("aluno", "").strip().lower()
+    if not professor or not aluno:
+        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
+
+    # Cria nome de sala ou código único
+    room_name = f"aula_{professor}_{aluno}"
+
+    # 1. Criar sala no 100ms via API de gerenciamento
+    url = f"{HMS_API_BASE}/rooms"
+    headers = {"Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}", "Content-Type": "application/json"}
+    body = {
+        "name": room_name,
+        "template_id": TEMPLATE_ID
+    }
+    resp = requests.post(url, headers=headers, json=body)
+    if not resp.ok:
+        # Se já existir, tentar obter sala existente
+        # (depende do painel 100ms permitir busca)
+        # Mas por simplicidade, retornar erro
+        return JSONResponse(status_code=500, content={"erro": "Não foi possível criar sala 100ms", "detalhe": resp.json()})
+    sala_info = resp.json()
+    room_code = sala_info.get("code")
+    if not room_code:
+        return JSONResponse(status_code=500, content={"erro": "Código da sala não retornado"})
+
+    # Salvar na coleção “alunos” também (opcional)
+    nome_aluno_doc = aluno.replace(" ", "")
+    db.collection("alunos").document(nome_aluno_doc).set({
+        "room_code": room_code,
+        "professor_chamada": professor
+    }, merge=True)
+
+    return {"sala": room_code}
+         
 @app.post("/enviar-roomcode")
 async def enviar_roomcode(request: Request):
     dados = await request.json()
-    room_code = dados.get("room_code")  # substitui peer_id
+    room_code = dados.get("room_code")
     email_professor = dados.get("email")
     nome_aluno_raw = dados.get("aluno")
-
     if not room_code or not email_professor or not nome_aluno_raw:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
-
     try:
         nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
         email_professor = email_professor.strip().lower()
-
-        # Salva o código da sala para o aluno no Firebase
         doc_ref = db.collection("alunos").document(nome_aluno)
         doc_ref.set({
             "room_code": room_code,
             "professor_chamada": email_professor
         }, merge=True)
-
         return JSONResponse(content={"status": "RoomCode enviado com sucesso"})
-
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
+
 
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
@@ -2299,23 +2338,16 @@ async def buscar_id_professor(aluno: str):
 
 @app.get("/buscar-roomcode-professor")
 async def buscar_roomcode_professor(aluno: str):
-    try:
-        aluno_normalizado = aluno.strip().lower().replace(" ", "")
-        doc_ref = db.collection("alunos").document(aluno_normalizado)
-        doc = doc_ref.get()
-
-        if not doc.exists:
-            return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
-
-        data = doc.to_dict()
-        room_code = data.get("room_code")
-
-        if not room_code:
-            return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
-
-        return JSONResponse(content={"room_code": room_code})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
+    aluno_normalizado = aluno.strip().lower().replace(" ", "")
+    doc_ref = db.collection("alunos").document(aluno_normalizado)
+    doc = doc_ref.get()
+    if not doc.exists:
+        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+    data = doc.to_dict()
+    room_code = data.get("room_code")
+    if not room_code:
+        return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
+    return JSONResponse(content={"room_code": room_code})
 
 
 @app.post("/registrar-aula")
