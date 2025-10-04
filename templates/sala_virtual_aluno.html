@@ -154,9 +154,9 @@
     selectLocalPeerID,
     selectVideoTrackByPeerID,
     selectIsLocalVideoEnabled,
-    selectIsLocalAudioEnabled,
   } from "https://cdn.jsdelivr.net/npm/@100mslive/hms-video-store@latest/dist/index.es.js";
 
+  // ==== ELEMENTOS HTML ====
   const statusEl = document.getElementById("status");
   const localVideo = document.getElementById("localVideo");
   const remoteVideo = document.getElementById("remoteVideo");
@@ -166,27 +166,30 @@
   const btnNao = document.getElementById("nao");
   const btnPagamento = document.getElementById("fazerPagamento");
 
+  // ==== VARIÁVEIS ====
   const aluno = "{{ aluno }}";
   const professor = "{{ professor }}";
 
-  // === Inicialização do SDK 100ms ===
+  // ==== INICIALIZAÇÃO DO 100ms ====
   const hmsManager = new HMSReactiveStore();
   hmsManager.triggerOnSubscribe();
   const hmsStore = hmsManager.getStore();
   const hmsActions = hmsManager.getActions();
 
-  // === Entrar na sala com token ===
+  // ==== FUNÇÃO PARA ENTRAR NA SALA ====
   async function joinRoom(roomCode, userName) {
     try {
       const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode });
       await hmsActions.join({ userName, authToken });
+
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Conectado à sala`;
     } catch (err) {
-      console.error("Erro ao entrar na sala 100ms:", err);
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Erro ao conectar à sala`;
+      console.error("Erro ao entrar na sala:", err);
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Falha ao conectar à sala`;
     }
   }
 
-  // === Status de conexão ===
+  // ==== MONITORA CONEXÃO ====
   hmsStore.subscribe((connected) => {
     if (connected) {
       statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Conectado com sucesso`;
@@ -195,7 +198,7 @@
     }
   }, selectIsConnectedToRoom);
 
-  // === Vídeo remoto ===
+  // ==== MONITORA PEERS REMOTOS ====
   hmsStore.subscribe((peers) => {
     peers.forEach(peer => {
       if (peer.videoTrack && peer.id !== hmsStore.getState(selectLocalPeerID)) {
@@ -207,7 +210,7 @@
     });
   }, selectPeers);
 
-  // === Vídeo local ===
+  // ==== MONITORA VÍDEO LOCAL ====
   hmsStore.subscribe((isVideoOn) => {
     if (isVideoOn) {
       const localPeerId = hmsStore.getState(selectLocalPeerID);
@@ -221,7 +224,7 @@
     }
   }, selectIsLocalVideoEnabled);
 
-  // === Buscar o roomCode do professor e conectar ===
+  // ==== BUSCAR ROOM_CODE DO PROFESSOR ====
   async function buscarRoomCodeEConectar() {
     try {
       const resp = await fetch(`/buscar-roomcode-professor?aluno=${encodeURIComponent(aluno)}`);
@@ -229,18 +232,19 @@
 
       if (resp.ok && data.room_code) {
         const roomCode = data.room_code;
+        console.log("RoomCode obtido:", roomCode);
         await joinRoom(roomCode, aluno);
         iniciarCronometro();
       } else {
-        statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Nenhuma sala disponível.`;
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Nenhuma sala disponível`;
       }
     } catch (err) {
       console.error("Erro ao buscar room_code:", err);
-      statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Falha ao buscar room_code.`;
+      statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Falha ao buscar room_code`;
     }
   }
 
-  // === Cronômetro de aula ===
+  // ==== CRONÔMETRO DE AULA ====
   async function iniciarCronometro() {
     const mostrarPagamento = await verificarSeDeveMostrarPagamento();
     if (!mostrarPagamento) return;
@@ -262,7 +266,7 @@
     }, 1000);
   }
 
-  // === Verificação de pagamento ===
+  // ==== VERIFICAÇÃO DE PAGAMENTO ====
   async function verificarSeDeveMostrarPagamento() {
     try {
       const res = await fetch(`/aulas_dadas?aluno=${encodeURIComponent(aluno)}`);
@@ -275,7 +279,7 @@
     }
   }
 
-  // === Acesso à câmera e microfone ===
+  // ==== ATIVAR CÂMERA/MIC ====
   async function startCamera() {
     try {
       await navigator.mediaDevices.getUserMedia({
@@ -292,12 +296,12 @@
     }
   }
 
-  // === Início da sequência ===
+  // ==== SEQUÊNCIA DE INICIALIZAÇÃO ====
   startCamera().then(ok => {
     if (ok) buscarRoomCodeEConectar();
   });
 
-  // === Botões ===
+  // ==== BOTÕES ====
   btnSim.onclick = () => {
     notificacao.style.display = "none";
     pagamento.style.display = "block";
