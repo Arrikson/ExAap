@@ -145,9 +145,8 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
- <script type="module">
+<script type="module">
   import {
     HMSReactiveStore,
     selectIsConnectedToRoom,
@@ -222,26 +221,22 @@
     }
   }, selectIsLocalVideoEnabled);
 
-  // === Verificação de permissão ===
-  async function verificarPermissaoEConectar() {
+  // === Buscar o roomCode do professor e conectar ===
+  async function buscarRoomCodeEConectar() {
     try {
-      const resp = await fetch(`/registrar-chamada`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aluno: aluno, professor: professor })
-      });
+      const resp = await fetch(`/buscar-roomcode-professor?aluno=${encodeURIComponent(aluno)}`);
+      const data = await resp.json();
 
-      const result = await resp.json();
-      if (resp.ok && result.sala) {
-        const roomCode = result.sala; 
+      if (resp.ok && data.room_code) {
+        const roomCode = data.room_code;
         await joinRoom(roomCode, aluno);
         iniciarCronometro();
       } else {
-        statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Conexão não autorizada.`;
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Nenhuma sala disponível.`;
       }
     } catch (err) {
-      console.error("Erro ao verificar status:", err);
-      statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Falha ao verificar autorização.`;
+      console.error("Erro ao buscar room_code:", err);
+      statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Falha ao buscar room_code.`;
     }
   }
 
@@ -263,7 +258,6 @@
         clearInterval(intervalo);
         notificacao.style.display = "none";
         hmsActions.leave();
-        if (typeof encerrarChamada === "function") encerrarChamada();
       }
     }, 1000);
   }
@@ -300,7 +294,7 @@
 
   // === Início da sequência ===
   startCamera().then(ok => {
-    if (ok) verificarPermissaoEConectar();
+    if (ok) buscarRoomCodeEConectar();
   });
 
   // === Botões ===
@@ -319,4 +313,3 @@
 </script>
 </body>
 </html>
-
