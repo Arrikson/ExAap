@@ -147,7 +147,17 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
-  <script>
+ <script type="module">
+  import {
+    HMSReactiveStore,
+    selectIsConnectedToRoom,
+    selectPeers,
+    selectLocalPeerID,
+    selectVideoTrackByPeerID,
+    selectIsLocalVideoEnabled,
+    selectIsLocalAudioEnabled,
+  } from "https://cdn.jsdelivr.net/npm/@100mslive/hms-video-store@latest/dist/index.es.js";
+
   const statusEl = document.getElementById("status");
   const localVideo = document.getElementById("localVideo");
   const remoteVideo = document.getElementById("remoteVideo");
@@ -160,99 +170,59 @@
   const aluno = "{{ aluno }}";
   const professor = "{{ professor }}";
 
-  let peer;
-  let localStream;
-  let currentCall;
+  // === Inicialização do SDK 100ms ===
+  const hmsManager = new HMSReactiveStore();
+  hmsManager.triggerOnSubscribe();
+  const hmsStore = hmsManager.getStore();
+  const hmsActions = hmsManager.getActions();
 
-  async function startCamera() {
+  // === Entrar na sala com token ===
+  async function joinRoom(roomCode, userName) {
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      });
-      localVideo.srcObject = localStream;
-      return true;
+      const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode });
+      await hmsActions.join({ userName, authToken });
     } catch (err) {
-      console.error("Erro ao acessar a câmera e microfone:", err);
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Erro ao acessar câmera/microfone`;
-      return false;
+      console.error("Erro ao entrar na sala 100ms:", err);
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Erro ao conectar à sala`;
     }
   }
 
-  function initPeerAndConnect(peerIdDoProfessor) {
-    peer = new Peer({
-      config: {
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-          {
-            urls: "turn:seu-turn.dominio.com:3478",
-            username: "usuario",
-            credential: "senha"
-          }
-        ]
+  // === Status de conexão ===
+  hmsStore.subscribe((connected) => {
+    if (connected) {
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Conectado com sucesso`;
+    } else {
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Desconectado`;
+    }
+  }, selectIsConnectedToRoom);
+
+  // === Vídeo remoto ===
+  hmsStore.subscribe((peers) => {
+    peers.forEach(peer => {
+      if (peer.videoTrack && peer.id !== hmsStore.getState(selectLocalPeerID)) {
+        const trackId = peer.videoTrack;
+        hmsActions.attachVideo(trackId, remoteVideo);
+        remoteVideo.autoplay = true;
+        remoteVideo.playsInline = true;
       }
     });
+  }, selectPeers);
 
-    peer.on("open", () => {
-      if (!localStream) {
-        console.warn("⚠️ Stream local não disponível ainda");
-        return;
+  // === Vídeo local ===
+  hmsStore.subscribe((isVideoOn) => {
+    if (isVideoOn) {
+      const localPeerId = hmsStore.getState(selectLocalPeerID);
+      const trackId = hmsStore.getState(selectVideoTrackByPeerID(localPeerId));
+      if (trackId) {
+        hmsActions.attachVideo(trackId, localVideo);
+        localVideo.autoplay = true;
+        localVideo.muted = true;
+        localVideo.playsInline = true;
       }
+    }
+  }, selectIsLocalVideoEnabled);
 
-      statusEl.innerHTML = `<i class="fa-solid fa-link"></i> Conectando ao professor...`;
-      currentCall = peer.call(peerIdDoProfessor, localStream);
-      handleCallEvents(currentCall);
-    });
-
-    peer.on("disconnected", () => {
-      statusEl.textContent = "Reconectando...";
-      try { peer.reconnect(); } catch(_) {}
-      if (currentCall && localStream) {
-        setTimeout(() => {
-          const newCall = peer.call(currentCall.peer, localStream);
-          handleCallEvents(newCall);
-        }, 2000);
-      }
-    });
-
-    peer.on("error", (err) => {
-      console.error("Erro PeerJS:", err);
-    });
-  }
-
-  function handleCallEvents(call) {
-    currentCall = call;
-
-    call.on("stream", async (remoteStream) => {
-      remoteStream.getTracks().forEach(track => track.enabled = true);
-      remoteVideo.srcObject = remoteStream;
-      try {
-        await remoteVideo.play();
-      } catch {
-        console.warn("⚠️ Requer interação do usuário para liberar som");
-      }
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Conectado com o professor!`;
-      await iniciarCronometro();
-    });
-
-    call.peerConnection?.addEventListener("track", (ev) => {
-      if (ev.streams && ev.streams[0]) {
-        ev.streams[0].getTracks().forEach(track => track.enabled = true);
-        remoteVideo.srcObject = ev.streams[0];
-        remoteVideo.play().catch(() => console.warn("⚠️ Usuário precisa clicar para liberar som"));
-      }
-    });
-
-    call.on("close", () => {
-      statusEl.innerHTML = `<i class="fa-solid fa-plug-circle-xmark"></i> Conexão encerrada.`;
-    });
-
-    call.on("error", (err) => {
-      console.error("Erro na chamada:", err);
-    });
-  }
-
+  // === Verificação de permissão ===
   async function verificarPermissaoEConectar() {
     try {
       const resp = await fetch(`/registrar-chamada`, {
@@ -263,7 +233,9 @@
 
       const result = await resp.json();
       if (resp.ok && result.sala) {
-        buscarPeerIdEDiscar();
+        const roomCode = result.sala; 
+        await joinRoom(roomCode, aluno);
+        iniciarCronometro();
       } else {
         statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Conexão não autorizada.`;
       }
@@ -273,35 +245,30 @@
     }
   }
 
-  async function buscarPeerIdEDiscar() {
-    try {
-      const alunoNormalizado = aluno.trim().toLowerCase().replace(/\s/g, "");
-      let tentativas = 0;
-      const maxTentativas = 30;
+  // === Cronômetro de aula ===
+  async function iniciarCronometro() {
+    const mostrarPagamento = await verificarSeDeveMostrarPagamento();
+    if (!mostrarPagamento) return;
 
-      statusEl.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> Aguardando o professor iniciar a chamada...`;
+    let segundos = 0;
+    const duracaoAula = 3900;
+    const minutoNotificacao = 3600;
 
-      while (tentativas < maxTentativas) {
-        const res = await fetch(`/buscar-id-professor?aluno=${alunoNormalizado}`);
-        const data = await res.json();
-
-        if (data.peer_id) {
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ID do professor encontrado, conectando...`;
-          initPeerAndConnect(data.peer_id);
-          return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        tentativas++;
+    const intervalo = setInterval(() => {
+      segundos++;
+      if (segundos === minutoNotificacao) {
+        notificacao.style.display = "block";
       }
-
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Professor ausente.`;
-    } catch (err) {
-      console.error("Erro ao buscar ID do professor:", err);
-      statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Erro ao buscar ID.`;
-    }
+      if (segundos >= duracaoAula) {
+        clearInterval(intervalo);
+        notificacao.style.display = "none";
+        hmsActions.leave();
+        if (typeof encerrarChamada === "function") encerrarChamada();
+      }
+    }, 1000);
   }
 
+  // === Verificação de pagamento ===
   async function verificarSeDeveMostrarPagamento() {
     try {
       const res = await fetch(`/aulas_dadas?aluno=${encodeURIComponent(aluno)}`);
@@ -314,33 +281,29 @@
     }
   }
 
-  async function iniciarCronometro() {
-    const mostrarPagamento = await verificarSeDeveMostrarPagamento();
-    if (!mostrarPagamento) return;
-
-    let segundos = 0;
-    const duracaoAula = 3900; 
-    const minutoNotificacao = 3600; 
-
-    const intervalo = setInterval(() => {
-      segundos++;
-
-      if (segundos === minutoNotificacao) {
-        notificacao.style.display = "block";
-      }
-
-      if (segundos >= duracaoAula) {
-        clearInterval(intervalo);
-        notificacao.style.display = "none";
-        if (typeof encerrarChamada === "function") encerrarChamada();
-      }
-    }, 1000);
+  // === Acesso à câmera e microfone ===
+  async function startCamera() {
+    try {
+      await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 15 } },
+        audio: { echoCancellation: true, noiseSuppression: true }
+      });
+      await hmsActions.setLocalVideoEnabled(true);
+      await hmsActions.setLocalAudioEnabled(true);
+      return true;
+    } catch (err) {
+      console.error("Erro ao acessar câmera/microfone:", err);
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Erro ao acessar câmera/microfone`;
+      return false;
+    }
   }
 
+  // === Início da sequência ===
   startCamera().then(ok => {
     if (ok) verificarPermissaoEConectar();
   });
 
+  // === Botões ===
   btnSim.onclick = () => {
     notificacao.style.display = "none";
     pagamento.style.display = "block";
@@ -353,7 +316,7 @@
   btnPagamento.onclick = () => {
     window.location.href = `/enviar_comprovativo?aluno_nome=${encodeURIComponent(aluno)}`;
   };
-  </script>
+</script>
 </body>
 </html>
 
