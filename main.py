@@ -2255,6 +2255,32 @@ async def enviar_id_aula(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
+@app.post("/enviar-roomcode")
+async def enviar_roomcode(request: Request):
+    dados = await request.json()
+    room_code = dados.get("room_code")  # substitui peer_id
+    email_professor = dados.get("email")
+    nome_aluno_raw = dados.get("aluno")
+
+    if not room_code or not email_professor or not nome_aluno_raw:
+        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
+
+    try:
+        nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
+        email_professor = email_professor.strip().lower()
+
+        # Salva o código da sala para o aluno no Firebase
+        doc_ref = db.collection("alunos").document(nome_aluno)
+        doc_ref.set({
+            "room_code": room_code,
+            "professor_chamada": email_professor
+        }, merge=True)
+
+        return JSONResponse(content={"status": "RoomCode enviado com sucesso"})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"erro": str(e)})
+
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     try:
@@ -2270,14 +2296,34 @@ async def buscar_id_professor(aluno: str):
     except Exception as e:
         return {"erro": str(e)}
 
-from datetime import datetime
-from fastapi import Body, HTTPException
+
+@app.get("/buscar-roomcode-professor")
+async def buscar_roomcode_professor(aluno: str):
+    try:
+        aluno_normalizado = aluno.strip().lower().replace(" ", "")
+        doc_ref = db.collection("alunos").document(aluno_normalizado)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
+
+        data = doc.to_dict()
+        room_code = data.get("room_code")
+
+        if not room_code:
+            return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
+
+        return JSONResponse(content={"room_code": room_code})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"erro": str(e)})
+
 
 @app.post("/registrar-aula")
 async def registrar_aula(data: dict = Body(...)):
     try:
-        professor = data.get("professor", "").strip().lower()
-        aluno = data.get("aluno", "").strip().lower()
+        professor = data.get("professor", "").strip().lower().replace(" ", "")
+        aluno = data.get("aluno", "").strip().lower().replace(" ", "")
+        room_code = data.get("room_code", None)  # 🔹 opcional (para referência 100ms.live)
 
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
@@ -2293,21 +2339,26 @@ async def registrar_aula(data: dict = Body(...)):
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_ref = db.collection("alunos_professor").document(doc.id)
-        doc_data = doc.to_dict()
+        doc_data = doc.to_dict() or {}
+
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
         lista_aulas = doc_data.get("aulas", [])
-        aulas_passadas = doc_data.get("aulas_passadas", [])  
-        valor_passado = doc_data.get("valor_passado", [])    
+        aulas_passadas = doc_data.get("aulas_passadas", [])
+        valor_passado = doc_data.get("valor_passado", [])
 
         agora = datetime.now()
         nova_aula = {
             "data": agora.strftime("%Y-%m-%d"),
-            "horario": agora.strftime("%H:%M")
+            "horario": agora.strftime("%H:%M"),
         }
 
-        # Incrementa a aula
+        # Se vier o room_code, salva também
+        if room_code:
+            nova_aula["room_code"] = room_code
+
+        # 🔹 Incrementa a aula
         novo_total = aulas_anteriores + 1
-        valor_mensal = novo_total * 1250  # 💰 cálculo do valor acumulado
+        valor_mensal = novo_total * 1250  # 💰 valor por aula (ajuste conforme necessário)
 
         update_data = {
             "aulas_dadas": novo_total,
@@ -2330,25 +2381,26 @@ async def registrar_aula(data: dict = Body(...)):
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
                 "mes": agora.strftime("%Y-%m"),
                 "valor_pago": valor_mensal,
-                "pago": "Não Pago"   # 🔹 sempre garante a criação
+                "pago": "Não Pago"
             }
 
             aulas_passadas.append(registro_passado)
             valor_passado.append(registro_valor)
 
-            # Resetar os contadores
-            update_data["aulas_dadas"] = 0
-            update_data["valor_mensal"] = 0
-            update_data["aulas_passadas"] = aulas_passadas
-            update_data["valor_passado"] = valor_passado
+            update_data.update({
+                "aulas_dadas": 0,
+                "valor_mensal": 0,
+                "aulas_passadas": aulas_passadas,
+                "valor_passado": valor_passado
+            })
 
         # 🔹 Atualiza documento aluno-professor
         doc_ref.update(update_data)
 
-        # 🔹 Atualiza saldo_atual do professor na coleção "professores_online"
-        prof_ref = db.collection("professores_online").where(
-            filter=FieldFilter("email", "==", professor)
-        ).limit(1).stream()
+        # 🔹 Atualiza saldo do professor
+        prof_ref = db.collection("professores_online") \
+                     .where(filter=FieldFilter("email", "==", professor)) \
+                     .limit(1).stream()
 
         prof_doc = next(prof_ref, None)
         if prof_doc:
@@ -2356,27 +2408,24 @@ async def registrar_aula(data: dict = Body(...)):
             prof_data = prof_doc.to_dict() or {}
             salario_info = prof_data.get("salario", {})
 
-            # soma ao saldo atual existente
-            saldo_atual = int(salario_info.get("saldo_atual", 0)) + (valor_mensal if novo_total < 12 else 0)
+            saldo_atual = int(salario_info.get("saldo_atual", 0))
+            if novo_total < 12:
+                saldo_atual += valor_mensal
+            else:
+                saldo_atual += registro_valor["valor_pago"]
 
-            # se completou 12 aulas, transfere todo valor e zera o acumulado no aluno-professor
-            if novo_total >= 12:
-                saldo_atual = int(salario_info.get("saldo_atual", 0)) + registro_valor["valor_pago"]
-
-            prof_doc_ref.update({
-                "salario.saldo_atual": saldo_atual
-            })
+            prof_doc_ref.update({"salario.saldo_atual": saldo_atual})
 
         return {
             "mensagem": f"✅ Aula registrada com sucesso (total atual: {update_data['aulas_dadas']})",
             "nova_aula": nova_aula,
-            "transferencia_aulas": registro_passado if registro_passado else None,
-            "transferencia_valor": registro_valor if registro_valor else None
+            "transferencia_aulas": registro_passado,
+            "transferencia_valor": registro_valor
         }
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
-        raise HTTPException(status_code=500, detail="Erro ao registrar aula")
+        raise HTTPException(status_code=500, detail=f"Erro ao registrar aula: {str(e)}")
 
         
 @app.post("/ver-aulas")
