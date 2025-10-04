@@ -174,11 +174,10 @@
     }
   }, selectIsConnectedToRoom);
 
-  // Quando houver peers (aluno entra)
+  // Quando o aluno entra na sala
   hmsStore.subscribe(peers => {
     peers.forEach(peer => {
       if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
-        // conectar vídeo remoto do aluno
         hmsActions.attachVideo(peer.videoTrack, remoteVideo);
         remoteVideo.autoplay = true;
         remoteVideo.playsInline = true;
@@ -191,12 +190,8 @@
   // Exibir vídeo local (professor)
   hmsStore.subscribe(isVideoOn => {
     if (isVideoOn) {
-      const localPeerId = hmsStore.getState(selectLocalPeerID);
-      const track = hmsStore.getState(selectLocalPeerID) && hmsStore.getState(selectLocalPeerID).videoTrack;
-      // alternativa: usar método do SDK para publicar vídeo
       hmsActions.setLocalVideoEnabled(true);
       hmsActions.setLocalAudioEnabled(true);
-      hmsActions.attachVideo(track, localVideo);
       localVideo.autoplay = true;
       localVideo.muted = true;
       localVideo.playsInline = true;
@@ -208,27 +203,29 @@
     try {
       const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode });
       await hmsActions.join({ userName, authToken });
+      return roomCode; // 🔹 retornamos o código da sala
     } catch (err) {
       console.error("Erro ao entrar na sala 100ms:", err);
       statusSpan.innerHTML = `Erro ao conectar à sala`;
+      return null;
     }
   }
 
-  // Lógica de “iniciar” o lado professor
+  // Inicialização do professor
   async function iniciarProfessor() {
     try {
-      // primeiro, preparar câmera e áudio
       await startCamera();
-      // você pode já receber o código da sala do backend
       const resp = await fetch("/obter-sala-professor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ professor: email, aluno: aluno })
       });
+
       const data = await resp.json();
       if (resp.ok && data.sala) {
-        await joinRoom(data.sala, email);
+        const roomCode = await joinRoom(data.sala, email);
         statusSpan.textContent = "Sala criada, aguardando aluno...";
+        chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
       } else {
         statusSpan.textContent = "Falha ao obter sala";
       }
@@ -238,7 +235,7 @@
     }
   }
 
-  // Função para acessar câmera e microfone
+  // Ativar câmera/microfone
   async function startCamera() {
     try {
       await navigator.mediaDevices.getUserMedia({
@@ -254,7 +251,7 @@
     }
   }
 
-  // Cronômetro adaptado
+  // Cronômetro da aula
   let tempoRestante = 3900;
   let intervalo;
   function iniciarCronometro() {
@@ -282,38 +279,30 @@
     confirmarAulaBtn.style.display = "inline-block";
   }
 
-  // Enviar sala / sala id ao backend (similar "enviarIdAoPerfil")
-  function enviarSalaAoBackend(roomCode) {
+  // 🔹 Função atualizada para enviar o roomCode ao backend
+  async function enviarRoomCode(roomCode) {
     chamarAlunoBtn.style.display = "none";
-    fetch("/enviar-sala-professor", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sala: roomCode,
-        professor: email.trim().toLowerCase(),
-        aluno: aluno.trim().toLowerCase()
-      })
-    })
-    .then(res => {
-      if (res.ok) {
-        alert("✅ Sala enviada!");
-      } else {
-        throw new Error();
-      }
-    })
-    .catch(() => {
-      alert("⚠️ Erro ao enviar sala.");
+    try {
+      const resp = await fetch("/enviar-roomcode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          room_code: roomCode,
+          email: email.trim().toLowerCase(),
+          aluno: aluno.trim().toLowerCase()
+        })
+      });
+
+      if (!resp.ok) throw new Error("Falha ao enviar room code");
+      alert("✅ Código da sala enviado ao aluno!");
+    } catch (err) {
+      console.error("Erro ao enviar room code:", err);
+      alert("⚠️ Erro ao enviar código da sala.");
       chamarAlunoBtn.style.display = "inline-block";
-    });
+    }
   }
 
-  // Quando clicar no botão “chamar aluno”
-  chamarAlunoBtn.onclick = async () => {
-    // sala precisa existir, pegue código de sala do hms ou do backend
-    const roomCode = await hmsActions.getRoomCode(); // ou use a que você criou no join
-    enviarSalaAoBackend(roomCode);
-  };
-
+  // Confirmar aula
   confirmarAulaBtn.onclick = () => {
     fetch("/registrar-aula", {
       method: "POST",
@@ -325,7 +314,7 @@
     })
     .then(res => {
       if (res.ok) {
-        alert("✔️ Aula registrada!");
+        alert("✔️ Aula registrada com sucesso!");
         confirmarAulaBtn.style.display = "none";
       } else {
         throw new Error();
@@ -336,13 +325,16 @@
     });
   };
 
+  // Ativar áudio remoto
   ativarAudioBtn.onclick = () => {
     remoteVideo.muted = false;
-    remoteVideo.srcObject.getAudioTracks().forEach(t => t.enabled = true);
+    if (remoteVideo.srcObject) {
+      remoteVideo.srcObject.getAudioTracks().forEach(t => (t.enabled = true));
+    }
     ativarAudioBtn.style.display = "none";
   };
 
-  // Iniciar tudo
+  // Iniciar o fluxo
   (async () => {
     await iniciarProfessor();
   })();
