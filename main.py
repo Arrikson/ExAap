@@ -2258,8 +2258,7 @@ async def enviar_id_aula(request: Request):
 
 # Configurações 100ms
 HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_MANAGEMENT_TOKEN = "SEU_TOKEN_DE_GESTAO"  # obtido no painel 100ms
-TEMPLATE_ID = "SEU_TEMPLATE_ID"
+HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
 
 @app.post("/obter-sala-professor")
 async def obter_sala_professor(req: Request):
