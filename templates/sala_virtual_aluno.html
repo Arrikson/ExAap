@@ -296,10 +296,24 @@
     }
   }
 
-  // ==== SEQUÊNCIA DE INICIALIZAÇÃO ====
-  startCamera().then(ok => {
-    if (ok) buscarRoomCodeEConectar();
-  });
+(async () => {
+  // Primeiro, conecta à sala
+  const resp = await fetch(`/buscar-roomcode-professor?aluno=${encodeURIComponent(aluno)}`);
+  const data = await resp.json();
+
+  if (resp.ok && data.room_code) {
+    const roomCode = data.room_code;
+    await joinRoom(roomCode, aluno);
+
+    // ✅ Agora sim ativa a câmera e áudio
+    await hmsActions.setLocalVideoEnabled(true);
+    await hmsActions.setLocalAudioEnabled(true);
+
+    iniciarCronometro();
+  } else {
+    statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Nenhuma sala disponível`;
+  }
+})();
 
   // ==== BOTÕES ====
   btnSim.onclick = () => {
