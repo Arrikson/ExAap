@@ -149,7 +149,6 @@
 <script type="module">
   import {
     HMSReactiveStore,
-    selectIsConnectedToRoom,
     selectPeers,
     selectLocalPeerID,
     selectVideoTrackByPeerID,
@@ -169,43 +168,37 @@
 
   async function iniciarAluno() {
     try {
-      // 1️⃣ Inicializa o SDK
       await hmsActions.init();
 
-      // 2️⃣ Busca o código da sala
       const resp = await fetch(`/buscar-roomcode-professor?aluno=${encodeURIComponent(aluno)}`);
       const data = await resp.json();
       if (!resp.ok || !data.room_code) throw new Error("Sem sala disponível");
 
-      // 3️⃣ Obtém token e entra
       const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode: data.room_code });
-      await hmsActions.join({ userName: aluno, authToken });
+      if (!authToken) throw new Error("Token inválido");
 
-      // 4️⃣ Ativa câmera e áudio
-      await hmsActions.setLocalVideoEnabled(true);
-      await hmsActions.setLocalAudioEnabled(true);
+      // entra com câmera e microfone já ligados
+      await hmsActions.join({
+        userName: aluno,
+        authToken,
+        settings: { isAudioMuted: false, isVideoMuted: false },
+      });
 
-      statusEl.textContent = "✅ Conectado à sala!";
+      // exibe vídeo local
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = stream;
+      localVideo.autoplay = true;
+      localVideo.muted = true;
+      localVideo.playsInline = true;
+
+      statusEl.textContent = "✅ Conectado e transmitindo vídeo!";
     } catch (err) {
       console.error("Erro ao iniciar aluno:", err);
       statusEl.textContent = "❌ Falha ao conectar à sala";
     }
   }
 
-  // ==== MONITORA VÍDEOS ====
-  hmsStore.subscribe((isVideoOn) => {
-    if (isVideoOn) {
-      const localId = hmsStore.getState(selectLocalPeerID);
-      const trackId = hmsStore.getState(selectVideoTrackByPeerID(localId));
-      if (trackId) {
-        hmsActions.attachVideo(trackId, localVideo);
-        localVideo.autoplay = true;
-        localVideo.muted = true;
-        localVideo.playsInline = true;
-      }
-    }
-  }, selectIsLocalVideoEnabled);
-
+  // ==== RECEBE VÍDEO DO PROFESSOR ====
   hmsStore.subscribe((peers) => {
     peers.forEach(peer => {
       if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
@@ -213,6 +206,7 @@
         hmsActions.attachVideo(trackId, remoteVideo);
         remoteVideo.autoplay = true;
         remoteVideo.playsInline = true;
+        statusEl.textContent = `👨‍🏫 Professor ${peer.name} visível!`;
       }
     });
   }, selectPeers);
