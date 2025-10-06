@@ -2357,11 +2357,17 @@ async def registrar_chamada(request: Request):
         )
 
 
-# Configurações 100ms
+# ================================
+# 🔧 Configurações 100ms
+# ================================
 HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
 TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
 
+
+# ==============================================
+# 🧠 Endpoint: Criar sala e guardar RoomCode
+# ==============================================
 @app.post("/obter-sala-professor")
 async def obter_sala_professor(req: Request):
     dados = await req.json()
@@ -2381,20 +2387,24 @@ async def obter_sala_professor(req: Request):
             "Content-Type": "application/json"
         }
         body_sala = {"name": room_name, "template_id": TEMPLATE_ID}
+
         resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
         if not resp_sala.ok:
+            print("❌ Erro na criação da sala:", resp_sala.text)
             return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
 
         sala_info = resp_sala.json()
         room_id = sala_info.get("id")
         if not room_id:
-            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
+            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado pela API"})
 
-        # 2️⃣ Criar Room Code
+        # 2️⃣ Criar Room Code para o professor
         url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
-        body_code = {"role": "anfitriao"}  # ou “professor”
+        body_code = {"role": "anfitriao"}  # função do professor na sala
         resp_code = requests.post(url_code, headers=headers, json=body_code)
+
         if not resp_code.ok:
+            print("❌ Erro ao gerar RoomCode:", resp_code.text)
             return JSONResponse(status_code=500, content={"erro": "Falha ao criar Room Code", "detalhe": resp_code.text})
 
         code_info = resp_code.json()
@@ -2413,24 +2423,24 @@ async def obter_sala_professor(req: Request):
         if not vinculo_doc:
             return JSONResponse(
                 status_code=404,
-                content={"erro": "Vínculo entre professor e aluno não encontrado"}
+                content={"erro": f"Vínculo entre professor '{professor}' e aluno '{aluno}' não encontrado"}
             )
 
-        # 4️⃣ Guardar os dados da sala dentro do documento do vínculo
+        # 4️⃣ Atualizar o documento com o código da sala
         doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
-        doc_ref.set({
-            "sala_aula": {
-                "room_code": room_code,
-                "professor_chamada": professor,
-                "criado_em": datetime.now(timezone.utc).isoformat()
-            }
-        }, merge=True)
+        doc_ref.update({
+            "sala_aula.room_code": room_code,
+            "sala_aula.professor_chamada": professor,
+            "sala_aula.criado_em": datetime.now(timezone.utc).isoformat()
+        })
+
+        print(f"✅ RoomCode '{room_code}' gravado para {professor} e {aluno}")
 
         # 5️⃣ Retornar o código da sala ao frontend
         return JSONResponse(content={"sala": room_code})
 
     except Exception as e:
-        print("Erro ao criar sala:", e)
+        print("⚠️ Erro ao criar sala:", e)
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
          
