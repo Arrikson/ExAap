@@ -2261,6 +2261,107 @@ HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
 TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
 
+@app.post("/registrar-chamada")
+async def registrar_chamada(request: Request):
+    try:
+        dados = await request.json()
+        aluno_raw = dados.get("aluno")
+        professor_raw = dados.get("professor")
+
+        if not aluno_raw or not professor_raw:
+            return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
+
+        # 🔹 Normalização
+        aluno_normalizado = str(aluno_raw).strip().lower().replace(" ", "")
+        professor_normalizado = str(professor_raw).strip().lower()
+        nome_sala = f"aula_{professor_normalizado}_{aluno_normalizado}".replace(" ", "_")
+
+        # 🔹 Verificar vínculo aluno–professor
+        vinculo_docs = db.collection("alunos_professor") \
+                         .where("professor", "==", professor_normalizado) \
+                         .stream()
+
+        vinculo_encontrado = False
+        for doc in vinculo_docs:
+            data = doc.to_dict()
+            aluno_db = data.get("aluno", "").strip().lower().replace(" ", "")
+            if aluno_db == aluno_normalizado:
+                vinculo_encontrado = True
+                break
+
+        if not vinculo_encontrado:
+            return JSONResponse(
+                content={"erro": "Vínculo entre professor e aluno não encontrado."},
+                status_code=403
+            )
+
+        # 🔹 Criar sala na 100ms
+        url_sala = f"{HMS_API_BASE}/rooms"
+        headers = {
+            "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        body_sala = {"name": nome_sala, "template_id": TEMPLATE_ID}
+        resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
+
+        if not resp_sala.ok:
+            return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
+
+        sala_info = resp_sala.json()
+        room_id = sala_info.get("id")
+
+        if not room_id:
+            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
+
+        # 🔹 Criar room code para o professor (anfitrião)
+        url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
+        body_code = {"role": "anfitriao"}
+        resp_code = requests.post(url_code, headers=headers, json=body_code)
+
+        if not resp_code.ok:
+            return JSONResponse(status_code=500, content={"erro": "Falha ao gerar Room Code", "detalhe": resp_code.text})
+
+        code_info = resp_code.json()
+        room_code = code_info.get("data", {}).get("code")
+
+        if not room_code:
+            return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
+
+        # 🔹 Registrar chamada no Firestore
+        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_normalizado)
+        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        doc_ref.set({
+            "aluno": aluno_normalizado,
+            "professor": professor_normalizado,
+            "status": "aceito",
+            "sala": nome_sala,
+            "room_code": room_code,
+            "data_criacao": agora
+        }, merge=True)
+
+        return JSONResponse(
+            content={
+                "mensagem": "✅ Chamada registrada com sucesso e sala criada na 100ms.live.",
+                "sala": nome_sala,
+                "room_code": room_code
+            },
+            status_code=200
+        )
+
+    except Exception as e:
+        print(f"❌ ERRO AO REGISTRAR CHAMADA: {str(e)}")
+        return JSONResponse(
+            content={"erro": f"Erro interno ao registrar chamada: {str(e)}"},
+            status_code=500
+        )
+
+
+# Configurações 100ms
+HMS_API_BASE = "https://api.100ms.live/v2"
+HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
+TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
+
 @app.post("/obter-sala-professor")
 async def obter_sala_professor(req: Request):
     dados = await req.json()
@@ -2329,23 +2430,6 @@ async def enviar_roomcode(request: Request):
         return JSONResponse(content={"status": "RoomCode enviado com sucesso"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
-
-
-@app.get("/buscar-id-professor")
-async def buscar_id_professor(aluno: str):
-    try:
-        aluno_normalizado = aluno.strip().lower().replace(" ", "")
-        doc_ref = db.collection("alunos").document(aluno_normalizado)
-        doc = doc_ref.get()
-
-        if doc.exists:
-            data = doc.to_dict()
-            return {"peer_id": data.get("id_chamada")}
-        else:
-            return {"peer_id": None}
-    except Exception as e:
-        return {"erro": str(e)}
-
 
 @app.get("/buscar-roomcode-professor")
 async def buscar_roomcode_professor(aluno: str):
@@ -2470,7 +2554,23 @@ async def registrar_aula(data: dict = Body(...)):
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail=f"Erro ao registrar aula: {str(e)}")
 
-        
+
+@app.get("/buscar-id-professor")
+async def buscar_id_professor(aluno: str):
+    try:
+        aluno_normalizado = aluno.strip().lower().replace(" ", "")
+        doc_ref = db.collection("alunos").document(aluno_normalizado)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            data = doc.to_dict()
+            return {"peer_id": data.get("id_chamada")}
+        else:
+            return {"peer_id": None}
+    except Exception as e:
+        return {"erro": str(e)}
+
+
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
     try:
