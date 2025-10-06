@@ -163,37 +163,34 @@
   const hmsStore = hmsManager.getStore();
   const hmsActions = hmsManager.getActions();
 
-  async function iniciarProfessor() {
-    try {
-      // 1️⃣ Inicializa o SDK (ESSENCIAL)
-      await hmsActions.init();
+  // ==== INICIALIZAÇÃO DO PROFESSOR ====
+async function iniciarProfessor() {
+  try {
+    const resp = await fetch("/obter-sala-professor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professor: email, aluno: aluno })
+    });
 
-      // 2️⃣ Obtém a sala do backend
-      const resp = await fetch("/obter-sala-professor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ professor: email, aluno: aluno })
-      });
+    const data = await resp.json();
+    if (resp.ok && data.sala) {
+      const roomCode = await joinRoom(data.sala, email);
 
-      const data = await resp.json();
-      if (!resp.ok || !data.sala) throw new Error("Falha ao obter sala");
-
-      // 3️⃣ Obtém token e entra
-      const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode: data.sala });
-      await hmsActions.join({ userName: email, authToken });
-
-      // 4️⃣ Ativa câmera e microfone depois de conectar
+      // ✅ Ativa câmera e microfone após a conexão bem-sucedida
       await hmsActions.setLocalVideoEnabled(true);
       await hmsActions.setLocalAudioEnabled(true);
 
-      statusSpan.textContent = "✅ Sala criada e aguardando aluno...";
-      chamarAlunoBtn.onclick = () => enviarRoomCode(data.sala);
-
-    } catch (err) {
-      console.error("Erro ao iniciar professor:", err);
-      statusSpan.textContent = "❌ Erro ao iniciar a chamada";
+      statusSpan.textContent = "✅ Sala criada, aguardando aluno...";
+      chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
+    } else {
+      console.error("Erro ao obter sala:", data);
+      statusSpan.textContent = "⚠️ Falha ao obter sala.";
     }
+  } catch (err) {
+    console.error("Erro ao iniciar professor:", err);
+    statusSpan.textContent = "❌ Erro ao iniciar chamada.";
   }
+}
 
   // ==== MONITORAMENTO ====
   hmsStore.subscribe((connected) => {
