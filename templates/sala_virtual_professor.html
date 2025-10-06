@@ -217,30 +217,34 @@
   }
 
   // ==== INICIALIZAÇÃO DO PROFESSOR ====
-  async function iniciarProfessor() {
-    try {
-      await startCamera();
+async function iniciarProfessor() {
+  try {
+    const resp = await fetch("/obter-sala-professor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professor: email, aluno: aluno })
+    });
 
-      const resp = await fetch("/obter-sala-professor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ professor: email, aluno: aluno })
-      });
+    const data = await resp.json();
+    if (resp.ok && data.sala) {
+      const roomCode = await joinRoom(data.sala, email);
 
-      const data = await resp.json();
-      if (resp.ok && data.sala) {
-        const roomCode = await joinRoom(data.sala, email);
-        statusSpan.textContent = "✅ Sala criada, aguardando aluno...";
-        chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
-      } else {
-        console.error("Erro ao obter sala:", data);
-        statusSpan.textContent = "⚠️ Falha ao obter sala.";
-      }
-    } catch (err) {
-      console.error("Erro ao iniciar professor:", err);
-      statusSpan.textContent = "❌ Erro ao iniciar chamada.";
+      // ✅ Ativa câmera e microfone após a conexão bem-sucedida
+      await hmsActions.setLocalVideoEnabled(true);
+      await hmsActions.setLocalAudioEnabled(true);
+
+      statusSpan.textContent = "✅ Sala criada, aguardando aluno...";
+      chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
+    } else {
+      console.error("Erro ao obter sala:", data);
+      statusSpan.textContent = "⚠️ Falha ao obter sala.";
     }
+  } catch (err) {
+    console.error("Erro ao iniciar professor:", err);
+    statusSpan.textContent = "❌ Erro ao iniciar chamada.";
   }
+}
+
 
   // ==== ACESSAR CÂMERA E MICROFONE ====
   async function startCamera() {
