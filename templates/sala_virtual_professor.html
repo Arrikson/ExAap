@@ -142,74 +142,63 @@
     HMSReactiveStore,
     selectPeers,
     selectLocalPeerID,
-    selectIsConnectedToRoom,
-    selectIsLocalVideoEnabled,
-    selectVideoTrackByPeerID
+    selectVideoTrackByPeerID,
+    selectIsLocalVideoEnabled
   } from "https://cdn.jsdelivr.net/npm/@100mslive/hms-video-store@latest/dist/index.es.js";
 
   const statusSpan = document.getElementById("status");
   const localVideo = document.getElementById("localVideo");
   const remoteVideo = document.getElementById("remoteVideo");
-  const chamarAlunoBtn = document.getElementById("chamarAlunoBtn");
-  const confirmarAulaBtn = document.getElementById("confirmarAulaBtn");
-  const cronometro = document.getElementById("cronometro");
 
   const email = "{{ email }}";
   const aluno = "{{ aluno }}";
 
-  // ==== INICIALIZA 100ms ====
   const hmsManager = new HMSReactiveStore();
   hmsManager.triggerOnSubscribe();
   const hmsStore = hmsManager.getStore();
   const hmsActions = hmsManager.getActions();
 
-  // ==== INICIALIZAÇÃO DO PROFESSOR ====
-async function iniciarProfessor() {
-  try {
-    const resp = await fetch("/obter-sala-professor", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ professor: email, aluno: aluno })
-    });
+  async function iniciarProfessor() {
+    try {
+      await hmsActions.init();
 
-    const data = await resp.json();
-    if (resp.ok && data.sala) {
-      const roomCode = await joinRoom(data.sala, email);
+      // 1️⃣ Obtém a sala do backend
+      const resp = await fetch("/obter-sala-professor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ professor: email, aluno: aluno })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.sala) throw new Error("Falha ao obter sala");
 
-      // ✅ Ativa câmera e microfone após a conexão bem-sucedida
-      await hmsActions.setLocalVideoEnabled(true);
-      await hmsActions.setLocalAudioEnabled(true);
+      // 2️⃣ Gera o token
+      const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode: data.sala });
+      if (!authToken) throw new Error("Token inválido");
 
-      statusSpan.textContent = "✅ Sala criada, aguardando aluno...";
-      chamarAlunoBtn.onclick = () => enviarRoomCode(roomCode);
-    } else {
-      console.error("Erro ao obter sala:", data);
-      statusSpan.textContent = "⚠️ Falha ao obter sala.";
+      // 3️⃣ Entra na sala já com vídeo e áudio ativos
+      await hmsActions.join({
+        userName: email,
+        authToken,
+        settings: { isAudioMuted: false, isVideoMuted: false },
+      });
+
+      statusSpan.textContent = "🎥 Sala criada. Vídeo ativo, aguardando aluno...";
+
+      // 4️⃣ Ativa e exibe o vídeo local
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = stream;
+      localVideo.autoplay = true;
+      localVideo.muted = true;
+      localVideo.playsInline = true;
+
+      chamarAlunoBtn.onclick = () => enviarRoomCode(data.sala);
+    } catch (err) {
+      console.error("Erro ao iniciar professor:", err);
+      statusSpan.textContent = "❌ Erro ao iniciar a chamada";
     }
-  } catch (err) {
-    console.error("Erro ao iniciar professor:", err);
-    statusSpan.textContent = "❌ Erro ao iniciar chamada.";
   }
-}
 
-  // ==== MONITORAMENTO ====
-  hmsStore.subscribe((connected) => {
-    statusSpan.textContent = connected ? "Conectado à sala" : "Desconectado";
-  }, selectIsConnectedToRoom);
-
-  hmsStore.subscribe((isVideoOn) => {
-    if (isVideoOn) {
-      const localId = hmsStore.getState(selectLocalPeerID);
-      const trackId = hmsStore.getState(selectVideoTrackByPeerID(localId));
-      if (trackId) {
-        hmsActions.attachVideo(trackId, localVideo);
-        localVideo.autoplay = true;
-        localVideo.muted = true;
-        localVideo.playsInline = true;
-      }
-    }
-  }, selectIsLocalVideoEnabled);
-
+  // ==== RECEBE VÍDEO DO ALUNO ====
   hmsStore.subscribe((peers) => {
     peers.forEach(peer => {
       if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
@@ -217,28 +206,11 @@ async function iniciarProfessor() {
         hmsActions.attachVideo(trackId, remoteVideo);
         remoteVideo.autoplay = true;
         remoteVideo.playsInline = true;
-        statusSpan.textContent = "🎥 Aluno conectado!";
-        iniciarCronometro();
+        statusSpan.textContent = `👨‍🎓 ${peer.name} conectado!`;
       }
     });
   }, selectPeers);
 
-  // ==== CRONÔMETRO ====
-  function iniciarCronometro() {
-    let tempo = 3900;
-    cronometro.style.display = "block";
-    const intervalo = setInterval(() => {
-      if (--tempo <= 0) {
-        clearInterval(intervalo);
-        hmsActions.leave();
-      }
-      const min = Math.floor(tempo / 60).toString().padStart(2, "0");
-      const seg = (tempo % 60).toString().padStart(2, "0");
-      cronometro.textContent = `${min}:${seg}`;
-    }, 1000);
-  }
-
-  // ==== ENVIAR ROOM CODE ====
   async function enviarRoomCode(roomCode) {
     try {
       await fetch("/enviar-roomcode", {
