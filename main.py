@@ -2367,49 +2367,72 @@ async def obter_sala_professor(req: Request):
     dados = await req.json()
     professor = dados.get("professor", "").strip().lower()
     aluno = dados.get("aluno", "").strip().lower()
+
     if not professor or not aluno:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
 
-    room_name = f"aula_{professor}_{aluno}".replace(" ", "_")
+    try:
+        room_name = f"aula_{professor}_{aluno}".replace(" ", "_")
 
-    # 1️⃣ Criar sala
-    url_sala = f"{HMS_API_BASE}/rooms"
-    headers = {
-        "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    body_sala = {"name": room_name, "template_id": TEMPLATE_ID}
-    resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
-    if not resp_sala.ok:
-        return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
+        # 1️⃣ Criar sala via API 100ms
+        url_sala = f"{HMS_API_BASE}/rooms"
+        headers = {
+            "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        body_sala = {"name": room_name, "template_id": TEMPLATE_ID}
+        resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
+        if not resp_sala.ok:
+            return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
 
-    sala_info = resp_sala.json()
-    room_id = sala_info.get("id")
+        sala_info = resp_sala.json()
+        room_id = sala_info.get("id")
+        if not room_id:
+            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
 
-    if not room_id:
-        return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
+        # 2️⃣ Criar Room Code
+        url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
+        body_code = {"role": "anfitriao"}  # ou “professor”
+        resp_code = requests.post(url_code, headers=headers, json=body_code)
+        if not resp_code.ok:
+            return JSONResponse(status_code=500, content={"erro": "Falha ao criar Room Code", "detalhe": resp_code.text})
 
-    # 2️⃣ Criar room code
-    url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
-    body_code = {"role": "anfitriao"}  # ou “professor”, conforme definido no painel
-    resp_code = requests.post(url_code, headers=headers, json=body_code)
-    if not resp_code.ok:
-        return JSONResponse(status_code=500, content={"erro": "Falha ao criar Room Code", "detalhe": resp_code.text})
+        code_info = resp_code.json()
+        room_code = code_info.get("data", {}).get("code")
+        if not room_code:
+            return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
 
-    code_info = resp_code.json()
-    room_code = code_info.get("data", {}).get("code")
+        # 3️⃣ Procurar o vínculo entre professor e aluno
+        vinculos = db.collection("alunos_professor") \
+            .where("professor", "==", professor) \
+            .where("aluno", "==", aluno) \
+            .limit(1) \
+            .stream()
 
-    if not room_code:
-        return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
+        vinculo_doc = next(vinculos, None)
+        if not vinculo_doc:
+            return JSONResponse(
+                status_code=404,
+                content={"erro": "Vínculo entre professor e aluno não encontrado"}
+            )
 
-    # 3️⃣ Gravar no Firestore
-    aluno_doc = aluno.replace(" ", "")
-    db.collection("alunos").document(aluno_doc).set({
-        "room_code": room_code,
-        "professor_chamada": professor
-    }, merge=True)
+        # 4️⃣ Guardar os dados da sala dentro do documento do vínculo
+        doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
+        doc_ref.set({
+            "sala_aula": {
+                "room_code": room_code,
+                "professor_chamada": professor,
+                "criado_em": datetime.now(timezone.utc).isoformat()
+            }
+        }, merge=True)
 
-    return {"sala": room_code}
+        # 5️⃣ Retornar o código da sala ao frontend
+        return JSONResponse(content={"sala": room_code})
+
+    except Exception as e:
+        print("Erro ao criar sala:", e)
+        return JSONResponse(status_code=500, content={"erro": str(e)})
+
          
 @app.post("/enviar-roomcode")
 async def enviar_roomcode(request: Request):
@@ -2417,32 +2440,75 @@ async def enviar_roomcode(request: Request):
     room_code = dados.get("room_code")
     email_professor = dados.get("email")
     nome_aluno_raw = dados.get("aluno")
+
     if not room_code or not email_professor or not nome_aluno_raw:
         return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
-    try:
-        nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
-        email_professor = email_professor.strip().lower()
-        doc_ref = db.collection("alunos").document(nome_aluno)
-        doc_ref.set({
-            "room_code": room_code,
-            "professor_chamada": email_professor
-        }, merge=True)
-        return JSONResponse(content={"status": "RoomCode enviado com sucesso"})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
 
+    try:
+        # Normalizar dados
+        nome_aluno = nome_aluno_raw.strip().lower()
+        email_professor = email_professor.strip().lower()
+
+        # Procurar o documento do vínculo entre professor e aluno
+        vinculos = db.collection("alunos_professor") \
+            .where("professor", "==", email_professor) \
+            .where("aluno", "==", nome_aluno) \
+            .limit(1) \
+            .stream()
+
+        vinculo_doc = next(vinculos, None)
+
+        if not vinculo_doc:
+            return JSONResponse(
+                status_code=404,
+                content={"erro": "Vínculo entre professor e aluno não encontrado"}
+            )
+
+        # Atualizar o campo 'sala_aula' dentro do vínculo
+        doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
+        doc_ref.set({
+            "sala_aula": {
+                "room_code": room_code,
+                "professor_chamada": email_professor,
+                "criado_em": datetime.now(timezone.utc).isoformat()
+            }
+        }, merge=True)
+
+        return JSONResponse(content={"status": "RoomCode enviado com sucesso para a coleção alunos_professor"})
+
+    except Exception as e:
+        print("Erro ao enviar roomcode:", e)
+        return JSONResponse(status_code=500, content={"erro": str(e)})
+        
 @app.get("/buscar-roomcode-professor")
-async def buscar_roomcode_professor(aluno: str):
+async def buscar_roomcode_professor(aluno: str, professor: str):
     aluno_normalizado = aluno.strip().lower().replace(" ", "")
-    doc_ref = db.collection("alunos").document(aluno_normalizado)
-    doc = doc_ref.get()
-    if not doc.exists:
-        return JSONResponse(status_code=404, content={"erro": "Aluno não encontrado"})
-    data = doc.to_dict()
-    room_code = data.get("room_code")
-    if not room_code:
-        return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
-    return JSONResponse(content={"room_code": room_code})
+    professor_normalizado = professor.strip().lower().replace(" ", "")
+
+    try:
+        # 🔍 Procurar o vínculo entre professor e aluno
+        vinculos = db.collection("alunos_professor") \
+            .where("professor", "==", professor_normalizado) \
+            .where("aluno", "==", aluno_normalizado) \
+            .limit(1) \
+            .stream()
+
+        vinculo_doc = next(vinculos, None)
+        if not vinculo_doc:
+            return JSONResponse(status_code=404, content={"erro": "Vínculo entre professor e aluno não encontrado"})
+
+        data = vinculo_doc.to_dict()
+        sala_info = data.get("sala_aula", {})
+        room_code = sala_info.get("room_code")
+
+        if not room_code:
+            return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
+
+        return JSONResponse(content={"room_code": room_code})
+
+    except Exception as e:
+        print("Erro ao buscar RoomCode:", e)
+        return JSONResponse(status_code=500, content={"erro": str(e)})
 
 
 @app.post("/registrar-aula")
