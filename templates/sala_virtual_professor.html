@@ -121,7 +121,7 @@
 </head>
 <body>
   <div id="info" style="position:fixed; top:10px; left:10px; z-index:25; background:rgba(0,0,0,.35); padding:8px 12px; border-radius:8px;">
-    <div><strong>Status:</strong> <span id="status">Inicializando câmera...</span></div>
+    <div><strong>Status:</strong> <span id="status">Aguardando ação...</span></div>
     <div id="cronometro">01:05:00</div>
   </div>
 
@@ -130,7 +130,7 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <button id="chamarAlunoBtn" onclick="enviarIdAoPerfil()">Chamar o Aluno</button>
+  <button id="chamarAlunoBtn" onclick="chamarAluno()">Chamar o Aluno</button>
   <button id="confirmarAulaBtn" onclick="registrarAula()">Confirmar aula dada?</button>
   <button id="ativarAudioBtn" onclick="ativarAudio()">Ativar Som</button>
 
@@ -141,9 +141,7 @@
   import {
     HMSReactiveStore,
     selectPeers,
-    selectLocalPeerID,
-    selectVideoTrackByPeerID,
-    selectIsLocalVideoEnabled
+    selectLocalPeerID
   } from "https://cdn.jsdelivr.net/npm/@100mslive/hms-video-store@latest/dist/index.es.js";
 
   const statusSpan = document.getElementById("status");
@@ -158,11 +156,13 @@
   const hmsStore = hmsManager.getStore();
   const hmsActions = hmsManager.getActions();
 
+  let ultimaSala = null; // 🔹 Guarda o último roomCode obtido
+
+  // 🔸 Função principal de inicialização
   async function iniciarProfessor() {
     try {
       await hmsActions.init();
 
-      // 1️⃣ Obtém a sala do backend
       const resp = await fetch("/obter-sala-professor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,11 +171,11 @@
       const data = await resp.json();
       if (!resp.ok || !data.sala) throw new Error("Falha ao obter sala");
 
-      // 2️⃣ Gera o token
+      ultimaSala = data.sala; // guarda a sala para uso posterior
+
       const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode: data.sala });
       if (!authToken) throw new Error("Token inválido");
 
-      // 3️⃣ Entra na sala já com vídeo e áudio ativos
       await hmsActions.join({
         userName: email,
         authToken,
@@ -184,33 +184,19 @@
 
       statusSpan.textContent = "🎥 Sala criada. Vídeo ativo, aguardando aluno...";
 
-      // 4️⃣ Ativa e exibe o vídeo local
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localVideo.srcObject = stream;
       localVideo.autoplay = true;
       localVideo.muted = true;
       localVideo.playsInline = true;
 
-      chamarAlunoBtn.onclick = () => enviarRoomCode(data.sala);
     } catch (err) {
       console.error("Erro ao iniciar professor:", err);
       statusSpan.textContent = "❌ Erro ao iniciar a chamada";
     }
   }
 
-  // ==== RECEBE VÍDEO DO ALUNO ====
-  hmsStore.subscribe((peers) => {
-    peers.forEach(peer => {
-      if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
-        const trackId = peer.videoTrack;
-        hmsActions.attachVideo(trackId, remoteVideo);
-        remoteVideo.autoplay = true;
-        remoteVideo.playsInline = true;
-        statusSpan.textContent = `👨‍🎓 ${peer.name} conectado!`;
-      }
-    });
-  }, selectPeers);
-
+  // 🔸 Enviar o código da sala ao aluno
   async function enviarRoomCode(roomCode) {
     try {
       await fetch("/enviar-roomcode", {
@@ -224,7 +210,30 @@
     }
   }
 
-  iniciarProfessor();
+  // 🔸 Botão principal — chama as duas funções
+  async function chamarAluno() {
+    statusSpan.textContent = "🔄 Preparando a sala...";
+    await iniciarProfessor();
+    if (ultimaSala) {
+      await enviarRoomCode(ultimaSala);
+      statusSpan.textContent = "📡 Sala pronta e código enviado ao aluno!";
+    } else {
+      statusSpan.textContent = "⚠️ Não foi possível obter a sala.";
+    }
+  }
+
+  // 🔸 Recebe o vídeo do aluno
+  hmsStore.subscribe((peers) => {
+    peers.forEach(peer => {
+      if (peer.id !== hmsStore.getState(selectLocalPeerID) && peer.videoTrack) {
+        const trackId = peer.videoTrack;
+        hmsActions.attachVideo(trackId, remoteVideo);
+        remoteVideo.autoplay = true;
+        remoteVideo.playsInline = true;
+        statusSpan.textContent = `👨‍🎓 ${peer.name} conectado!`;
+      }
+    });
+  }, selectPeers);
 </script>
 </body>
 </html>
