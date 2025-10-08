@@ -126,6 +126,186 @@
     color: #2c3e50;
   }
 
+    body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f7fa;
+    color: #2c3e50;
+    max-width: 480px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  #chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .top-bar {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .top-bar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  .top-bar .info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar .info h2 {
+    font-size: 1rem;
+    margin: 0;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .top-bar .info p {
+    margin: 2px 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+  }
+
+  .mensagens-chat {
+    flex: 1;
+    padding: 15px;
+    background: #f9fbfd;
+    overflow-y: auto;
+  }
+
+  .msg-professor, .msg-aluno {
+    max-width: 70%;
+    margin-bottom: 12px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  .msg-professor {
+    background: #00c9ff;
+    color: white;
+    margin-right: auto;
+    border-bottom-left-radius: 0;
+  }
+
+  .msg-aluno {
+    background: #92fe9d;
+    color: #2c3e50;
+    margin-left: auto;
+    border-bottom-right-radius: 0;
+  }
+
+  .input-chat {
+    display: flex;
+    border-top: 1px solid #e0e0e0;
+    background: white;
+    padding: 10px;
+  }
+
+  .input-chat input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px;
+    border-radius: 25px;
+    background: #f0f2f5;
+    margin-right: 10px;
+    font-size: 0.9rem;
+  }
+
+  .input-chat button {
+    border: none;
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    color: white;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .input-chat button:hover {
+    transform: scale(1.1);
+  }
+
+    .professor-box {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 12px 16px;
+    z-index: 1000;
+    max-width: 260px;
+    font-family: "Nunito", sans-serif;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .professor-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .professor-container span {
+    font-size: 14px;
+    color: #333;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .fechar-professor {
+    background: none;
+    border: none;
+    color: #444;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .fechar-professor:hover {
+    transform: scale(1.2);
+    color: red;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsivo para telas pequenas */
+  @media (max-width: 600px) {
+    .professor-box {
+      top: auto;
+      bottom: 20px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 90%;
+      max-width: none;
+    }
+  }
+
   /* Ícone de notificação animado */
   @keyframes tremer {
     0%, 100% { transform: rotate(0deg); }
@@ -181,6 +361,20 @@
     font-size: 20px;
     display: block;
   }
+
+  /* Bloco que mostra o professor vinculado */
+.professor-box {
+  margin: 12px 15px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #16a085;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  text-align: center;
+}
 
   /* === Modal padrão === */
   .custom-modal-overlay {
@@ -250,78 +444,131 @@
   .custom-action-btn:active {
     transform: scale(0.95);
   }
+  
+/* Modal flutuante */
+#chat-modal-aluno {
+  position: fixed;
+  bottom: 70px; /* acima da barra inferior */
+  right: 20px;
+  width: 320px;
+  max-height: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  display: none; /* inicial escondido */
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
 
-  /* === Estilo para chat === */
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 400px;
-    max-height: 60vh;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid #dfe6e9;
-    background: #ffffff;
-  }
+/* Container interno */
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 
-  .chat-messages {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background: #f9fbfd;
-  }
+/* Top-bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #00c9ff, #92fe9d);
+  padding: 10px;
+  color: white;
+}
 
-  .chat-message {
-    margin: 8px 0;
-    padding: 10px 14px;
-    border-radius: 12px;
-    max-width: 75%;
-    word-wrap: break-word;
-    font-size: 14px;
-  }
+.top-bar i {
+  font-size: 1.5rem;
+}
 
-  .chat-message.professor {
-    background: #d1f7d6;
-    align-self: flex-start;
-  }
+.top-bar h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
 
-  .chat-message.aluno {
-    background: #a8e4ff;
-    align-self: flex-end;
-  }
+.top-bar .fechar-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+}
 
-  .chat-input {
-    display: flex;
-    border-top: 1px solid #dcdde1;
-    padding: 8px;
-    background: #f5f7fa;
-  }
+/* Área de mensagens */
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f5f7fa;
+}
 
-  .chat-input input {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    padding: 8px 12px;
-    outline: none;
-    font-size: 14px;
-  }
+/* Mensagens */
+.chat-message {
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 70%;
+  word-wrap: break-word;
+  font-size: 0.9rem;
+}
 
-  .chat-input button {
-    background: linear-gradient(45deg, #00c9ff, #92fe9d);
-    border: none;
-    color: #fff;
-    border-radius: 50%;
-    width: 38px;
-    height: 38px;
-    margin-left: 8px;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
+.chat-message.professor {
+  background: #d1f7d6;
+  align-self: flex-start;
+}
 
-  .chat-input button:hover {
-    transform: scale(1.1);
-  }
+.chat-message.aluno {
+  background: #a8e4ff;
+  align-self: flex-end;
+}
 
-  /* === Lista de professores no chat === */
+/* Input */
+.chat-input {
+  display: flex;
+  border-top: 1px solid #dcdde1;
+  padding: 8px;
+  background: #fff;
+}
+
+.chat-input input {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.chat-input button {
+  width: 38px;
+  height: 38px;
+  margin-left: 8px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00c9ff, #92fe9d);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.chat-input button:hover {
+  transform: scale(1.1);
+}
+
+/* Scrollbar estilizado */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+ 
   .aluno-item {
     background: #f9f9f9;
     border-radius: 12px;
@@ -418,18 +665,80 @@
     <span id="texto-aulas">Aulas Ativas</span>
   </div>
 
-  <div class="acao" onclick="toggleProfessor()">
-    <i class="fa-solid fa-user-tie"></i>
-    <span>Ver Professor</span>
-  </div>
+<!-- Botão Ver Professor -->
+<div class="acao" onclick="carregarProfessorDoAluno()">
+  <i class="fa-solid fa-user-tie"></i>
+  <span>Ver Professor</span>
 </div>
 
+<!-- Container Professor (flutuante) -->
+<div id="professor-vinculado" class="professor-box" style="display:none;"></div>
+
+<script>
+ function getNomeAluno() {
+    let nome = localStorage.getItem("alunoNome");
+    if (!nome || nome.trim() === "") {
+      nome = "{{ aluno.nome }}"; // fallback do backend
+      if (nome && nome !== "{{ aluno.nome }}") {
+        localStorage.setItem("alunoNome", nome.trim().toLowerCase());
+      }
+    }
+    return nome.trim().toLowerCase();
+  }
+
+  async function carregarProfessorDoAluno() {
+    try {
+      const nomeAluno = getNomeAluno(); 
+      if (!nomeAluno) {
+        console.error("Nome do aluno não definido");
+        return;
+      }
+
+      const res = await fetch(`/professor-do-aluno/${encodeURIComponent(nomeAluno)}`);
+      if (!res.ok) throw new Error("Erro ao buscar professor");
+
+      const data = await res.json();
+      const container = document.getElementById("professor-vinculado");
+
+      if (data.professor) {
+        container.style.display = "block";
+        container.innerHTML = `
+          <div class="professor-container">
+            <span><strong>${data.professor}</strong> (${data.disciplina || "-"})</span>
+            <button class="fechar-professor" onclick="fecharProfessor()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        container.style.display = "block";
+        container.innerHTML = `
+          <div class="professor-container">
+            <span>Nenhum professor vinculado</span>
+            <button class="fechar-professor" onclick="fecharProfessor()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        `;
+      }
+    } catch (e) {
+      console.error("Erro ao carregar professor:", e);
+    }
+  }
+
+  function fecharProfessor() {
+    const container = document.getElementById("professor-vinculado");
+    container.style.display = "none";
+    container.innerHTML = "";
+  }
+</script>
+      
 <!-- Link para ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
 <!-- Botão para abrir o desafio (centralizado) -->
-<div style="display: flex; justify-content: center; margin: 10px 0; background: url('/static/fundo.jpg') no-repeat center center; background-size: cover; padding: 15px 0;">
+<div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; background: url('/static/fundo.jpg') no-repeat center center; background-size: cover; width: 100%; height: 120px; border-radius: 8px;">
   <button 
       id="btn-desafio"
       onclick="toggleDesafio()"
@@ -509,33 +818,31 @@ function fecharDesafio() {
     <i class="fa-solid fa-circle-info"></i>
     Informações
   </div>
-  <div class="item" onclick="abrirChatAluno()">
-    <i class="fa-solid fa-comments"></i>
-    Chat
-  </div>
+<!-- Botão que abre o chat -->
+<div class="item" onclick="abrirChatAluno()">
+  <i class="fa-solid fa-comments"></i>
+  Chat
 </div>
 
-<!-- Modal do Chat do Aluno -->
-<div id="chat-modal-aluno" class="chat-overlay" style="display:none;">
-  <div class="chat-modal">
-    <!-- Cabeçalho -->
-    <div class="chat-header">
-      <h3>Conversar com Professor</h3>
-      <button onclick="fecharChatAluno()">&times;</button>
+<!-- Modal do chat (inicialmente oculto) -->
+<div id="chat-modal-aluno" style="display: none;">
+  <div id="chat-container">
+    <!-- Barra superior com nome e disciplina do professor -->
+    <div class="top-bar" id="top-bar-professor">
+      <i class="fa-solid fa-chalkboard-user" style="font-size: 1.5rem; color: white;"></i>
+      <h2 id="professor-nome" style="margin-left: 10px;">Carregando...</h2>
+      <p id="professor-disciplina" style="margin-left: auto; color: rgba(255,255,255,0.9); font-size: 0.9rem;">---</p>
+      <button class="fechar-btn" onclick="fecharChatAluno()">✖</button>
     </div>
 
-    <!-- Barra de pesquisa -->
-    <div class="chat-search">
-      <input type="text" id="pesquisar-professor" 
-             placeholder="Pesquisar professor..."
-             onkeyup="filtrarProfessores()">
-      <button type="button" onclick="forcarBuscaProfessor()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </button>
-    </div>
+    <!-- Área de mensagens -->
+    <div id="mensagens-chat" class="mensagens-chat"></div>
 
-    <!-- Lista dinâmica de professores -->
-    <div id="lista-professores-chat" class="chat-list"></div>
+    <!-- Input de mensagem -->
+    <div class="input-chat">
+      <input type="text" id="input-msg" placeholder="Escreva uma mensagem...">
+      <button id="enviar-msg"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
   </div>
 </div>
 
@@ -544,157 +851,147 @@ function fecharDesafio() {
 <script>
 let professorSelecionado = null;
 let modalChatAberta = false;
+let chatInterval = null;
 
-// ⚠️ nomeAluno precisa vir do backend ou Firebase
-let nomeAluno = window.nomeAluno || "aluno_teste"; 
-
-// 👉 Função que estava faltando
-function abrirChatAluno() {
-  document.getElementById('chat-modal-aluno').style.display = 'block';
-  listarProfessoresChat();
-}
-
-// Fechar modal principal
-function fecharChatAluno() {
-  document.getElementById('chat-modal-aluno').style.display = 'none';
-}
-
-// Abrir chat direto com professor
-function abrirChatProfessor(professorEmail) {
-  professorSelecionado = professorEmail;
-
-  // Evitar múltiplos modais
-  if (modalChatAberta) {
-    document.querySelector('.overlay-chat')?.remove();
-    modalChatAberta = false;
+function getNomeAluno() {
+  let nome = localStorage.getItem("alunoNome");
+  if (!nome || nome.trim() === "") {
+    nome = "{{ aluno.nome }}"; 
+    if (nome && nome !== "{{ aluno.nome }}") {
+      localStorage.setItem("alunoNome", nome.trim().toLowerCase());
+    }
   }
+  return nome.trim().toLowerCase();
+}
 
-  const overlay = document.createElement('div');
-  overlay.className = 'overlay-chat';
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-chat';
-
-  modal.innerHTML = `
-    <button class="fechar-btn"><i class="fa-solid fa-xmark"></i></button>
-    <h3>Chat com ${professorEmail}</h3>
-    <div id="mensagens-chat" class="mensagens-chat"></div>
-    <div class="input-chat">
-      <input type="text" id="input-msg" placeholder="Escreva uma mensagem...">
-      <button id="enviar-msg"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
-  `;
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+// 🔹 Abrir chat do aluno
+async function abrirChatAluno() {
+  const modal = document.getElementById("chat-modal-aluno");
+  modal.style.display = "flex";
   modalChatAberta = true;
 
-  // Fechar modal
-  modal.querySelector('.fechar-btn').onclick = () => {
-    overlay.remove();
-    modalChatAberta = false;
-  };
-
-  // Enviar mensagem
-  modal.querySelector('#enviar-msg').onclick = async () => {
-    const input = modal.querySelector('#input-msg');
-    const mensagem = input.value.trim();
-    if (!mensagem) return;
-
-    try {
-      await fetch("/enviar-mensagem", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          aluno: nomeAluno,
-          professor: professorEmail,
-          mensagem,
-          remetente: "aluno"
-        })
-      });
-      input.value = "";
-      carregarMensagens();
-    } catch (err) {
-      console.error("Erro ao enviar mensagem:", err);
-    }
-  };
-
-  // Carregar mensagens
-  async function carregarMensagens() {
-    try {
-      const res = await fetch(`/buscar-mensagens/${professorEmail}/${nomeAluno}`);
-      const msgs = await res.json();
-      const container = modal.querySelector('#mensagens-chat');
-      container.innerHTML = "";
-
-      msgs.forEach(m => {
-        const div = document.createElement('div');
-        div.className = m.remetente === 'professor' ? 'msg-professor' : 'msg-aluno';
-        div.textContent = m.mensagem;
-        container.appendChild(div);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    } catch (err) {
-      console.error("Erro ao buscar mensagens:", err);
-    }
-  }
-
-  carregarMensagens();
-  // Atualizar chat a cada 2s
-  setInterval(() => {
-    if (modalChatAberta) carregarMensagens();
-  }, 2000);
-}
-
-// Buscar professores vinculados ao aluno
-async function listarProfessoresChat() {
-  const container = document.getElementById('lista-professores-chat');
-  container.innerHTML = '';
+  const nomeAluno = getNomeAluno();
 
   try {
-    const res = await fetch(`/meus-professores-status/${encodeURIComponent(nomeAluno)}`);
-    const lista = await res.json();
+    const res = await fetch(`/professor-do-aluno/${encodeURIComponent(nomeAluno)}`);
+    if (!res.ok) throw new Error("Não foi possível buscar professor vinculado");
 
-    if (!res.ok || lista.length === 0) {
-      container.innerHTML = '<p>Nenhum professor encontrado.</p>';
+    const data = await res.json();
+
+    if (!data.professor || !data.email) {
+      document.getElementById("professor-nome").innerText = "Nenhum professor vinculado";
       return;
     }
 
-    lista.forEach(prof => {
-      const profDiv = document.createElement('div');
-      profDiv.className = 'professor-item';
-      profDiv.innerHTML = `
-        <span>${prof.nome} - ${prof.disciplina} ${prof.online ? '(Online)' : '(Offline)'}</span>
-        <button class="botao-padrao">Chat</button>
-      `;
-      // ⚠️ usa prof.professor (email/id salvo), não prof.nome
-      profDiv.querySelector('button').onclick = () => abrirChatProfessor(prof.professor);
-      container.appendChild(profDiv);
-    });
+    professorSelecionado = data.email;
+    document.getElementById("professor-nome").innerText = data.professor;
+    document.getElementById("professor-disciplina").innerText = data.disciplina || "---";
+
+    carregarMensagens();
+
+    // Evita múltiplos intervalos de atualização
+    if (chatInterval) clearInterval(chatInterval);
+    chatInterval = setInterval(() => {
+      if (modalChatAberta) carregarMensagens();
+    }, 2000);
+
+    // 🔹 Enviar mensagem
+    document.getElementById("enviar-msg").onclick = async () => {
+      const input = document.getElementById("input-msg");
+      const mensagem = input.value.trim();
+      if (!mensagem) return;
+
+      try {
+        await fetch("/enviar-mensagem", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            aluno: nomeAluno,
+            professor: professorSelecionado,
+            mensagem,
+            remetente: "aluno"
+          })
+        });
+        input.value = "";
+        carregarMensagens();
+      } catch (err) {
+        console.error("Erro ao enviar mensagem:", err);
+      }
+    };
 
   } catch (err) {
-    console.error("Erro ao listar professores:", err);
-    container.innerHTML = '<p>Erro ao carregar professores.</p>';
+    console.error("Erro ao iniciar chat:", err);
   }
 }
 
-// Filtrar professores na lista
-function filtrarProfessores() {
-  const filtro = document.getElementById('pesquisar-professor').value.toLowerCase();
-  document.querySelectorAll('.professor-item').forEach(item => {
-    const nome = item.querySelector('span').textContent.toLowerCase();
-    item.style.display = nome.includes(filtro) ? '' : 'none';
-  });
+// 🔹 Fechar chat
+function fecharChatAluno() {
+  document.getElementById("chat-modal-aluno").style.display = "none";
+  modalChatAberta = false;
+  if (chatInterval) clearInterval(chatInterval);
 }
 
-function forcarBuscaProfessor() {
-  listarProfessoresChat();
-}
+// 🔹 Carregar mensagens com hora e data
+async function carregarMensagens() {
+  const nomeAluno = getNomeAluno();
+  if (!professorSelecionado) return;
 
-// Chamar lista inicial
-listarProfessoresChat();
+  try {
+    const res = await fetch(`/buscar-mensagens/${professorSelecionado}/${nomeAluno}`);
+    const msgs = await res.json();
+
+    const container = document.getElementById('mensagens-chat');
+    container.innerHTML = "";
+
+    const hoje = new Date().toDateString();
+
+    msgs.forEach(m => {
+      const div = document.createElement('div');
+      div.className = m.remetente === 'professor' ? 'msg-professor' : 'msg-aluno';
+
+      // Texto da mensagem
+      const msgText = document.createElement('span');
+      msgText.textContent = m.mensagem;
+      div.appendChild(msgText);
+
+      // Mostrar hora e data
+      if (m.timestamp) {
+        const dataMsg = new Date(m.timestamp);
+        let horarioTexto = "";
+
+        if (dataMsg.toDateString() === hoje) {
+          const h = String(dataMsg.getHours()).padStart(2, '0');
+          const min = String(dataMsg.getMinutes()).padStart(2, '0');
+          horarioTexto = `${h}:${min}`;
+        } else {
+          const d = String(dataMsg.getDate()).padStart(2, '0');
+          const mth = String(dataMsg.getMonth() + 1).padStart(2, '0');
+          const y = dataMsg.getFullYear();
+          const h = String(dataMsg.getHours()).padStart(2, '0');
+          const min = String(dataMsg.getMinutes()).padStart(2, '0');
+          horarioTexto = `${d}/${mth}/${y} ${h}:${min}`;
+        }
+
+        const horaSpan = document.createElement('span');
+        horaSpan.style.display = 'block';
+        horaSpan.style.fontSize = '0.7rem';
+        horaSpan.style.color = 'rgba(0,0,0,0.5)';
+        horaSpan.style.marginTop = '2px';
+        horaSpan.textContent = horarioTexto;
+        div.appendChild(horaSpan);
+      }
+
+      container.appendChild(div);
+    });
+
+    container.scrollTop = container.scrollHeight;
+
+  } catch (err) {
+    console.error("Erro ao buscar mensagens:", err);
+  }
+}
 </script>
+
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -702,7 +999,7 @@ listarProfessoresChat();
 <script>
 
 function abrirPerfil() {
-  // Aqui você coloca a navegação para o perfil
+ 
   window.location.href = '/perfil'; 
 }
 
@@ -734,7 +1031,7 @@ function abrirInfoEmpresa() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
-  // Fecha ao clicar fora
+ 
   overlay.onclick = (e) => { if(e.target === overlay) fecharInfo(); };
 }
 
@@ -775,7 +1072,7 @@ function mostrarConteudo(secao) {
 }
 
 function abrirPagamentos() {
-  // Redireciona para a página de controle de pagamentos
+  
   window.location.href = '/pagamentos'; 
 }
 </script>
@@ -826,10 +1123,10 @@ function abrirPagamentos() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Dados do template (injetados pelo backend)
+ 
   const nomeAluno = "{{ aluno.nome }}";
 
-  // 🔹 Sempre salvar no localStorage ao carregar o perfil
+  
   if (nomeAluno && nomeAluno !== "{{ aluno.nome }}") {
     localStorage.setItem("alunoNome", nomeAluno.trim().toLowerCase());
     console.log("Aluno salvo no localStorage:", nomeAluno);
@@ -839,25 +1136,122 @@ function abrirPagamentos() {
   // FUNÇÕES / LÓGICA EXPOSAS
   // ---------------------------
 
-  // ---- Chamadas ao vivo (Firestore) ----
-  const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
-  const infoAulaDiv = document.getElementById("info-aula");
-  const salaIdSpan = document.getElementById("sala-id");
+ // ---- Chamadas ao vivo (Firestore) ----
+const chamadaRef = doc(db, "chamadas_ao_vivo", nomeAluno);
+const infoAulaDiv = document.getElementById("info-aula");
+const salaIdSpan = document.getElementById("sala-id");
 
- onSnapshot(chamadaRef, (docSnap) => {
+
+const conviteContainer = document.createElement("div");
+conviteContainer.style.cssText = `
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  transition: opacity 0.3s ease;
+`;
+
+const conviteCard = document.createElement("div");
+conviteCard.style.cssText = `
+  background: linear-gradient(135deg, #00c9ff, #92fe9d);
+  color: #000;
+  padding: 25px 35px;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.4);
+  max-width: 350px;
+  width: 90%;
+`;
+
+const conviteTitulo = document.createElement("h2");
+conviteTitulo.style.cssText = `
+  font-size: 1.4em;
+  font-weight: 700;
+  margin-bottom: 10px;
+`;
+conviteTitulo.textContent = "📡 Convite de Aula";
+
+const conviteTexto = document.createElement("p");
+conviteTexto.style.cssText = `
+  font-size: 1.1em;
+  margin-bottom: 20px;
+`;
+conviteTexto.textContent = "O professor está te chamando para uma aula ao vivo.";
+
+const entrarBtn = document.createElement("button");
+entrarBtn.textContent = "Entrar na Aula";
+entrarBtn.style.cssText = `
+  background: #000;
+  color: #00c9ff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+`;
+entrarBtn.onmouseover = () => (entrarBtn.style.background = "#111");
+entrarBtn.onmouseout = () => (entrarBtn.style.background = "#000");
+
+const recusarBtn = document.createElement("button");
+recusarBtn.textContent = "Recusar";
+recusarBtn.style.cssText = `
+  background: transparent;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+`;
+recusarBtn.onmouseover = () => (recusarBtn.style.background = "rgba(0,0,0,0.15)");
+recusarBtn.onmouseout = () => (recusarBtn.style.background = "transparent");
+
+conviteCard.appendChild(conviteTitulo);
+conviteCard.appendChild(conviteTexto);
+conviteCard.appendChild(entrarBtn);
+conviteCard.appendChild(recusarBtn);
+conviteContainer.appendChild(conviteCard);
+document.body.appendChild(conviteContainer);
+
+
+onSnapshot(chamadaRef, (docSnap) => {
   try {
     if (docSnap.exists()) {
       const dados = docSnap.data();
       if (dados.status === "pendente") {
         salaIdSpan.textContent = dados.sala;
         infoAulaDiv.style.display = "block";
-        const aceitar = confirm(`📡 O professor ${dados.professor} está te chamando para uma aula. Deseja entrar?`);
-        updateDoc(chamadaRef, {
-          status: aceitar ? "aceito" : "rejeitado"
-        });
-        if (aceitar) {
-          window.location.href = `/sala_virtual_aluno/${dados.sala}`;
-        }
+
+        // Mostrar container na tela
+        conviteContainer.style.display = "flex";
+        conviteTexto.textContent = `O professor ${dados.professor} está te chamando para uma aula.`;
+
+        entrarBtn.onclick = async () => {
+          await updateDoc(chamadaRef, { status: "aceito" });
+          conviteContainer.style.opacity = "0";
+          setTimeout(() => {
+            conviteContainer.style.display = "none";
+            window.location.href = `/sala_virtual_aluno/${dados.sala}`;
+          }, 300);
+        };
+
+        recusarBtn.onclick = async () => {
+          await updateDoc(chamadaRef, { status: "rejeitado" });
+          conviteContainer.style.opacity = "0";
+          setTimeout(() => (conviteContainer.style.display = "none"), 300);
+        };
       }
     }
   } catch (e) {
@@ -975,7 +1369,7 @@ async function verificarAulaAtiva() {
   }
 }
 
-// 👉 só chama quando clicar no botão
+
 document.getElementById("btn-aulas-ativas").addEventListener("click", verificarAulaAtiva);
 
   
@@ -1243,6 +1637,69 @@ window.verNotificacao = async function () {
     const iconeSino = document.getElementById("icone-sino");
     const textoSala = document.getElementById("texto-sala");
 
+    // === 🔹 INSERE O STYLE DIRETAMENTE NO DOCUMENTO ===
+    if (!document.getElementById("notificacao-style")) {
+      const style = document.createElement("style");
+      style.id = "notificacao-style";
+      style.innerHTML = `
+        #notificacao-mensagem {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+          color: #fff;
+          padding: 40px 30px;
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+          display: none;
+          z-index: 9999;
+          width: 90%;
+          max-width: 400px;
+          animation: fadeIn 0.5s ease;
+        }
+
+        #notificacao-mensagem p {
+          font-size: 1.2rem;
+          margin-bottom: 20px;
+          color: #eaeaea;
+        }
+
+        .notificar-btn {
+          background: linear-gradient(135deg, #00c9ff, #92fe9d);
+          color: #000;
+          border: none;
+          border-radius: 12px;
+          padding: 12px 30px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .notificar-btn:hover {
+          transform: scale(1.07);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+          background: linear-gradient(135deg, #92fe9d, #00c9ff);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // === 🔹 LÓGICA DA NOTIFICAÇÃO ===
     if (data.notificacao === true) {
       window.professorEmailAtual = data.professor_email;
 
@@ -1250,8 +1707,8 @@ window.verNotificacao = async function () {
         <p>A tua aula irá começar</p>
         <button class="notificar-btn" onclick="desativarNotificacaoERedirecionar()">Entrar</button>
       `;
-      notificacaoEl.style.display = "block"; // agora usa o container centralizado
-      contadorAulas.innerText = "(1)";
+      notificacaoEl.style.display = "block";
+      contadorAulas.innerText = "1";
 
       iconeSino.classList.add("notificacao-ativa");
       textoSala.classList.add("notificacao-ativa");
@@ -1411,6 +1868,80 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 };
 
+async function toggleProfessor() {
+  try {
+    const res = await fetch(`/ver-professor/${encodeURIComponent(nomeAluno)}`);
+    if (!res.ok) {
+      throw new Error("Não foi possível buscar professor");
+    }
+
+    const data = await res.json();
+
+    // Remove modal antigo se já existir
+    document.getElementById("modal-professor")?.remove();
+
+    // Criar overlay
+    const overlay = document.createElement("div");
+    overlay.id = "modal-professor";
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.backgroundColor = "rgba(0,0,0,0.5)";
+    overlay.style.display = "flex";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.zIndex = "1000";
+
+    // Caixa central
+    const box = document.createElement("div");
+    box.style.background = "white";
+    box.style.padding = "20px";
+    box.style.borderRadius = "10px";
+    box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+    box.style.maxWidth = "350px";
+    box.style.width = "80%";
+    box.style.textAlign = "center";
+    box.style.fontFamily = "Arial, sans-serif";
+
+    box.innerHTML = `
+      <h3 style="margin-bottom: 15px; font-size: 18px; color: #2c3e50;">
+        📘 Professor Vinculado
+      </h3>
+      <p style="margin: 10px 0; font-size: 15px;">
+        <strong>Aluno:</strong> ${data.aluno}
+      </p>
+      <p style="margin: 10px 0; font-size: 15px;">
+        <strong>Professor:</strong> ${data.professor}
+      </p>
+      <button id="fechar-prof-btn" 
+        style="margin-top: 15px; padding: 8px 14px; background: #1abc9c; 
+               color: white; border: none; border-radius: 6px; 
+               cursor: pointer; font-size: 14px;">
+        Fechar
+      </button>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    // Fechar ao clicar no botão
+    document.getElementById("fechar-prof-btn").onclick = () => {
+      overlay.remove();
+    };
+
+    // Fechar clicando fora da caixa
+    overlay.onclick = (e) => {
+      if (e.target === overlay) overlay.remove();
+    };
+
+  } catch (err) {
+    console.error("Erro ao abrir professor:", err);
+    alert("Erro ao carregar dados do professor.");
+  }
+}
+  
 window.subirNivel = async function () {
   try {
     const resposta = await fetch("https://beckend-exaap.onrender.com/subir-nivel", {
