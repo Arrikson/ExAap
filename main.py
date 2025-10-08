@@ -318,15 +318,15 @@ async def meus_alunos(prof_email: str):
         )
 
 
-# Modelo para enviar mensagem
+# 🔹 Modelo da mensagem
 class MensagemInfo(BaseModel):
     aluno: str
     professor: str
     mensagem: str
-    remetente: str  # 🔹 agora indicamos quem enviou: "aluno" ou "professor"
+    remetente: str  # "aluno" ou "professor"
 
 
-# 🔹 Atualiza coleção e garante campos mínimos sempre que professor abre seus alunos
+# 🔹 Atualiza coleção e garante campos obrigatórios
 @app.get("/meus-alunos-status/{prof_email}")
 async def meus_alunos_status(prof_email: str):
     try:
@@ -336,13 +336,13 @@ async def meus_alunos_status(prof_email: str):
         alunos = []
         for doc in docs:
             d = doc.to_dict()
-
             atualizacoes = {}
-            # Criar campos obrigatórios se não existirem
+
+            # Garante campos obrigatórios
             if 'dados_aluno' not in d:
                 atualizacoes['dados_aluno'] = {}
-            if 'chat' not in d:
-                atualizacoes['chat'] = []
+            if 'mensagens' not in d:  # 🔹 agora padronizado
+                atualizacoes['mensagens'] = []
 
             if atualizacoes:
                 db.collection('alunos_professor').document(doc.id).update(atualizacoes)
@@ -362,68 +362,108 @@ async def meus_alunos_status(prof_email: str):
         return alunos
 
     except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)}
-        )
-
-
-# 🔹 Rota para enviar mensagem (aluno ou professor)
-@app.post("/enviar-mensagem")
-async def enviar_mensagem(info: MensagemInfo):
-    try:
-        aluno = info.aluno.strip().lower()
-        professor = info.professor.strip().lower()
-
-        docs = db.collection('alunos_professor') \
-                 .where('aluno', '==', aluno) \
-                 .where('professor', '==', professor).stream()
-
-        for doc in docs:
-            doc_ref = db.collection('alunos_professor').document(doc.id)
-
-            nova_msg = {
-                'remetente': info.remetente.lower(),  # "aluno" ou "professor"
-                'mensagem': info.mensagem,
-                'timestamp': datetime.datetime.utcnow().isoformat()
-            }
-
-            # Garante que o campo chat exista
-            d = doc.to_dict()
-            if 'chat' not in d:
-                doc_ref.update({'chat': []})
-
-            # Adiciona mensagem ao chat
-            doc_ref.update({
-                'chat': firestore.ArrayUnion([nova_msg])
-            })
-
-            return {"status": "ok", "mensagem": "Mensagem enviada com sucesso"}
-
-        return JSONResponse(status_code=404, content={"detail": "Aluno/Professor não encontrados"})
-
-    except Exception as e:
+        print("❌ Erro em /meus-alunos-status:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
-# 🔹 Rota para buscar mensagens entre aluno e professor
+# 🔹 Enviar mensagem (aluno → professor ou professor → aluno)
+@app.post("/enviar-mensagem")
+async def enviar_mensagem(request: Request):
+    try:
+        data = await request.json()
+        aluno = data.get("aluno", "").strip().lower()
+        professor = data.get("professor", "").strip().lower()
+        mensagem = data.get("mensagem", "").strip()
+        remetente = data.get("remetente", "").strip().lower()
+
+        print(f"📨 Tentando enviar mensagem de '{remetente}' | Aluno: '{aluno}' | Prof: '{professor}'")
+
+        if not aluno or not professor or not mensagem:
+            return JSONResponse(status_code=400, content={"detail": "Dados incompletos"})
+
+        # Buscar vínculo entre aluno e professor
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", aluno) \
+                  .where("professor", "==", professor) \
+                  .limit(1).stream()
+
+        docs = list(query)
+        if not docs:
+            print("⚠️ Nenhum vínculo encontrado!")
+            return JSONResponse(status_code=404, content={"detail": "Vínculo não encontrado"})
+
+        vinculo_doc = docs[0]
+        doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
+
+        nova_mensagem = {
+            "remetente": remetente,
+            "mensagem": mensagem,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        # Atualiza o array de mensagens com segurança
+        doc_ref.update({
+            "mensagens": firestore.ArrayUnion([nova_mensagem])
+        })
+
+        print("✅ Mensagem enviada com sucesso:", nova_mensagem)
+        return {"status": "sucesso", "mensagem": nova_mensagem}
+
+    except Exception as e:
+        print("❌ Erro ao enviar mensagem:", e)
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+
+# 🔹 Buscar mensagens trocadas entre professor e aluno
 @app.get("/buscar-mensagens/{professor}/{aluno}")
 async def buscar_mensagens(professor: str, aluno: str):
     try:
-        docs = db.collection('alunos_professor') \
-                 .where('aluno', '==', aluno.strip().lower()) \
-                 .where('professor', '==', professor.strip().lower()).stream()
+        aluno_normalizado = aluno.strip().lower()
+        professor_normalizado = professor.strip().lower()
 
-        for doc in docs:
-            d = doc.to_dict()
-            if 'chat' not in d:
-                db.collection('alunos_professor').document(doc.id).update({'chat': []})
-                return []
-            return d['chat']
+        print(f"🗂️ Buscando mensagens entre '{professor_normalizado}' e '{aluno_normalizado}'")
 
-        return []
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", aluno_normalizado) \
+                  .where("professor", "==", professor_normalizado) \
+                  .limit(1).stream()
+
+        docs = list(query)
+        if not docs:
+            print("⚠️ Nenhum vínculo encontrado para carregar mensagens.")
+            return []
+
+        vinculo_doc = docs[0]
+        data = vinculo_doc.to_dict()
+        mensagens = data.get("mensagens", [])
+
+        mensagens_formatadas = []
+        for m in mensagens:
+            msg = {
+                "mensagem": m.get("mensagem"),
+                "remetente": m.get("remetente"),
+            }
+
+            timestamp = m.get("timestamp")
+            if not timestamp:
+                timestamp = datetime.utcnow()
+            elif hasattr(timestamp, "to_datetime"):
+                timestamp = timestamp.to_datetime()
+
+            msg["timestamp"] = (
+                timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
+            )
+
+            mensagens_formatadas.append(msg)
+
+        # Ordena as mensagens pelo timestamp
+        mensagens_formatadas.sort(key=lambda x: x["timestamp"])
+
+        print(f"💬 {len(mensagens_formatadas)} mensagens encontradas.")
+        return mensagens_formatadas
 
     except Exception as e:
+        print("❌ Erro ao buscar mensagens:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 
@@ -460,7 +500,38 @@ async def alunos_status_completo(prof_email: str):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": "Erro ao buscar status dos alunos", "erro": str(e)})
-        
+
+
+@app.get("/ver-professor/{aluno_nome}")
+async def ver_professor(aluno_nome: str):
+    try:
+        aluno_normalizado = aluno_nome.strip().lower().replace(" ", "_")
+
+        # Procurar vínculo do aluno
+        docs = db.collection("alunos_professor") \
+                 .where("aluno", "==", aluno_normalizado) \
+                 .limit(1).stream()
+
+        doc = next(docs, None)
+        if not doc:
+            raise HTTPException(status_code=404, detail="Aluno não possui professor vinculado")
+
+        dados = doc.to_dict()
+        professor_email = dados.get("professor")
+
+        return {
+            "aluno": aluno_normalizado,
+            "professor": professor_email
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Erro ao buscar professor vinculado:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro interno ao buscar professor"}
+        )
         
 @app.get("/alunos-status-completo/{prof_email}")
 async def alunos_status_completo(prof_email: str):
@@ -1774,44 +1845,64 @@ async def verificar_aluno(request: Request):
 
 
 @app.get("/professor-do-aluno/{nome_aluno}")
-async def obter_professor_do_aluno(nome_aluno: str):
+async def professor_do_aluno(nome_aluno: str):
     try:
-        # Buscar o documento do aluno na coleção "alunos_professor"
-        alunos_ref = db.collection("alunos_professor")
-        query = alunos_ref.where("aluno", "==", nome_aluno.strip()).limit(1).stream()
-        aluno_doc = next(query, None)
+        aluno_normalizado = nome_aluno.strip().lower()
 
-        if not aluno_doc:
-            raise HTTPException(status_code=404, detail="Aluno não vinculado a nenhum professor.")
+        query = db.collection("alunos_professor") \
+                  .where("aluno", "==", aluno_normalizado) \
+                  .limit(1).stream()
+        vinculo_doc = next(query, None)
 
-        dados = aluno_doc.to_dict()
-        professor_email = dados.get("professor")
+        if not vinculo_doc:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "professor": None,
+                    "disciplina": None,
+                    "mensagem": f"Aluno '{aluno_normalizado}' não vinculado a nenhum professor"
+                }
+            )
+
+        vinculo_data = vinculo_doc.to_dict()
+        professor_email = vinculo_data.get("professor")
 
         if not professor_email:
-            raise HTTPException(status_code=404, detail="Email do professor não encontrado.")
+            return {"professor": "Desconhecido", "disciplina": "Desconhecida"}
 
-        # Verificar se o professor está online na coleção "professores_online"
-        prof_online_ref = db.collection("professores_online").where("email", "==", professor_email).limit(1).stream()
-        prof_doc = next(prof_online_ref, None)
+        prof_query = db.collection("professores_online") \
+                       .where("email", "==", professor_email.strip().lower()) \
+                       .limit(1).stream()
+        prof_doc = next(prof_query, None)
 
-        online_status = False
-        if prof_doc:
-            online_status = prof_doc.to_dict().get("online", False)
+        if not prof_doc:
+            return {"professor": "Desconhecido", "disciplina": "Desconhecida"}
 
-        return JSONResponse(content={
-            "professor": professor_email,
-            "online": online_status
-        })
+        prof_data = prof_doc.to_dict()
+
+        return {
+            "professor": prof_data.get("nome_completo", "Desconhecido"),
+            "disciplina": prof_data.get("area_formacao", "Desconhecida"),
+            "email": professor_email.strip().lower(),
+            "mensagens": vinculo_data.get("mensagens", [])  # 🔹 já retorna as mensagens
+        }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("Erro ao buscar professor do aluno:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro interno ao buscar professor do aluno", "erro": str(e)}
+        )
 
 
-@app.get("/meu-professor-status/{nome_aluno}")
+@app.get("/meu-professor-status/{nome_aluno}") 
 async def meu_professor_status(nome_aluno: str):
     try:
-        # Normalizar nome do aluno (como em /vincular-aluno)
-        nome_aluno_input = nome_aluno.strip().lower()
+        # Nome recebido da URL
+        nome_original = nome_aluno.strip()
+
+        # Normalizar para comparação (aceita underscores ou espaços)
+        nome_aluno_input = nome_original.lower().replace("_", " ")
 
         # Procurar o aluno na coleção "alunos"
         alunos_ref = db.collection("alunos").stream()
@@ -1825,6 +1916,7 @@ async def meu_professor_status(nome_aluno: str):
 
         if not aluno_doc:
             return JSONResponse(content={
+                "aluno": nome_original,
                 "professor": "Aluno não encontrado",
                 "online": False
             }, status_code=404)
@@ -1838,6 +1930,7 @@ async def meu_professor_status(nome_aluno: str):
 
         if not vinculo_doc:
             return JSONResponse(content={
+                "aluno": nome_original,
                 "professor": "Nenhum professor vinculado",
                 "online": False
             }, status_code=404)
@@ -1847,6 +1940,7 @@ async def meu_professor_status(nome_aluno: str):
         online_status = dados_vinculo.get("online", False)
 
         return JSONResponse(content={
+            "aluno": nome_original,
             "professor": professor_nome,
             "online": online_status
         }, status_code=200)
@@ -2255,278 +2349,29 @@ async def enviar_id_aula(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"erro": str(e)})
 
-
-# Configurações 100ms
-HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
-TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
-
-@app.post("/registrar-chamada")
-async def registrar_chamada(request: Request):
+@app.get("/buscar-id-professor")
+async def buscar_id_professor(aluno: str):
     try:
-        dados = await request.json()
-        aluno_raw = dados.get("aluno")
-        professor_raw = dados.get("professor")
+        aluno_normalizado = aluno.strip().lower().replace(" ", "")
+        doc_ref = db.collection("alunos").document(aluno_normalizado)
+        doc = doc_ref.get()
 
-        if not aluno_raw or not professor_raw:
-            return JSONResponse(content={"erro": "Dados incompletos"}, status_code=400)
-
-        # 🔹 Normalização
-        aluno_normalizado = str(aluno_raw).strip().lower().replace(" ", "")
-        professor_normalizado = str(professor_raw).strip().lower()
-        nome_sala = f"aula_{professor_normalizado}_{aluno_normalizado}".replace(" ", "_")
-
-        # 🔹 Verificar vínculo aluno–professor
-        vinculo_docs = db.collection("alunos_professor") \
-                         .where("professor", "==", professor_normalizado) \
-                         .stream()
-
-        vinculo_encontrado = False
-        for doc in vinculo_docs:
+        if doc.exists:
             data = doc.to_dict()
-            aluno_db = data.get("aluno", "").strip().lower().replace(" ", "")
-            if aluno_db == aluno_normalizado:
-                vinculo_encontrado = True
-                break
-
-        if not vinculo_encontrado:
-            return JSONResponse(
-                content={"erro": "Vínculo entre professor e aluno não encontrado."},
-                status_code=403
-            )
-
-        # 🔹 Criar sala na 100ms
-        url_sala = f"{HMS_API_BASE}/rooms"
-        headers = {
-            "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
-            "Content-Type": "application/json"
-        }
-        body_sala = {"name": nome_sala, "template_id": TEMPLATE_ID}
-        resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
-
-        if not resp_sala.ok:
-            return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
-
-        sala_info = resp_sala.json()
-        room_id = sala_info.get("id")
-
-        if not room_id:
-            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado"})
-
-        # 🔹 Criar room code para o professor (anfitrião)
-        url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
-        body_code = {"role": "anfitriao"}
-        resp_code = requests.post(url_code, headers=headers, json=body_code)
-
-        if not resp_code.ok:
-            return JSONResponse(status_code=500, content={"erro": "Falha ao gerar Room Code", "detalhe": resp_code.text})
-
-        code_info = resp_code.json()
-        room_code = code_info.get("data", {}).get("code")
-
-        if not room_code:
-            return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
-
-        # 🔹 Registrar chamada no Firestore
-        doc_ref = db.collection("chamadas_ao_vivo").document(aluno_normalizado)
-        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        doc_ref.set({
-            "aluno": aluno_normalizado,
-            "professor": professor_normalizado,
-            "status": "aceito",
-            "sala": nome_sala,
-            "room_code": room_code,
-            "data_criacao": agora
-        }, merge=True)
-
-        return JSONResponse(
-            content={
-                "mensagem": "✅ Chamada registrada com sucesso e sala criada na 100ms.live.",
-                "sala": nome_sala,
-                "room_code": room_code
-            },
-            status_code=200
-        )
-
+            return {"peer_id": data.get("id_chamada")}
+        else:
+            return {"peer_id": None}
     except Exception as e:
-        print(f"❌ ERRO AO REGISTRAR CHAMADA: {str(e)}")
-        return JSONResponse(
-            content={"erro": f"Erro interno ao registrar chamada: {str(e)}"},
-            status_code=500
-        )
+        return {"erro": str(e)}
 
-
-# ================================
-# 🔧 Configurações 100ms
-# ================================
-HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTk1OTIyMDMsImV4cCI6MTc2MDE5NzAwMywianRpIjoiNmFmZDM5N2YtMzlmZC00NzUxLWFkM2UtMmI1ZmM4NTgzOTIyIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NTk1OTIyMDMsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.55ylIItT9E2hdN-rb5uZWfKWc_zz-rkz1_z6RUthwbk"
-TEMPLATE_ID = "68e132dba5ba8326e6eb9a2b"
-
-
-# ==============================================
-# 🧠 Endpoint: Criar sala e guardar RoomCode
-# ==============================================
-@app.post("/obter-sala-professor")
-async def obter_sala_professor(req: Request):
-    dados = await req.json()
-    professor = dados.get("professor", "").strip().lower()
-    aluno = dados.get("aluno", "").strip().lower()
-
-    if not professor or not aluno:
-        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
-
-    try:
-        room_name = f"aula_{professor}_{aluno}".replace(" ", "_")
-
-        # 1️⃣ Criar sala via API 100ms
-        url_sala = f"{HMS_API_BASE}/rooms"
-        headers = {
-            "Authorization": f"Bearer {HMS_MANAGEMENT_TOKEN}",
-            "Content-Type": "application/json"
-        }
-        body_sala = {"name": room_name, "template_id": TEMPLATE_ID}
-
-        resp_sala = requests.post(url_sala, headers=headers, json=body_sala)
-        if not resp_sala.ok:
-            print("❌ Erro na criação da sala:", resp_sala.text)
-            return JSONResponse(status_code=500, content={"erro": "Falha ao criar sala", "detalhe": resp_sala.text})
-
-        sala_info = resp_sala.json()
-        room_id = sala_info.get("id")
-        if not room_id:
-            return JSONResponse(status_code=500, content={"erro": "Room ID não retornado pela API"})
-
-        # 2️⃣ Criar Room Code para o professor
-        url_code = f"{HMS_API_BASE}/room-codes/room/{room_id}"
-        body_code = {"role": "anfitriao"}  # função do professor na sala
-        resp_code = requests.post(url_code, headers=headers, json=body_code)
-
-        if not resp_code.ok:
-            print("❌ Erro ao gerar RoomCode:", resp_code.text)
-            return JSONResponse(status_code=500, content={"erro": "Falha ao criar Room Code", "detalhe": resp_code.text})
-
-        code_info = resp_code.json()
-        room_code = code_info.get("data", {}).get("code")
-        if not room_code:
-            return JSONResponse(status_code=500, content={"erro": "RoomCode não retornado"})
-
-        # 3️⃣ Procurar o vínculo entre professor e aluno
-        vinculos = db.collection("alunos_professor") \
-            .where("professor", "==", professor) \
-            .where("aluno", "==", aluno) \
-            .limit(1) \
-            .stream()
-
-        vinculo_doc = next(vinculos, None)
-        if not vinculo_doc:
-            return JSONResponse(
-                status_code=404,
-                content={"erro": f"Vínculo entre professor '{professor}' e aluno '{aluno}' não encontrado"}
-            )
-
-        # 4️⃣ Atualizar o documento com o código da sala
-        doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
-        doc_ref.update({
-            "sala_aula.room_code": room_code,
-            "sala_aula.professor_chamada": professor,
-            "sala_aula.criado_em": datetime.now(timezone.utc).isoformat()
-        })
-
-        print(f"✅ RoomCode '{room_code}' gravado para {professor} e {aluno}")
-
-        # 5️⃣ Retornar o código da sala ao frontend
-        return JSONResponse(content={"sala": room_code})
-
-    except Exception as e:
-        print("⚠️ Erro ao criar sala:", e)
-        return JSONResponse(status_code=500, content={"erro": str(e)})
-
-         
-@app.post("/enviar-roomcode")
-async def enviar_roomcode(request: Request):
-    dados = await request.json()
-    room_code = dados.get("room_code")
-    email_professor = dados.get("email")
-    nome_aluno_raw = dados.get("aluno")
-
-    if not room_code or not email_professor or not nome_aluno_raw:
-        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
-
-    try:
-        # Normalizar dados
-        nome_aluno = nome_aluno_raw.strip().lower()
-        email_professor = email_professor.strip().lower()
-
-        # Procurar o documento do vínculo entre professor e aluno
-        vinculos = db.collection("alunos_professor") \
-            .where("professor", "==", email_professor) \
-            .where("aluno", "==", nome_aluno) \
-            .limit(1) \
-            .stream()
-
-        vinculo_doc = next(vinculos, None)
-
-        if not vinculo_doc:
-            return JSONResponse(
-                status_code=404,
-                content={"erro": "Vínculo entre professor e aluno não encontrado"}
-            )
-
-        # Atualizar o campo 'sala_aula' dentro do vínculo
-        doc_ref = db.collection("alunos_professor").document(vinculo_doc.id)
-        doc_ref.set({
-            "sala_aula": {
-                "room_code": room_code,
-                "professor_chamada": email_professor,
-                "criado_em": datetime.now(timezone.utc).isoformat()
-            }
-        }, merge=True)
-
-        return JSONResponse(content={"status": "RoomCode enviado com sucesso para a coleção alunos_professor"})
-
-    except Exception as e:
-        print("Erro ao enviar roomcode:", e)
-        return JSONResponse(status_code=500, content={"erro": str(e)})
-        
-@app.get("/buscar-roomcode-professor")
-async def buscar_roomcode_professor(aluno: str, professor: str):
-    aluno_normalizado = aluno.strip().lower().replace(" ", "")
-    professor_normalizado = professor.strip().lower().replace(" ", "")
-
-    try:
-        # 🔍 Procurar o vínculo entre professor e aluno
-        vinculos = db.collection("alunos_professor") \
-            .where("professor", "==", professor_normalizado) \
-            .where("aluno", "==", aluno_normalizado) \
-            .limit(1) \
-            .stream()
-
-        vinculo_doc = next(vinculos, None)
-        if not vinculo_doc:
-            return JSONResponse(status_code=404, content={"erro": "Vínculo entre professor e aluno não encontrado"})
-
-        data = vinculo_doc.to_dict()
-        sala_info = data.get("sala_aula", {})
-        room_code = sala_info.get("room_code")
-
-        if not room_code:
-            return JSONResponse(status_code=404, content={"erro": "RoomCode não encontrado"})
-
-        return JSONResponse(content={"room_code": room_code})
-
-    except Exception as e:
-        print("Erro ao buscar RoomCode:", e)
-        return JSONResponse(status_code=500, content={"erro": str(e)})
-
+from datetime import datetime
+from fastapi import Body, HTTPException
 
 @app.post("/registrar-aula")
 async def registrar_aula(data: dict = Body(...)):
     try:
-        professor = data.get("professor", "").strip().lower().replace(" ", "")
-        aluno = data.get("aluno", "").strip().lower().replace(" ", "")
-        room_code = data.get("room_code", None)  # 🔹 opcional (para referência 100ms.live)
+        professor = data.get("professor", "").strip().lower()
+        aluno = data.get("aluno", "").strip().lower()
 
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
@@ -2542,26 +2387,21 @@ async def registrar_aula(data: dict = Body(...)):
             raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
         doc_ref = db.collection("alunos_professor").document(doc.id)
-        doc_data = doc.to_dict() or {}
-
+        doc_data = doc.to_dict()
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
         lista_aulas = doc_data.get("aulas", [])
-        aulas_passadas = doc_data.get("aulas_passadas", [])
-        valor_passado = doc_data.get("valor_passado", [])
+        aulas_passadas = doc_data.get("aulas_passadas", [])  
+        valor_passado = doc_data.get("valor_passado", [])    
 
         agora = datetime.now()
         nova_aula = {
             "data": agora.strftime("%Y-%m-%d"),
-            "horario": agora.strftime("%H:%M"),
+            "horario": agora.strftime("%H:%M")
         }
 
-        # Se vier o room_code, salva também
-        if room_code:
-            nova_aula["room_code"] = room_code
-
-        # 🔹 Incrementa a aula
+        # Incrementa a aula
         novo_total = aulas_anteriores + 1
-        valor_mensal = novo_total * 1250  # 💰 valor por aula (ajuste conforme necessário)
+        valor_mensal = novo_total * 1250  # 💰 cálculo do valor acumulado
 
         update_data = {
             "aulas_dadas": novo_total,
@@ -2584,26 +2424,25 @@ async def registrar_aula(data: dict = Body(...)):
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
                 "mes": agora.strftime("%Y-%m"),
                 "valor_pago": valor_mensal,
-                "pago": "Não Pago"
+                "pago": "Não Pago"   # 🔹 sempre garante a criação
             }
 
             aulas_passadas.append(registro_passado)
             valor_passado.append(registro_valor)
 
-            update_data.update({
-                "aulas_dadas": 0,
-                "valor_mensal": 0,
-                "aulas_passadas": aulas_passadas,
-                "valor_passado": valor_passado
-            })
+            # Resetar os contadores
+            update_data["aulas_dadas"] = 0
+            update_data["valor_mensal"] = 0
+            update_data["aulas_passadas"] = aulas_passadas
+            update_data["valor_passado"] = valor_passado
 
         # 🔹 Atualiza documento aluno-professor
         doc_ref.update(update_data)
 
-        # 🔹 Atualiza saldo do professor
-        prof_ref = db.collection("professores_online") \
-                     .where(filter=FieldFilter("email", "==", professor)) \
-                     .limit(1).stream()
+        # 🔹 Atualiza saldo_atual do professor na coleção "professores_online"
+        prof_ref = db.collection("professores_online").where(
+            filter=FieldFilter("email", "==", professor)
+        ).limit(1).stream()
 
         prof_doc = next(prof_ref, None)
         if prof_doc:
@@ -2611,42 +2450,29 @@ async def registrar_aula(data: dict = Body(...)):
             prof_data = prof_doc.to_dict() or {}
             salario_info = prof_data.get("salario", {})
 
-            saldo_atual = int(salario_info.get("saldo_atual", 0))
-            if novo_total < 12:
-                saldo_atual += valor_mensal
-            else:
-                saldo_atual += registro_valor["valor_pago"]
+            # soma ao saldo atual existente
+            saldo_atual = int(salario_info.get("saldo_atual", 0)) + (valor_mensal if novo_total < 12 else 0)
 
-            prof_doc_ref.update({"salario.saldo_atual": saldo_atual})
+            # se completou 12 aulas, transfere todo valor e zera o acumulado no aluno-professor
+            if novo_total >= 12:
+                saldo_atual = int(salario_info.get("saldo_atual", 0)) + registro_valor["valor_pago"]
+
+            prof_doc_ref.update({
+                "salario.saldo_atual": saldo_atual
+            })
 
         return {
             "mensagem": f"✅ Aula registrada com sucesso (total atual: {update_data['aulas_dadas']})",
             "nova_aula": nova_aula,
-            "transferencia_aulas": registro_passado,
-            "transferencia_valor": registro_valor
+            "transferencia_aulas": registro_passado if registro_passado else None,
+            "transferencia_valor": registro_valor if registro_valor else None
         }
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
-        raise HTTPException(status_code=500, detail=f"Erro ao registrar aula: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro ao registrar aula")
 
-
-@app.get("/buscar-id-professor")
-async def buscar_id_professor(aluno: str):
-    try:
-        aluno_normalizado = aluno.strip().lower().replace(" ", "")
-        doc_ref = db.collection("alunos").document(aluno_normalizado)
-        doc = doc_ref.get()
-
-        if doc.exists:
-            data = doc.to_dict()
-            return {"peer_id": data.get("id_chamada")}
-        else:
-            return {"peer_id": None}
-    except Exception as e:
-        return {"erro": str(e)}
-
-
+        
 @app.post("/ver-aulas")
 async def ver_aulas(request: Request):
     try:
@@ -2849,6 +2675,45 @@ async def remover_professor(request: Request):
         return {"mensagem": f"Professor {email_raw} removido com sucesso"}
     else:
         return JSONResponse(content={"erro": "Professor não encontrado"}, status_code=404)
+
+
+@app.post("/enviar-mensagem-professor")
+async def enviar_mensagem_professor(request: Request):
+    dados = await request.json()
+    destino = dados.get("email", "").strip().lower()
+    texto = dados.get("mensagem", "").strip()
+
+    if not destino or not texto:
+        return {"erro": "Email e mensagem são obrigatórios"}
+
+    db_firestore = firestore.client()
+    doc_ref = db_firestore.collection("mensagens_professores").document(destino)
+
+    # Buscar mensagens anteriores (se existirem)
+    doc = doc_ref.get()
+    mensagens = doc.to_dict().get("mensagens", []) if doc.exists else []
+
+    # Adicionar nova mensagem com data
+    nova_mensagem = {
+        "texto": texto,
+        "data": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    mensagens.append(nova_mensagem)
+
+    # Atualizar no Firestore
+    doc_ref.set({"mensagens": mensagens})
+
+    return {"mensagem": "Mensagem enviada com sucesso"}
+
+@app.get("/mensagens-professor/{email}")
+async def mensagens_professor(email: str):
+    email = email.strip().lower()
+    db_firestore = firestore.client()
+    doc_ref = db_firestore.collection("mensagens_professores").document(email)
+    doc = doc_ref.get()
+    if doc.exists:
+        return {"mensagens": doc.to_dict().get("mensagens", [])}
+    return {"mensagens": []}
 
 
 # Data base fixa: Domingo, 3 de agosto de 2025, às 11h10
@@ -4327,3 +4192,40 @@ async def ajustar_progresso_ingles():
             count += 1
 
     return {"mensagem": f"Campos criados/atualizados em {count} alunos."}
+
+@app.get("/info-pagamentos", response_class=HTMLResponse)
+async def info_pagamentos(request: Request):
+    return templates.TemplateResponse("info_pagamentos.html", {"request": request})
+
+@app.post("/desvincular-aluno")
+async def desvincular_aluno(data: dict):
+    try:
+        professor = data.get("professor", "").strip().lower()
+        aluno = data.get("aluno", "").strip().lower()
+
+        if not professor or not aluno:
+            return JSONResponse(status_code=400, content={"detail": "Professor ou aluno inválido"})
+
+        # 1️⃣ Remover vínculo na coleção alunos_professor
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", professor) \
+                  .where("aluno", "==", aluno) \
+                  .stream()
+
+        for doc in query:
+            db.collection("alunos_professor").document(doc.id).delete()
+
+        # 2️⃣ Atualizar campo "vinculado" = false na coleção alunos
+        aluno_query = db.collection("alunos") \
+                        .where("nome", "==", aluno) \
+                        .limit(1).stream()
+
+        aluno_doc = next(aluno_query, None)
+        if aluno_doc:
+            db.collection("alunos").document(aluno_doc.id).update({"vinculado": False})
+
+        return {"status": "success", "message": f"Aluno {aluno} desvinculado do professor {professor}"}
+
+    except Exception as e:
+        print("Erro ao desvincular aluno:", e)
+        return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
