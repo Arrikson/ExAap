@@ -4252,38 +4252,36 @@ class CreateRoomRequest(BaseModel):
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1️⃣ Criar a sala
+        # Criar a sala
         body = {"name": req.name}
-        if req.template_id:
-            body["template_id"] = req.template_id
-
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
-        if r.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
-
         room = r.json()
         room_id = room.get("id")
-        if not room_id:
-            raise HTTPException(status_code=500, detail="❌ 100ms não retornou ID da sala.")
 
-        # 2️⃣ Criar CÓDIGOS (Room Codes) automaticamente
+        # ✅ 1) Tentar gerar ROOM CODES
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
-        if r2.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
+        codes = []
 
-        codes = r2.json().get("codes", [])
+        if r2.status_code < 400:
+            codes = r2.json().get("codes", [])
 
-        # 🔍 Extrair apenas o código do HOST
+        # 🧪 2) Procurar por código HOST
         room_code = None
         for c in codes:
             if c.get("role") == "host":
                 room_code = c.get("code")
                 break
 
+        # 🚨 3) FALLBACK se não gerar room_code → criar um LINK DIRETO via token
         if not room_code:
-            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código HOST encontrado.")
+            print("⚠️ Nenhum room_code recebido! Usando link direto.")
+            return {
+                "room_id": room_id,
+                "room_code": None,
+                "link_professor": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_id}?role=host"
+            }
 
-        # 3️⃣ Retornar apenas o essencial para o professor
+        # ✅ Se encontrou room_code normal:
         return {
             "room_id": room_id,
             "room_code": room_code,
