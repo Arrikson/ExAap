@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Professor - Criar Aula (100ms)</title>
+</head>
+<body>
+  <h2>Professor - Criar sala 100ms</h2>
+  <input id="nomeSala" placeholder="Nome da sala (ex: math-2025)" />
+  <button id="criarBtn">Criar Sala</button>
+  <div id="result"></div>
+
+  <label>Aluno (nome):</label>
+  <input id="alunoNome" placeholder="Nome do aluno" />
+  <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
+
+<script>
+const criarBtn = document.getElementById('criarBtn');
+const result = document.getElementById('result');
+const enviarLinkBtn = document.getElementById('enviarLinkBtn');
+const alunoNome = document.getElementById('alunoNome');
+
+let lastRoomCode = null;
+
+criarBtn.onclick = async () => {
+  const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
+  const resp = await fetch('/create-room', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name })
+  });
+  const json = await resp.json();
+  // Expecting prebuilt_links.host or role host
+  const link = json.prebuilt_links && (json.prebuilt_links.host || json.prebuilt_links.host);
+  // Find any code
+  const role_codes = json.role_codes || {};
+  const code = role_codes.host || Object.values(role_codes)[0];
+  lastRoomCode = code;
+  result.innerHTML = `
+    <p>Room ID: ${json.room_id}</p>
+    <p>Room code (host): ${code}</p>
+    <p>Prebuilt link: <a href="${link}" target="_blank">${link}</a></p>
+    <p>Agora pode abrir o link para entrar como professor (host).</p>
+  `;
+  enviarLinkBtn.disabled = false;
+};
+
+enviarLinkBtn.onclick = async () => {
+  const aluno = alunoNome.value.trim();
+  if (!aluno || !lastRoomCode) return alert('Informe aluno e crie sala antes.');
+  const resp = await fetch('/enviar-id-aula', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ aluno, professor: 'professor@example.com', room_code: lastRoomCode })
+  });
+  if (resp.ok) alert('Link enviado e registrado para o aluno!');
+  else alert('Falha ao registrar link.');
+};
+</script>
+</body>
+</html>
