@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Aluno - Entrar Aula</title></head>
+<body>
+  <h2>Aluno - Entrar na aula</h2>
+  <input id="nomeAluno" placeholder="Nome do aluno" />
+  <button id="buscarBtn">Buscar chamada</button>
+  <div id="status"></div>
+
+<script>
+const buscarBtn = document.getElementById('buscarBtn');
+const status = document.getElementById('status');
+
+buscarBtn.onclick = async () => {
+  const aluno = document.getElementById('nomeAluno').value.trim();
+  if (!aluno) return alert('Digite o nome do aluno');
+  status.textContent = 'Buscando...';
+  const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
+  const j = await res.json();
+  if (j.room_code) {
+    const link = `https://public.app.100ms.live/meeting/${j.room_code}`;
+    status.innerHTML = `Encontrado room code: ${j.room_code} <br> Abrindo sala... <a href="${link}" target="_blank">${link}</a>`;
+    // open it:
+    window.open(link, '_blank');
+  } else {
+    status.textContent = 'Nenhuma chamada encontrada para esse aluno.';
+  }
+};
+</script>
+</body>
+</html>
