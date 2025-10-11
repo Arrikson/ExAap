@@ -65,9 +65,6 @@ HEADERS_100MS = {
 # 🧠 Armazena dados temporários de sala (substituir depois por Firebase ou DB)
 ALUNO_ROOM = {}  # aluno_norm -> { room_code, professor }
 
-# Dicionário global para guardar as rooms criadas (temporariamente em memória)
-ROOM_CODES = {}
-
 
 # --- Firebase ---
 firebase_json = os.environ.get("FIREBASE_KEY")
@@ -4285,79 +4282,76 @@ def normalize_room_name(name: str):
 # ============================
 # Cria sala 100ms
 # ============================
-ROOM_CODES = {}  # professor -> dados da sala
-
-class CreateRoomRequest(BaseModel):
-    professor: str
-    codigo: str
-    aluno: str
-
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
-        professor_norm = req.professor.strip().lower().replace(" ", "")
+        print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
 
-        print(f"🟦 Criando sala para professor: {professor_norm}")
+        body = {"name": normalized_name, "template_id": TEMPLATE_ID}
 
-        headers = {
-            "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
-            "Content-Type": "application/json"
-        }
+        # ====== Criação da sala ======
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
+        print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
-        # Criação da sala
-        r = await client.post(
-            "https://api.100ms.live/v2/rooms",
-            json={"name": normalized_name, "template_id": TEMPLATE_ID},
-            headers=headers
-        )
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.status_code} - {r.text}")
 
         room = r.json()
         room_id = room.get("id")
+        if not room_id:
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
         print(f"✅ Sala criada com ID: {room_id}")
 
         await asyncio.sleep(1)
 
-        # Gerar room codes
-        r2 = await client.post(
-            f"https://api.100ms.live/v2/room-codes/room/{room_id}",
-            json={"roles": ["host", "guest"]},
-            headers=headers
-        )
-        data_codes = r2.json().get("data", [])
-        role_map = {c["role"]: c["code"] for c in data_codes}
+        # ====== Criação dos códigos (endpoint atualizado) ======
+        body_codes = {"roles": ["host", "guest"]}
+        try:
+            r2 = await client.post(
+                f"{HMS_API_BASE}/room-codes/room/{room_id}",
+                json=body_codes,
+                headers=get_headers(),
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
 
+        print(f"📡 [100ms /room-codes/room/{room_id}] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
+
+        if r2.status_code >= 400:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}"
+            )
+
+        # ====== Processa resposta ======
+        data_codes = r2.json()
+        codes = data_codes.get("data", [])
+        if not codes:
+            raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
+
+        role_map = {c.get("role"): c.get("code") for c in codes}
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
-        print(f"✅ Codes → HOST={room_code_host} | GUEST={room_code_guest}")
+        if not room_code_host or not room_code_guest:
+            raise HTTPException(status_code=500, detail=f"⚠️ Room codes ausentes: {data_codes}")
 
-        prebuilt_links = {
-            "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
-            "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
-        }
-
-        # ✅ SALVAR sala vinculada ao professor
-        ROOM_CODES[professor_norm] = {
-            "room_id": room_id,
-            "room_code_host": room_code_host,
-            "room_code_guest": room_code_guest,
-            "prebuilt_links": prebuilt_links
-        }
-
-        print(f"💾 Sala associada ao professor {professor_norm} -> ROOM_CODES = {list(ROOM_CODES.keys())}")
+        print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
 
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
             "room_code_guest": room_code_guest,
-            "prebuilt_links": prebuilt_links
+            "prebuilt_links": {
+                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
+                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
+            },
         }
+
 
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
@@ -4365,42 +4359,19 @@ async def create_room(req: CreateRoomRequest):
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-
+    room_code: str   # Vem do create-room (host code)
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    professor_norm = normalize_room_name(payload.professor)
-
-    # Busca os dados da sala associada a este professor
-    room_data = ROOM_CODES.get(professor_norm)
-    if not room_data:
-        raise HTTPException(status_code=404, detail="❌ Sala não encontrada para este professor.")
-
-    room_code_guest = room_data.get("room_code_guest")
-    if not room_code_guest:
-        raise HTTPException(status_code=400, detail="⚠️ Room code (guest) não disponível.")
-
-    # 🔥 Aqui pode integrar com Firebase se quiser salvar o código no aluno
-    # await db.collection("alunos_professor").document(aluno_norm).update({
-    #     "room_code": room_code_guest,
-    #     "professor": professor_norm
-    # })
-
-    # Guarda em memória (opcional)
     ALUNO_ROOM[aluno_norm] = {
-        "room_code": room_code_guest,
-        "professor": professor_norm,
+        "room_code": payload.room_code,
+        "professor": payload.professor.strip().lower(),
     }
+    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
 
-    print(f"📨 Room code enviado ao aluno '{aluno_norm}' → {room_code_guest}")
 
-    return {
-        "status": "ok",
-        "room_code": room_code_guest,
-        "message": "✅ ID da aula (guest) enviado ao aluno com sucesso!"
-    }
-
+# -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
 # -------------------------
 @app.get("/buscar-id-professor")
