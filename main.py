@@ -4235,7 +4235,6 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
         
 # -------------------------
-# -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
@@ -4265,16 +4264,20 @@ async def create_room(req: CreateRoomRequest):
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
 
-        codes = r2.json()
-        role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
+        codes = r2.json().get("codes", [])
+        role_map = {c.get("role"): c.get("code") for c in codes}
 
-        # 🔗 Gerar links Prebuilt com SUBDOMAIN privado (host e guest)
+        # 🎯 Capturando host e guest
+        room_code_host = role_map.get("host")
+        room_code_guest = role_map.get("guest")
+
         return {
             "room_id": room_id,
-            "role_codes": role_map,
+            "room_code_host": room_code_host,
+            "room_code_guest": room_code_guest,
             "prebuilt_links": {
-                role: f"https://{SUBDOMAIN}.app.100ms.live/meeting/{code}"
-                for role, code in role_map.items()
+                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
+                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
             }
         }
 
