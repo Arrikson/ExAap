@@ -55,7 +55,7 @@ let lastRoomCode = null;
 let prebuiltLink = null;
 
 // ===============================
-// 1️⃣ Criar Sala via /create-room
+// 1️⃣ Criar Sala via /create-room (POST)
 // ===============================
 criarBtn.onclick = async () => {
   const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
@@ -69,9 +69,9 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // room_code = código host (prioriza host)
-    lastRoomCode = json.role_codes?.host || Object.values(json.role_codes || {})[0];
-    prebuiltLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomCode}`;
+    // Código do HOST (Professor)
+    lastRoomCode = json.room_code_host;
+    prebuiltLink = json.prebuilt_links.host;
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id}</p>
