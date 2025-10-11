@@ -4233,6 +4233,10 @@ async def desvincular_aluno(data: dict):
     except Exception as e:
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
+
+
+class CreateRoomRequest(BaseModel):
+    name: str 
         
 # -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
