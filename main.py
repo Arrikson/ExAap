@@ -2361,47 +2361,6 @@ def verificar_status(aluno_nome: str):
     except Exception as e:
         return JSONResponse(content={"erro": str(e)}, status_code=500)
 
-@app.post("/enviar-id-aula")
-async def enviar_id_aula(request: Request):
-    dados = await request.json()
-    peer_id = dados.get("peer_id")
-    email_professor = dados.get("email")
-    nome_aluno_raw = dados.get("aluno")
-
-    if not peer_id or not email_professor or not nome_aluno_raw:
-        return JSONResponse(status_code=400, content={"erro": "Dados incompletos"})
-
-    try:
-        nome_aluno = nome_aluno_raw.strip().lower().replace(" ", "")
-        doc_ref = db.collection("alunos").document(nome_aluno)
-        doc_ref.set({
-            "id_chamada": peer_id,
-            "professor_chamada": email_professor.strip().lower()
-        }, merge=True)
-
-        return JSONResponse(content={"status": "ID enviado com sucesso"})
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
-
-@app.get("/buscar-id-professor")
-async def buscar_id_professor(aluno: str):
-    try:
-        aluno_normalizado = aluno.strip().lower().replace(" ", "")
-        doc_ref = db.collection("alunos").document(aluno_normalizado)
-        doc = doc_ref.get()
-
-        if doc.exists:
-            data = doc.to_dict()
-            return {"peer_id": data.get("id_chamada")}
-        else:
-            return {"peer_id": None}
-    except Exception as e:
-        return {"erro": str(e)}
-
-from datetime import datetime
-from fastapi import Body, HTTPException
-
 @app.post("/registrar-aula")
 async def registrar_aula(data: dict = Body(...)):
     try:
@@ -4328,7 +4287,6 @@ async def enviar_id_aula(payload: EnviarIdPayload):
     }
     return JSONResponse(content={"status":"ok"})
 
-
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
@@ -4348,3 +4306,18 @@ async def create_auth_token(body: dict):
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Failed to create auth token: {r.text}")
         return r.json()
+
+@app.get("/professor", response_class=HTMLResponse)
+async def professor_page(request: Request):
+    """
+    Serve a página do professor
+    """
+    return templates.TemplateResponse("professor.html", {"request": request})
+
+# Rota GET para aluno.html
+@app.get("/aluno", response_class=HTMLResponse)
+async def aluno_page(request: Request):
+    """
+    Serve a página do aluno
+    """
+    return templates.TemplateResponse("aluno.html", {"request": request})
