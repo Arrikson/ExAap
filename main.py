@@ -65,6 +65,9 @@ HEADERS_100MS = {
 # 🧠 Armazena dados temporários de sala (substituir depois por Firebase ou DB)
 ALUNO_ROOM = {}  # aluno_norm -> { room_code, professor }
 
+# Dicionário global para guardar as rooms criadas (temporariamente em memória)
+ROOM_CODES = {}
+
 
 # --- Firebase ---
 firebase_json = os.environ.get("FIREBASE_KEY")
@@ -4292,8 +4295,17 @@ async def create_room(req: CreateRoomRequest):
 
         body = {"name": normalized_name, "template_id": TEMPLATE_ID}
 
+        headers = {
+            "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
         # ====== Criação da sala ======
-        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
+        try:
+            r = await client.post("https://api.100ms.live/v2/rooms", json=body, headers=headers)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro de conexão ao criar sala: {str(e)}")
+
         print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
         if r.status_code >= 400:
@@ -4306,15 +4318,16 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Sala criada com ID: {room_id}")
 
+        # Pequena pausa para evitar race conditions
         await asyncio.sleep(1)
 
-        # ====== Criação dos códigos (endpoint atualizado) ======
+        # ====== Criação dos códigos de acesso ======
         body_codes = {"roles": ["host", "guest"]}
         try:
             r2 = await client.post(
-                f"{HMS_API_BASE}/room-codes/room/{room_id}",
+                f"https://api.100ms.live/v2/room-codes/room/{room_id}",
                 json=body_codes,
-                headers=get_headers(),
+                headers=headers,
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
@@ -4342,15 +4355,27 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
 
+        # ====== Monta links prontos ======
+        prebuilt_links = {
+            "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
+            "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
+        }
+
+        # ====== Guarda na memória ======
+        ROOM_CODES[normalized_name] = {
+            "room_id": room_id,
+            "room_code_host": room_code_host,
+            "room_code_guest": room_code_guest,
+            "prebuilt_links": prebuilt_links
+        }
+
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
             "room_code_guest": room_code_guest,
-            "prebuilt_links": {
-                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
-                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
-            },
+            "prebuilt_links": prebuilt_links
         }
+
 
 
 # -------------------------
@@ -4359,30 +4384,42 @@ async def create_room(req: CreateRoomRequest):
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_code: str   # Vem do create-room (host code)
+
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    professor_norm = payload.professor.strip().lower().replace(" ", "")
+    professor_norm = normalize_room_name(payload.professor)
 
-    # Busca o último room_code_guest criado para este professor (ou armazena quando criar)
-    # Supondo que armazenas os dois no dicionário ao criar a sala:
+    # Busca os dados da sala associada a este professor
     room_data = ROOM_CODES.get(professor_norm)
     if not room_data:
-        raise HTTPException(status_code=404, detail="Sala do professor não encontrada.")
+        raise HTTPException(status_code=404, detail="❌ Sala não encontrada para este professor.")
 
     room_code_guest = room_data.get("room_code_guest")
     if not room_code_guest:
-        raise HTTPException(status_code=500, detail="Código guest não disponível.")
+        raise HTTPException(status_code=400, detail="⚠️ Room code (guest) não disponível.")
 
+    # 🔥 Aqui pode integrar com Firebase se quiser salvar o código no aluno
+    # await db.collection("alunos_professor").document(aluno_norm).update({
+    #     "room_code": room_code_guest,
+    #     "professor": professor_norm
+    # })
+
+    # Guarda em memória (opcional)
     ALUNO_ROOM[aluno_norm] = {
         "room_code": room_code_guest,
         "professor": professor_norm,
     }
-    return {"status": "ok", "message": "ID da aula (guest) enviado ao aluno com sucesso!"}
 
-# -------------------------
+    print(f"📨 Room code enviado ao aluno '{aluno_norm}' → {room_code_guest}")
+
+    return {
+        "status": "ok",
+        "room_code": room_code_guest,
+        "message": "✅ ID da aula (guest) enviado ao aluno com sucesso!"
+    }
+
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
 # -------------------------
 @app.get("/buscar-id-professor")
