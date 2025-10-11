@@ -4235,26 +4235,6 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
         
 # -------------------------
-# 1️⃣ GERAR TOKEN (Professor ou Aluno)
-# -------------------------
-@app.get("/gerar-token/{nome}/{role}")
-def gerar_token(nome: str, role: str):
-    payload = {
-        "access_key": HMS_APP_ACCESS_KEY,
-        "type": "app",
-        "version": 2,
-        "room_id": TEMPLATE_ID,
-        "user_id": nome,
-        "role": role,         # host (professor) | viewer (aluno)
-        "exp": int(time.time()) + 3600
-    }
-    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
-    return {
-        "token": token,
-        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/preview/{token}"
-    }
-
-# -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
@@ -4262,9 +4242,17 @@ class CreateRoomRequest(BaseModel):
     template_id: str | None = None
     roles: list[str] | None = ["host", "viewer"]
 
+# -------------------------
+# 2️⃣ PROFESSOR CRIA SALA (create-room)
+# -------------------------
+class CreateRoomRequest(BaseModel):
+    name: str
+    template_id: str | None = None
+
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
+        # 1️⃣ Criar a sala
         body = {"name": req.name}
         if req.template_id:
             body["template_id"] = req.template_id
@@ -4274,21 +4262,32 @@ async def create_room(req: CreateRoomRequest):
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
-        room_id = room.get("id") or room.get("room_id")
+        room_id = room.get("id")
+        if not room_id:
+            raise HTTPException(status_code=500, detail="❌ 100ms não retornou ID da sala.")
 
+        # 2️⃣ Criar CÓDIGOS (Room Codes) automaticamente
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
 
-        codes = r2.json()
-        role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
+        codes = r2.json().get("codes", [])
+
+        # 🔍 Extrair apenas o código do HOST
+        room_code = None
+        for c in codes:
+            if c.get("role") == "host":
+                room_code = c.get("code")
+                break
+
+        if not room_code:
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código HOST encontrado.")
+
+        # 3️⃣ Retornar apenas o essencial para o professor
         return {
             "room_id": room_id,
-            "role_codes": role_map,
-            "prebuilt_links": {
-                role: f"https://public.app.100ms.live/meeting/{code}"
-                for role, code in role_map.items()
-            }
+            "room_code": room_code,
+            "link_professor": f"https://public.app.100ms.live/meeting/{room_code}"
         }
 
 # -------------------------
@@ -4321,42 +4320,3 @@ async def buscar_id_professor(aluno: str):
         "room_code": data.get("room_code"),
         "prebuilt_link": f"https://public.app.100ms.live/meeting/{data.get('room_code')}"
     }
-# ==========================
-# CRIAR SALA PARA PROFESSOR (HOST)
-# ==========================
-@app.get("/professor")
-async def professor(nome_sala: str = Query(default=None)):
-    if not nome_sala:
-        nome_sala = f"aula-{int(datetime.now().timestamp())}"
-
-    # ❗ IMPORTANTE: Aqui deveria integrar com /create-room para obter code REAL
-    room_code = f"{nome_sala}-host"  # Será substituído por real
-
-    return JSONResponse({
-        "room_id": nome_sala,
-        "room_code": room_code,
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
-        "role_codes": {"host": room_code}
-    })
-
-
-# ==========================
-# ALUNO BUSCA LINK GUEST
-# ==========================
-@app.get("/aluno", response_class=JSONResponse)
-async def aluno(aluno: str = Query(...)):
-    aluno_norm = aluno.strip().lower()
-    data = ALUNO_ROOM.get(aluno_norm)
-
-    if not data:
-        return JSONResponse({"error": "Nenhuma chamada encontrada para esse aluno."}, status_code=404)
-
-    room_code = data.get("room_code")
-
-    return JSONResponse({
-        "aluno": aluno,
-        "room_code": room_code,
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
-        "professor": data.get("professor_email")
-    })
-
