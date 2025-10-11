@@ -52,7 +52,7 @@ const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
 let lastRoomCode = null;
-let prebuiltLink = null;
+let linkProfessor = null;
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
@@ -69,11 +69,9 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // Verifica os códigos host/viewer vindos do backend
-    if (json.role_codes) {
-      lastRoomCode = json.role_codes.host || json.role_codes.viewer;
-      prebuiltLink = json.prebuilt_links?.host || json.prebuilt_links?.viewer;
-    }
+    // Recebe room_code e links diretos
+    lastRoomCode = json.room_code;
+    linkProfessor = json.link_professor;
 
     if (!lastRoomCode) {
       result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
@@ -83,11 +81,11 @@ criarBtn.onclick = async () => {
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Room Code:</strong> ${lastRoomCode}</p>
+      <p><strong>Room Code (HOST):</strong> ${lastRoomCode}</p>
       <p><strong>Entrar na sala:</strong> 
-        <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a>
+        <a href="${linkProfessor}" target="_blank">${linkProfessor}</a>
       </p>
-      <p>Abra o link para entrar como <strong>Professor (HOST)</strong>.</p>
+      <p>Abra este link para entrar como <strong>Professor (HOST)</strong>.</p>
     `;
 
     enviarLinkBtn.disabled = false;
@@ -97,7 +95,7 @@ criarBtn.onclick = async () => {
 };
 
 // ==============================================
-// 2️⃣ Enviar ID/Aula para o Aluno via /enviar-id-aula
+// 2️⃣ Enviar Room Code para o Aluno via /enviar-id-aula
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
