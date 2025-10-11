@@ -50,32 +50,22 @@ buscarBtn.onclick = async () => {
     const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
     const data = await res.json();
 
-    // Verificação principal: existe room_code?
-    let roomCode = data.room_code 
-        || (data.role_map ? Object.values(data.role_map)[0] : null);
-
-    // Link preferido: guest > host
-    let prebuilt = data.prebuilt_links?.guest || data.prebuilt_links?.host;
-
-    if (!roomCode || !prebuilt) {
+    // Verifica se o professor já criou a sala
+    if (!data.room_code || !data.prebuilt_link) {
       statusEl.textContent = '❌ O professor ainda não enviou a chamada.';
       return;
     }
 
-    // Garantir prefixo completo
-    if (!prebuilt.startsWith('http')) {
-      prebuilt = `https://${prebuilt}`;
-    }
-
     statusEl.innerHTML = `
       ✅ Aula encontrada!<br>
-      <strong>Código da Sala:</strong> ${roomCode}<br><br>
+      <strong>Código da Sala:</strong> ${data.room_code}<br><br>
       🚪 Entrando na sala...<br>
-      <a href="${prebuilt}" target="_blank">Clique aqui se não abrir automaticamente</a>
+      <a href="${data.prebuilt_link}" target="_blank">Clique aqui se não abrir automaticamente</a>
     `;
 
-    // Abrir sala automática
-    window.open(prebuilt, '_blank');
+    // Abre a sala automaticamente
+    window.open(data.prebuilt_link, '_blank');
+
   } catch (err) {
     console.error(err);
     statusEl.textContent = '⚠️ Erro ao buscar a chamada.';
