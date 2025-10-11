@@ -51,8 +51,8 @@ const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
-let lastRoomCode = null;
-let linkProfessor = null;
+let lastRoomCode = null;    // room_code_host
+let linkProfessor = null;   // prebuilt_links.host
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
@@ -69,13 +69,13 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // ✅ Correto: backend retorna *direto* room_code e link_professor
-    lastRoomCode = json.room_code;
-    linkProfessor = json.link_professor;
+    // ✅ Agora pegamos room_code_host e prebuilt_links.host
+    lastRoomCode = json.room_code_host;
+    linkProfessor = json.prebuilt_links.host;
 
     if (!lastRoomCode) {
       result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
-                          <p>Verifique se o Template 100ms possui Host.</p>`;
+                          <p>Verifique se o Template 100ms possui Host e Room Codes habilitados.</p>`;
       return;
     }
 
