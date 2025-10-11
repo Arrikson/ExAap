@@ -3,96 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sala Virtual 100ms - Professor</title>
+  <title>Aluno - Entrar na Aula</title>
   <style>
     body {
       margin: 0;
       background: #000;
       font-family: "Roboto", sans-serif;
       color: #fff;
-    }
-    #container {
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
     }
     input, button {
-      padding: 10px;
-      margin: 5px 0;
+      padding: 10px 18px;
+      margin: 8px;
       font-size: 16px;
-      border-radius: 5px;
+      border-radius: 8px;
       border: none;
     }
-    button {
-      cursor: pointer;
+    input { width: 240px; }
+    button { 
+      cursor: pointer; 
+      background: #00c9ff; 
+      color: #000; 
+      font-weight: bold; 
     }
-    #result a {
-      color: #0af;
-      text-decoration: underline;
-    }
+    button:hover { background: #92fe9d; }
+    #status { margin-top: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
-  <div id="container">
-    <h2>Professor - Criar sala 100ms</h2>
-    <input id="nomeSala" placeholder="Nome da sala (ex: Ingles-Alfredo)" />
-    <button id="criarBtn">Criar Sala</button>
-    <div id="result"></div>
-
-    <label>Nome do aluno:</label>
-    <input id="alunoNome" placeholder="Nome do aluno" />
-    <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
-  </div>
+  <h2>🎓 Aluno - Entrar na Aula</h2>
+  <input id="nomeAluno" placeholder="Digite seu nome" />
+  <button id="buscarBtn">🔍 Buscar Aula</button>
+  <div id="status"></div>
 
 <script>
-const criarBtn = document.getElementById('criarBtn');
-const result = document.getElementById('result');
-const enviarLinkBtn = document.getElementById('enviarLinkBtn');
-const alunoNome = document.getElementById('alunoNome');
+const buscarBtn = document.getElementById('buscarBtn');
+const statusEl = document.getElementById('status');
 
-let lastRoomCode = null;
-let prebuiltLink = null;
-
-criarBtn.onclick = async () => {
-  const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
+buscarBtn.onclick = async () => {
+  const aluno = document.getElementById('nomeAluno').value.trim();
+  if (!aluno) return alert('Digite o nome do aluno');
+  
+  statusEl.textContent = '⏳ Verificando se o professor iniciou a aula...';
   
   try {
-    // Solicita criação de sala ao backend
-    const resp = await fetch('/professor?nome_sala=' + encodeURIComponent(name));
-    const json = await resp.json();
+    const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
+    const data = await res.json();
 
-    // Obtém ROOM_CODE real retornado
-    lastRoomCode = json.room_code || Object.values(json.role_codes || {})[0];
-    prebuiltLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomCode}`;
-
-    result.innerHTML = `
-      <p><strong>Room ID:</strong> ${json.room_id}</p>
-      <p><strong>Room code (host):</strong> ${lastRoomCode}</p>
-      <p><strong>Entrar na sala:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
-      <p>Agora pode abrir o link para entrar como Professor (HOST).</p>
-    `;
-    enviarLinkBtn.disabled = false;
+    if (data.room_code) {
+      // Novo link personalizado do seu domínio 100ms
+      const roomLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${data.room_code}`;
+      
+      statusEl.innerHTML = `
+        ✅ Aula encontrada!<br>
+        <strong>Room code:</strong> ${data.room_code}<br><br>
+        🔁 Abrindo sala automaticamente...
+        <br>
+        <a href="${roomLink}" target="_blank">Clique aqui se não abrir</a>`;
+      
+      // Abre automaticamente a sala da 100ms com seu domínio
+      window.open(roomLink, '_blank');
+    } else {
+      statusEl.textContent = '❌ Nenhuma aula disponível para você no momento.';
+    }
   } catch (err) {
-    alert('Erro ao criar sala: ' + err);
-  }
-};
-
-enviarLinkBtn.onclick = async () => {
-  const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomCode) return alert('Informe aluno e crie sala antes.');
-
-  try {
-    const resp = await fetch('/enviar-id-aula', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        aluno,
-        professor: "{{ email }}",   // Backend injeta e-mail do professor real
-        room_code: lastRoomCode
-      })
-    });
-    if (resp.ok) alert('✅ Link enviado e registrado para o aluno!');
-    else alert('❌ Falha ao registrar link.');
-  } catch (err) {
-    alert('Erro ao enviar ID ao aluno: ' + err);
+    console.error(err);
+    statusEl.textContent = '⚠️ Erro ao buscar a aula.';
   }
 };
 </script>
