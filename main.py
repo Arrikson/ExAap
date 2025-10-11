@@ -4295,18 +4295,56 @@ async def buscar_id_professor(aluno: str):
         return {"peer_id": None, "room_code": None}
     return {"room_code": data.get("room_code"), "peer_id": None}
 
-@app.post("/create-auth-token")
-async def create_auth_token(body: dict):
-    """
-    Optional: create auth token server-side by calling auth endpoint.
-    body should include room_code, user_id, role, ttl etc depending on 100ms auth API.
-    """
-    async with httpx.AsyncClient(timeout=20.0) as client:
-        r = await client.post("https://auth.100ms.live/v2/token", json=body)
-        if r.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Failed to create auth token: {r.text}")
-        return r.json()
+# --- Chaves e URLs 100ms ---
+HMS_API_BASE = "https://api.100ms.live/v2"
+MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"
+HEADERS_100MS = {
+    "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
+    "Content-Type": "application/json"
+}
 
+ALUNO_ROOM = {}  # aluno_norm -> { room_code, professor }
+
+@app.post("/create-room")
+async def create_room(request: Request):
+    dados = await request.json()
+    professor = dados.get("professor")
+    aluno = dados.get("aluno")
+
+    if not professor or not aluno:
+        return {"error": "Professor e aluno são obrigatórios."}
+
+    aluno_norm = aluno.strip().lower().replace(" ", "")
+
+ 
+    body = {
+        "name": f"Aula de {aluno} com {professor}",
+        "region": "sg",  # ou "in", "us", "eu" dependendo da preferência
+        "template_id": "63f51559f5f76b00121c2d33",  # template padrão 100ms
+        "type": "sfu",
+        "description": f"Sala para {aluno} com {professor}"
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
+            response.raise_for_status()
+            room_data = response.json()
+
+        room_code = room_data.get("room_code")
+        if not room_code:
+            return {"error": "Falha ao criar a sala, room_code não retornado."}
+
+        
+        ALUNO_ROOM[aluno_norm] = {"room_code": room_code, "professor": professor}
+
+        return {"room_code": room_code, "professor": professor}
+
+    except httpx.HTTPStatusError as e:
+        return {"error": f"Erro HTTP ao criar sala: {e.response.text}"}
+    except Exception as e:
+        return {"error": str(e)}
+        
 @app.get("/professor")
 async def professor(nome_sala: str = Query(default=None)):
     """
@@ -4352,3 +4390,4 @@ async def aluno(aluno: str = Query(...)):
         "prebuilt_link": prebuilt_link,
         "professor": data.get("professor_email")
     })
+
