@@ -5,6 +5,8 @@ import re
 import pytz
 import unicodedata
 import shutil
+import time
+import jwt
 from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from urllib.parse import unquote
@@ -4231,22 +4233,26 @@ async def desvincular_aluno(data: dict):
     except Exception as e:
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
+        
 
 @app.get("/gerar-token/{nome}/{role}")
 def gerar_token(nome: str, role: str):
+    # 🔹 Role: "host" (professor) ou "guest" (aluno)
     payload = {
         "access_key": HMS_APP_ACCESS_KEY,
         "type": "app",
         "version": 2,
-        "room_id": TEMPLATE_ID,
-        "user_id": nome,
-        "role": role,         # host (professor) | viewer (aluno)
-        "exp": int(time.time()) + 3600
+        "room_id": TEMPLATE_ID,     # Se estiveres a usar apenas o Template
+        "user_id": nome.lower(),    # Nome do utilizador (normalizado)
+        "role": role,               # host ou guest
+        "exp": int(time.time()) + 3600  # 1 hora de validade
     }
+
     token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+
     return {
         "token": token,
-        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/preview/{token}"
+        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{token}"
     }
 
 # -------------------------
