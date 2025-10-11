@@ -4285,84 +4285,67 @@ def normalize_room_name(name: str):
 # ============================
 # Cria sala 100ms
 # ============================
-ROOM_CODES = {}  # Dicionário global: professor -> dados da sala
+ROOM_CODES = {}  # professor -> dados da sala
 
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # Normaliza nome e professor
         normalized_name = normalize_room_name(req.name)
-        professor_norm = req.professor.strip().lower().replace(" ", "") if hasattr(req, "professor") else None
+        professor_norm = req.professor.strip().lower().replace(" ", "")
 
-        print(f"🟦 Criando sala: {normalized_name} | Professor: {professor_norm}")
+        print(f"🟦 Criando sala para professor: {professor_norm}")
 
-        body = {"name": normalized_name, "template_id": TEMPLATE_ID}
         headers = {
             "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
             "Content-Type": "application/json"
         }
 
-        # ====== Criação da sala ======
-        try:
-            r = await client.post("https://api.100ms.live/v2/rooms", json=body, headers=headers)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erro de conexão ao criar sala: {str(e)}")
-
+        # Criação da sala
+        r = await client.post(
+            "https://api.100ms.live/v2/rooms",
+            json={"name": normalized_name, "template_id": TEMPLATE_ID},
+            headers=headers
+        )
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.status_code} - {r.text}")
 
         room = r.json()
         room_id = room.get("id")
-        if not room_id:
-            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
         print(f"✅ Sala criada com ID: {room_id}")
 
-        await asyncio.sleep(1)  # pequena pausa
+        await asyncio.sleep(1)
 
-        # ====== Criação dos códigos ======
-        body_codes = {"roles": ["host", "guest"]}
+        # Gerar room codes
         r2 = await client.post(
             f"https://api.100ms.live/v2/room-codes/room/{room_id}",
-            json=body_codes,
-            headers=headers,
+            json={"roles": ["host", "guest"]},
+            headers=headers
         )
+        data_codes = r2.json().get("data", [])
+        role_map = {c["role"]: c["code"] for c in data_codes}
 
-        if r2.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}")
-
-        data_codes = r2.json()
-        codes = data_codes.get("data", [])
-        if not codes:
-            raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
-
-        role_map = {c.get("role"): c.get("code") for c in codes}
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
-        if not room_code_host or not room_code_guest:
-            raise HTTPException(status_code=500, detail=f"⚠️ Room codes ausentes: {data_codes}")
-
-        print(f"✅ Room codes criados → Host={room_code_host}, Guest={room_code_guest}")
+        print(f"✅ Codes → HOST={room_code_host} | GUEST={room_code_guest}")
 
         prebuilt_links = {
             "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
             "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
         }
 
-        # ✅ Agora salva pelo e-mail do professor
-        if professor_norm:
-            ROOM_CODES[professor_norm] = {
-                "room_id": room_id,
-                "room_code_host": room_code_host,
-                "room_code_guest": room_code_guest,
-                "prebuilt_links": prebuilt_links
-            }
-            print(f"💾 Sala associada ao professor {professor_norm}")
-        else:
-            print("⚠️ Nenhum e-mail de professor recebido. Sala não foi associada.")
+        # ✅ SALVAR sala vinculada ao professor
+        ROOM_CODES[professor_norm] = {
+            "room_id": room_id,
+            "room_code_host": room_code_host,
+            "room_code_guest": room_code_guest,
+            "prebuilt_links": prebuilt_links
+        }
+
+        print(f"💾 Sala associada ao professor {professor_norm} -> ROOM_CODES = {list(ROOM_CODES.keys())}")
 
         return {
             "room_id": room_id,
