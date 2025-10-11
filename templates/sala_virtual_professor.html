@@ -63,7 +63,10 @@ criarBtn.onclick = async () => {
     const resp = await fetch('/create-room', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name })
+      body: JSON.stringify({ 
+        name: name,
+        professor: "{{ email }}"  // ✅ Envia o e-mail do professor
+      })
     });
 
     const json = await resp.json();
@@ -103,7 +106,7 @@ enviarLinkBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         aluno: aluno,
-        professor: "{{ email }}",
+        professor: "{{ email }}", // ✅ mantém consistência com o backend
         room_code: lastRoomData.room_code_guest
       })
     });
