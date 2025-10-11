@@ -4235,99 +4235,60 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
         
 # -------------------------
+# 1️⃣ GERAR TOKEN (Professor ou Aluno)
+# -------------------------
+@app.get("/gerar-token/{nome}/{role}")
+def gerar_token(nome: str, role: str):
+    payload = {
+        "access_key": HMS_APP_ACCESS_KEY,
+        "type": "app",
+        "version": 2,
+        "room_id": TEMPLATE_ID,
+        "user_id": nome,
+        "role": role,         # host (professor) | viewer (aluno)
+        "exp": int(time.time()) + 3600
+    }
+    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+    return {
+        "token": token,
+        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/preview/{token}"
+    }
+
+# -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
     name: str
-    template_id: str | None = TEMPLATE_ID  # Usa automaticamente o template
-    roles: list[str] | None = ["host", "guest"]
-
+    template_id: str | None = None
+    roles: list[str] | None = ["host", "viewer"]
 
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        body = {
-            "name": req.name,
-            "template_id": req.template_id
-        }
+        body = {"name": req.name}
+        if req.template_id:
+            body["template_id"] = req.template_id
 
-        # 1) criar sala
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
-        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id")
-        if not room_id:
-            # retornar o corpo inteiro para debugging
-            raise HTTPException(status_code=500, detail=f"Room criado mas não foi possível obter room_id. resposta: {room}")
+        room_id = room.get("id") or room.get("room_id")
 
-        # 2) gerar códigos de acesso (roles)
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
 
-        codes_resp = r2.json()
-
-        # 3) Extrair mapping role -> code de várias formas que a API pode devolver
-        role_map = {}
-
-        # forma 1: resposta tem 'role_codes' como dict
-        if isinstance(codes_resp, dict) and codes_resp.get("role_codes"):
-            # role_codes pode ser { "host": "abc", "guest": "def" } ou { "host": { "code": "abc" } }
-            rc = codes_resp.get("role_codes")
-            if isinstance(rc, dict):
-                # valores podem ser strings (code) ou objetos
-                for k, v in rc.items():
-                    if isinstance(v, str):
-                        role_map[k] = v
-                    elif isinstance(v, dict) and v.get("code"):
-                        role_map[k] = v.get("code")
-
-        # forma 2: resposta tem 'codes' list: [{role, code, ...}, ...]
-        if not role_map and isinstance(codes_resp, dict) and isinstance(codes_resp.get("codes"), list):
-            for item in codes_resp.get("codes", []):
-                role = item.get("role")
-                code = item.get("code") or item.get("room_code") or item.get("value")
-                if role and code:
-                    role_map[role] = code
-
-        # forma 3: às vezes a API retorna diretamente uma lista
-        if not role_map and isinstance(codes_resp, list):
-            for item in codes_resp:
-                if isinstance(item, dict):
-                    role = item.get("role")
-                    code = item.get("code") or item.get("room_code")
-                    if role and code:
-                        role_map[role] = code
-
-        # forma 4: por fim, se ainda vazio, verificar chaves planas que possam existir
-        if not role_map:
-            for k, v in (codes_resp.items() if isinstance(codes_resp, dict) else []):
-                if isinstance(v, str) and "-" in v:  # heurística simples
-                    role_map[k] = v
-
-        # 4) validar resultado
-        if not role_map:
-            # devolver a resposta bruta para ajudar no debug
-            raise HTTPException(status_code=500, detail=f"Códigos de role não encontrados na resposta da API: {codes_resp}")
-
-        # pegar host e guest (se houver)
-        room_code_host = role_map.get("host") or role_map.get("teacher") or next(iter(role_map.values()), None)
-        room_code_guest = role_map.get("guest") or role_map.get("viewer") or None
-
-        prebuilt_links = {}
-        if room_code_host:
-            prebuilt_links["host"] = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}"
-        if room_code_guest:
-            prebuilt_links["guest"] = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}"
-
+        codes = r2.json()
+        role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
         return {
             "room_id": room_id,
-            "room_code_host": room_code_host,
-            "room_code_guest": room_code_guest,
-            "role_map": role_map,               # para debug/consistência no front
-            "prebuilt_links": prebuilt_links
+            "role_codes": role_map,
+            "prebuilt_links": {
+                role: f"https://public.app.100ms.live/meeting/{code}"
+                for role, code in role_map.items()
+            }
         }
 
 # -------------------------
@@ -4341,13 +4302,11 @@ class EnviarIdPayload(BaseModel):
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    # Aqui você SÓ guarda o room_code do tipo guest
     ALUNO_ROOM[aluno_norm] = {
-        "room_code": payload.room_code,  # Tem que ser SEMPRE o guest
+        "room_code": payload.room_code,
         "professor": payload.professor.strip().lower(),
     }
-    return {"status": "ok", "msg": "Código guest enviado ao aluno"}
-
+    return {"status":"ok"}
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
@@ -4356,24 +4315,12 @@ async def enviar_id_aula(payload: EnviarIdPayload):
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
     data = ALUNO_ROOM.get(aluno_norm)
-
     if not data:
-        return {"room_code": None, "join_link": None}
-
-    room_code = data.get("room_code")
-    if not room_code:
-        return {"room_code": None, "join_link": None}
-
-    # Link completo para o front adicionar ?role=guest&name=...
-    base_link = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}"
-
+        return {"room_code": None}
     return {
-        "room_code": room_code,       # guest code
-        "prebuilt_link": base_link,   # link cru
-        "join_link": base_link        # front só adiciona o nome
+        "room_code": data.get("room_code"),
+        "prebuilt_link": f"https://public.app.100ms.live/meeting/{data.get('room_code')}"
     }
-
-
 # ==========================
 # CRIAR SALA PARA PROFESSOR (HOST)
 # ==========================
