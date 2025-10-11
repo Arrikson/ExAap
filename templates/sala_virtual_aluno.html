@@ -51,14 +51,18 @@ buscarBtn.onclick = async () => {
     const data = await res.json();
 
     if (data.room_code) {
-      const roomLink = `https://public.app.100ms.live/meeting/${data.room_code}`;
-      statusEl.innerHTML = `✅ Chamada encontrada! <br> Room code: <strong>${data.room_code}</strong> <br>
-        Abrindo sala 100ms... <a href="${roomLink}" target="_blank">Clique aqui se não abrir automaticamente</a>`;
+      // LINK ATUALIZADO COM SEU DOMÍNIO DA 100ms
+      const roomLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${data.room_code}`;
       
-      // Abrir automaticamente a sala em nova aba
+      statusEl.innerHTML = `✅ Aula encontrada! <br> 
+        <strong>Room code:</strong> ${data.room_code} <br><br>
+        🚪 Abrindo sala... <br>
+        <a href="${roomLink}" target="_blank">Clique aqui se não abrir automaticamente</a>`;
+      
+      // Abrir automaticamente a nova sala
       window.open(roomLink, '_blank');
     } else {
-      statusEl.textContent = '❌ Nenhuma chamada encontrada para esse aluno.';
+      statusEl.textContent = '❌ Nenhuma aula encontrada para esse aluno.';
     }
   } catch (err) {
     console.error(err);
