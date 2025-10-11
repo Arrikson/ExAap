@@ -50,7 +50,7 @@ buscarBtn.onclick = async () => {
     const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
     const data = await res.json();
 
-    // Verifica se o professor já criou a sala
+    // ❗ Verifica se o professor já criou e enviou a sala
     if (!data.room_code || !data.prebuilt_link) {
       statusEl.textContent = '❌ O professor ainda não enviou a chamada.';
       return;
@@ -63,7 +63,7 @@ buscarBtn.onclick = async () => {
       <a href="${data.prebuilt_link}" target="_blank">Clique aqui se não abrir automaticamente</a>
     `;
 
-    // Abre a sala automaticamente
+    // 🔁 Abre a sala automaticamente
     window.open(data.prebuilt_link, '_blank');
 
   } catch (err) {
