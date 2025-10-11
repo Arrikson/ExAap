@@ -4235,17 +4235,33 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
 
+import time
+import uuid
+import jwt
+import httpx
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI()
+
+# -------------------------
+# Configurações da 100ms
+# -------------------------
 SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomain
 TEMPLATE_ID = "68e132db74147bd574bb494a"  # ID do template
 HMS_API_BASE = "https://api.100ms.live/v2"  # base da API
 HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
 HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
 
+# -------------------------
+# Função para gerar token válido
+# -------------------------
 def generate_100ms_token():
     payload = {
         "iat": int(time.time()),
         "exp": int(time.time()) + 3600,  # token válido por 1 hora
-        "access_key": HMS_APP_ACCESS_KEY
+        "access_key": HMS_APP_ACCESS_KEY,
+        "jti": str(uuid.uuid4())  # JWT ID único
     }
     token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
     return token
