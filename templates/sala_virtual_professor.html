@@ -51,9 +51,7 @@ const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
-let lastRoomCodeHost = null;   
-let lastRoomCodeGuest = null;
-let linkProfessor = null;    
+let lastRoomData = {}; // Armazena os dados da última sala criada (host e guest)
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
@@ -68,30 +66,17 @@ criarBtn.onclick = async () => {
       body: JSON.stringify({ name: name })
     });
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(text);
-    }
-
     const json = await resp.json();
+    if (!resp.ok) throw new Error(json.detail || 'Erro desconhecido.');
 
-    // ✅ Pegamos os dois códigos e o link do professor
-    lastRoomCodeHost = json.room_code_host;
-    lastRoomCodeGuest = json.room_code_guest;
-    linkProfessor = json.prebuilt_links?.host;
-
-    if (!lastRoomCodeHost || !lastRoomCodeGuest || !linkProfessor) {
-      result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas algum dos códigos (host/guest) não foi retornado.</p>
-                          <p>Verifique se o Template 100ms possui ambos os roles habilitados.</p>`;
-      return;
-    }
+    lastRoomData = json; // Guarda os dados da sala criada
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Room Code (HOST):</strong> ${lastRoomCodeHost}</p>
-      <p><strong>Room Code (GUEST):</strong> ${lastRoomCodeGuest}</p>
-      <p><strong>Entrar na sala:</strong>
-        <a href="${linkProfessor}" target="_blank">${linkProfessor}</a>
+      <p><strong>Room Code (HOST):</strong> ${json.room_code_host || 'N/D'}</p>
+      <p><strong>Room Code (GUEST):</strong> ${json.room_code_guest || 'N/D'}</p>
+      <p><strong>Entrar na sala:</strong> 
+        <a href="${json.prebuilt_links?.host || '#'}" target="_blank">${json.prebuilt_links?.host || 'Link indisponível'}</a>
       </p>
       <p>Abra este link para entrar como <strong>Professor (HOST)</strong>.</p>
     `;
@@ -109,10 +94,8 @@ criarBtn.onclick = async () => {
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomCodeGuest) {
-    alert('Informe o nome do aluno e crie a sala primeiro.');
-    return;
-  }
+  if (!aluno || !lastRoomData.room_code_guest)
+    return alert('Informe o nome do aluno e crie a sala primeiro.');
 
   try {
     const resp = await fetch('/enviar-id-aula', {
@@ -121,16 +104,16 @@ enviarLinkBtn.onclick = async () => {
       body: JSON.stringify({
         aluno: aluno,
         professor: "{{ email }}",
-        room_code: lastRoomCodeGuest  // ✅ Agora enviamos o código GUEST
+        room_code: lastRoomData.room_code_guest
       })
     });
 
     if (resp.ok) {
       alert('✅ Código (GUEST) enviado ao aluno com sucesso!');
     } else {
-      alert('❌ Falha ao registrar o código no backend.');
+      const errText = await resp.text();
+      alert('❌ Falha ao registrar o código no backend: ' + errText);
     }
-
   } catch (err) {
     console.error(err);
     alert('Erro ao enviar ID ao aluno: ' + err.message);
