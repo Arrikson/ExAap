@@ -4251,34 +4251,83 @@ async def create_room(req: CreateRoomRequest):
             "template_id": req.template_id
         }
 
-        # 🛠️ Criar Sala na 100ms
+        # 1) criar sala
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
-        room_id = room.get("id") or room.get("room_id")
+        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id")
+        if not room_id:
+            # retornar o corpo inteiro para debugging
+            raise HTTPException(status_code=500, detail=f"Room criado mas não foi possível obter room_id. resposta: {room}")
 
-        # 🧪 Gerar códigos de acesso (roles)
+        # 2) gerar códigos de acesso (roles)
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
 
-        codes = r2.json().get("codes", [])
-        role_map = {c.get("role"): c.get("code") for c in codes}
+        codes_resp = r2.json()
 
-        # 🎯 Capturando host e guest
-        room_code_host = role_map.get("host")
-        room_code_guest = role_map.get("guest")
+        # 3) Extrair mapping role -> code de várias formas que a API pode devolver
+        role_map = {}
+
+        # forma 1: resposta tem 'role_codes' como dict
+        if isinstance(codes_resp, dict) and codes_resp.get("role_codes"):
+            # role_codes pode ser { "host": "abc", "guest": "def" } ou { "host": { "code": "abc" } }
+            rc = codes_resp.get("role_codes")
+            if isinstance(rc, dict):
+                # valores podem ser strings (code) ou objetos
+                for k, v in rc.items():
+                    if isinstance(v, str):
+                        role_map[k] = v
+                    elif isinstance(v, dict) and v.get("code"):
+                        role_map[k] = v.get("code")
+
+        # forma 2: resposta tem 'codes' list: [{role, code, ...}, ...]
+        if not role_map and isinstance(codes_resp, dict) and isinstance(codes_resp.get("codes"), list):
+            for item in codes_resp.get("codes", []):
+                role = item.get("role")
+                code = item.get("code") or item.get("room_code") or item.get("value")
+                if role and code:
+                    role_map[role] = code
+
+        # forma 3: às vezes a API retorna diretamente uma lista
+        if not role_map and isinstance(codes_resp, list):
+            for item in codes_resp:
+                if isinstance(item, dict):
+                    role = item.get("role")
+                    code = item.get("code") or item.get("room_code")
+                    if role and code:
+                        role_map[role] = code
+
+        # forma 4: por fim, se ainda vazio, verificar chaves planas que possam existir
+        if not role_map:
+            for k, v in (codes_resp.items() if isinstance(codes_resp, dict) else []):
+                if isinstance(v, str) and "-" in v:  # heurística simples
+                    role_map[k] = v
+
+        # 4) validar resultado
+        if not role_map:
+            # devolver a resposta bruta para ajudar no debug
+            raise HTTPException(status_code=500, detail=f"Códigos de role não encontrados na resposta da API: {codes_resp}")
+
+        # pegar host e guest (se houver)
+        room_code_host = role_map.get("host") or role_map.get("teacher") or next(iter(role_map.values()), None)
+        room_code_guest = role_map.get("guest") or role_map.get("viewer") or None
+
+        prebuilt_links = {}
+        if room_code_host:
+            prebuilt_links["host"] = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}"
+        if room_code_guest:
+            prebuilt_links["guest"] = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}"
 
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
             "room_code_guest": room_code_guest,
-            "prebuilt_links": {
-                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
-                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
-            }
+            "role_map": role_map,               # para debug/consistência no front
+            "prebuilt_links": prebuilt_links
         }
 
 # -------------------------
