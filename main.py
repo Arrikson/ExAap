@@ -7,6 +7,7 @@ import unicodedata
 import shutil
 import time
 import jwt
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from urllib.parse import unquote
@@ -4234,11 +4235,20 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
-SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomínio
-TEMPLATE_ID = "68e132db74147bd574bb494a"  # substitua este valor pelo correto!
+# ============================
+# CONFIG 100ms
+# ============================
+SUBDOMAIN = "sabe-videoconf-1518"  
+TEMPLATE_ID = "68e132db74147bd574bb494a" 
 HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
 HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
+
+# ============================
+# SCHEMA DA REQUISIÇÃO
+# ============================
+class CreateRoomRequest(BaseModel):
+    name: str
 
 
 # ============================
@@ -4265,9 +4275,7 @@ def get_headers():
 # Normaliza nome da sala
 # ============================
 def normalize_room_name(name: str):
-    # remove acentos
     name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
-    # substitui caracteres inválidos
     name = re.sub(r"[^a-zA-Z0-9._:-]", "_", name)
     return name.strip("_").lower()
 
@@ -4285,6 +4293,7 @@ async def create_room(req: CreateRoomRequest):
             "template_id": TEMPLATE_ID,
         }
 
+        # Criação da sala
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
 
         if r.status_code == 400:
@@ -4293,7 +4302,7 @@ async def create_room(req: CreateRoomRequest):
             if any("template not found" in d.lower() for d in details):
                 raise HTTPException(
                     status_code=500,
-                    detail="O TEMPLATE_ID configurado não existe ou não pertence ao seu projeto 100ms. "
+                    detail="❌ O TEMPLATE_ID configurado não existe ou não pertence ao seu projeto 100ms. "
                            "Verifique o ID correto no painel da 100ms (Dashboard → Templates).",
                 )
             else:
@@ -4307,7 +4316,7 @@ async def create_room(req: CreateRoomRequest):
         if not room_id:
             raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
-        # gerar room codes
+        # Criação dos códigos de entrada (host e guest)
         r2 = await client.post(
             f"{HMS_API_BASE}/room_codes",
             json={"room_id": room_id, "roles": ["host", "guest"]},
