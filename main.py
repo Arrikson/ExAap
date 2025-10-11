@@ -4292,10 +4292,11 @@ async def create_room(req: CreateRoomRequest):
     import asyncio
 
     async with httpx.AsyncClient(timeout=30.0) as client:
+        # Normaliza nome e professor
         normalized_name = normalize_room_name(req.name)
-        professor_email = getattr(req, "professor", "").strip().lower()
+        professor_norm = req.professor.strip().lower().replace(" ", "") if hasattr(req, "professor") else None
 
-        print(f"🟦 Criando sala: {normalized_name} (Professor: {professor_email or 'desconhecido'})")
+        print(f"🟦 Criando sala: {normalized_name} | Professor: {professor_norm}")
 
         body = {"name": normalized_name, "template_id": TEMPLATE_ID}
         headers = {
@@ -4309,8 +4310,6 @@ async def create_room(req: CreateRoomRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Erro de conexão ao criar sala: {str(e)}")
 
-        print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
-
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.status_code} - {r.text}")
 
@@ -4321,27 +4320,18 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Sala criada com ID: {room_id}")
 
-        # Pequena pausa para evitar race conditions
-        await asyncio.sleep(1)
+        await asyncio.sleep(1)  # pequena pausa
 
-        # ====== Criação dos códigos de acesso ======
+        # ====== Criação dos códigos ======
         body_codes = {"roles": ["host", "guest"]}
-        try:
-            r2 = await client.post(
-                f"https://api.100ms.live/v2/room-codes/room/{room_id}",
-                json=body_codes,
-                headers=headers,
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
-
-        print(f"📡 [100ms /room-codes/room/{room_id}] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
+        r2 = await client.post(
+            f"https://api.100ms.live/v2/room-codes/room/{room_id}",
+            json=body_codes,
+            headers=headers,
+        )
 
         if r2.status_code >= 400:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}"
-            )
+            raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}")
 
         data_codes = r2.json()
         codes = data_codes.get("data", [])
@@ -4355,33 +4345,25 @@ async def create_room(req: CreateRoomRequest):
         if not room_code_host or not room_code_guest:
             raise HTTPException(status_code=500, detail=f"⚠️ Room codes ausentes: {data_codes}")
 
-        print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
+        print(f"✅ Room codes criados → Host={room_code_host}, Guest={room_code_guest}")
 
-        # ====== Monta links prontos ======
         prebuilt_links = {
             "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
             "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
         }
 
-        # ====== Guarda na memória (agora vinculado ao professor) ======
-        if professor_email:
-            ROOM_CODES[professor_email] = {
+        # ✅ Agora salva pelo e-mail do professor
+        if professor_norm:
+            ROOM_CODES[professor_norm] = {
                 "room_id": room_id,
                 "room_code_host": room_code_host,
                 "room_code_guest": room_code_guest,
-                "prebuilt_links": prebuilt_links,
+                "prebuilt_links": prebuilt_links
             }
-            print(f"💾 Dados da sala salvos em ROOM_CODES[{professor_email}]")
+            print(f"💾 Sala associada ao professor {professor_norm}")
         else:
-            ROOM_CODES[normalized_name] = {
-                "room_id": room_id,
-                "room_code_host": room_code_host,
-                "room_code_guest": room_code_guest,
-                "prebuilt_links": prebuilt_links,
-            }
-            print(f"💾 Dados da sala salvos em ROOM_CODES[{normalized_name}] (sem professor definido)")
+            print("⚠️ Nenhum e-mail de professor recebido. Sala não foi associada.")
 
-        # ====== Retorno ======
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
