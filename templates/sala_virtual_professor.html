@@ -69,20 +69,20 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // Recebe room_code e links diretos
+    // ✅ Correto: backend retorna *direto* room_code e link_professor
     lastRoomCode = json.room_code;
     linkProfessor = json.link_professor;
 
     if (!lastRoomCode) {
       result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
-                          <p>Verifique o backend ou o template do 100ms.</p>`;
+                          <p>Verifique se o Template 100ms possui Host.</p>`;
       return;
     }
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
       <p><strong>Room Code (HOST):</strong> ${lastRoomCode}</p>
-      <p><strong>Entrar na sala:</strong> 
+      <p><strong>Entrar na sala:</strong>
         <a href="${linkProfessor}" target="_blank">${linkProfessor}</a>
       </p>
       <p>Abra este link para entrar como <strong>Professor (HOST)</strong>.</p>
@@ -112,8 +112,8 @@ enviarLinkBtn.onclick = async () => {
       })
     });
 
-    if (resp.ok) alert('✅ Link enviado ao aluno com sucesso!');
-    else alert('❌ Falha ao registrar link no servidor.');
+    if (resp.ok) alert('✅ Código enviado ao aluno com sucesso!');
+    else alert('❌ Falha ao registrar no backend.');
   } catch (err) {
     alert('Erro ao enviar ID ao aluno: ' + err);
   }
