@@ -4341,11 +4341,13 @@ class EnviarIdPayload(BaseModel):
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
+    # Aqui você SÓ guarda o room_code do tipo guest
     ALUNO_ROOM[aluno_norm] = {
-        "room_code": payload.room_code,
+        "room_code": payload.room_code,  # Tem que ser SEMPRE o guest
         "professor": payload.professor.strip().lower(),
     }
-    return {"status": "ok"}
+    return {"status": "ok", "msg": "Código guest enviado ao aluno"}
+
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
@@ -4359,14 +4361,16 @@ async def buscar_id_professor(aluno: str):
         return {"room_code": None, "join_link": None}
 
     room_code = data.get("room_code")
-    # Link base da 100ms (professor já criou com create-room)
+    if not room_code:
+        return {"room_code": None, "join_link": None}
+
+    # Link completo para o front adicionar ?role=guest&name=...
     base_link = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}"
 
-    # Retorna tanto o código como o link base para o aluno entrar como guest
     return {
-        "room_code": room_code,
-        "prebuilt_link": base_link,     # Link cru (caso precise)
-        "join_link": base_link          # Front vai adicionar ?role=guest&name=
+        "room_code": room_code,       # guest code
+        "prebuilt_link": base_link,   # link cru
+        "join_link": base_link        # front só adiciona o nome
     }
 
 
