@@ -4246,33 +4246,39 @@ class CreateRoomRequest(BaseModel):
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
-    name: str
-    template_id: str | None = None
+    name: str  # Nome da sala (ex: "professor_joao_aluno_maria")
+
 
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # Criar a sala
-        body = {"name": req.name}
+
+        # 1️⃣ Criar a sala na 100ms
+        body = {
+            "name": req.name,
+            "template_id": TEMPLATE_ID  # Usa diretamente seu template "aula-professor-aluno"
+        }
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
+
         room = r.json()
         room_id = room.get("id")
 
-        # ✅ 1) Tentar gerar ROOM CODES
+        # 2️⃣ Gerar os ROOM_CODES da sala
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
         codes = []
-
         if r2.status_code < 400:
             codes = r2.json().get("codes", [])
 
-        # 🧪 2) Procurar por código HOST
+        # 3️⃣ Buscar código HOST (professor)
         room_code = None
         for c in codes:
             if c.get("role") == "host":
                 room_code = c.get("code")
                 break
 
-        # 🚨 3) FALLBACK se não gerar room_code → criar um LINK DIRETO via token
+        # 4️⃣ FALLBACK caso room_code não exista
         if not room_code:
             print("⚠️ Nenhum room_code recebido! Usando link direto.")
             return {
@@ -4281,11 +4287,12 @@ async def create_room(req: CreateRoomRequest):
                 "link_professor": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_id}?role=host"
             }
 
-        # ✅ Se encontrou room_code normal:
+        # 5️⃣ Retorno normal com código host
         return {
             "room_id": room_id,
             "room_code": room_code,
-            "link_professor": f"https://public.app.100ms.live/meeting/{room_code}"
+            "link_professor": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
+            "link_aluno": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
         }
 
 # -------------------------
@@ -4294,7 +4301,7 @@ async def create_room(req: CreateRoomRequest):
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_code: str
+    room_code: str   # Vem do create-room (host code)
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
@@ -4303,7 +4310,8 @@ async def enviar_id_aula(payload: EnviarIdPayload):
         "room_code": payload.room_code,
         "professor": payload.professor.strip().lower(),
     }
-    return {"status":"ok"}
+    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
+
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
@@ -4312,9 +4320,16 @@ async def enviar_id_aula(payload: EnviarIdPayload):
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
     data = ALUNO_ROOM.get(aluno_norm)
+
     if not data:
-        return {"room_code": None}
+        return {
+            "room_code": None,
+            "prebuilt_link": None
+        }
+
+    room_code = data.get("room_code")
+
     return {
-        "room_code": data.get("room_code"),
-        "prebuilt_link": f"https://public.app.100ms.live/meeting/{data.get('room_code')}"
+        "room_code": room_code,
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
     }
