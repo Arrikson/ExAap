@@ -33,11 +33,11 @@
 <body>
   <div id="container">
     <h2>Professor - Criar sala 100ms</h2>
-    <input id="nomeSala" placeholder="Nome da sala (ex: math-2025)" />
+    <input id="nomeSala" placeholder="Nome da sala (ex: Ingles-Alfredo)" />
     <button id="criarBtn">Criar Sala</button>
     <div id="result"></div>
 
-    <label>Aluno (nome):</label>
+    <label>Nome do aluno:</label>
     <input id="alunoNome" placeholder="Nome do aluno" />
     <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
   </div>
@@ -55,19 +55,19 @@ criarBtn.onclick = async () => {
   const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
   
   try {
-    // Cria a sala via backend GET
+    // Solicita criação de sala ao backend
     const resp = await fetch('/professor?nome_sala=' + encodeURIComponent(name));
     const json = await resp.json();
 
-    // Pega os valores retornados
+    // Obtém ROOM_CODE real retornado
     lastRoomCode = json.room_code || Object.values(json.role_codes || {})[0];
-    prebuiltLink = json.prebuilt_link || `https://public.app.100ms.live/meeting/${lastRoomCode}`;
+    prebuiltLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomCode}`;
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id}</p>
       <p><strong>Room code (host):</strong> ${lastRoomCode}</p>
-      <p><strong>Prebuilt link:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
-      <p>Agora pode abrir o link para entrar como professor (host).</p>
+      <p><strong>Entrar na sala:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
+      <p>Agora pode abrir o link para entrar como Professor (HOST).</p>
     `;
     enviarLinkBtn.disabled = false;
   } catch (err) {
@@ -85,7 +85,7 @@ enviarLinkBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         aluno,
-        professor: '{{ email }}', // será preenchido pelo backend
+        professor: "{{ email }}",   // Backend injeta e-mail do professor real
         room_code: lastRoomCode
       })
     });
