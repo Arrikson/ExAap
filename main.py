@@ -4304,13 +4304,18 @@ async def buscar_id_professor(aluno: str):
     data = ALUNO_ROOM.get(aluno_norm)
 
     if not data:
-        return {"room_code": None}
+        return {"room_code": None, "join_link": None}
 
+    room_code = data.get("room_code")
+    # Link base da 100ms (professor já criou com create-room)
+    base_link = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}"
+
+    # Retorna tanto o código como o link base para o aluno entrar como guest
     return {
-        "room_code": data.get("room_code"),
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{data.get('room_code')}"
+        "room_code": room_code,
+        "prebuilt_link": base_link,     # Link cru (caso precise)
+        "join_link": base_link          # Front vai adicionar ?role=guest&name=
     }
-
 
 
 # ==========================
