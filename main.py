@@ -4287,6 +4287,11 @@ def normalize_room_name(name: str):
 # ============================
 ROOM_CODES = {}  # professor -> dados da sala
 
+class CreateRoomRequest(BaseModel):
+    professor: str
+    codigo: str
+    aluno: str
+
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
