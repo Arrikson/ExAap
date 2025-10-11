@@ -4364,12 +4364,23 @@ class EnviarIdPayload(BaseModel):
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    ALUNO_ROOM[aluno_norm] = {
-        "room_code": payload.room_code,
-        "professor": payload.professor.strip().lower(),
-    }
-    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
+    professor_norm = payload.professor.strip().lower().replace(" ", "")
 
+    # Busca o último room_code_guest criado para este professor (ou armazena quando criar)
+    # Supondo que armazenas os dois no dicionário ao criar a sala:
+    room_data = ROOM_CODES.get(professor_norm)
+    if not room_data:
+        raise HTTPException(status_code=404, detail="Sala do professor não encontrada.")
+
+    room_code_guest = room_data.get("room_code_guest")
+    if not room_code_guest:
+        raise HTTPException(status_code=500, detail="Código guest não disponível.")
+
+    ALUNO_ROOM[aluno_norm] = {
+        "room_code": room_code_guest,
+        "professor": professor_norm,
+    }
+    return {"status": "ok", "message": "ID da aula (guest) enviado ao aluno com sucesso!"}
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
