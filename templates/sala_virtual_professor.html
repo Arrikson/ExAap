@@ -55,23 +55,17 @@ criarBtn.onclick = async () => {
   const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
   
   try {
-    // Cria a sala via backend
-    const resp = await fetch('/create-room', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name })
-    });
+    // Cria a sala via backend GET
+    const resp = await fetch('/professor?nome_sala=' + encodeURIComponent(name));
     const json = await resp.json();
 
-    // Pega o link do host e room_code
-    prebuiltLink = json.prebuilt_links?.host || json.prebuilt_links?.host || '';
-    const role_codes = json.role_codes || {};
-    const code = role_codes.host || Object.values(role_codes)[0];
-    lastRoomCode = code;
+    // Pega os valores retornados
+    lastRoomCode = json.room_code || Object.values(json.role_codes || {})[0];
+    prebuiltLink = json.prebuilt_link || `https://public.app.100ms.live/meeting/${lastRoomCode}`;
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id}</p>
-      <p><strong>Room code (host):</strong> ${code}</p>
+      <p><strong>Room code (host):</strong> ${lastRoomCode}</p>
       <p><strong>Prebuilt link:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
       <p>Agora pode abrir o link para entrar como professor (host).</p>
     `;
