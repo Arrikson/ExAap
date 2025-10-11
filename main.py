@@ -4285,16 +4285,19 @@ def normalize_room_name(name: str):
 # ============================
 # Cria sala 100ms
 # ============================
+ROOM_CODES = {}  # Dicionário global: professor -> dados da sala
+
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
-        print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
+        professor_email = getattr(req, "professor", "").strip().lower()
+
+        print(f"🟦 Criando sala: {normalized_name} (Professor: {professor_email or 'desconhecido'})")
 
         body = {"name": normalized_name, "template_id": TEMPLATE_ID}
-
         headers = {
             "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
             "Content-Type": "application/json"
@@ -4340,7 +4343,6 @@ async def create_room(req: CreateRoomRequest):
                 detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}"
             )
 
-        # ====== Processa resposta ======
         data_codes = r2.json()
         codes = data_codes.get("data", [])
         if not codes:
@@ -4361,22 +4363,31 @@ async def create_room(req: CreateRoomRequest):
             "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
         }
 
-        # ====== Guarda na memória ======
-        ROOM_CODES[normalized_name] = {
-            "room_id": room_id,
-            "room_code_host": room_code_host,
-            "room_code_guest": room_code_guest,
-            "prebuilt_links": prebuilt_links
-        }
+        # ====== Guarda na memória (agora vinculado ao professor) ======
+        if professor_email:
+            ROOM_CODES[professor_email] = {
+                "room_id": room_id,
+                "room_code_host": room_code_host,
+                "room_code_guest": room_code_guest,
+                "prebuilt_links": prebuilt_links,
+            }
+            print(f"💾 Dados da sala salvos em ROOM_CODES[{professor_email}]")
+        else:
+            ROOM_CODES[normalized_name] = {
+                "room_id": room_id,
+                "room_code_host": room_code_host,
+                "room_code_guest": room_code_guest,
+                "prebuilt_links": prebuilt_links,
+            }
+            print(f"💾 Dados da sala salvos em ROOM_CODES[{normalized_name}] (sem professor definido)")
 
+        # ====== Retorno ======
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
             "room_code_guest": room_code_guest,
             "prebuilt_links": prebuilt_links
         }
-
-
 
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
