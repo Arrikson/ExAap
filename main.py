@@ -4234,50 +4234,72 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
-SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomain
-TEMPLATE_ID = "68e132db74147bd574bb494a"  # ID do template
-HMS_API_BASE = "https://api.100ms.live/v2"  # base da API
+SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomínio
+TEMPLATE_ID = "68e132db74147bd574bb494a"  # substitua este valor pelo correto!
+HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
-HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
+HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
 
-# -------------------------
-# Função para gerar token válido
-# -------------------------
+
+# ============================
+# GERA TOKEN 100ms
+# ============================
 def generate_100ms_token():
     payload = {
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,  # token válido por 1 hora
+        "exp": int(time.time()) + 3600,  # token válido por 1h
         "access_key": HMS_APP_ACCESS_KEY,
-        "jti": str(uuid.uuid4())  # JWT ID único
+        "jti": str(uuid.uuid4()),
     }
-    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
-    return token
+    return jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+
 
 def get_headers():
     return {
         "Authorization": f"Bearer {generate_100ms_token()}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
-# -------------------------
-# Modelo de requisição
-# -------------------------
-class CreateRoomRequest(BaseModel):
-    name: str 
 
-# -------------------------
-# Rota para criar sala
-# -------------------------
+# ============================
+# Normaliza nome da sala
+# ============================
+def normalize_room_name(name: str):
+    # remove acentos
+    name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    # substitui caracteres inválidos
+    name = re.sub(r"[^a-zA-Z0-9._:-]", "_", name)
+    return name.strip("_").lower()
+
+
+# ============================
+# Cria sala 100ms
+# ============================
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1️⃣ Criar sala (REMOVIDO enabled_room_codes)
+        normalized_name = normalize_room_name(req.name)
+
         body = {
-            "name": req.name,
-            "template_id": TEMPLATE_ID
+            "name": normalized_name,
+            "template_id": TEMPLATE_ID,
         }
+
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
-        if r.status_code >= 400:
+
+        if r.status_code == 400:
+            err_json = r.json()
+            details = err_json.get("details", [])
+            if any("template not found" in d.lower() for d in details):
+                raise HTTPException(
+                    status_code=500,
+                    detail="O TEMPLATE_ID configurado não existe ou não pertence ao seu projeto 100ms. "
+                           "Verifique o ID correto no painel da 100ms (Dashboard → Templates).",
+                )
+            else:
+                raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
+
+        elif r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
@@ -4285,26 +4307,26 @@ async def create_room(req: CreateRoomRequest):
         if not room_id:
             raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
-        # 2️⃣ Gerar room codes explicitamente para host e guest
+        # gerar room codes
         r2 = await client.post(
             f"{HMS_API_BASE}/room_codes",
             json={"room_id": room_id, "roles": ["host", "guest"]},
-            headers=get_headers()
+            headers=get_headers(),
         )
+
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.text}")
 
         codes = r2.json().get("codes", [])
         if not codes:
-            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código de acesso foi retornado.")
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código foi retornado.")
 
-        # 3️⃣ Mapear HOST e GUEST
         role_map = {c.get("role"): c.get("code") for c in codes}
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
         if not room_code_host or not room_code_guest:
-            raise HTTPException(status_code=500, detail="⚠️ Room codes para host ou guest não foram retornados.")
+            raise HTTPException(status_code=500, detail="⚠️ Room codes para host/guest não retornados.")
 
         return {
             "room_id": room_id,
@@ -4312,8 +4334,8 @@ async def create_room(req: CreateRoomRequest):
             "room_code_guest": room_code_guest,
             "prebuilt_links": {
                 "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
-                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}"
-            }
+                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
+            },
         }
 
 # -------------------------
