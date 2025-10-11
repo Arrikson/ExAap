@@ -4260,16 +4260,19 @@ def gerar_token(nome: str, role: str):
 # -------------------------
 class CreateRoomRequest(BaseModel):
     name: str
-    template_id: str | None = None
-    roles: list[str] | None = ["host", "viewer"]
+    template_id: str | None = TEMPLATE_ID  # Usa template automaticamente
+    roles: list[str] | None = ["host", "guest"]
+
 
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        body = {"name": req.name}
-        if req.template_id:
-            body["template_id"] = req.template_id
+        body = {
+            "name": req.name,
+            "template_id": req.template_id
+        }
 
+        # 🛠️ Criar Sala na 100ms
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
@@ -4277,17 +4280,20 @@ async def create_room(req: CreateRoomRequest):
         room = r.json()
         room_id = room.get("id") or room.get("room_id")
 
+        # 🧪 Gerar códigos de acesso (roles)
         r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
 
         codes = r2.json()
         role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
+
+        # 🔗 Gerar links Prebuilt com SUBDOMAIN privado
         return {
             "room_id": room_id,
             "role_codes": role_map,
             "prebuilt_links": {
-                role: f"https://public.app.100ms.live/meeting/{code}"
+                role: f"https://{SUBDOMAIN}.app.100ms.live/meeting/{code}"
                 for role, code in role_map.items()
             }
         }
