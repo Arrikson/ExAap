@@ -1,46 +1,68 @@
-from starlette.status import HTTP_303_SEE_OTHER
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, HTMLResponse
-from fastapi import FastAPI, Form, Request, UploadFile, File, Body, Query, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from typing import List, Optional
-import shutil
+# main.py
 import os
 import json
 import uuid
 import re
 import pytz
 import unicodedata
-import firebase_admin
-from google.cloud.firestore_v1.base_query import FieldFilter
+import shutil
+from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
-from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
+
+import httpx
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, Form, UploadFile, File, Body, Query, HTTPException
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.status import HTTP_303_SEE_OTHER
+from typing import List, Optional
+
+import firebase_admin
+from firebase_admin import credentials, firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
+
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from datetime import datetime, timedelta, timezone
-from fpdf import FPDF
-from pydantic import BaseModel
-from firebase_admin import credentials, firestore
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from fpdf import FPDF
+from pydantic import BaseModel
+
+# --- Load environment ---
+load_dotenv()
+
+# --- 100ms config ---
+
+# Chaves de acesso do 100ms
+HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"  # App Access Key
+HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="  # App Secret
+MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"  # Management Token
+
+# Base URL da API 100ms
+HMS_API_BASE = "https://api.100ms.live/v2"
+ROOM_CODES_BASE = f"{HMS_API_BASE}/room-codes/room"
+
+# Store local simples (substituir depois por Firestore ou DB real)
+ALUNO_ROOM = {}  # aluno_norm -> { room_id, room_code, join_url, professor }
+
+# Headers padrão para requisições à API 100ms usando o Management Token
+headers_100ms = {
+    "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
+    "Content-Type": "application/json"
+}
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROFESSORES_JSON = os.path.join(BASE_DIR, "professores.json")
-ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
-
-
+# --- Firebase ---
 firebase_json = os.environ.get("FIREBASE_KEY")
-
 if firebase_json and not firebase_admin._apps:
     try:
         firebase_info = json.loads(firebase_json)
-        
         if "private_key" in firebase_info:
             firebase_info["private_key"] = firebase_info["private_key"].replace("\\n", "\n")
-
         cred = credentials.Certificate(firebase_info)
         firebase_admin.initialize_app(cred)
         db = firestore.client()
@@ -49,10 +71,24 @@ if firebase_json and not firebase_admin._apps:
 else:
     db = None  
 
+# --- Paths ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROFESSORES_JSON = os.path.join(BASE_DIR, "professores.json")
+ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
 
-app = FastAPI()
+# --- FastAPI app ---
+app = FastAPI(title="SabApp + 100ms")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# --- CORS (opcional) ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # alterar em produção
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def carregar_professores_local():
@@ -4229,3 +4265,87 @@ async def desvincular_aluno(data: dict):
     except Exception as e:
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
+
+
+class CreateRoomRequest(BaseModel):
+    name: str
+    template_id: str | None = None
+    roles: list[str] | None = ["host", "viewer"]
+
+
+@app.post("/create-room")
+async def create_room(req: CreateRoomRequest):
+    """
+    Create a room and create role-specific room-codes. Returns the room_id and role->code mapping
+    and a prebuilt join url for convenience.
+    """
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # 1) create room
+        body = {"name": req.name}
+        if req.template_id:
+            body["template_id"] = req.template_id
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=headers)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Failed to create room: {r.text}")
+        room = r.json()
+        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id") or room.get("name")
+
+        # 2) create room codes for all roles (POST /v2/room-codes/room/:room_id)
+        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=headers)
+        if r2.status_code >= 400:
+            # continue but warn
+            raise HTTPException(status_code=500, detail=f"Failed to create room codes: {r2.text}")
+        codes = r2.json()
+
+        # 3) build mapping role -> code (the API returns codes structure)
+        # The structure typically contains `codes: [{role, code, ...}, ...]`
+        role_map = {}
+        for c in codes.get("codes", []) if isinstance(codes, dict) else []:
+            role_map[c.get("role")] = c.get("code")
+
+        # 4) For convenience generate prebuilt join URL pattern:
+        # public.app.100ms.live/meeting/<room-code>
+        prebuilt_links = {}
+        for role, code in role_map.items():
+            if code:
+                prebuilt_links[role] = f"https://public.app.100ms.live/meeting/{code}"
+
+        return {"room_id": room_id, "role_codes": role_map, "prebuilt_links": prebuilt_links}
+
+
+class EnviarIdPayload(BaseModel):
+    aluno: str
+    professor: str
+    room_code: str
+
+@app.post("/enviar-id-aula")
+async def enviar_id_aula(payload: EnviarIdPayload):
+    # normalize
+    nome_aluno = payload.aluno.strip().lower().replace(" ", "")
+    # store mapping (replace with Firestore write if you use Firebase)
+    ALUNO_ROOM[nome_aluno] = {
+        "room_code": payload.room_code,
+        "professor": payload.professor.strip().lower(),
+    }
+    return JSONResponse(content={"status":"ok"})
+
+
+@app.get("/buscar-id-professor")
+async def buscar_id_professor(aluno: str):
+    aluno_norm = aluno.strip().lower().replace(" ", "")
+    data = ALUNO_ROOM.get(aluno_norm)
+    if not data:
+        return {"peer_id": None, "room_code": None}
+    return {"room_code": data.get("room_code"), "peer_id": None}
+
+@app.post("/create-auth-token")
+async def create_auth_token(body: dict):
+    """
+    Optional: create auth token server-side by calling auth endpoint.
+    body should include room_code, user_id, role, ttl etc depending on 100ms auth API.
+    """
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.post("https://auth.100ms.live/v2/token", json=body)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Failed to create auth token: {r.text}")
+        return r.json()
