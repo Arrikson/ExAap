@@ -36,20 +36,20 @@ load_dotenv()
 
 # --- 100ms config ---
 
-# Chaves de acesso do 100ms
+# --- Chaves de acesso do 100ms ---
 HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"  # App Access Key
 HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="  # App Secret
 MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"  # Management Token
 
-# Base URL da API 100ms
+# --- URLs da API 100ms ---
 HMS_API_BASE = "https://api.100ms.live/v2"
 ROOM_CODES_BASE = f"{HMS_API_BASE}/room-codes/room"
 
-# Store local simples (substituir depois por Firestore ou DB real)
+# --- Store local simples (substituir depois por Firestore ou DB real) ---
 ALUNO_ROOM = {}  # aluno_norm -> { room_id, room_code, join_url, professor }
 
-# Headers padrão para requisições à API 100ms usando o Management Token
-headers_100ms = {
+# --- Headers padrão para requisições à API 100ms usando Management Token ---
+HEADERS_100MS = {
     "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
     "Content-Type": "application/json"
 }
