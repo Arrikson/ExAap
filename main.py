@@ -4256,18 +4256,20 @@ class CreateRoomRequest(BaseModel):
 def generate_100ms_token():
     payload = {
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,  # válido por 1h
+        "exp": int(time.time()) + 3600,  # válido por 1 hora
         "access_key": HMS_APP_ACCESS_KEY,
         "type": "management",  # 🔥 ESSENCIAL para criar salas e room codes
         "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
 
+
 def get_headers():
     return {
         "Authorization": f"Bearer {generate_100ms_token()}",
         "Content-Type": "application/json",
     }
+
 
 # ============================
 # Normaliza nome da sala
@@ -4276,6 +4278,7 @@ def normalize_room_name(name: str):
     name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
     name = re.sub(r"[^a-zA-Z0-9._:-]", "_", name)
     return name.strip("_").lower()
+
 
 # ============================
 # Cria sala 100ms
@@ -4302,6 +4305,7 @@ async def create_room(req: CreateRoomRequest):
                 err_json = r.json()
             except Exception:
                 raise HTTPException(status_code=500, detail=f"Erro 400 desconhecido: {r.text}")
+
             details = err_json.get("details", [])
             if any("template not found" in d.lower() for d in details):
                 raise HTTPException(
@@ -4322,21 +4326,22 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Sala criada com ID: {room_id}")
 
-        # ====== Pequeno delay para garantir que a sala foi registrada ======
+        # ====== Pequeno delay para garantir registro da sala ======
         await asyncio.sleep(1)
 
         # ====== Criação dos códigos (host e guest) ======
-        body_codes = {"roles": ["host", "guest"]}
+        body_codes = {"room_id": room_id, "roles": ["host", "guest"]}
+
         try:
             r2 = await client.post(
-                f"{HMS_API_BASE}/rooms/{room_id}/room-codes",
+                f"{HMS_API_BASE}/room-codes",  # ✅ CORRIGIDO — endpoint correto
                 json=body_codes,
                 headers=get_headers(),
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
 
-        print(f"📡 [100ms /rooms/{room_id}/room-codes] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
+        print(f"📡 [100ms /room-codes] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
 
         if r2.status_code >= 400:
             raise HTTPException(
@@ -4350,7 +4355,7 @@ async def create_room(req: CreateRoomRequest):
         except Exception:
             raise HTTPException(status_code=500, detail=f"⚠️ Resposta inválida da API 100ms: {r2.text}")
 
-        codes = data_codes.get("data", [])
+        codes = data_codes.get("codes", [])  # ✅ campo correto é "codes"
         if not codes:
             raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
 
@@ -4373,7 +4378,6 @@ async def create_room(req: CreateRoomRequest):
                 "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
             },
         }
-
 
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
