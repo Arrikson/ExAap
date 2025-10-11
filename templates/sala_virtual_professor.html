@@ -69,12 +69,11 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // Se room_code_host não existir, pegar o primeiro código de role_map
-    lastRoomCode = json.room_code_host
-                || json.room_code_guest
-                || (json.role_map ? Object.values(json.role_map)[0] : null);
-
-    prebuiltLink = json.prebuilt_links && (json.prebuilt_links.host || json.prebuilt_links.guest);
+    // Verifica os códigos host/viewer vindos do backend
+    if (json.role_codes) {
+      lastRoomCode = json.role_codes.host || json.role_codes.viewer;
+      prebuiltLink = json.prebuilt_links?.host || json.prebuilt_links?.viewer;
+    }
 
     if (!lastRoomCode) {
       result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
@@ -110,7 +109,7 @@ enviarLinkBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         aluno: aluno,
-        professor: "{{ email }}",  // será injetado pelo backend
+        professor: "{{ email }}",
         room_code: lastRoomCode
       })
     });
