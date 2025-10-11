@@ -4318,60 +4318,59 @@ async def enviar_id_aula(payload: EnviarIdPayload):
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
 # -------------------------
+# ==========================
+# PROFESSOR BUSCA ROOM_CODE
+# ==========================
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
     data = ALUNO_ROOM.get(aluno_norm)
+
     if not data:
         return {"room_code": None}
+
     return {
         "room_code": data.get("room_code"),
-        "prebuilt_link": f"https://public.app.100ms.live/meeting/{data.get('room_code')}"
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{data.get('room_code')}"
     }
 
+
+# ==========================
+# CRIAR SALA PARA PROFESSOR (HOST)
+# ==========================
 @app.get("/professor")
 async def professor(nome_sala: str = Query(default=None)):
-    """
-    Cria uma sala 100ms fictícia para fins de exemplo.
-    Retorna JSON com room_id, room_code e link.
-    """
     if not nome_sala:
         nome_sala = f"aula-{int(datetime.now().timestamp())}"
-    
-    # Simula criação de sala (aqui você integra com API real do 100ms)
-    room_id = str(uuid.uuid4())
-    room_code = f"{nome_sala}-code"
-    prebuilt_link = f"https://public.app.100ms.live/meeting/{room_code}"
-    
-    # Retorno como JSON
+
+    # ❗ IMPORTANTE: Aqui deveria integrar com /create-room para obter code REAL
+    room_code = f"{nome_sala}-host"  # Será substituído por real
+
     return JSONResponse({
-        "room_id": room_id,
+        "room_id": nome_sala,
         "room_code": room_code,
-        "prebuilt_link": prebuilt_link,
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
         "role_codes": {"host": room_code}
     })
 
-# ----------------------
-# Rota do aluno - buscar room_code
-# ----------------------
+
+# ==========================
+# ALUNO BUSCA LINK GUEST
+# ==========================
 @app.get("/aluno", response_class=JSONResponse)
 async def aluno(aluno: str = Query(...)):
-    """
-    Busca room_code e link do aluno.
-    """
     aluno_norm = aluno.strip().lower()
     data = ALUNO_ROOM.get(aluno_norm)
-    
+
     if not data:
         return JSONResponse({"error": "Nenhuma chamada encontrada para esse aluno."}, status_code=404)
-    
+
     room_code = data.get("room_code")
-    prebuilt_link = f"https://public.app.100ms.live/meeting/{room_code}"
-    
+
     return JSONResponse({
         "aluno": aluno,
         "room_code": room_code,
-        "prebuilt_link": prebuilt_link,
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
         "professor": data.get("professor_email")
     })
 
