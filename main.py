@@ -4237,54 +4237,41 @@ async def desvincular_aluno(data: dict):
 # -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
-class CreateRoomRequest(BaseModel):
-    name: str  # Nome da sala (ex: "professor_joao_aluno_maria")
-
-
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-
-        # 1️⃣ Criar a sala na 100ms
         body = {
             "name": req.name,
-            "template_id": TEMPLATE_ID  # Usa diretamente seu template "aula-professor-aluno"
+            "template_id": TEMPLATE_ID,
+            "enabled_room_codes": True   # 🔥 OBRIGATÓRIO!
         }
+
+        # 1️⃣ Criar sala
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
         room_id = room.get("id")
+        codes = room.get("room_codes", [])  # 🔴 Agora vem direto aqui!
 
-        # 2️⃣ Gerar os ROOM_CODES da sala
-        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
-        codes = []
-        if r2.status_code < 400:
-            codes = r2.json().get("codes", [])
+        # 2️⃣ Verificar códigos
+        if not codes:
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código de acesso foi retornado.")
 
-        # 3️⃣ Buscar código HOST (professor)
-        room_code = None
-        for c in codes:
-            if c.get("role") == "host":
-                room_code = c.get("code")
-                break
+        # 3️⃣ Mapear HOST e GUEST
+        role_map = {c.get("role"): c.get("code") for c in codes}
+        room_code_host = role_map.get("host")
+        room_code_guest = role_map.get("guest")
 
-        # 4️⃣ FALLBACK caso room_code não exista
-        if not room_code:
-            print("⚠️ Nenhum room_code recebido! Usando link direto.")
-            return {
-                "room_id": room_id,
-                "room_code": None,
-                "link_professor": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_id}?role=host"
-            }
-
-        # 5️⃣ Retorno normal com código host
         return {
             "room_id": room_id,
-            "room_code": room_code,
-            "link_professor": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}",
-            "link_aluno": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
+            "room_code_host": room_code_host,
+            "room_code_guest": room_code_guest,
+            "prebuilt_links": {
+                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
+                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}"
+            }
         }
 
 # -------------------------
