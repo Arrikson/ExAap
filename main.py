@@ -4238,14 +4238,6 @@ async def desvincular_aluno(data: dict):
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
-    name: str
-    template_id: str | None = None
-    roles: list[str] | None = ["host", "viewer"]
-
-# -------------------------
-# 2️⃣ PROFESSOR CRIA SALA (create-room)
-# -------------------------
-class CreateRoomRequest(BaseModel):
     name: str  # Nome da sala (ex: "professor_joao_aluno_maria")
 
 
