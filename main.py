@@ -4271,11 +4271,10 @@ class CreateRoomRequest(BaseModel):
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1️⃣ Criar sala
+        # 1️⃣ Criar sala (REMOVIDO enabled_room_codes)
         body = {
             "name": req.name,
-            "template_id": TEMPLATE_ID,
-            "enabled_room_codes": True
+            "template_id": TEMPLATE_ID
         }
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
         if r.status_code >= 400:
