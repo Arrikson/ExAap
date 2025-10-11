@@ -4279,44 +4279,24 @@ def normalize_room_name(name: str):
     name = re.sub(r"[^a-zA-Z0-9._:-]", "_", name)
     return name.strip("_").lower()
 
-
 # ============================
 # Cria sala 100ms
 # ============================
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
-    import asyncio  # para o pequeno delay
+    import asyncio
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
         print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
 
-        body = {
-            "name": normalized_name,
-            "template_id": TEMPLATE_ID,
-        }
+        body = {"name": normalized_name, "template_id": TEMPLATE_ID}
 
         # ====== Criação da sala ======
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
         print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
-        if r.status_code == 400:
-            try:
-                err_json = r.json()
-            except Exception:
-                raise HTTPException(status_code=500, detail=f"Erro 400 desconhecido: {r.text}")
-
-            details = err_json.get("details", [])
-            if any("template not found" in d.lower() for d in details):
-                raise HTTPException(
-                    status_code=500,
-                    detail="❌ TEMPLATE_ID inválido ou não pertence ao seu projeto 100ms. "
-                           "Verifique no Dashboard → Templates."
-                )
-            else:
-                raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
-
-        elif r.status_code >= 400:
+        if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.status_code} - {r.text}")
 
         room = r.json()
@@ -4326,22 +4306,20 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Sala criada com ID: {room_id}")
 
-        # ====== Pequeno delay para garantir registro da sala ======
         await asyncio.sleep(1)
 
-        # ====== Criação dos códigos (host e guest) ======
-        body_codes = {"room_id": room_id, "roles": ["host", "guest"]}
-
+        # ====== Criação dos códigos (endpoint atualizado) ======
+        body_codes = {"roles": ["host", "guest"]}
         try:
             r2 = await client.post(
-                f"{HMS_API_BASE}/room-codes",  # ✅ CORRIGIDO — endpoint correto
+                f"{HMS_API_BASE}/room-codes/room/{room_id}",
                 json=body_codes,
                 headers=get_headers(),
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
 
-        print(f"📡 [100ms /room-codes] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
+        print(f"📡 [100ms /room-codes/room/{room_id}] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
 
         if r2.status_code >= 400:
             raise HTTPException(
@@ -4350,12 +4328,8 @@ async def create_room(req: CreateRoomRequest):
             )
 
         # ====== Processa resposta ======
-        try:
-            data_codes = r2.json()
-        except Exception:
-            raise HTTPException(status_code=500, detail=f"⚠️ Resposta inválida da API 100ms: {r2.text}")
-
-        codes = data_codes.get("codes", [])  # ✅ campo correto é "codes"
+        data_codes = r2.json()
+        codes = data_codes.get("data", [])
         if not codes:
             raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
 
@@ -4368,7 +4342,6 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
 
-        # ====== Retorna dados ao frontend ======
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
@@ -4378,6 +4351,7 @@ async def create_room(req: CreateRoomRequest):
                 "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
             },
         }
+
 
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
