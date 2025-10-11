@@ -4250,10 +4250,11 @@ def generate_100ms_token():
     token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
     return token
 
-HEADERS_100MS = {
-    "Authorization": f"Bearer {generate_100ms_token()}",
-    "Content-Type": "application/json"
-}
+def get_headers():
+    return {
+        "Authorization": f"Bearer {generate_100ms_token()}",
+        "Content-Type": "application/json"
+    }
 
 # -------------------------
 # Modelo de requisição
@@ -4261,6 +4262,9 @@ HEADERS_100MS = {
 class CreateRoomRequest(BaseModel):
     name: str 
 
+# -------------------------
+# Rota para criar sala
+# -------------------------
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -4268,9 +4272,9 @@ async def create_room(req: CreateRoomRequest):
         body = {
             "name": req.name,
             "template_id": TEMPLATE_ID,
-            "enabled_room_codes": True  # 🔥 Obrigatório
+            "enabled_room_codes": True
         }
-        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
@@ -4279,8 +4283,12 @@ async def create_room(req: CreateRoomRequest):
         if not room_id:
             raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
-        # 2️⃣ Gerar room codes explicitamente
-        r2 = await client.post(f"{HMS_API_BASE}/room_codes", json={"room_id": room_id}, headers=HEADERS_100MS)
+        # 2️⃣ Gerar room codes explicitamente para host e guest
+        r2 = await client.post(
+            f"{HMS_API_BASE}/room_codes",
+            json={"room_id": room_id, "roles": ["host", "guest"]},
+            headers=get_headers()
+        )
         if r2.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.text}")
 
@@ -4293,7 +4301,6 @@ async def create_room(req: CreateRoomRequest):
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
-        # ✅ Garantir que existam códigos
         if not room_code_host or not room_code_guest:
             raise HTTPException(status_code=500, detail="⚠️ Room codes para host ou guest não foram retornados.")
 
