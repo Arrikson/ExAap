@@ -4307,17 +4307,48 @@ async def create_auth_token(body: dict):
             raise HTTPException(status_code=500, detail=f"Failed to create auth token: {r.text}")
         return r.json()
 
-@app.get("/professor", response_class=HTMLResponse)
-async def professor_page(request: Request):
+@app.get("/professor")
+async def professor(nome_sala: str = Query(default=None)):
     """
-    Serve a página do professor
+    Cria uma sala 100ms fictícia para fins de exemplo.
+    Retorna JSON com room_id, room_code e link.
     """
-    return templates.TemplateResponse("professor.html", {"request": request})
+    if not nome_sala:
+        nome_sala = f"aula-{int(datetime.now().timestamp())}"
+    
+    # Simula criação de sala (aqui você integra com API real do 100ms)
+    room_id = str(uuid.uuid4())
+    room_code = f"{nome_sala}-code"
+    prebuilt_link = f"https://public.app.100ms.live/meeting/{room_code}"
+    
+    # Retorno como JSON
+    return JSONResponse({
+        "room_id": room_id,
+        "room_code": room_code,
+        "prebuilt_link": prebuilt_link,
+        "role_codes": {"host": room_code}
+    })
 
-# Rota GET para aluno.html
-@app.get("/aluno", response_class=HTMLResponse)
-async def aluno_page(request: Request):
+# ----------------------
+# Rota do aluno - buscar room_code
+# ----------------------
+@app.get("/aluno", response_class=JSONResponse)
+async def aluno(aluno: str = Query(...)):
     """
-    Serve a página do aluno
+    Busca room_code e link do aluno.
     """
-    return templates.TemplateResponse("aluno.html", {"request": request})
+    aluno_norm = aluno.strip().lower()
+    data = ALUNO_ROOM.get(aluno_norm)
+    
+    if not data:
+        return JSONResponse({"error": "Nenhuma chamada encontrada para esse aluno."}, status_code=404)
+    
+    room_code = data.get("room_code")
+    prebuilt_link = f"https://public.app.100ms.live/meeting/{room_code}"
+    
+    return JSONResponse({
+        "aluno": aluno,
+        "room_code": room_code,
+        "prebuilt_link": prebuilt_link,
+        "professor": data.get("professor_email")
+    })
