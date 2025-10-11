@@ -69,14 +69,25 @@ criarBtn.onclick = async () => {
 
     const json = await resp.json();
 
-    // Código do HOST (Professor)
-    lastRoomCode = json.room_code_host;
-    prebuiltLink = json.prebuilt_links.host;
+    // Se room_code_host não existir, pegar o primeiro código de role_map
+    lastRoomCode = json.room_code_host
+                || json.room_code_guest
+                || (json.role_map ? Object.values(json.role_map)[0] : null);
+
+    prebuiltLink = json.prebuilt_links && (json.prebuilt_links.host || json.prebuilt_links.guest);
+
+    if (!lastRoomCode) {
+      result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
+                          <p>Verifique o backend ou o template do 100ms.</p>`;
+      return;
+    }
 
     result.innerHTML = `
-      <p><strong>Room ID:</strong> ${json.room_id}</p>
-      <p><strong>Room Code (Host):</strong> ${lastRoomCode}</p>
-      <p><strong>Entrar na sala:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
+      <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
+      <p><strong>Room Code:</strong> ${lastRoomCode}</p>
+      <p><strong>Entrar na sala:</strong> 
+        <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a>
+      </p>
       <p>Abra o link para entrar como <strong>Professor (HOST)</strong>.</p>
     `;
 
