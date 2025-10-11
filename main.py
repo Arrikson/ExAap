@@ -4234,33 +4234,13 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
         
-
-@app.get("/gerar-token/{nome}/{role}")
-def gerar_token(nome: str, role: str):
-    # 🔹 Role: "host" (professor) ou "guest" (aluno)
-    payload = {
-        "access_key": HMS_APP_ACCESS_KEY,
-        "type": "app",
-        "version": 2,
-        "room_id": TEMPLATE_ID,     # Se estiveres a usar apenas o Template
-        "user_id": nome.lower(),    # Nome do utilizador (normalizado)
-        "role": role,               # host ou guest
-        "exp": int(time.time()) + 3600  # 1 hora de validade
-    }
-
-    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
-
-    return {
-        "token": token,
-        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{token}"
-    }
-
+# -------------------------
 # -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 class CreateRoomRequest(BaseModel):
     name: str
-    template_id: str | None = TEMPLATE_ID  # Usa template automaticamente
+    template_id: str | None = TEMPLATE_ID  # Usa automaticamente o template
     roles: list[str] | None = ["host", "guest"]
 
 
@@ -4288,7 +4268,7 @@ async def create_room(req: CreateRoomRequest):
         codes = r2.json()
         role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
 
-        # 🔗 Gerar links Prebuilt com SUBDOMAIN privado
+        # 🔗 Gerar links Prebuilt com SUBDOMAIN privado (host e guest)
         return {
             "room_id": room_id,
             "role_codes": role_map,
@@ -4313,14 +4293,11 @@ async def enviar_id_aula(payload: EnviarIdPayload):
         "room_code": payload.room_code,
         "professor": payload.professor.strip().lower(),
     }
-    return {"status":"ok"}
+    return {"status": "ok"}
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
 # -------------------------
-# ==========================
-# PROFESSOR BUSCA ROOM_CODE
-# ==========================
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
@@ -4333,6 +4310,7 @@ async def buscar_id_professor(aluno: str):
         "room_code": data.get("room_code"),
         "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{data.get('room_code')}"
     }
+
 
 
 # ==========================
