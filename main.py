@@ -4238,8 +4238,8 @@ async def desvincular_aluno(data: dict):
 # ============================
 # CONFIG 100ms
 # ============================
-SUBDOMAIN = "sabe-videoconf-1518"  
-TEMPLATE_ID = "68e132db74147bd574bb494a" 
+SUBDOMAIN = "sabe-videoconf-1518"
+TEMPLATE_ID = "68e132db74147bd574bb494a"
 HMS_API_BASE = "https://api.100ms.live/v2"
 HMS_APP_ACCESS_KEY = "68e12ac3bd0dab5f9a013f93"
 HMS_APP_SECRET = "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFIcgcDCoBCgDBLofpmog6VUlwNmzkxi3PWQ9N3KZYYHNRZYItsxETK0qU_mfeA4ita1-OVzrq9m37nf6Ns-C-KBGWaLV3S45ZvhsxOHTzK-5A4g="
@@ -4250,26 +4250,24 @@ HMS_APP_SECRET = "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFI
 class CreateRoomRequest(BaseModel):
     name: str
 
-
 # ============================
-# GERA TOKEN 100ms
+# GERA TOKEN 100ms (com permissão de management)
 # ============================
 def generate_100ms_token():
     payload = {
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,  # token válido por 1h
+        "exp": int(time.time()) + 3600,  # válido por 1h
         "access_key": HMS_APP_ACCESS_KEY,
+        "type": "management",  # 🔥 ESSENCIAL para criar salas e room codes
         "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
-
 
 def get_headers():
     return {
         "Authorization": f"Bearer {generate_100ms_token()}",
         "Content-Type": "application/json",
     }
-
 
 # ============================
 # Normaliza nome da sala
@@ -4279,7 +4277,6 @@ def normalize_room_name(name: str):
     name = re.sub(r"[^a-zA-Z0-9._:-]", "_", name)
     return name.strip("_").lower()
 
-
 # ============================
 # Cria sala 100ms
 # ============================
@@ -4287,14 +4284,16 @@ def normalize_room_name(name: str):
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
+        print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
 
         body = {
             "name": normalized_name,
             "template_id": TEMPLATE_ID,
         }
 
-        # Criação da sala
+        # ====== Criação da sala ======
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
+        print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
         if r.status_code == 400:
             err_json = r.json()
@@ -4302,8 +4301,8 @@ async def create_room(req: CreateRoomRequest):
             if any("template not found" in d.lower() for d in details):
                 raise HTTPException(
                     status_code=500,
-                    detail="❌ O TEMPLATE_ID configurado não existe ou não pertence ao seu projeto 100ms. "
-                           "Verifique o ID correto no painel da 100ms (Dashboard → Templates).",
+                    detail="❌ TEMPLATE_ID inválido ou não pertence ao seu projeto 100ms. "
+                           "Verifique no Dashboard → Templates."
                 )
             else:
                 raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
@@ -4316,26 +4315,36 @@ async def create_room(req: CreateRoomRequest):
         if not room_id:
             raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
-        # Criação dos códigos de entrada (host e guest)
-        r2 = await client.post(
-            f"{HMS_API_BASE}/room_codes",
-            json={"room_id": room_id, "roles": ["host", "guest"]},
-            headers=get_headers(),
-        )
+        print(f"✅ Sala criada com ID: {room_id}")
+
+        # ====== Pequeno delay para garantir registro da sala ======
+        import asyncio
+        await asyncio.sleep(1)
+
+        # ====== Criação dos códigos (host e guest) ======
+        body_codes = {"room_id": room_id, "roles": ["host", "guest"]}
+        r2 = await client.post(f"{HMS_API_BASE}/room_codes", json=body_codes, headers=get_headers())
+        print(f"📡 [100ms /room_codes] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
 
         if r2.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.text}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}"
+            )
 
-        codes = r2.json().get("codes", [])
+        data_codes = r2.json()
+        codes = data_codes.get("codes", [])
         if not codes:
-            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código foi retornado.")
+            raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
 
         role_map = {c.get("role"): c.get("code") for c in codes}
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
         if not room_code_host or not room_code_guest:
-            raise HTTPException(status_code=500, detail="⚠️ Room codes para host/guest não retornados.")
+            raise HTTPException(status_code=500, detail=f"⚠️ Room codes ausentes: {data_codes}")
+
+        print(f"✅ Room codes criados com sucesso. Host={room_code_host}, Guest={room_code_guest}")
 
         return {
             "room_id": room_id,
