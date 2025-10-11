@@ -4234,19 +4234,6 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
-
-import time
-import uuid
-import jwt
-import httpx
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-
-app = FastAPI()
-
-# -------------------------
-# Configurações da 100ms
-# -------------------------
 SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomain
 TEMPLATE_ID = "68e132db74147bd574bb494a"  # ID do template
 HMS_API_BASE = "https://api.100ms.live/v2"  # base da API
