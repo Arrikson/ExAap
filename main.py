@@ -34,25 +34,33 @@ from pydantic import BaseModel
 # --- Load environment ---
 load_dotenv()
 
-# --- 100ms config ---
+# ============================================
+#   CONFIGURAÇÕES 100ms - SabiLíder Videoconf
+# ============================================
 
-# --- Chaves de acesso do 100ms ---
-HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"  # App Access Key
-HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="  # App Secret
-MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"  # Management Token
+# 🔑 Chaves de autenticação (App Access Token)
+HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"   # Access Key
+HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="  # Secret Key
 
-# --- URLs da API 100ms ---
-HMS_API_BASE = "https://api.100ms.live/v2"
+# 🏫 Template e Subdomínio da sala SabiLíder
+TEMPLATE_ID        = "68e132db74147bd574bb494a"   # Template 'aula-professor-aluno'
+SUBDOMAIN          = "sabe-videoconf-1518"        # Subdomínio gerado pela 100ms
+
+# 🛠️ Management Token (Permite criar salas, etc)
+MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"
+
+# 🌍 Endpoints oficiais da API 100ms
+HMS_API_BASE   = "https://api.100ms.live/v2"
 ROOM_CODES_BASE = f"{HMS_API_BASE}/room-codes/room"
 
-# --- Store local simples (substituir depois por Firestore ou DB real) ---
-ALUNO_ROOM = {}  # aluno_norm -> { room_id, room_code, join_url, professor }
-
-# --- Headers padrão para requisições à API 100ms usando Management Token ---
+# 🪪 Headers de autenticação para criação de sala
 HEADERS_100MS = {
     "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
     "Content-Type": "application/json"
 }
+
+# 🧠 Armazena dados temporários de sala (substituir depois por Firebase ou DB)
+ALUNO_ROOM = {}  # aluno_norm -> { room_code, professor }
 
 
 # --- Firebase ---
@@ -4224,6 +4232,63 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
+@app.get("/gerar-token/{nome}/{role}")
+def gerar_token(nome: str, role: str):
+    payload = {
+        "access_key": HMS_APP_ACCESS_KEY,
+        "type": "app",
+        "version": 2,
+        "room_id": TEMPLATE_ID,
+        "user_id": nome,
+        "role": role,         # host (professor) | viewer (aluno)
+        "exp": int(time.time()) + 3600
+    }
+    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+    return {
+        "token": token,
+        "prebuilt_url": f"https://{SUBDOMAIN}.app.100ms.live/preview/{token}"
+    }
+
+# -------------------------
+# 2️⃣ PROFESSOR CRIA SALA (create-room)
+# -------------------------
+class CreateRoomRequest(BaseModel):
+    name: str
+    template_id: str | None = None
+    roles: list[str] | None = ["host", "viewer"]
+
+@app.post("/create-room")
+async def create_room(req: CreateRoomRequest):
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        body = {"name": req.name}
+        if req.template_id:
+            body["template_id"] = req.template_id
+
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
+
+        room = r.json()
+        room_id = room.get("id") or room.get("room_id")
+
+        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
+        if r2.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Erro ao gerar códigos: {r2.text}")
+
+        codes = r2.json()
+        role_map = {c.get("role"): c.get("code") for c in codes.get("codes", [])}
+        return {
+            "room_id": room_id,
+            "role_codes": role_map,
+            "prebuilt_links": {
+                role: f"https://public.app.100ms.live/meeting/{code}"
+                for role, code in role_map.items()
+            }
+        }
+
+# -------------------------
+# 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
+# -------------------------
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
@@ -4231,65 +4296,26 @@ class EnviarIdPayload(BaseModel):
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
-    # normalize
-    nome_aluno = payload.aluno.strip().lower().replace(" ", "")
-    # store mapping (replace with Firestore write if you use Firebase)
-    ALUNO_ROOM[nome_aluno] = {
+    aluno_norm = payload.aluno.strip().lower().replace(" ", "")
+    ALUNO_ROOM[aluno_norm] = {
         "room_code": payload.room_code,
         "professor": payload.professor.strip().lower(),
     }
-    return JSONResponse(content={"status":"ok"})
+    return {"status":"ok"}
 
+# -------------------------
+# 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
+# -------------------------
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
     data = ALUNO_ROOM.get(aluno_norm)
     if not data:
-        return {"peer_id": None, "room_code": None}
-    return {"room_code": data.get("room_code"), "peer_id": None}
-    
-
-class CreateRoomRequest(BaseModel):
-    name: str
-    template_id: str | None = None
-    roles: list[str] | None = ["host", "viewer"]
-
-
-@app.post("/create-room")
-async def create_room(req: CreateRoomRequest):
-    """
-    Create a room and create role-specific room-codes. Returns the room_id and role->code mapping
-    and a prebuilt join url for convenience.
-    """
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1) create room
-        body = {"name": req.name}
-        if req.template_id:
-            body["template_id"] = req.template_id
-        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
-        if r.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Failed to create room: {r.text}")
-        room = r.json()
-        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id") or room.get("name")
-
-        # 2) create room codes for all roles
-        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
-        if r2.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Failed to create room codes: {r2.text}")
-        codes = r2.json()
-
-        # 3) build mapping role -> code
-        role_map = {}
-        for c in codes.get("codes", []) if isinstance(codes, dict) else []:
-            role_map[c.get("role")] = c.get("code")
-
-        # 4) generate prebuilt join URL pattern
-        prebuilt_links = {}
-        for role, code in role_map.items():
-            if code:
-                prebuilt_links[role] = f"https://public.app.100ms.live/meeting/{code}"
-
-        return {"room_id": room_id, "role_codes": role_map, "prebuilt_links": prebuilt_links}
+        return {"room_code": None}
+    return {
+        "room_code": data.get("room_code"),
+        "prebuilt_link": f"https://public.app.100ms.live/meeting/{data.get('room_code')}"
+    }
 
 @app.get("/professor")
 async def professor(nome_sala: str = Query(default=None)):
