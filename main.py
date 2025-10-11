@@ -4235,31 +4235,59 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
 
+SUBDOMAIN = "sabe-videoconf-1518"  # seu subdomain
+TEMPLATE_ID = "68e132db74147bd574bb494a"  # ID do template
+HMS_API_BASE = "https://api.100ms.live/v2"  # base da API
+HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
+HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
+
+def generate_100ms_token():
+    payload = {
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 3600,  # token válido por 1 hora
+        "access_key": HMS_APP_ACCESS_KEY
+    }
+    token = jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+    return token
+
+HEADERS_100MS = {
+    "Authorization": f"Bearer {generate_100ms_token()}",
+    "Content-Type": "application/json"
+}
+
+# -------------------------
+# Modelo de requisição
+# -------------------------
 class CreateRoomRequest(BaseModel):
-    name: str 
-        
+    name: str
+
 # -------------------------
 # 2️⃣ PROFESSOR CRIA SALA (create-room)
 # -------------------------
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     async with httpx.AsyncClient(timeout=30.0) as client:
+        # 1️⃣ Criar sala com room_codes habilitado
         body = {
             "name": req.name,
             "template_id": TEMPLATE_ID,
-            "enabled_room_codes": True   # 🔥 OBRIGATÓRIO!
+            "enabled_room_codes": True  # 🔥 Obrigatório
         }
-
-        # 1️⃣ Criar sala
         r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
         if r.status_code >= 400:
             raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.text}")
 
         room = r.json()
         room_id = room.get("id")
-        codes = room.get("room_codes", [])  # 🔴 Agora vem direto aqui!
+        if not room_id:
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
-        # 2️⃣ Verificar códigos
+        # 2️⃣ Gerar room codes usando endpoint específico
+        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
+        if r2.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Erro ao gerar room codes: {r2.text}")
+
+        codes = r2.json().get("codes", [])
         if not codes:
             raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas nenhum código de acesso foi retornado.")
 
