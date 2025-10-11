@@ -67,14 +67,19 @@ criarBtn.onclick = async () => {
       body: JSON.stringify({ name: name })
     });
 
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text);
+    }
+
     const json = await resp.json();
 
     // ✅ Agora pegamos room_code_host e prebuilt_links.host
     lastRoomCode = json.room_code_host;
-    linkProfessor = json.prebuilt_links.host;
+    linkProfessor = json.prebuilt_links?.host;
 
-    if (!lastRoomCode) {
-      result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas nenhum código de acesso foi retornado.</p>
+    if (!lastRoomCode || !linkProfessor) {
+      result.innerHTML = `<p style="color:red;">⚠️ Sala criada, mas host ou link não foram retornados.</p>
                           <p>Verifique se o Template 100ms possui Host e Room Codes habilitados.</p>`;
       return;
     }
