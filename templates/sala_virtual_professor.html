@@ -33,10 +33,13 @@
 <body>
   <div id="container">
     <h2>Professor - Criar sala 100ms</h2>
+
+    <!-- Nome de sala -->
     <input id="nomeSala" placeholder="Nome da sala (ex: Ingles-Alfredo)" />
     <button id="criarBtn">Criar Sala</button>
     <div id="result"></div>
 
+    <!-- Enviar ao aluno -->
     <label>Nome do aluno:</label>
     <input id="alunoNome" placeholder="Nome do aluno" />
     <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
@@ -51,46 +54,58 @@ const alunoNome = document.getElementById('alunoNome');
 let lastRoomCode = null;
 let prebuiltLink = null;
 
+// ===============================
+// 1️⃣ Criar Sala via /create-room
+// ===============================
 criarBtn.onclick = async () => {
   const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
-  
+
   try {
-    // Solicita criação de sala ao backend
-    const resp = await fetch('/professor?nome_sala=' + encodeURIComponent(name));
+    const resp = await fetch('/create-room', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+
     const json = await resp.json();
 
-    // Obtém ROOM_CODE real retornado
-    lastRoomCode = json.room_code || Object.values(json.role_codes || {})[0];
+    // room_code = código host (prioriza host)
+    lastRoomCode = json.role_codes?.host || Object.values(json.role_codes || {})[0];
     prebuiltLink = `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomCode}`;
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id}</p>
-      <p><strong>Room code (host):</strong> ${lastRoomCode}</p>
+      <p><strong>Room Code (Host):</strong> ${lastRoomCode}</p>
       <p><strong>Entrar na sala:</strong> <a href="${prebuiltLink}" target="_blank">${prebuiltLink}</a></p>
-      <p>Agora pode abrir o link para entrar como Professor (HOST).</p>
+      <p>Abra o link para entrar como <strong>Professor (HOST)</strong>.</p>
     `;
+
     enviarLinkBtn.disabled = false;
   } catch (err) {
     alert('Erro ao criar sala: ' + err);
   }
 };
 
+// ==============================================
+// 2️⃣ Enviar ID/Aula para o Aluno via /enviar-id-aula
+// ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomCode) return alert('Informe aluno e crie sala antes.');
+  if (!aluno || !lastRoomCode) return alert('Informe aluno e crie a sala primeiro.');
 
   try {
     const resp = await fetch('/enviar-id-aula', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        aluno,
-        professor: "{{ email }}",   // Backend injeta e-mail do professor real
+        aluno: aluno,
+        professor: "{{ email }}",  // será injetado pelo backend
         room_code: lastRoomCode
       })
     });
-    if (resp.ok) alert('✅ Link enviado e registrado para o aluno!');
-    else alert('❌ Falha ao registrar link.');
+
+    if (resp.ok) alert('✅ Link enviado ao aluno com sucesso!');
+    else alert('❌ Falha ao registrar link no servidor.');
   } catch (err) {
     alert('Erro ao enviar ID ao aluno: ' + err);
   }
