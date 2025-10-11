@@ -4224,53 +4224,6 @@ async def desvincular_aluno(data: dict):
         print("Erro ao desvincular aluno:", e)
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
-
-class CreateRoomRequest(BaseModel):
-    name: str
-    template_id: str | None = None
-    roles: list[str] | None = ["host", "viewer"]
-
-
-@app.post("/create-room")
-async def create_room(req: CreateRoomRequest):
-    """
-    Create a room and create role-specific room-codes. Returns the room_id and role->code mapping
-    and a prebuilt join url for convenience.
-    """
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # 1) create room
-        body = {"name": req.name}
-        if req.template_id:
-            body["template_id"] = req.template_id
-        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=headers)
-        if r.status_code >= 400:
-            raise HTTPException(status_code=500, detail=f"Failed to create room: {r.text}")
-        room = r.json()
-        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id") or room.get("name")
-
-        # 2) create room codes for all roles (POST /v2/room-codes/room/:room_id)
-        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=headers)
-        if r2.status_code >= 400:
-            # continue but warn
-            raise HTTPException(status_code=500, detail=f"Failed to create room codes: {r2.text}")
-        codes = r2.json()
-
-        # 3) build mapping role -> code (the API returns codes structure)
-        # The structure typically contains `codes: [{role, code, ...}, ...]`
-        role_map = {}
-        for c in codes.get("codes", []) if isinstance(codes, dict) else []:
-            role_map[c.get("role")] = c.get("code")
-
-        # 4) For convenience generate prebuilt join URL pattern:
-        # public.app.100ms.live/meeting/<room-code>
-        prebuilt_links = {}
-        for role, code in role_map.items():
-            if code:
-                prebuilt_links[role] = f"https://public.app.100ms.live/meeting/{code}"
-
-        return {"room_id": room_id, "role_codes": role_map, "prebuilt_links": prebuilt_links}
-
-
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
@@ -4294,57 +4247,50 @@ async def buscar_id_professor(aluno: str):
     if not data:
         return {"peer_id": None, "room_code": None}
     return {"room_code": data.get("room_code"), "peer_id": None}
+    
 
-# --- Chaves e URLs 100ms ---
-HMS_API_BASE = "https://api.100ms.live/v2"
-MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAxNzA4MDMsImV4cCI6MTc2MDc3NTYwMywianRpIjoiNDdlMGE5YzEtYTdhMC00NTE0LWI1ZWEtMTBkOTk1MGFmZWRkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAxNzA4MDMsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.cR5zHiQvlqkMgInU1TFRf1SktEWEjaIhr85DsoAFefE"
-HEADERS_100MS = {
-    "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
-    "Content-Type": "application/json"
-}
+class CreateRoomRequest(BaseModel):
+    name: str
+    template_id: str | None = None
+    roles: list[str] | None = ["host", "viewer"]
 
-ALUNO_ROOM = {}  # aluno_norm -> { room_code, professor }
 
 @app.post("/create-room")
-async def create_room(request: Request):
-    dados = await request.json()
-    professor = dados.get("professor")
-    aluno = dados.get("aluno")
+async def create_room(req: CreateRoomRequest):
+    """
+    Create a room and create role-specific room-codes. Returns the room_id and role->code mapping
+    and a prebuilt join url for convenience.
+    """
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # 1) create room
+        body = {"name": req.name}
+        if req.template_id:
+            body["template_id"] = req.template_id
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Failed to create room: {r.text}")
+        room = r.json()
+        room_id = room.get("id") or room.get("room_id") or room.get("room", {}).get("id") or room.get("name")
 
-    if not professor or not aluno:
-        return {"error": "Professor e aluno são obrigatórios."}
+        # 2) create room codes for all roles
+        r2 = await client.post(f"{ROOM_CODES_BASE}/{room_id}", headers=HEADERS_100MS)
+        if r2.status_code >= 400:
+            raise HTTPException(status_code=500, detail=f"Failed to create room codes: {r2.text}")
+        codes = r2.json()
 
-    aluno_norm = aluno.strip().lower().replace(" ", "")
+        # 3) build mapping role -> code
+        role_map = {}
+        for c in codes.get("codes", []) if isinstance(codes, dict) else []:
+            role_map[c.get("role")] = c.get("code")
 
- 
-    body = {
-        "name": f"Aula de {aluno} com {professor}",
-        "region": "sg",  # ou "in", "us", "eu" dependendo da preferência
-        "template_id": "63f51559f5f76b00121c2d33",  # template padrão 100ms
-        "type": "sfu",
-        "description": f"Sala para {aluno} com {professor}"
-    }
+        # 4) generate prebuilt join URL pattern
+        prebuilt_links = {}
+        for role, code in role_map.items():
+            if code:
+                prebuilt_links[role] = f"https://public.app.100ms.live/meeting/{code}"
 
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=HEADERS_100MS)
-            response.raise_for_status()
-            room_data = response.json()
+        return {"room_id": room_id, "role_codes": role_map, "prebuilt_links": prebuilt_links}
 
-        room_code = room_data.get("room_code")
-        if not room_code:
-            return {"error": "Falha ao criar a sala, room_code não retornado."}
-
-        
-        ALUNO_ROOM[aluno_norm] = {"room_code": room_code, "professor": professor}
-
-        return {"room_code": room_code, "professor": professor}
-
-    except httpx.HTTPStatusError as e:
-        return {"error": f"Erro HTTP ao criar sala: {e.response.text}"}
-    except Exception as e:
-        return {"error": str(e)}
-        
 @app.get("/professor")
 async def professor(nome_sala: str = Query(default=None)):
     """
