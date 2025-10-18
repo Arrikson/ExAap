@@ -4428,15 +4428,17 @@ async def buscar_id_professor(aluno: str):
 
     if not data:
         return {
-            "room_code": None,
-            "prebuilt_link": None
+            "room_id": None,
+            "room_link": None,
+            "professor": None,
+            "mensagem": "Nenhum link de aula encontrado para este aluno."
         }
 
-    room_code = data.get("room_code")
-
     return {
-        "room_code": room_code,
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
+        "room_id": data.get("room_link").split("/meeting/")[1].split("?")[0],
+        "room_link": data.get("room_link"),
+        "professor": data.get("professor"),
+        "mensagem": "Link de aula encontrado com sucesso!"
     }
 
 @app.get("/paginavendas", response_class=HTMLResponse)
