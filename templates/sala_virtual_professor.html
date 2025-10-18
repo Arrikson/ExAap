@@ -97,7 +97,7 @@ criarBtn.onclick = async () => {
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomData.room_code_guest)
+  if (!aluno || !room_id: lastRoomData.room_id)
     return alert('Informe o nome do aluno e crie a sala primeiro.');
 
   try {
