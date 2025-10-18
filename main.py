@@ -4404,31 +4404,27 @@ class EnviarIdPayload(BaseModel):
 # ===========================
 # 🔹 Enviar ID e link da aula
 # ===========================
+class EnviarIdPayload(BaseModel):
+    aluno: str
+    professor: str
+    room_id: str
+    prebuilt_link: str   # ✅ agora recebemos o link real da 100ms
+
+
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
     professor_norm = payload.professor.strip().lower().replace(" ", "")
 
-    # ✅ Cria o link completo baseado no room_id
-    guest_link = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{payload.room_id}?role=guest"
-
-    # Guarda no dicionário temporário
     ALUNO_ROOM[aluno_norm] = {
         "room_id": payload.room_id,
         "professor": professor_norm,
-        "prebuilt_link": guest_link
+        "prebuilt_link": payload.prebuilt_link  # ✅ usa o link completo vindo do 100ms
     }
 
-    return {
-        "status": "ok",
-        "message": "Link da aula enviado ao aluno com sucesso!",
-        "prebuilt_link": guest_link
-    }
+    return {"status": "ok", "message": "Link real da aula enviado ao aluno com sucesso!"}
 
 
-# ===========================
-# 🔹 Buscar link do professor
-# ===========================
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
@@ -4441,6 +4437,7 @@ async def buscar_id_professor(aluno: str):
         "room_id": data["room_id"],
         "prebuilt_link": data["prebuilt_link"]
     }
+
 
 @app.get("/paginavendas", response_class=HTMLResponse)
 async def paginavendas(request: Request):
