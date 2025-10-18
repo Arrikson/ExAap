@@ -50,14 +50,24 @@ const criarBtn = document.getElementById('criarBtn');
 const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
+const nomeSalaInput = document.getElementById('nomeSala');
 
 let lastRoomData = {}; // Armazena os dados da última sala criada
+
+// ✅ Preenche automaticamente o nome do aluno vindo da URL
+const params = new URLSearchParams(window.location.search);
+const alunoParam = params.get('aluno');
+if (alunoParam) {
+  const alunoFormatado = alunoParam.charAt(0).toUpperCase() + alunoParam.slice(1);
+  alunoNome.value = alunoFormatado;
+  nomeSalaInput.value = `Inglês - ${alunoFormatado}`;
+}
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
 // ===============================
 criarBtn.onclick = async () => {
-  const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
+  const name = nomeSalaInput.value || 'aula-' + Date.now();
 
   try {
     const resp = await fetch('/create-room', {
@@ -112,8 +122,8 @@ enviarLinkBtn.onclick = async () => {
       body: JSON.stringify({
         aluno: aluno,
         professor: "{{ email }}",
-        room_id: lastRoomData.room_id,                 // ✅ ainda envia o ID
-        prebuilt_link: lastRoomData.prebuilt_links.guest // ✅ envia o link real do aluno
+        room_id: lastRoomData.room_id,                  
+        prebuilt_link: lastRoomData.prebuilt_links.guest 
       })
     });
 
