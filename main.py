@@ -4360,27 +4360,64 @@ async def create_room(req: CreateRoomRequest):
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_link: str  
+    room_id: str   # Recebe apenas o room_id (sem o link completo)
 
-ALUNO_ROOM = {}  
 
+# ==============================
+# Gerar token JWT via API 100ms
+# ==============================
+async def gerar_token(role: str, user_id: str, room_id: str):
+    url = f"{HMS_ROOM_URL}/room/{room_id}/token"
+
+    headers = {
+        "Authorization": f"Bearer {HMS_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "user_id": user_id,
+        "role": role
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=body)
+        if response.status_code != 200:
+            raise Exception(f"Erro ao gerar token: {response.text}")
+        data = response.json()
+        return data["token"]
+
+
+# ==============================
+# Enviar ID + token ao aluno
+# ==============================
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
     professor_norm = payload.professor.strip().lower()
 
+    # ✅ Gera tokens individuais para professor e aluno
+    token_professor = await gerar_token("host", professor_norm, payload.room_id)
+    token_aluno = await gerar_token("guest", aluno_norm, payload.room_id)
+
+    # ✅ Monta links válidos com token incluído
+    link_professor = f"https://sabe-videoconf-1518.app.100ms.live/meeting/{payload.room_id}?token={token_professor}"
+    link_aluno = f"https://sabe-videoconf-1518.app.100ms.live/meeting/{payload.room_id}?token={token_aluno}"
+
     # ✅ Guarda o link completo e o professor
     ALUNO_ROOM[aluno_norm] = {
-        "room_link": payload.room_link,
+        "room_link": link_aluno,
         "professor": professor_norm,
     }
 
     return {
         "status": "ok",
         "message": "Link da aula enviado ao aluno com sucesso!",
-        "dados": ALUNO_ROOM[aluno_norm]
+        "links": {
+            "professor": link_professor,
+            "aluno": link_aluno
+        }
     }
-
+    
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
 # -------------------------
