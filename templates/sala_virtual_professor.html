@@ -24,7 +24,7 @@
       max-width: 400px;
     }
     input, label {
-      display: none; /* 🔒 Ocultamos campos e labels */
+      display: none; 
     }
     button {
       width: 100%;
@@ -47,7 +47,7 @@
       transform: scale(1.05);
     }
     #result {
-      display: none; /* 🔒 Ocultamos as informações da sala */
+      display: none; 
     }
 
     @media (max-width: 600px) {
@@ -63,7 +63,7 @@
 </head>
 <body>
   <div id="container">
-    <h2>Sala Virtual 100ms</h2>
+    <h2>Sala Virtual</h2>
     <input id="nomeSala" placeholder="Nome da sala" />
     <input id="alunoNome" placeholder="Nome do aluno" />
     <div id="result"></div>
@@ -80,9 +80,9 @@ const result = document.getElementById('result');
 const alunoNome = document.getElementById('alunoNome');
 const nomeSalaInput = document.getElementById('nomeSala');
 
-let lastRoomData = {}; // Armazena os dados da última sala criada
+let lastRoomData = {}; 
 
-// ✅ Captura o nome do aluno automaticamente da URL
+
 const params = new URLSearchParams(window.location.search);
 const alunoParam = params.get('aluno');
 if (alunoParam) {
@@ -91,7 +91,7 @@ if (alunoParam) {
   nomeSalaInput.value = `Inglês - ${alunoFormatado}`;
 }
 
-// ✅ Cria automaticamente a sala assim que a página carrega
+
 window.addEventListener('load', async () => {
   try {
     const name = nomeSalaInput.value || 'aula-' + Date.now();
@@ -116,7 +116,7 @@ window.addEventListener('load', async () => {
   }
 });
 
-// ✅ Quando o professor clica em “Chamar aluno”
+
 chamarAlunoBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
   if (!aluno || !lastRoomData.prebuilt_links?.guest || !lastRoomData.prebuilt_links?.host)
@@ -136,7 +136,7 @@ chamarAlunoBtn.onclick = async () => {
 
     if (resp.ok) {
       console.log("✅ Link enviado ao aluno com sucesso!");
-      // 🔁 Redireciona o professor automaticamente para sua sala (HOST)
+      
       window.location.href = lastRoomData.prebuilt_links.host;
     } else {
       const errText = await resp.text();
