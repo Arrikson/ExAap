@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aluno - Entrar na Aula</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
       margin: 0;
@@ -19,25 +20,32 @@
       padding: 20px;
     }
 
-    input, button {
-      padding: 10px 18px;
-      margin: 8px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-    }
-
     input {
-      width: 220px;
-      display: none; /* 🔹 Esconde o campo de entrada */
+      display: none; /* Esconde campo */
     }
 
-    button {
-      cursor: pointer;
-      background: #00c9ff;
-      color: #000;
+    #entrarBtn {
+      display: none;
+      background: #00d26a;
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 18px;
       font-weight: bold;
-      display: none; /* 🔹 Esconde o botão "Buscar Chamada" */
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.3s;
+      box-shadow: 0 0 10px rgba(0,255,150,0.5);
+    }
+
+    #entrarBtn i {
+      margin-right: 8px;
+    }
+
+    #entrarBtn:hover {
+      background: #00ff7f;
+      transform: scale(1.05);
     }
 
     #status {
@@ -46,66 +54,60 @@
       color: #fff;
     }
 
-    a {
-      color: #00c9ff;
-    }
-
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-        font-size: 15px;
-      }
-      #status {
-        font-size: 14px;
-      }
+      h2 { font-size: 20px; }
+      #entrarBtn { font-size: 16px; padding: 12px 20px; }
+      #status { font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <h2>Aluno - Entrar na Aula</h2>
   <input id="nomeAluno" placeholder="Digite seu nome" />
-  <button id="buscarBtn">Buscar Chamada</button>
-  <div id="status">⏳ Carregando chamada do professor...</div>
+  <div id="status">⏳ Aguardando chamada do professor...</div>
+  <button id="entrarBtn"><i class="fa-solid fa-video"></i> Entrar na Aula</button>
 
 <script>
+let intervaloBusca;
+let linkSala = "";
+
 async function buscarChamadaAutomatica() {
   const statusEl = document.getElementById('status');
   const inputNome = document.getElementById('nomeAluno');
+  const entrarBtn = document.getElementById('entrarBtn');
 
   try {
-    // ✅ Extrai o nome do aluno da URL (padrão: /sala_virtual_aluno/{professor-aluno})
+    // ✅ Extrai o nome do aluno da URL (/sala_virtual_aluno/{professor-aluno})
     const pathParts = window.location.pathname.split("/");
     const sala = decodeURIComponent(pathParts[pathParts.length - 1] || "");
-    const aluno = sala.split("-").slice(1).join("-").trim(); // Pega a parte após o email do professor
+    const aluno = sala.split("-").slice(1).join("-").trim();
 
     if (!aluno) {
       statusEl.textContent = "❌ Não foi possível identificar o aluno.";
+      clearInterval(intervaloBusca);
       return;
     }
 
     inputNome.value = aluno;
-
-    statusEl.textContent = "🔎 Buscando chamada do professor...";
 
     const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
     const data = await res.json();
 
     // ❗ Verifica se o professor já criou e enviou a sala
     if (!data.room_id || !data.prebuilt_link) {
-      statusEl.textContent = "❌ O professor ainda não enviou a chamada.";
+      statusEl.textContent = "🔄 Aguardando o professor enviar a chamada...";
       return;
     }
 
-    // ✅ Exibe informações da sala
+    // ✅ Sala encontrada
+    clearInterval(intervaloBusca);
+    linkSala = data.prebuilt_link;
+
     statusEl.innerHTML = `
       ✅ Aula encontrada!<br>
-      <strong>ID da Sala:</strong> ${data.room_id}<br><br>
-      🚪 Entrando na sala...<br>
-      <a href="${data.prebuilt_link}" target="_blank">Clique aqui se não abrir automaticamente</a>
+      <strong>ID da Sala:</strong> ${data.room_id}
     `;
-
-    // 🔁 Abre a sala automaticamente
-    window.open(data.prebuilt_link, "_blank");
+    entrarBtn.style.display = "inline-block";
 
   } catch (err) {
     console.error(err);
@@ -113,8 +115,18 @@ async function buscarChamadaAutomatica() {
   }
 }
 
+// 🔹 Ao clicar no botão, entra na aula
+document.getElementById("entrarBtn").onclick = () => {
+  if (linkSala) {
+    window.open(linkSala, "_blank");
+  }
+};
 
-window.addEventListener("DOMContentLoaded", buscarChamadaAutomatica);
+
+window.addEventListener("DOMContentLoaded", () => {
+  buscarChamadaAutomatica();
+  intervaloBusca = setInterval(buscarChamadaAutomatica, 10000);
+});
 </script>
 </body>
 </html>
