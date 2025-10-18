@@ -34,12 +34,10 @@
   <div id="container">
     <h2>Professor - Criar sala 100ms</h2>
 
-    <!-- Nome de sala -->
     <input id="nomeSala" placeholder="Nome da sala (ex: Ingles-Alfredo)" />
     <button id="criarBtn">Criar Sala</button>
     <div id="result"></div>
 
-    <!-- Enviar ao aluno -->
     <label>Nome do aluno:</label>
     <input id="alunoNome" placeholder="Nome do aluno" />
     <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
@@ -51,11 +49,8 @@ const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
-let lastRoomData = {}; // Armazena os dados da última sala criada
+let lastRoomData = {};
 
-// ===============================
-// 1️⃣ Criar Sala via /create-room (POST)
-// ===============================
 criarBtn.onclick = async () => {
   const name = document.getElementById('nomeSala').value || 'aula-' + Date.now();
 
@@ -65,42 +60,25 @@ criarBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         name: name,
-        professor: "{{ email }}"  // ✅ Envia o e-mail do professor
+        professor: "{{ email }}"
       })
     });
 
     const json = await resp.json();
     if (!resp.ok) throw new Error(json.detail || 'Erro desconhecido.');
+    lastRoomData = json;
 
-    lastRoomData = json; // Guarda os dados da sala criada
-
-    // ✅ Atualizado: mostra links para host e guest com o mesmo Room ID
     result.innerHTML = `
-      <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Entrar como Professor (HOST):</strong>
-        <a href="https://sabe-videoconf-1518.app.100ms.live/meeting/${json.room_id}?role=host" target="_blank">
-          Abrir Sala (Professor)
-        </a>
-      </p>
-      <p><strong>Entrar como Aluno (GUEST):</strong>
-        <a href="https://sabe-videoconf-1518.app.100ms.live/meeting/${json.room_id}?role=guest" target="_blank">
-          Abrir Sala (Aluno)
-        </a>
-      </p>
-      <p><small>Ambos os links acima apontam para a mesma sala. A diferença é apenas o papel (host/guest).</small></p>
+      <p><strong>Room ID:</strong> ${json.room_id}</p>
+      <p><strong>Sala criada!</strong> Agora podes enviar o link ao aluno.</p>
     `;
 
     enviarLinkBtn.disabled = false;
-
   } catch (err) {
-    console.error(err);
     alert('Erro ao criar sala: ' + err.message);
   }
 };
 
-// ==============================================
-// 2️⃣ Enviar link do aluno via /enviar-id-aula
-// ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
   if (!aluno || !lastRoomData.room_id)
@@ -112,20 +90,23 @@ enviarLinkBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         aluno: aluno,
-        professor: "{{ email }}", // ✅ mantém consistência com o backend
-        room_link: `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomData.room_id}?role=guest`
+        professor: "{{ email }}",
+        room_id: lastRoomData.room_id
       })
     });
 
-    if (resp.ok) {
-      alert('✅ Link de acesso (GUEST) enviado ao aluno com sucesso!');
-    } else {
-      const errText = await resp.text();
-      alert('❌ Falha ao registrar o link no backend: ' + errText);
-    }
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(json.detail || 'Erro desconhecido.');
+
+    result.innerHTML += `
+      <p><strong>✅ Links válidos com token gerado:</strong></p>
+      <p><a href="${json.links.professor}" target="_blank">Abrir Sala (Professor)</a></p>
+      <p><a href="${json.links.aluno}" target="_blank">Abrir Sala (Aluno)</a></p>
+    `;
+
+    alert('✅ Links enviados com sucesso (com token válido)!');
   } catch (err) {
-    console.error(err);
-    alert('Erro ao enviar link ao aluno: ' + err.message);
+    alert('Erro ao enviar link: ' + err.message);
   }
 };
 </script>
