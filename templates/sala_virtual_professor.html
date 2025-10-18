@@ -51,7 +51,7 @@ const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
-let lastRoomData = {}; // Armazena os dados da última sala criada (host e guest)
+let lastRoomData = {}; // Armazena os dados da última sala criada
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
@@ -74,14 +74,20 @@ criarBtn.onclick = async () => {
 
     lastRoomData = json; // Guarda os dados da sala criada
 
+    // ✅ Atualizado: mostra links para host e guest com o mesmo Room ID
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Room Code (HOST):</strong> ${json.room_code_host || 'N/D'}</p>
-      <p><strong>Room Code (GUEST):</strong> ${json.room_code_guest || 'N/D'}</p>
-      <p><strong>Entrar na sala:</strong> 
-        <a href="${json.prebuilt_links?.host || '#'}" target="_blank">${json.prebuilt_links?.host || 'Link indisponível'}</a>
+      <p><strong>Entrar como Professor (HOST):</strong>
+        <a href="https://sabe-videoconf-1518.app.100ms.live/meeting/${json.room_id}?role=host" target="_blank">
+          Abrir Sala (Professor)
+        </a>
       </p>
-      <p>Abra este link para entrar como <strong>Professor (HOST)</strong>.</p>
+      <p><strong>Entrar como Aluno (GUEST):</strong>
+        <a href="https://sabe-videoconf-1518.app.100ms.live/meeting/${json.room_id}?role=guest" target="_blank">
+          Abrir Sala (Aluno)
+        </a>
+      </p>
+      <p><small>Ambos os links acima apontam para a mesma sala. A diferença é apenas o papel (host/guest).</small></p>
     `;
 
     enviarLinkBtn.disabled = false;
@@ -93,11 +99,11 @@ criarBtn.onclick = async () => {
 };
 
 // ==============================================
-// 2️⃣ Enviar Room Code do Aluno via /enviar-id-aula
+// 2️⃣ Enviar link do aluno via /enviar-id-aula
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomData.room_code_guest)
+  if (!aluno || !lastRoomData.room_id)
     return alert('Informe o nome do aluno e crie a sala primeiro.');
 
   try {
@@ -107,19 +113,19 @@ enviarLinkBtn.onclick = async () => {
       body: JSON.stringify({
         aluno: aluno,
         professor: "{{ email }}", // ✅ mantém consistência com o backend
-        room_code: lastRoomData.room_code_guest
+        room_link: `https://sabe-videoconf-1518.app.100ms.live/meeting/${lastRoomData.room_id}?role=guest`
       })
     });
 
     if (resp.ok) {
-      alert('✅ Código (GUEST) enviado ao aluno com sucesso!');
+      alert('✅ Link de acesso (GUEST) enviado ao aluno com sucesso!');
     } else {
       const errText = await resp.text();
-      alert('❌ Falha ao registrar o código no backend: ' + errText);
+      alert('❌ Falha ao registrar o link no backend: ' + errText);
     }
   } catch (err) {
     console.error(err);
-    alert('Erro ao enviar ID ao aluno: ' + err.message);
+    alert('Erro ao enviar link ao aluno: ' + err.message);
   }
 };
 </script>
