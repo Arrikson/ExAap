@@ -4398,17 +4398,37 @@ SUBDOMAIN = "sabe-videoconf-1518"  # substitui pelo teu subdomínio real
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_id: str   # ✅ agora usamos o room_id real
+    room_id: str
 
+
+# ===========================
+# 🔹 Enviar ID e link da aula
+# ===========================
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
+    professor_norm = payload.professor.strip().lower().replace(" ", "")
+
+    # ✅ Cria o link completo baseado no room_id
+    guest_link = f"https://{SUBDOMAIN}.app.100ms.live/meeting/{payload.room_id}?role=guest"
+
+    # Guarda no dicionário temporário
     ALUNO_ROOM[aluno_norm] = {
         "room_id": payload.room_id,
-        "professor": payload.professor.strip().lower(),
+        "professor": professor_norm,
+        "prebuilt_link": guest_link
     }
-    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
 
+    return {
+        "status": "ok",
+        "message": "Link da aula enviado ao aluno com sucesso!",
+        "prebuilt_link": guest_link
+    }
+
+
+# ===========================
+# 🔹 Buscar link do professor
+# ===========================
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
@@ -4417,11 +4437,9 @@ async def buscar_id_professor(aluno: str):
     if not data:
         return {"room_id": None, "prebuilt_link": None}
 
-    room_id = data["room_id"]
-
     return {
-        "room_id": room_id,
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_id}?role=guest"
+        "room_id": data["room_id"],
+        "prebuilt_link": data["prebuilt_link"]
     }
 
 @app.get("/paginavendas", response_class=HTMLResponse)
