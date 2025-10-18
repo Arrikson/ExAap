@@ -51,7 +51,7 @@ const result = document.getElementById('result');
 const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 
-let lastRoomData = {}; // Armazena os dados da última sala criada (host e guest)
+let lastRoomData = {}; // Armazena os dados da última sala criada
 
 // ===============================
 // 1️⃣ Criar Sala via /create-room (POST)
@@ -65,7 +65,7 @@ criarBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         name: name,
-        professor: "{{ email }}"  // ✅ Envia o e-mail do professor
+        professor: "{{ email }}" // ✅ Envia o e-mail do professor
       })
     });
 
@@ -76,12 +76,17 @@ criarBtn.onclick = async () => {
 
     result.innerHTML = `
       <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Room Code (HOST):</strong> ${json.room_code_host || 'N/D'}</p>
-      <p><strong>Room Code (GUEST):</strong> ${json.room_code_guest || 'N/D'}</p>
-      <p><strong>Entrar na sala:</strong> 
-        <a href="${json.prebuilt_links?.host || '#'}" target="_blank">${json.prebuilt_links?.host || 'Link indisponível'}</a>
+      <p><strong>Entrar como Professor (HOST):</strong>
+        <a href="${json.prebuilt_links?.host || '#'}" target="_blank">
+          Abrir Sala (Professor)
+        </a>
       </p>
-      <p>Abra este link para entrar como <strong>Professor (HOST)</strong>.</p>
+      <p><strong>Entrar como Aluno (GUEST):</strong>
+        <a href="${json.prebuilt_links?.guest || '#'}" target="_blank">
+          Abrir Sala (Aluno)
+        </a>
+      </p>
+      <p><small>Ambos os links apontam para a mesma sala; o papel muda apenas (host/guest).</small></p>
     `;
 
     enviarLinkBtn.disabled = false;
@@ -93,11 +98,11 @@ criarBtn.onclick = async () => {
 };
 
 // ==============================================
-// 2️⃣ Enviar Room Code do Aluno via /enviar-id-aula
+// 2️⃣ Enviar Room ID do Aluno via /enviar-id-aula
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !room_id: lastRoomData.room_id)
+  if (!aluno || !lastRoomData.room_id)
     return alert('Informe o nome do aluno e crie a sala primeiro.');
 
   try {
@@ -106,20 +111,20 @@ enviarLinkBtn.onclick = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         aluno: aluno,
-        professor: "{{ email }}", // ✅ mantém consistência com o backend
-        room_code: lastRoomData.room_code_guest
+        professor: "{{ email }}",
+        room_id: lastRoomData.room_id // ✅ Agora envia o room_id correto
       })
     });
 
     if (resp.ok) {
-      alert('✅ Código (GUEST) enviado ao aluno com sucesso!');
+      alert('✅ Link (GUEST) enviado ao aluno com sucesso!');
     } else {
       const errText = await resp.text();
-      alert('❌ Falha ao registrar o código no backend: ' + errText);
+      alert('❌ Falha ao registrar o link no backend: ' + errText);
     }
   } catch (err) {
     console.error(err);
-    alert('Erro ao enviar ID ao aluno: ' + err.message);
+    alert('Erro ao enviar link ao aluno: ' + err.message);
   }
 };
 </script>
