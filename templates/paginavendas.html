@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SabApp - Curso de Inglês Online</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Nunito', sans-serif; background: #f4f4f8; margin: 0; padding: 0; }
+    header { background: linear-gradient(135deg, #00c9ff, #92fe9d); padding: 20px; text-align: center; }
+    header h1 { font-weight: 800; color: #000; }
+    .hero { background: url('/static/Professora-online.jpg') center/cover no-repeat; height: 70vh; display: flex; align-items: center; justify-content: center; color: #fff; text-shadow: 2px 2px 4px #000; flex-direction: column; }
+    .hero h2 { font-size: 3rem; font-weight: 800; }
+    .cta-btn { background: linear-gradient(135deg, #00c9ff, #92fe9d); border: none; padding: 15px 30px; font-weight: bold; border-radius: 8px; }
+    .cta-btn:hover { background: linear-gradient(135deg, #00a0c9, #7cd77b); }
+    section { padding: 60px 20px; }
+    .calc-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+    .calc-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+    .calc-controls button { font-size: 1.5rem; border: none; background: #00c9ff; color: #fff; width: 40px; height: 40px; border-radius: 8px; }
+    .calc-result { font-size: 1.25rem; font-weight: bold; margin-top: 15px; text-align: center; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>SabApp - Curso de Inglês Online</h1>
+  <p>NIF Nº 5002232529 - SABI LÍDER - COMÉRCIO E PRESTAÇÃO DE SERVIÇOS (SU), LDA</p>
+</header>
+<div class="hero">
+  <h2>Aprenda Inglês e Transforme o Seu Futuro</h2>
+  <p>Do zero à conversação em até 96 dias</p>
+  <a href="https://sabapp.onrender.com/professores_online" class="btn cta-btn mt-3">Inscreva-se Agora</a>
+</div>
+<section>
+  <h2 class="text-center fw-bold">Por que aprender Inglês?</h2>
+  <p class="text-center">Você já perdeu uma vaga de emprego por não falar inglês? O mundo fala inglês... e quem não fala, perde oportunidades!</p>
+</section>
+<section>
+  <h2 class="fw-bold">Estrutura do Curso</h2>
+  <ul>
+    <li>4 Níveis: Iniciante, Elementar, Pré-Intermédio e Intermédio</li>
+    <li>12 Unidades com testes escritos e de Listening</li>
+    <li>1 hora por dia, mínimo 3 aulas por semana (12 por mês)</li>
+  </ul>
+</section>
+<section>
+  <h2 class="fw-bold">Investimento</h2>
+  <p><strong>1.250 Kz por aula</strong> - Total mensal: <strong>15.000 Kz</strong></p>
+
+  <div class="calc-container">
+    <h4 class="text-center">Calcule seu Plano</h4>
+    <div class="calc-controls">
+      <button onclick="alterarMes(-1)">-</button>
+      <span id="mesesDisplay">1 Mês</span>
+      <button onclick="alterarMes(1)">+</button>
+    </div>
+    <div class="calc-result">
+      Total: <span id="totalDisplay">15.000 Kz</span>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="text-center">
+    <a href="https://sabapp.onrender.com/professores_online" class="btn cta-btn">Quero Começar Agora</a>
+  </div>
+</section>
+<footer>
+  <p>SabApp © 2025 - Todos os direitos reservados</p>
+</footer>
+
+<script>
+  let meses = 1;
+  const mensalidade = 15000;
+
+  function alterarMes(valor) {
+    meses += valor;
+    if (meses < 1) meses = 1;
+    atualizarTotal();
+  }
+
+  function atualizarTotal() {
+    const desconto = (meses - 1) * 100;
+    const total = (mensalidade * meses) - desconto;
+    document.getElementById('mesesDisplay').innerText = meses + (meses > 1 ? ' Meses' : ' Mês');
+    document.getElementById('totalDisplay').innerText = total.toLocaleString('pt-PT') + ' Kz';
+  }
+</script>
+</body>
+</html>
