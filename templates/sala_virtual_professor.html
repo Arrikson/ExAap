@@ -4,57 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sala Virtual 100ms - Professor</title>
+  <!-- Ícones profissionais (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
     body {
       margin: 0;
       background: #000;
       font-family: "Roboto", sans-serif;
       color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     #container {
-      padding: 20px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
+    input, label {
+      display: none; /* 🔒 Ocultamos campos e labels */
     }
     button {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background-color: #28a745;
+      color: white;
       cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
-    #result a {
-      color: #0af;
-      text-decoration: underline;
+    button:hover {
+      background-color: #22c55e;
+      transform: scale(1.05);
+    }
+    #result {
+      display: none; /* 🔒 Ocultamos as informações da sala */
+    }
+
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 20px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px;
+      }
     }
   </style>
 </head>
 <body>
   <div id="container">
-    <h2>Professor - Criar sala 100ms</h2>
-
-    <!-- Nome de sala -->
-    <input id="nomeSala" placeholder="Nome da sala (ex: Ingles-Alfredo)" />
-    <button id="criarBtn">Criar Sala</button>
+    <h2>Sala Virtual 100ms</h2>
+    <input id="nomeSala" placeholder="Nome da sala" />
+    <input id="alunoNome" placeholder="Nome do aluno" />
     <div id="result"></div>
 
-    <!-- Enviar ao aluno -->
-    <label>Nome do aluno:</label>
-    <input id="alunoNome" placeholder="Nome do aluno" />
-    <button id="enviarLinkBtn" disabled>Enviar link ao aluno</button>
+    <!-- ✅ Botão principal -->
+    <button id="chamarAlunoBtn">
+      <i class="fa-solid fa-video"></i> Chamar aluno
+    </button>
   </div>
 
 <script>
-const criarBtn = document.getElementById('criarBtn');
+const chamarAlunoBtn = document.getElementById('chamarAlunoBtn');
 const result = document.getElementById('result');
-const enviarLinkBtn = document.getElementById('enviarLinkBtn');
 const alunoNome = document.getElementById('alunoNome');
 const nomeSalaInput = document.getElementById('nomeSala');
 
 let lastRoomData = {}; // Armazena os dados da última sala criada
 
-// ✅ Preenche automaticamente o nome do aluno vindo da URL
+// ✅ Captura o nome do aluno automaticamente da URL
 const params = new URLSearchParams(window.location.search);
 const alunoParam = params.get('aluno');
 if (alunoParam) {
@@ -63,57 +91,36 @@ if (alunoParam) {
   nomeSalaInput.value = `Inglês - ${alunoFormatado}`;
 }
 
-// ===============================
-// 1️⃣ Criar Sala via /create-room (POST)
-// ===============================
-criarBtn.onclick = async () => {
-  const name = nomeSalaInput.value || 'aula-' + Date.now();
-
+// ✅ Cria automaticamente a sala assim que a página carrega
+window.addEventListener('load', async () => {
   try {
+    const name = nomeSalaInput.value || 'aula-' + Date.now();
     const resp = await fetch('/create-room', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         name: name,
-        professor: "{{ email }}" // ✅ Envia o e-mail do professor
+        professor: "{{ email }}"
       })
     });
 
     const json = await resp.json();
     if (!resp.ok) throw new Error(json.detail || 'Erro desconhecido.');
 
-    lastRoomData = json; // Guarda os dados da sala criada
-
-    result.innerHTML = `
-      <p><strong>Room ID:</strong> ${json.room_id || 'N/D'}</p>
-      <p><strong>Entrar como Professor (HOST):</strong>
-        <a href="${json.prebuilt_links?.host || '#'}" target="_blank">
-          Abrir Sala (Professor)
-        </a>
-      </p>
-      <p><strong>Entrar como Aluno (GUEST):</strong>
-        <a href="${json.prebuilt_links?.guest || '#'}" target="_blank">
-          Abrir Sala (Aluno)
-        </a>
-      </p>
-      <p><small>Ambos os links apontam para a mesma sala; o papel muda apenas (host/guest).</small></p>
-    `;
-
-    enviarLinkBtn.disabled = false;
+    lastRoomData = json;
+    console.log("✅ Sala criada automaticamente:", json);
 
   } catch (err) {
-    console.error(err);
-    alert('Erro ao criar sala: ' + err.message);
+    console.error("❌ Erro ao criar sala:", err);
+    alert("Erro ao criar sala automaticamente.");
   }
-};
+});
 
-// ==============================================
-// 2️⃣ Enviar Link real do Aluno via /enviar-id-aula
-// ==============================================
-enviarLinkBtn.onclick = async () => {
+// ✅ Quando o professor clica em “Chamar aluno”
+chamarAlunoBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomData.prebuilt_links?.guest)
-    return alert('Informe o nome do aluno e crie a sala primeiro.');
+  if (!aluno || !lastRoomData.prebuilt_links?.guest || !lastRoomData.prebuilt_links?.host)
+    return alert('A sala ainda não foi criada corretamente.');
 
   try {
     const resp = await fetch('/enviar-id-aula', {
@@ -122,20 +129,22 @@ enviarLinkBtn.onclick = async () => {
       body: JSON.stringify({
         aluno: aluno,
         professor: "{{ email }}",
-        room_id: lastRoomData.room_id,                  
-        prebuilt_link: lastRoomData.prebuilt_links.guest 
+        room_id: lastRoomData.room_id,
+        prebuilt_link: lastRoomData.prebuilt_links.guest
       })
     });
 
     if (resp.ok) {
-      alert('✅ Link (GUEST) enviado ao aluno com sucesso!');
+      console.log("✅ Link enviado ao aluno com sucesso!");
+      // 🔁 Redireciona o professor automaticamente para sua sala (HOST)
+      window.location.href = lastRoomData.prebuilt_links.host;
     } else {
       const errText = await resp.text();
-      alert('❌ Falha ao registrar o link no backend: ' + errText);
+      alert('❌ Falha ao enviar o link ao aluno: ' + errText);
     }
   } catch (err) {
     console.error(err);
-    alert('Erro ao enviar link ao aluno: ' + err.message);
+    alert('Erro ao chamar aluno: ' + err.message);
   }
 };
 </script>
