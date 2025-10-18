@@ -98,11 +98,11 @@ criarBtn.onclick = async () => {
 };
 
 // ==============================================
-// 2️⃣ Enviar Room ID do Aluno via /enviar-id-aula
+// 2️⃣ Enviar Link real do Aluno via /enviar-id-aula
 // ==============================================
 enviarLinkBtn.onclick = async () => {
   const aluno = alunoNome.value.trim();
-  if (!aluno || !lastRoomData.room_id)
+  if (!aluno || !lastRoomData.prebuilt_links?.guest)
     return alert('Informe o nome do aluno e crie a sala primeiro.');
 
   try {
@@ -112,7 +112,8 @@ enviarLinkBtn.onclick = async () => {
       body: JSON.stringify({
         aluno: aluno,
         professor: "{{ email }}",
-        room_id: lastRoomData.room_id // ✅ Agora envia o room_id correto
+        room_id: lastRoomData.room_id,                 // ✅ ainda envia o ID
+        prebuilt_link: lastRoomData.prebuilt_links.guest // ✅ envia o link real do aluno
       })
     });
 
