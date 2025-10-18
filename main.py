@@ -4390,39 +4390,38 @@ async def gerar_token(role: str, user_id: str, room_id: str):
 # ==============================
 # Enviar ID 
 # ==============================
+from pydantic import BaseModel
+
+ALUNO_ROOM = {}
+SUBDOMAIN = "sabe-videoconf-1518"  # substitui pelo teu subdomínio real
+
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_code: str   # Vem do create-room (host code)
+    room_id: str   # ✅ agora usamos o room_id real
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
     ALUNO_ROOM[aluno_norm] = {
-        "room_code": payload.room_code,
+        "room_id": payload.room_id,
         "professor": payload.professor.strip().lower(),
     }
     return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
-    
-# -------------------------
-# 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
-# -------------------------
+
 @app.get("/buscar-id-professor")
 async def buscar_id_professor(aluno: str):
     aluno_norm = aluno.strip().lower().replace(" ", "")
     data = ALUNO_ROOM.get(aluno_norm)
 
     if not data:
-        return {
-            "room_code": None,
-            "prebuilt_link": None
-        }
+        return {"room_id": None, "prebuilt_link": None}
 
-    room_code = data.get("room_code")
+    room_id = data["room_id"]
 
     return {
-        "room_code": room_code,
-        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
+        "room_id": room_id,
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_id}?role=guest"
     }
 
 @app.get("/paginavendas", response_class=HTMLResponse)
