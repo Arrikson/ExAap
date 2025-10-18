@@ -4391,3 +4391,7 @@ async def buscar_id_professor(aluno: str):
         "room_code": room_code,
         "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
     }
+
+@app.get("/paginavendas", response_class=HTMLResponse)
+async def paginavendas(request: Request):
+    return templates.TemplateResponse("paginavendas.html", {"request": request})
