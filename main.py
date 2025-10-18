@@ -4356,20 +4356,30 @@ async def create_room(req: CreateRoomRequest):
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
 # -------------------------
+# ✅ Modelo atualizado
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
-    room_code: str   # Vem do create-room (host code)
+    room_link: str  
+
+ALUNO_ROOM = {}  
 
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    ALUNO_ROOM[aluno_norm] = {
-        "room_code": payload.room_code,
-        "professor": payload.professor.strip().lower(),
-    }
-    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
+    professor_norm = payload.professor.strip().lower()
 
+    # ✅ Guarda o link completo e o professor
+    ALUNO_ROOM[aluno_norm] = {
+        "room_link": payload.room_link,
+        "professor": professor_norm,
+    }
+
+    return {
+        "status": "ok",
+        "message": "Link da aula enviado ao aluno com sucesso!",
+        "dados": ALUNO_ROOM[aluno_norm]
+    }
 
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
