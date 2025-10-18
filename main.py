@@ -4388,35 +4388,21 @@ async def gerar_token(role: str, user_id: str, room_id: str):
 
 
 # ==============================
-# Enviar ID + token ao aluno
+# Enviar ID 
 # ==============================
+class EnviarIdPayload(BaseModel):
+    aluno: str
+    professor: str
+    room_code: str   # Vem do create-room (host code)
+
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
-    professor_norm = payload.professor.strip().lower()
-
-    # ✅ Gera tokens individuais para professor e aluno
-    token_professor = await gerar_token("host", professor_norm, payload.room_id)
-    token_aluno = await gerar_token("guest", aluno_norm, payload.room_id)
-
-    # ✅ Monta links válidos com token incluído
-    link_professor = f"https://sabe-videoconf-1518.app.100ms.live/meeting/{payload.room_id}?token={token_professor}"
-    link_aluno = f"https://sabe-videoconf-1518.app.100ms.live/meeting/{payload.room_id}?token={token_aluno}"
-
-    # ✅ Guarda o link completo e o professor
     ALUNO_ROOM[aluno_norm] = {
-        "room_link": link_aluno,
-        "professor": professor_norm,
+        "room_code": payload.room_code,
+        "professor": payload.professor.strip().lower(),
     }
-
-    return {
-        "status": "ok",
-        "message": "Link da aula enviado ao aluno com sucesso!",
-        "links": {
-            "professor": link_professor,
-            "aluno": link_aluno
-        }
-    }
+    return {"status": "ok", "message": "ID da aula enviado ao aluno com sucesso!"}
     
 # -------------------------
 # 4️⃣ ALUNO PROCURA SALA PARA ENTRAR
@@ -4428,17 +4414,15 @@ async def buscar_id_professor(aluno: str):
 
     if not data:
         return {
-            "room_id": None,
-            "room_link": None,
-            "professor": None,
-            "mensagem": "Nenhum link de aula encontrado para este aluno."
+            "room_code": None,
+            "prebuilt_link": None
         }
 
+    room_code = data.get("room_code")
+
     return {
-        "room_id": data.get("room_link").split("/meeting/")[1].split("?")[0],
-        "room_link": data.get("room_link"),
-        "professor": data.get("professor"),
-        "mensagem": "Link de aula encontrado com sucesso!"
+        "room_code": room_code,
+        "prebuilt_link": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code}?role=guest"
     }
 
 @app.get("/paginavendas", response_class=HTMLResponse)
