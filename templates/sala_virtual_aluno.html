@@ -20,8 +20,28 @@
       padding: 20px;
     }
 
+    input, button {
+      padding: 10px 18px;
+      margin: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+
     input {
-      display: none; /* Esconde campo */
+      width: 220px;
+    }
+
+    #buscarBtn {
+      cursor: pointer;
+      background: #00c9ff;
+      color: #000;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    #buscarBtn:hover {
+      background: #92fe9d;
     }
 
     #entrarBtn {
@@ -63,70 +83,61 @@
 </head>
 <body>
   <h2>Aluno - Entrar na Aula</h2>
+
   <input id="nomeAluno" placeholder="Digite seu nome" />
-  <div id="status">⏳ Aguardando chamada do professor...</div>
+  <button id="buscarBtn">Buscar Chamada</button>
+  <div id="status"></div>
+
   <button id="entrarBtn"><i class="fa-solid fa-video"></i> Entrar na Aula</button>
 
-<script>
-let intervaloBusca;
-let linkSala = "";
+  <script>
+    const buscarBtn = document.getElementById('buscarBtn');
+    const statusEl = document.getElementById('status');
+    const nomeInput = document.getElementById('nomeAluno');
+    const entrarBtn = document.getElementById('entrarBtn');
 
-async function buscarChamadaAutomatica() {
-  const statusEl = document.getElementById('status');
-  const inputNome = document.getElementById('nomeAluno');
-  const entrarBtn = document.getElementById('entrarBtn');
+    let linkSala = "";
 
-  try {
-    // ✅ Extrai o nome do aluno da URL (/sala_virtual_aluno/{professor-aluno})
-    const pathParts = window.location.pathname.split("/");
-    const sala = decodeURIComponent(pathParts[pathParts.length - 1] || "");
-    const aluno = sala.split("-").slice(1).join("-").trim();
+    buscarBtn.onclick = async () => {
+      const aluno = nomeInput.value.trim();
+      if (!aluno) return alert('Digite o nome do aluno');
 
-    if (!aluno) {
-      statusEl.textContent = "❌ Não foi possível identificar o aluno.";
-      clearInterval(intervaloBusca);
-      return;
-    }
+      statusEl.textContent = '🔎 Buscando chamada do professor...';
 
-    inputNome.value = aluno;
+      try {
+        const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
+        const data = await res.json();
 
-    const res = await fetch(`/buscar-id-professor?aluno=${encodeURIComponent(aluno)}`);
-    const data = await res.json();
+        // ❗ Verifica se o professor já criou e enviou a sala
+        if (!data.room_id || !data.prebuilt_link) {
+          statusEl.textContent = '❌ O professor ainda não enviou a chamada.';
+          return;
+        }
 
-    // ❗ Verifica se o professor já criou e enviou a sala
-    if (!data.room_id || !data.prebuilt_link) {
-      statusEl.textContent = "🔄 Aguardando o professor enviar a chamada...";
-      return;
-    }
+        // ✅ Sala encontrada
+        linkSala = data.prebuilt_link;
+        statusEl.textContent = "✅ Aula encontrada!";
 
-    // ✅ Sala encontrada
-    clearInterval(intervaloBusca);
-    linkSala = data.prebuilt_link;
+        // Oculta entrada e botão de busca
+        nomeInput.style.display = "none";
+        buscarBtn.style.display = "none";
 
-    statusEl.innerHTML = `
-      ✅ Aula encontrada!<br>
-      <strong>ID da Sala:</strong> ${data.room_id}
-    `;
-    entrarBtn.style.display = "inline-block";
+        // Mostra o botão para entrar na aula
+        entrarBtn.style.display = "inline-block";
 
-  } catch (err) {
-    console.error(err);
-    statusEl.textContent = "⚠️ Erro ao buscar a chamada.";
-  }
-}
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = '⚠️ Erro ao buscar a chamada.';
+      }
+    };
 
-// 🔹 Ao clicar no botão, entra na aula
-document.getElementById("entrarBtn").onclick = () => {
-  if (linkSala) {
-    window.open(linkSala, "_blank");
-  }
-};
-
-
-window.addEventListener("DOMContentLoaded", () => {
-  buscarChamadaAutomatica();
-  intervaloBusca = setInterval(buscarChamadaAutomatica, 10000);
-});
-</script>
+    // Ao clicar no botão verde, entra na sala
+    entrarBtn.onclick = () => {
+      if (linkSala) {
+        window.open(linkSala, "_blank");
+      }
+    };
+  </script>
 </body>
 </html>
+
