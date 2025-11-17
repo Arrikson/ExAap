@@ -37,20 +37,19 @@ from pydantic import BaseModel
 # --- Load environment ---
 load_dotenv()
 
-# ============================================
-#   CONFIGURAÇÕES 100ms - SabiLíder Videoconf
+#   CONFIGURAÇÕES 100ms - SabiLíder Videoconf 
 # ============================================
 
 # 🔑 Chaves de autenticação (App Access Token)
-HMS_APP_ACCESS_KEY = "68e12ac3bd0dab5f9a013f93"
-HMS_APP_SECRET     = "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFIcgcDCoBCgDBLofpmog6VUlwNmzkxi3PWQ9N3KZYYHNRZYItsxETK0qU_mfeA4ita1-OVzrq9m37nf6Ns-C-KBGWaLV3S45ZvhsxOHTzK-5A4g="
+HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
+HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
 
 # 🏫 Template e Subdomínio da sala SabiLíder
-TEMPLATE_ID        = "68e132db74147bd574bb494a"  
-SUBDOMAIN          = "sabe-videoconf-1518"        
+TEMPLATE_ID        = "691af3a4033903926e62a61a"
+SUBDOMAIN          = "arrikson-videoconf-1105"
 
 # 🛠️ Management Token (Permite criar salas, etc)
-MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjAyMTEwMDYsImV4cCI6MTc2MDgxNTgwNiwianRpIjoiMWIwYmU2NDMtNjRjMi00ZjNiLThiZTItZWYwMmFhZmZiOWZkIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjAyMTEwMDYsImFjY2Vzc19rZXkiOiI2OGUxMmFjM2JkMGRhYjVmOWEwMTNmOTMifQ.DlGxEkQfWOJwWSEbW_oQSxTa60EIKI3q0QzR4bi09iU"
+MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjMzNzM5MTQsImV4cCI6MTc2Mzk3ODcxNCwianRpIjoiM2IyYTJhNDYtZmI0NC00MmM1LWIyM2YtMGFkNjA3OWRiYmViIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjMzNzM5MTQsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.LF87JawVv6aJzcP5PMS7VQT4eCpFbc9t8qP4sHZMPeE"
 
 # 🌍 Endpoints oficiais da API 100ms
 HMS_API_BASE   = "https://api.100ms.live/v2"
@@ -4132,11 +4131,11 @@ async def desvincular_aluno(data: dict):
 # ============================
 # CONFIG 100ms
 # ============================
-SUBDOMAIN = "sabe-videoconf-1518"
-TEMPLATE_ID = "68e132db74147bd574bb494a"
+SUBDOMAIN = "arrikson-videoconf-1105"
+TEMPLATE_ID = "691af3a4033903926e62a61a"
 HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_APP_ACCESS_KEY = "68e12ac3bd0dab5f9a013f93"
-HMS_APP_SECRET = "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFIcgcDCoBCgDBLofpmog6VUlwNmzkxi3PWQ9N3KZYYHNRZYItsxETK0qU_mfeA4ita1-OVzrq9m37nf6Ns-C-KBGWaLV3S45ZvhsxOHTzK-5A4g="
+HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
+HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
 
 # ============================
 # SCHEMA DA REQUISIÇÃO
@@ -4287,7 +4286,7 @@ async def gerar_token(role: str, user_id: str, room_id: str):
 from pydantic import BaseModel
 
 ALUNO_ROOM = {}
-SUBDOMAIN = "sabe-videoconf-1518"  # substitui pelo teu subdomínio real
+SUBDOMAIN = "arrikson-videoconf-1105"  
 
 class EnviarIdPayload(BaseModel):
     aluno: str
