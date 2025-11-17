@@ -41,15 +41,15 @@ load_dotenv()
 # ============================================
 
 # 🔑 Chaves de autenticação (App Access Token)
-HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
-HMS_APP_SECRET     = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
+HMS_APP_ACCESS_KEY = "691b1920145cb4e8449b1ad5"
+HMS_APP_SECRET     = "y3Uk__pTuLXY2xYP_7QMw_rL7021SA3v7nAqLujr-pQ2Ree9fnYbLizd46OZ2K__53YEzH1hit8dw9ctDP0hEAP_q5Ca_kAp-bLa8gUSWgb1jeUpgETWFiUU4DzOnctm8iFueoZk8v_sb3HaN2vTSxUuj1-eI60W7RzAMObAxw0="
 
 # 🏫 Template e Subdomínio da sala SabiLíder
-TEMPLATE_ID        = "691af3a4033903926e62a61a"
-SUBDOMAIN          = "arrikson-videoconf-1105"
+TEMPLATE_ID        = "691b1965033903926e62a68e"
+SUBDOMAIN          = "mb-videoconf-1347"
 
 # 🛠️ Management Token (Permite criar salas, etc)
-MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjMzNzM5MTQsImV4cCI6MTc2Mzk3ODcxNCwianRpIjoiM2IyYTJhNDYtZmI0NC00MmM1LWIyM2YtMGFkNjA3OWRiYmViIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjMzNzM5MTQsImFjY2Vzc19rZXkiOiI2OGU4Yzg4Y2JkMGRhYjVmOWEwMTQwOWQifQ.LF87JawVv6aJzcP5PMS7VQT4eCpFbc9t8qP4sHZMPeE"
+MANAGEMENT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NjMzODM2NTUsImV4cCI6MTc2Mzk4ODQ1NSwianRpIjoiNGZiYWMwMjAtNDUzMi00NTViLThlNjYtNTgwMGZkZDFiN2M3IiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJuYmYiOjE3NjMzODM2NTUsImFjY2Vzc19rZXkiOiI2OTFiMTkyMDE0NWNiNGU4NDQ5YjFhZDUifQ.KtzAgLHe0XoyECp_GtzXV8z4a6bn_KNwx5G_bSU5Kqc"
 
 # 🌍 Endpoints oficiais da API 100ms
 HMS_API_BASE   = "https://api.100ms.live/v2"
@@ -4131,11 +4131,11 @@ async def desvincular_aluno(data: dict):
 # ============================
 # CONFIG 100ms
 # ============================
-SUBDOMAIN = "arrikson-videoconf-1105"
-TEMPLATE_ID = "691af3a4033903926e62a61a"
+SUBDOMAIN = "mb-videoconf-1347"
+TEMPLATE_ID = "691b1965033903926e62a68e"
 HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_APP_ACCESS_KEY = "68e8c88cbd0dab5f9a01409d"
-HMS_APP_SECRET = "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc="
+HMS_APP_ACCESS_KEY = "691b1920145cb4e8449b1ad5"
+HMS_APP_SECRET = "y3Uk__pTuLXY2xYP_7QMw_rL7021SA3v7nAqLujr-pQ2Ree9fnYbLizd46OZ2K__53YEzH1hit8dw9ctDP0hEAP_q5Ca_kAp-bLa8gUSWgb1jeUpgETWFiUU4DzOnctm8iFueoZk8v_sb3HaN2vTSxUuj1-eI60W7RzAMObAxw0="
 
 # ============================
 # SCHEMA DA REQUISIÇÃO
@@ -4286,7 +4286,7 @@ async def gerar_token(role: str, user_id: str, room_id: str):
 from pydantic import BaseModel
 
 ALUNO_ROOM = {}
-SUBDOMAIN = "arrikson-videoconf-1105"  
+SUBDOMAIN = "mb-videoconf-1347"  
 
 class EnviarIdPayload(BaseModel):
     aluno: str
