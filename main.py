@@ -4212,20 +4212,26 @@ def normalize_room_name(name: str):
     return name.strip("_").lower()
 
 # ============================
-# Cria sala 100ms
+# Cria sala 100ms (corrigido)
 # ============================
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
-
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
         print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
 
-        body = {"name": normalized_name, "template_id": TEMPLATE_ID}
+        # 🔹 Busca conta ativa
+        conta_atual, _ = await get_current_account()
+        conta = CONTAS_100MS[conta_atual]
+        template_id = conta["TEMPLATE"]
+        subdomain = conta["SUBDOMAIN"]
+
+        body = {"name": normalized_name, "template_id": template_id}
 
         # ====== Criação da sala ======
-        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=get_headers())
+        headers = await get_headers()
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=headers)
         print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
         if r.status_code >= 400:
@@ -4240,17 +4246,13 @@ async def create_room(req: CreateRoomRequest):
 
         await asyncio.sleep(1)
 
-        # ====== Criação dos códigos (endpoint atualizado) ======
+        # ====== Criação dos códigos (room-codes) ======
         body_codes = {"roles": ["host", "guest"]}
-        try:
-            r2 = await client.post(
-                f"{HMS_API_BASE}/room-codes/room/{room_id}",
-                json=body_codes,
-                headers=get_headers(),
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erro de conexão ao gerar room codes: {str(e)}")
-
+        r2 = await client.post(
+            f"{HMS_API_BASE}/room-codes/room/{room_id}",
+            json=body_codes,
+            headers=headers,
+        )
         print(f"📡 [100ms /room-codes/room/{room_id}] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
 
         if r2.status_code >= 400:
@@ -4259,7 +4261,6 @@ async def create_room(req: CreateRoomRequest):
                 detail=f"Erro ao gerar room codes: {r2.status_code} - {r2.text}"
             )
 
-        # ====== Processa resposta ======
         data_codes = r2.json()
         codes = data_codes.get("data", [])
         if not codes:
@@ -4274,16 +4275,19 @@ async def create_room(req: CreateRoomRequest):
 
         print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
 
+        # ====== Incrementa uso da conta ativa ======
+        await incrementar_uso()
+
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
             "room_code_guest": room_code_guest,
             "prebuilt_links": {
-                "host": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_host}",
-                "guest": f"https://{SUBDOMAIN}.app.100ms.live/meeting/{room_code_guest}",
+                "host": f"https://{subdomain}.app.100ms.live/meeting/{room_code_host}",
+                "guest": f"https://{subdomain}.app.100ms.live/meeting/{room_code_guest}",
             },
+            "conta_usada": conta_atual  # ✅ retorna qual conta foi usada
         }
-
 
 # -------------------------
 # 3️⃣ PROFESSOR ENVIA room_code AO ALUNO
