@@ -86,24 +86,48 @@ CONTAS_100MS = [
 ]
 
 # ============================
-# 🔹 FUNÇÕES DE CONTROLE DE CONTA
+# 🔹 FUNÇÕES DE CONTROLE DE CONTA (com fallback)
 # ============================
 
 async def get_current_account():
-    doc = db.collection("CONTAS_100MS").document("contador").get()
-    data = doc.to_dict()
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
+
+    # Se não existir, inicializa
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {
+            "conta_atual": 0,
+            "usos": usos
+        }
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
     return data["conta_atual"], data["usos"]
+
 
 async def rotate_account():
     ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get().to_dict()
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
 
-    conta = doc["conta_atual"]
-    usos = doc["usos"]
+    # Se documento não existir, inicializa
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {
+            "conta_atual": 0,
+            "usos": usos
+        }
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
+    conta = data["conta_atual"]
+    usos = data["usos"]
 
     if usos[conta] >= 10:  # limite de usos
         conta = (conta + 1) % len(CONTAS_100MS)
-        usos[conta] = 0
+        usos[conta] = 0  # reset da nova conta
 
     ref.update({
         "conta_atual": conta,
@@ -111,18 +135,31 @@ async def rotate_account():
     })
     return conta
 
+
 async def incrementar_uso():
     ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get().to_dict()
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
 
-    conta = doc["conta_atual"]
-    usos = doc["usos"]
+    # Se documento não existir, inicializa
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {
+            "conta_atual": 0,
+            "usos": usos
+        }
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
+    conta = data["conta_atual"]
+    usos = data["usos"]
     usos[conta] += 1
 
     ref.update({"usos": usos})
 
     # Troca de conta se necessário
     await rotate_account()
+
 
 # --- Firebase ---
 firebase_json = os.environ.get("FIREBASE_KEY")
