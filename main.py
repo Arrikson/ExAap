@@ -244,13 +244,11 @@ async def incrementar_uso():
     conta = data["conta_atual"]
     usos = data["usos"]
 
-    # 🔹 Converter conta para string
-    conta_str = str(conta)
-    usos[conta_str] = usos.get(conta_str, 0) + 1
+    conta_str = str(conta)  # 🔹 converter para string
+    usos[conta_str] = usos.get(conta_str, 0) + 1  # usar get para segurança
     ref.update({"usos": usos})
 
     await rotate_account()
-
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
