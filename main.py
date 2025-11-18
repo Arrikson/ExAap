@@ -4130,13 +4130,9 @@ async def desvincular_aluno(data: dict):
         return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
 
 # ============================
-# CONFIG 100ms
+# CONFIG 100ms - DINÂMICA DE TROCA DE CONTA
 # ============================
-SUBDOMAIN = "carlene100ms-videoconf-1148"
-TEMPLATE_ID = "691c4f1b74147bd574bbb7ea"
 HMS_API_BASE = "https://api.100ms.live/v2"
-HMS_APP_ACCESS_KEY = "691c4f0dbd0dab5f9a0147fb"
-HMS_APP_SECRET = "jMOUaFZLjtyNWLlhAUgFosGEfwTm5syNtb7NKnc33yWKipD-tDCQHD7Swjq9gOJlAoSoiU0wS9D2rUi8aQcpQhBkEag2VwbJrpDOMHRDp6m9JsLNk99BN0PvguvMvH4IVkHIkCRwgJ23fv2kksKEtzAXYOEOdcD9aNOh8Tm3usQ="
 
 # ============================
 # SCHEMA DA REQUISIÇÃO
@@ -4145,25 +4141,67 @@ class CreateRoomRequest(BaseModel):
     name: str
 
 # ============================
+# BUSCA CONTA ATIVA
+# ============================
+async def get_current_account():
+    doc = db.collection("CONTAS_100MS").document("contador").get()
+    data = doc.to_dict()
+    return data["conta_atual"], data["usos"]
+
+async def rotate_account():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get().to_dict()
+
+    conta = doc["conta_atual"]
+    usos = doc["usos"]
+
+    if usos[conta] >= 10:  # limite de usos por conta
+        conta = (conta + 1) % len(CONTAS_100MS)
+        usos[conta] = 0  # reset da nova conta
+
+    ref.update({
+        "conta_atual": conta,
+        "usos": usos
+    })
+    return conta
+
+async def incrementar_uso():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get().to_dict()
+
+    conta = doc["conta_atual"]
+    usos = doc["usos"]
+    usos[conta] += 1
+
+    ref.update({"usos": usos})
+    await rotate_account()
+
+
+# ============================
 # GERA TOKEN 100ms (com permissão de management)
 # ============================
-def generate_100ms_token():
+async def generate_100ms_token():
+    conta_atual, _ = await get_current_account()
+    conta = CONTAS_100MS[conta_atual]
+
     payload = {
         "iat": int(time.time()),
         "exp": int(time.time()) + 3600,  # válido por 1 hora
-        "access_key": HMS_APP_ACCESS_KEY,
+        "access_key": conta["ACCESS_KEY"],
         "type": "management",  # 🔥 ESSENCIAL para criar salas e room codes
         "jti": str(uuid.uuid4()),
     }
-    return jwt.encode(payload, HMS_APP_SECRET, algorithm="HS256")
+    return jwt.encode(payload, conta["SECRET"], algorithm="HS256")
 
-
-def get_headers():
+# ============================
+# RETORNA HEADERS COM CONTA ATIVA
+# ============================
+async def get_headers():
+    token = await generate_100ms_token()
     return {
-        "Authorization": f"Bearer {generate_100ms_token()}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
-
 
 # ============================
 # Normaliza nome da sala
@@ -4282,22 +4320,12 @@ async def gerar_token(role: str, user_id: str, room_id: str):
 
 
 # ==============================
-# Enviar ID 
+# Enviar ID (com conta ativa)
 # ==============================
 from pydantic import BaseModel
 
 ALUNO_ROOM = {}
-SUBDOMAIN = "carlene100ms-videoconf-1148"  
 
-class EnviarIdPayload(BaseModel):
-    aluno: str
-    professor: str
-    room_id: str
-
-
-# ===========================
-# 🔹 Enviar ID e link da aula
-# ===========================
 class EnviarIdPayload(BaseModel):
     aluno: str
     professor: str
@@ -4305,18 +4333,31 @@ class EnviarIdPayload(BaseModel):
     prebuilt_link: str   
 
 
+# ===========================
+# 🔹 Enviar ID e link da aula
+# ===========================
 @app.post("/enviar-id-aula")
 async def enviar_id_aula(payload: EnviarIdPayload):
     aluno_norm = payload.aluno.strip().lower().replace(" ", "")
     professor_norm = payload.professor.strip().lower().replace(" ", "")
 
+    # Buscar conta ativa para este envio
+    conta_atual, _ = await get_current_account()
+    conta = CONTAS_100MS[conta_atual]
+
     ALUNO_ROOM[aluno_norm] = {
         "room_id": payload.room_id,
         "professor": professor_norm,
-        "prebuilt_link": payload.prebuilt_link  # ✅ usa o link completo vindo do 100ms
+        "prebuilt_link": payload.prebuilt_link,  
+        "subdomain": conta["SUBDOMAIN"],        
+        "template_id": conta["TEMPLATE"]        
     }
 
-    return {"status": "ok", "message": "Link real da aula enviado ao aluno com sucesso!"}
+    return {
+        "status": "ok",
+        "message": "Link real da aula enviado ao aluno com sucesso!",
+        "conta_usada": conta_atual  # ✅ retorna qual conta foi usada
+    }
 
 
 @app.get("/buscar-id-professor")
