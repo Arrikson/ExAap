@@ -85,6 +85,21 @@ CONTAS_100MS = [
     }
 ]
 
+def init_contas_100ms():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    if not doc.exists:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {
+            "conta_atual": 0,
+            "usos": usos
+        }
+        ref.set(data)
+        print("🔥 Documento 'CONTAS_100MS/contador' criado automaticamente no Firebase.")
+
+# Chamar na inicialização da aplicação
+init_contas_100ms()
+
 # ============================
 # 🔹 FUNÇÕES DE CONTROLE DE CONTA (com fallback)
 # ============================
