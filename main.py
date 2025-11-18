@@ -170,13 +170,14 @@ CONTAS_100MS = [
 ]
 
 # ============================
-# 🔹 Inicializar CONTAS_100MS no Firebase
+# 🔹 Inicializar CONTAS_100MS no Firebase (corrigido)
 # ============================
 def init_contas_100ms():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get()
     if not doc.exists:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        # 🔹 Converter índices para string
+        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
         data = {
             "conta_atual": 0,
             "usos": usos
@@ -196,7 +197,7 @@ async def get_current_account():
     data = doc.to_dict() if doc.exists else None
 
     if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
         data = {"conta_atual": 0, "usos": usos}
         ref.set(data)
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
@@ -210,7 +211,7 @@ async def rotate_account():
     data = doc.to_dict() if doc.exists else None
 
     if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
         data = {"conta_atual": 0, "usos": usos}
         ref.set(data)
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
@@ -218,9 +219,12 @@ async def rotate_account():
     conta = data["conta_atual"]
     usos = data["usos"]
 
-    if usos[conta] >= 10:
+    # 🔹 Converter conta para string ao acessar
+    conta_str = str(conta)
+    if usos.get(conta_str, 0) >= 10:
         conta = (conta + 1) % len(CONTAS_100MS)
-        usos[conta] = 0
+        conta_str = str(conta)
+        usos[conta_str] = 0
 
     ref.update({"conta_atual": conta, "usos": usos})
     return conta
@@ -232,15 +236,17 @@ async def incrementar_uso():
     data = doc.to_dict() if doc.exists else None
 
     if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
         data = {"conta_atual": 0, "usos": usos}
         ref.set(data)
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
 
     conta = data["conta_atual"]
     usos = data["usos"]
-    usos[conta] += 1
 
+    # 🔹 Converter conta para string
+    conta_str = str(conta)
+    usos[conta_str] = usos.get(conta_str, 0) + 1
     ref.update({"usos": usos})
 
     await rotate_account()
