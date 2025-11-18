@@ -37,145 +37,6 @@ from pydantic import BaseModel
 # --- Load environment ---
 load_dotenv()
 
-# ============================
-# 🔹 CONTAS 100MS
-# ============================
-CONTAS_100MS = [
-    {
-        "ACCESS_KEY": "68e12ac3bd0dab5f9a013f93",
-        "SECRET": "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFIcgcDCoBCgDBLofpmog6VUlwNmzkxi3PWQ9N3KZYYHNRZYItsxETK0qU_mfeA4ita1-OVzrq9m37nf6Ns-C-KBGWaLV3S45ZvhsxOHTzK-5A4g=",
-        "TEMPLATE": "68e132db74147bd574bb494a",
-        "SUBDOMAIN": "sabe-videoconf-1518"
-    },
-    {
-        "ACCESS_KEY": "68e8c88cbd0dab5f9a01409d",
-        "SECRET": "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc=",
-        "TEMPLATE": "691af3a4033903926e62a61a",
-        "SUBDOMAIN": "arrikson-videoconf-1105"
-    },
-    {
-        "ACCESS_KEY": "691b1920145cb4e8449b1ad5",
-        "SECRET": "y3Uk__pTuLXY2xYP_7QMw_rL7021SA3v7nAqLujr-pQ2Ree9fnYbLizd46OZ2K__53YEzH1hit8dw9ctDP0hEAP_q5Ca_kAp-bLa8gUSWgb1jeUpgETWFiUU4DzOnctm8iFueoZk8v_sb3HaN2vTSxUuj1-eI60W7RzAMObAxw0=",
-        "TEMPLATE": "691b1965033903926e62a68e",
-        "SUBDOMAIN": "mb-videoconf-1347"
-    },
-    {
-        "ACCESS_KEY": "691c423fbd0dab5f9a0147ee",
-        "SECRET": "VQpwHMexPStIBd3tB8UP7uXSdI4JzaGCUOX79M-YEUPhne3dh7tSIeGq9vobErsf0h4xMzjrTtvgimBca-89Oi7g5eBibRu6heKdqO10XzK3v4YrBaW0sENcTSMnwgmBwi4I7tGLYXrdP-G6xp2J_k0LoNZHX97A6Tzjm0SAA5I=",
-        "TEMPLATE": "691c42b774147bd574bbb7e6",
-        "SUBDOMAIN": "lcio-videoconf-1056"
-    },
-    {
-        "ACCESS_KEY": "691b1f5c145cb4e8449b1ada",
-        "SECRET": "WfQpeZTfOX2QcFRwmSg_t-vHH7Vd1x687DCp4IvLAyRhD2zWfgEt38M5gFNerlJKYBWgb_mhg5-0Y4MQCns5ANgDvTfVoejzwULFcAf3aY6m-FfFs_L5B2Naf3pRoeEvpdVeUMxeNLyEbGt1qp4n6sFtbcytzEr73lEGS0kD8t8=",
-        "TEMPLATE": "691b1f6e74147bd574bbb5ce",
-        "SUBDOMAIN": "rafael-videoconf-1413"
-    },
-    {
-        "ACCESS_KEY": "691c4cf8bd0dab5f9a0147f6",
-        "SECRET": "QFhzYgzrLpmawfPtPxlgn75UYRNfeNiCTha3YXDbmD3zeQVIsqEavBytDgk6jxnqr4ePjybhV_AR1zWphCkXf8A7UfS64vsuYr_QJymSsoE_BvdUanN3zXP16lU2XmjeCkA1uriETzhrsp1ruj498dgVpFNnV6QV9W67ybyACQA=",
-        "TEMPLATE": "691c4d09033903926e62a8a0",
-        "SUBDOMAIN": "rafael-videoconf-1140"
-    },
-    {
-        "ACCESS_KEY": "691c4f0dbd0dab5f9a0147fb",
-        "SECRET": "jMOUaFZLjtyNWLlhAUgFosGEfwTm5syNtb7NKnc33yWKipD-tDCQHD7Swjq9gOJlAoSoiU0wS9D2rUi8aQcpQhBkEag2VwbJrpDOMHRDp6m9JsLNk99BN0PvguvMvH4IVkHIkCRwgJ23fv2kksKEtzAXYOEOdcD9aNOh8Tm3usQ=",
-        "TEMPLATE": "691c4f1b74147bd574bbb7ea",
-        "SUBDOMAIN": "carlene100ms-videoconf-1148"
-    }
-]
-
-def init_contas_100ms():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    if not doc.exists:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
-        data = {
-            "conta_atual": 0,
-            "usos": usos
-        }
-        ref.set(data)
-        print("🔥 Documento 'CONTAS_100MS/contador' criado automaticamente no Firebase.")
-
-# Chamar na inicialização da aplicação
-init_contas_100ms()
-
-# ============================
-# 🔹 FUNÇÕES DE CONTROLE DE CONTA (com fallback)
-# ============================
-
-async def get_current_account():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
-
-    # Se não existir, inicializa
-    if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
-        data = {
-            "conta_atual": 0,
-            "usos": usos
-        }
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
-
-    return data["conta_atual"], data["usos"]
-
-
-async def rotate_account():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
-
-    # Se documento não existir, inicializa
-    if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
-        data = {
-            "conta_atual": 0,
-            "usos": usos
-        }
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
-
-    conta = data["conta_atual"]
-    usos = data["usos"]
-
-    if usos[conta] >= 10:  # limite de usos
-        conta = (conta + 1) % len(CONTAS_100MS)
-        usos[conta] = 0  # reset da nova conta
-
-    ref.update({
-        "conta_atual": conta,
-        "usos": usos
-    })
-    return conta
-
-
-async def incrementar_uso():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
-
-    # Se documento não existir, inicializa
-    if not data:
-        usos = {i: 0 for i in range(len(CONTAS_100MS))}
-        data = {
-            "conta_atual": 0,
-            "usos": usos
-        }
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
-
-    conta = data["conta_atual"]
-    usos = data["usos"]
-    usos[conta] += 1
-
-    ref.update({"usos": usos})
-
-    # Troca de conta se necessário
-    await rotate_account()
-
-
 # --- Firebase ---
 firebase_json = os.environ.get("FIREBASE_KEY")
 if firebase_json and not firebase_admin._apps:
@@ -260,6 +121,129 @@ if not os.path.exists(PROFESSORES_JSON):
     salvar_professores_local([])
 gerar_html_professores()
 
+# ============================
+# 🔹 CONTAS 100MS
+# ============================
+CONTAS_100MS = [
+    {
+        "ACCESS_KEY": "68e12ac3bd0dab5f9a013f93",
+        "SECRET": "4agaGFjtDBN9VtVehvbZDt7mNMHWSeoN05Q_SfzjAs0sTwhDbmkH4SFaxVqYFIcgcDCoBCgDBLofpmog6VUlwNmzkxi3PWQ9N3KZYYHNRZYItsxETK0qU_mfeA4ita1-OVzrq9m37nf6Ns-C-KBGWaLV3S45ZvhsxOHTzK-5A4g=",
+        "TEMPLATE": "68e132db74147bd574bb494a",
+        "SUBDOMAIN": "sabe-videoconf-1518"
+    },
+    {
+        "ACCESS_KEY": "68e8c88cbd0dab5f9a01409d",
+        "SECRET": "rI932W7abnwd9NC5vTY54e_DSfG8UNFxxgz5JD7_6stDWSbnOevqsaeeyaRfDitue4-IkmlgAR7c7fr_n42Wx0pKw4fhofXEGa3fj5R9Q3xcdxQJvHjMD6sM-VP9XL-HLKEFT7X1lK8hZAxh0DsCKrjaU2o5Bk2UoVN9pRQNnTc=",
+        "TEMPLATE": "691af3a4033903926e62a61a",
+        "SUBDOMAIN": "arrikson-videoconf-1105"
+    },
+    {
+        "ACCESS_KEY": "691b1920145cb4e8449b1ad5",
+        "SECRET": "y3Uk__pTuLXY2xYP_7QMw_rL7021SA3v7nAqLujr-pQ2Ree9fnYbLizd46OZ2K__53YEzH1hit8dw9ctDP0hEAP_q5Ca_kAp-bLa8gUSWgb1jeUpgETWFiUU4DzOnctm8iFueoZk8v_sb3HaN2vTSxUuj1-eI60W7RzAMObAxw0=",
+        "TEMPLATE": "691b1965033903926e62a68e",
+        "SUBDOMAIN": "mb-videoconf-1347"
+    },
+    {
+        "ACCESS_KEY": "691c423fbd0dab5f9a0147ee",
+        "SECRET": "VQpwHMexPStIBd3tB8UP7uXSdI4JzaGCUOX79M-YEUPhne3dh7tSIeGq9vobErsf0h4xMzjrTtvgimBca-89Oi7g5eBibRu6heKdqO10XzK3v4YrBaW0sENcTSMnwgmBwi4I7tGLYXrdP-G6xp2J_k0LoNZHX97A6Tzjm0SAA5I=",
+        "TEMPLATE": "691c42b774147bd574bbb7e6",
+        "SUBDOMAIN": "lcio-videoconf-1056"
+    },
+    {
+        "ACCESS_KEY": "691b1f5c145cb4e8449b1ada",
+        "SECRET": "WfQpeZTfOX2QcFRwmSg_t-vHH7Vd1x687DCp4IvLAyRhD2zWfgEt38M5gFNerlJKYBWgb_mhg5-0Y4MQCns5ANgDvTfVoejzwULFcAf3aY6m-FfFs_L5B2Naf3pRoeEvpdVeUMxeNLyEbGt1qp4n6sFtbcytzEr73lEGS0kD8t8=",
+        "TEMPLATE": "691b1f6e74147bd574bbb5ce",
+        "SUBDOMAIN": "rafael-videoconf-1413"
+    },
+    {
+        "ACCESS_KEY": "691c4cf8bd0dab5f9a0147f6",
+        "SECRET": "QFhzYgzrLpmawfPtPxlgn75UYRNfeNiCTha3YXDbmD3zeQVIsqEavBytDgk6jxnqr4ePjybhV_AR1zWphCkXf8A7UfS64vsuYr_QJymSsoE_BvdUanN3zXP16lU2XmjeCkA1uriETzhrsp1ruj498dgVpFNnV6QV9W67ybyACQA=",
+        "TEMPLATE": "691c4d09033903926e62a8a0",
+        "SUBDOMAIN": "rafael-videoconf-1140"
+    },
+    {
+        "ACCESS_KEY": "691c4f0dbd0dab5f9a0147fb",
+        "SECRET": "jMOUaFZLjtyNWLlhAUgFosGEfwTm5syNtb7NKnc33yWKipD-tDCQHD7Swjq9gOJlAoSoiU0wS9D2rUi8aQcpQhBkEag2VwbJrpDOMHRDp6m9JsLNk99BN0PvguvMvH4IVkHIkCRwgJ23fv2kksKEtzAXYOEOdcD9aNOh8Tm3usQ=",
+        "TEMPLATE": "691c4f1b74147bd574bbb7ea",
+        "SUBDOMAIN": "carlene100ms-videoconf-1148"
+    }
+]
+
+# ============================
+# 🔹 Inicializar CONTAS_100MS no Firebase
+# ============================
+def init_contas_100ms():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    if not doc.exists:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {
+            "conta_atual": 0,
+            "usos": usos
+        }
+        ref.set(data)
+        print("🔥 Documento 'CONTAS_100MS/contador' criado automaticamente no Firebase.")
+
+# Chamar na inicialização da aplicação
+init_contas_100ms()
+
+# ============================
+# 🔹 FUNÇÕES DE CONTROLE DE CONTA
+# ============================
+async def get_current_account():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
+
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {"conta_atual": 0, "usos": usos}
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
+    return data["conta_atual"], data["usos"]
+
+
+async def rotate_account():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
+
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {"conta_atual": 0, "usos": usos}
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
+    conta = data["conta_atual"]
+    usos = data["usos"]
+
+    if usos[conta] >= 10:
+        conta = (conta + 1) % len(CONTAS_100MS)
+        usos[conta] = 0
+
+    ref.update({"conta_atual": conta, "usos": usos})
+    return conta
+
+
+async def incrementar_uso():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
+    data = doc.to_dict() if doc.exists else None
+
+    if not data:
+        usos = {i: 0 for i in range(len(CONTAS_100MS))}
+        data = {"conta_atual": 0, "usos": usos}
+        ref.set(data)
+        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+
+    conta = data["conta_atual"]
+    usos = data["usos"]
+    usos[conta] += 1
+
+    ref.update({"usos": usos})
+
+    await rotate_account()
 
 
 @app.get("/", response_class=HTMLResponse)
