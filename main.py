@@ -202,7 +202,9 @@ async def get_current_account():
         ref.set(data)
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
 
-    return data["conta_atual"], data["usos"]
+    # 🔹 garante que todas as chaves de 'usos' sejam strings
+    usos = {str(k): v for k, v in data["usos"].items()}
+    return data["conta_atual"], usos
 
 
 async def rotate_account():
@@ -217,9 +219,8 @@ async def rotate_account():
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
 
     conta = data["conta_atual"]
-    usos = data["usos"]
+    usos = {str(k): v for k, v in data["usos"].items()}  # 🔹 chaves como string
 
-    # 🔹 Converter conta para string ao acessar
     conta_str = str(conta)
     if usos.get(conta_str, 0) >= 10:
         conta = (conta + 1) % len(CONTAS_100MS)
@@ -242,13 +243,14 @@ async def incrementar_uso():
         print("🔥 Documento 'contador' criado automaticamente no Firebase.")
 
     conta = data["conta_atual"]
-    usos = data["usos"]
+    usos = {str(k): v for k, v in data["usos"].items()}  # 🔹 chaves como string
 
-    conta_str = str(conta)  # 🔹 converter para string
-    usos[conta_str] = usos.get(conta_str, 0) + 1  # usar get para segurança
+    conta_str = str(conta)
+    usos[conta_str] = usos.get(conta_str, 0) + 1  # 🔹 seguro, evita KeyError
     ref.update({"usos": usos})
 
     await rotate_account()
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -4244,18 +4246,25 @@ class CreateRoomRequest(BaseModel):
 async def get_current_account():
     doc = db.collection("CONTAS_100MS").document("contador").get()
     data = doc.to_dict()
-    return data["conta_atual"], data["usos"]
+
+    # garante que todas as chaves do 'usos' são strings
+    usos = {str(k): v for k, v in data["usos"].items()}
+
+    return data["conta_atual"], usos
+
 
 async def rotate_account():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get().to_dict()
 
     conta = doc["conta_atual"]
-    usos = doc["usos"]
+    usos = {str(k): v for k, v in doc["usos"].items()}  # converte chaves para string
 
-    if usos[conta] >= 10:  # limite de usos por conta
+    conta_str = str(conta)
+    if usos.get(conta_str, 0) >= 10:  # limite de usos por conta
         conta = (conta + 1) % len(CONTAS_100MS)
-        usos[conta] = 0  # reset da nova conta
+        conta_str = str(conta)
+        usos[conta_str] = 0  # reset da nova conta
 
     ref.update({
         "conta_atual": conta,
@@ -4263,13 +4272,16 @@ async def rotate_account():
     })
     return conta
 
+
 async def incrementar_uso():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get().to_dict()
 
     conta = doc["conta_atual"]
-    usos = doc["usos"]
-    usos[conta] += 1
+    usos = {str(k): v for k, v in doc["usos"].items()}  # garante chaves como string
+
+    conta_str = str(conta)
+    usos[conta_str] = usos.get(conta_str, 0) + 1  # incrementa o uso da conta atual
 
     ref.update({"usos": usos})
     await rotate_account()
@@ -4290,6 +4302,7 @@ async def generate_100ms_token():
         "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, conta["SECRET"], algorithm="HS256")
+
 
 # ============================
 # RETORNA HEADERS COM CONTA ATIVA
