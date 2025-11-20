@@ -4209,31 +4209,53 @@ async def desvincular_aluno(data: dict):
         aluno = data.get("aluno", "").strip().lower()
 
         if not professor or not aluno:
-            return JSONResponse(status_code=400, content={"detail": "Professor ou aluno inválido"})
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Professor ou aluno inválido"}
+            )
 
         # 1️⃣ Remover vínculo na coleção alunos_professor
-        query = db.collection("alunos_professor") \
-                  .where("professor", "==", professor) \
-                  .where("aluno", "==", aluno) \
-                  .stream()
+        query = (
+            db.collection("alunos_professor")
+            .where("professor", "==", professor)
+            .where("aluno", "==", aluno)
+            .stream()
+        )
 
+        removed = False
         for doc in query:
             db.collection("alunos_professor").document(doc.id).delete()
+            removed = True
 
-        # 2️⃣ Atualizar campo "vinculado" = false na coleção alunos
-        aluno_query = db.collection("alunos") \
-                        .where("nome", "==", aluno) \
-                        .limit(1).stream()
+        # 2️⃣ Atualizar o campo "vinculado" = False na coleção alunos
+        aluno_query = (
+            db.collection("alunos")
+            .where("nome_lower", "==", aluno)  # 🔍 campo seguro para comparações
+            .limit(1)
+            .stream()
+        )
 
         aluno_doc = next(aluno_query, None)
-        if aluno_doc:
-            db.collection("alunos").document(aluno_doc.id).update({"vinculado": False})
 
-        return {"status": "success", "message": f"Aluno {aluno} desvinculado do professor {professor}"}
+        if aluno_doc:
+            db.collection("alunos").document(aluno_doc.id).update({
+                "vinculado": False
+            })
+        else:
+            print("Aluno não encontrado para atualizar vínculo.")
+
+        return {
+            "status": "success",
+            "vinculo_removido": removed,
+            "message": f"Aluno {aluno} desvinculado do professor {professor}"
+        }
 
     except Exception as e:
         print("Erro ao desvincular aluno:", e)
-        return JSONResponse(status_code=500, content={"detail": "Erro interno", "erro": str(e)})
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erro interno", "erro": str(e)}
+        )
 
 # ============================
 # CONFIG 100ms - DINÂMICA DE TROCA DE CONTA
