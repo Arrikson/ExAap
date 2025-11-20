@@ -4206,48 +4206,47 @@ async def info_pagamentos(request: Request):
 async def desvincular_aluno(data: dict):
     try:
         professor = data.get("professor", "").strip().lower()
-        aluno = data.get("aluno", "").strip().lower()
+        aluno_nome_input = data.get("aluno", "").strip().lower()
 
-        if not professor or not aluno:
+        if not professor or not aluno_nome_input:
             return JSONResponse(
                 status_code=400,
                 content={"detail": "Professor ou aluno inválido"}
             )
 
         # 1️⃣ Remover vínculo na coleção alunos_professor
-        query = (
-            db.collection("alunos_professor")
-            .where("professor", "==", professor)
-            .where("aluno", "==", aluno)
-            .stream()
-        )
+        query = db.collection("alunos_professor") \
+                  .where("professor", "==", professor) \
+                  .where("aluno", "==", aluno_nome_input) \
+                  .stream()
 
         removed = False
         for doc in query:
             db.collection("alunos_professor").document(doc.id).delete()
             removed = True
 
-        # 2️⃣ Atualizar o campo "vinculado" = False na coleção alunos
-        aluno_query = (
-            db.collection("alunos")
-            .where("nome_lower", "==", aluno)  # 🔍 campo seguro para comparações
-            .limit(1)
-            .stream()
-        )
+        # 2️⃣ Buscar aluno na coleção alunos pelo nome normalizado
+        alunos = db.collection("alunos").stream()
+        aluno_doc = None
+        for doc in alunos:
+            dados = doc.to_dict()
+            nome_banco = dados.get("nome", "").strip().lower()
+            if nome_banco == aluno_nome_input:
+                aluno_doc = doc
+                break
 
-        aluno_doc = next(aluno_query, None)
-
+        # 3️⃣ Atualizar campo "vinculado" = False
         if aluno_doc:
             db.collection("alunos").document(aluno_doc.id).update({
                 "vinculado": False
             })
         else:
-            print("Aluno não encontrado para atualizar vínculo.")
+            print(f"⚠ Aluno '{aluno_nome_input}' não encontrado para atualizar vínculo.")
 
         return {
             "status": "success",
             "vinculo_removido": removed,
-            "message": f"Aluno {aluno} desvinculado do professor {professor}"
+            "message": f"Aluno '{aluno_nome_input}' desvinculado do professor '{professor}' e campo 'vinculado' atualizado para False"
         }
 
     except Exception as e:
@@ -4256,7 +4255,7 @@ async def desvincular_aluno(data: dict):
             status_code=500,
             content={"detail": "Erro interno", "erro": str(e)}
         )
-
+        
 # ============================
 # CONFIG 100ms - DINÂMICA DE TROCA DE CONTA
 # ============================
