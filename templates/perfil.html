@@ -180,7 +180,7 @@
     font-size: 0.9rem;
   }
 
-  /* 🔹 Fundo transparente escurecido */
+ /* 🔹 Fundo transparente escurecido */
 .overlay-info {
     position: fixed;
     top: 0;
@@ -212,7 +212,7 @@
     margin-top: 0;
     font-size: 24px;
     text-align: center;
-    color: #0071F2;
+    color: #00C9FF; /* 🔹 Cor Padrão */
     font-weight: 800;
 }
 
@@ -226,7 +226,7 @@
 
 /* 🔹 Botões padrões */
 .botao-padrao {
-    background: #0071F2;
+    background: #00C9FF; /* Cor padrão */
     color: white;
     border: none;
     padding: 10px 14px;
@@ -240,10 +240,10 @@
 }
 
 .botao-padrao:hover {
-    background: #0056b3;
+    background: #009ecc;
 }
 
-
+/* 🔹 Botões agrupados (2 colunas no padrão) */
 .modal-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -251,15 +251,16 @@
     margin-bottom: 15px;
 }
 
-
+/* 🔹 Botão Fechar */
 .fechar-btn {
-    background: #FF3B3B;
+    background: #FF3B3B !important;
 }
 
 .fechar-btn:hover {
-    background: #D92D2D;
+    background: #D92D2D !important;
 }
 
+/* 📌 Animações */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -270,6 +271,82 @@
     to { transform: translateY(0); opacity: 1; }
 }
 
+/* ==========================================================
+   🔹 Responsividade para telas menores
+   ========================================================== */
+
+/* Telas de até 480px */
+@media (max-width: 480px) {
+    .modal-info {
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .modal-info h2 {
+        font-size: 20px;
+    }
+
+    .info-content {
+        font-size: 14px;
+    }
+
+    .botao-padrao {
+        font-size: 14px;
+        padding: 9px 12px;
+    }
+}
+
+/* Telas de até 400px */
+@media (max-width: 400px) {
+    .modal-buttons {
+        grid-template-columns: 1fr; /* 🔹 vira 1 coluna */
+    }
+
+    .modal-info {
+        width: 95%;
+    }
+
+    .modal-info h2 {
+        font-size: 18px;
+    }
+}
+
+/* Telas muito pequenas 360px */
+@media (max-width: 360px) {
+    .modal-info {
+        padding: 16px;
+    }
+
+    .info-content {
+        font-size: 13.5px;
+    }
+
+    .botao-padrao {
+        padding: 8px 10px;
+        font-size: 13.5px;
+    }
+}
+
+/* Telas super pequenas (ex.: smartphones antigos 320px) */
+@media (max-width: 320px) {
+    .modal-info {
+        padding: 14px;
+        width: 96%;
+    }
+
+    .modal-info h2 {
+        font-size: 16px;
+    }
+
+    .info-content {
+        font-size: 13px;
+    }
+
+    .botao-padrao {
+        font-size: 13px;
+        padding: 7px 10px;
+    }
+}
   .mensagens-chat {
     flex: 1;
     padding: 15px;
