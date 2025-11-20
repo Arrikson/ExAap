@@ -1075,10 +1075,10 @@ async function verAulasDadas(nomeAluno) {
   }
 }
 
-// Função para desvincular aluno
+// 🔹 Função para Desvincular Aluno
 async function desvincularAluno(nomeAluno, professorEmail) {
 
-  // 🔄 Padroniza antes de enviar (backend espera lowercase)
+  // 🔄 Padroniza exatamente como o backend usa
   const alunoNormalizado = nomeAluno.trim().toLowerCase();
   const professorNormalizado = professorEmail.trim().toLowerCase();
 
@@ -1097,9 +1097,16 @@ async function desvincularAluno(nomeAluno, professorEmail) {
     const data = await res.json();
 
     if (res.ok) {
+      // Mensagem enviada pela API
       alert(data.message || "Aluno desvinculado com sucesso.");
-      listarMeusAlunos(); // 🔄 Atualiza a lista do professor
+
+      // 🔄 Atualiza a lista de alunos imediatamente
+      if (typeof listarMeusAlunos === "function") {
+        listarMeusAlunos();
+      }
+
     } else {
+      // Exibe erro retornado pela API
       alert("Erro ao desvincular: " + (data.detail || "Erro desconhecido."));
     }
 
