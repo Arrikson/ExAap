@@ -1077,29 +1077,35 @@ async function verAulasDadas(nomeAluno) {
 
 // Função para desvincular aluno
 async function desvincularAluno(nomeAluno, professorEmail) {
-  if (!confirm(`Tens certeza que desejas desvincular o aluno ${nomeAluno}?`)) return;
+
+  // 🔄 Padroniza antes de enviar (backend espera lowercase)
+  const alunoNormalizado = nomeAluno.trim().toLowerCase();
+  const professorNormalizado = professorEmail.trim().toLowerCase();
+
+  if (!confirm(`Tens certeza que desejas desvincular o aluno "${nomeAluno}"?`)) return;
 
   try {
     const res = await fetch("/desvincular-aluno", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        aluno: nomeAluno,
-        professor: professorEmail
+        aluno: alunoNormalizado,
+        professor: professorNormalizado
       })
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      alert("Aluno desvinculado com sucesso.");
-      listarMeusAlunos(); // 🔄 Atualiza a lista
+      alert(data.message || "Aluno desvinculado com sucesso.");
+      listarMeusAlunos(); // 🔄 Atualiza a lista do professor
     } else {
-      alert("Erro: " + data.detail);
+      alert("Erro ao desvincular: " + (data.detail || "Erro desconhecido."));
     }
+
   } catch (err) {
     console.error("Erro ao desvincular:", err);
-    alert("Erro ao tentar desvincular o aluno.");
+    alert("Erro inesperado ao tentar desvincular o aluno.");
   }
 }
   
