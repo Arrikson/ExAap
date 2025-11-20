@@ -2553,11 +2553,13 @@ async def listar_professores_online():
         dados = prof.to_dict()
         lista.append({
             "email": dados.get("email", ""),
-            "nome": dados.get("nome_completo", ""),  # Novo campo incluído
-            "online": dados.get("online", False)
+            "nome": dados.get("nome_completo", ""),
+            "online": dados.get("online", False),
+            "foto_perfil": dados.get("foto_perfil", "perfil.png")  # 🔹 Incluído
         })
 
     return lista
+
 
 @app.get("/listar-chamadas")
 async def listar_chamadas():
