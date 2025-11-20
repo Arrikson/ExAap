@@ -1802,7 +1802,7 @@ async def verificar_aluno(
 async def get_cadastro(request: Request):
     return templates.TemplateResponse("professores_online.html", {"request": request, "success": False})
 
-@app.post("/professores_online", response_class=HTMLResponse) 
+@app.post("/professores_online", response_class=HTMLResponse)
 async def post_cadastro(
     request: Request,
     nome_completo: str = Form(...),
@@ -1823,6 +1823,9 @@ async def post_cadastro(
     area_formacao: str = Form(...),
     senha: str = Form(...)
 ):
+    # ============================
+    # CAMPOS DO PROFESSOR
+    # ============================
     dados = {
         "nome_completo": nome_completo,
         "nome_mae": nome_mae,
@@ -1841,20 +1844,46 @@ async def post_cadastro(
         "ano_faculdade": ano_faculdade,
         "area_formacao": area_formacao,
         "senha": senha,
-        "online": True
+        "online": True,
+
+        # 🆕 Foto de perfil padrão
+        "foto_perfil": "perfil.png"
     }
 
-    # ✅ Coleção original (mantém como está)
-    db.collection("professores_online").add(dados)
+    # ============================
+    # SALVA NA COLEÇÃO ORIGINAL
+    # ============================
+    prof_ref = db.collection("professores_online").add(dados)
 
-    # ✅ Nova coleção: professores_online2 com email como ID
+    # ============================
+    # GARANTE QUE TODOS OS ANTIGOS TAMBÉM TENHAM FOTO
+    # ============================
+    try:
+        todos = db.collection("professores_online").stream()
+        for doc in todos:
+            dados_prof = doc.to_dict()
+
+            if "foto_perfil" not in dados_prof:
+                db.collection("professores_online").document(doc.id).update({
+                    "foto_perfil": "perfil.png"
+                })
+                print(f"⚙️ Campo foto_perfil criado para {dados_prof.get('email')}")
+    except Exception as e:
+        print("Erro ao atualizar professores antigos:", e)
+
+    # ============================
+    # SALVA NA SEGUNDA COLEÇÃO
+    # ============================
     try:
         db.collection("professores_online2").document(email).set(dados)
         print(f"✅ Salvo em professores_online2 com ID {email}")
     except Exception as e:
         print(f"❌ Erro ao salvar em professores_online2: {e}")
 
-    return RedirectResponse(url="/login_prof", status_code=303)
+    return templates.TemplateResponse("sucesso.html", {
+        "request": request,
+        "mensagem": "Professor cadastrado com sucesso!"
+    })
 
 
 @app.get("/login_prof", response_class=HTMLResponse)
