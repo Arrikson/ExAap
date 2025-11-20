@@ -180,6 +180,96 @@
     font-size: 0.9rem;
   }
 
+  /* 🔹 Fundo transparente escurecido */
+.overlay-info {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+    animation: fadeIn 0.25s ease-out;
+    z-index: 9999;
+}
+
+/* 🔹 Modal estiloso */
+.modal-info {
+    background: #ffffff;
+    width: 92%;
+    max-width: 500px;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    animation: slideUp 0.35s ease;
+    font-family: 'Nunito', sans-serif;
+}
+
+.modal-info h2 {
+    margin-top: 0;
+    font-size: 24px;
+    text-align: center;
+    color: #0071F2;
+    font-weight: 800;
+}
+
+/* 🔹 Conteúdo dentro do container */
+.info-content {
+    margin: 15px 0 25px;
+    line-height: 1.6;
+    color: #333;
+    font-size: 15px;
+}
+
+/* 🔹 Botões padrões */
+.botao-padrao {
+    background: #0071F2;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    margin: 5px 0;
+    width: 100%;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.botao-padrao:hover {
+    background: #0056b3;
+}
+
+
+.modal-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+
+.fechar-btn {
+    background: #FF3B3B;
+}
+
+.fechar-btn:hover {
+    background: #D92D2D;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
   .mensagens-chat {
     flex: 1;
     padding: 15px;
@@ -1012,10 +1102,11 @@ function abrirInfoEmpresa() {
 
   modal.innerHTML = `
     <h2>Sobre a SabAap</h2>
+
     <div class="info-content" id="info-content">
-      <p><strong>Sabi Lider (SU) LDA</strong>, NIF: 5002232529, é uma empresa de direito privado angolano, de capital 100% nacional, com foco em educação e inovação digital.</p>
-      <p>Estamos localizados na <strong>Rua S/nº Centralidade da Marconi</strong> e atuamos no setor da <strong>educação e serviços tecnológicos</strong>.</p>
-      <p>Nosso aplicativo <strong>SabAap</strong> foi criado para ensinar a <strong>Língua Inglesa</strong> com professores qualificados, promovendo aprendizado prático, moderno e acessível.</p>
+      <p><strong>Sabi Lider (SU) LDA</strong>, NIF: 5002232529, é uma empresa de direito privado angolano, de capital 100% nacional, focada em educação e inovação digital.</p>
+      <p>Estamos localizados na <strong>Rua S/nº - Centralidade da Marconi</strong>, atuando nas áreas de <strong>educação e serviços tecnológicos</strong>.</p>
+      <p>Nosso aplicativo <strong>SabAap</strong> foi criado para ensinar <strong>Língua Inglesa</strong> com uma abordagem moderna e prática.</p>
     </div>
 
     <div class="modal-buttons">
@@ -1031,8 +1122,9 @@ function abrirInfoEmpresa() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
- 
-  overlay.onclick = (e) => { if(e.target === overlay) fecharInfo(); };
+  overlay.onclick = (e) => { 
+      if (e.target === overlay) fecharInfo(); 
+  };
 }
 
 function fecharInfo() {
@@ -1045,31 +1137,32 @@ function mostrarConteudo(secao) {
   if (secao === "empresa") {
     conteudo.innerHTML = `
       <p><strong>Sabi Lider (SU) LDA</strong>, NIF: 5002232529, é uma empresa angolana privada, com capital 100% nacional.</p>
-      <p>Atuamos nas áreas de <strong>educação, tecnologia e inovação</strong>, oferecendo soluções modernas para melhorar a vida das pessoas.</p>
+      <p>Atuamos nos setores de <strong>educação, tecnologia e inovação digital</strong>, oferecendo soluções modernas e eficientes.</p>
     `;
   } 
   else if (secao === "app") {
     conteudo.innerHTML = `
-      <p><strong>SabAap</strong> é um aplicativo focado no ensino da <strong>Língua Inglesa</strong>, com recursos interativos, aulas personalizadas e professores altamente qualificados.</p>
-      <p>Nosso objetivo é tornar o aprendizado mais <strong>simples, rápido e acessível</strong> para todos.</p>
+      <p><strong>SabAap</strong> é um aplicativo focado no ensino da <strong>Língua Inglesa</strong>, com aulas dinâmicas e professores altamente qualificados.</p>
+      <p>Proporciona aprendizagem mais <strong>rápida, prática e acessível</strong>.</p>
     `;
   } 
   else if (secao === "objetivo") {
     conteudo.innerHTML = `
-      <p>Nosso principal objetivo é <strong>democratizar o acesso ao ensino da Língua Inglesa</strong>, preparando os alunos para um futuro globalizado.</p>
-      <p>Com a <strong>SabAap</strong>, cada aluno pode evoluir no seu ritmo, com acompanhamento personalizado.</p>
+      <p>Nosso objetivo é <strong>democratizar o acesso ao ensino da Língua Inglesa</strong>, preparando alunos para oportunidades globais.</p>
+      <p>Cada aluno aprende no seu próprio ritmo com acompanhamento personalizado.</p>
     `;
   } 
   else if (secao === "mais") {
     conteudo.innerHTML = `
-      <p>✔ Professores qualificados e experientes.</p>
-      <p>✔ Aulas online e presenciais em breve.</p>
-      <p>✔ Materiais de apoio e exercícios práticos.</p>
-      <p>✔ Plataforma interativa e de fácil utilização.</p>
-      <p>Com a <strong>SabAap</strong>, você não apenas aprende inglês, mas se conecta a novas <strong>oportunidades</strong> no mercado de trabalho e no mundo.</p>
+      <p>✔ Professores experientes e qualificados.</p>
+      <p>✔ Aulas online (e presenciais futuramente).</p>
+      <p>✔ Plataforma intuitiva e moderna.</p>
+      <p>✔ Materiais práticos e exercícios reais.</p>
+      <p>Com a <strong>SabAap</strong>, você aprende inglês e abre portas para novas oportunidades.</p>
     `;
   }
 }
+
 
 function abrirPagamentos() {
   
