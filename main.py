@@ -385,25 +385,31 @@ async def get_perfil_prof(request: Request, email: str):
 async def post_perfil_prof(
     request: Request,
     email: str = Form(...),
-    descricao: str = Form(...)
+    descricao: str = Form(...),
+    foto_perfil: str = Form("perfil.png")  # 🔹 Novo campo opcional com valor padrão
 ):
     """
-    Atualiza apenas o campo "descricao" do professor logado.
+    Atualiza o campo 'descricao' e o campo 'foto_perfil' do professor.
     """
     professores_ref = db.collection("professores_online")
     query = professores_ref.where("email", "==", email).limit(1).stream()
     prof_doc = next(query, None)
 
     if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado para atualização."})
+        return templates.TemplateResponse(
+            "erro.html",
+            {"request": request, "mensagem": "Professor não encontrado para atualização."}
+        )
 
-    # Atualizar o campo descrição
+    # Atualizar os campos no Firebase
     db.collection("professores_online").document(prof_doc.id).update({
-        "descricao": descricao
+        "descricao": descricao,
+        "foto_perfil": foto_perfil
     })
 
-    # Redireciona de volta ao perfil com confirmação
+    # Redireciona para o perfil com dados atualizados
     return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
+
     
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
@@ -4623,6 +4629,23 @@ async def registrar_aula(data: dict = Body(...)):
     except Exception as e:
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
+
+@app.get("/ajustar-professores-foto")
+async def ajustar_professores_foto():
+    professores = db.collection("professores_online").stream()
+    count = 0
+
+    for prof in professores:
+        dados = prof.to_dict()
+        if "foto_perfil" not in dados:
+            db.collection("professores_online").document(prof.id).update({
+                "foto_perfil": "perfil.png"
+            })
+            count += 1
+
+    return {"status": "ok", "atualizados": count}
+
+
 
 
 @app.get("/paginavendas", response_class=HTMLResponse)
