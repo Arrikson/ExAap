@@ -838,7 +838,7 @@
   <span>Ver Professor</span>
 </div>
 
-<div id="professor-vinculado" style="display:none;"></div>
+<div id="professor-vinculado" style="display:none;"></div>  
 
 <script>
 async function carregarProfessorDoAluno() {
@@ -858,10 +858,15 @@ async function carregarProfessorDoAluno() {
 
     container.style.display = "block";
 
+    // Ajusta a URL da foto usando a pasta /static/
+    const fotoUrl = data.foto_perfil && data.foto_perfil !== "perfil.png"
+                    ? `/static/${data.foto_perfil}`
+                    : "/static/perfil.png";
+
     // Se houver professor, mostra foto e nome
     container.innerHTML = `
       <div class="professor-container">
-        <img src="${data.foto_perfil || 'perfil.png'}" alt="Foto do Professor" class="professor-foto">
+        <img src="${fotoUrl}" alt="Foto do Professor" class="professor-foto">
         <div class="professor-info">
           <h3>${data.professor || "Desconhecido"}</h3>
           <p>${data.disciplina || "-"}</p>
@@ -882,6 +887,7 @@ function fecharProfessor() {
   container.innerHTML = "";
 }
 </script>
+
 
 <style>
 #professor-vinculado {
