@@ -1816,16 +1816,22 @@ async def post_cadastro(
     ponto_referencia: str = Form(...),
     localizacao: str = Form(...),
     telefone: str = Form(...),
-    telefone_alternativo: str = Form(""),
+    telefone_alternativo: str = Form(None),
     email: str = Form(...),
     nivel_ensino: str = Form(...),
-    ano_faculdade: str = Form(""),
+    ano_faculdade: str = Form(None),
     area_formacao: str = Form(...),
     senha: str = Form(...)
 ):
     try:
         # ============================
-        # CAMPOS DO PROFESSOR
+        # VALIDAR EMAIL
+        # ============================
+        if not email or email.strip() == "":
+            raise Exception("Email inválido")
+
+        # ============================
+        # DADOS DO PROFESSOR
         # ============================
         dados = {
             "nome_completo": nome_completo,
@@ -1846,61 +1852,45 @@ async def post_cadastro(
             "area_formacao": area_formacao,
             "senha": senha,
             "online": True,
-
-            # 🆕 Foto de perfil padrão
-            "foto_perfil": "perfil.png"
+            "foto_perfil": "perfil.png"  # foto padrão
         }
 
         # ============================
-        # SALVA NA COLEÇÃO ORIGINAL
+        # SALVAR NA COLEÇÃO PRINCIPAL
         # ============================
         db.collection("professores_online").add(dados)
 
         # ============================
-        # SALVA NA SEGUNDA COLEÇÃO COM EMAIL COMO ID
+        # SALVAR NA COLEÇÃO COM EMAIL COMO ID
         # ============================
         db.collection("professores_online2").document(email).set(dados)
 
         # ============================
-        # ATUALIZA PROFESSORES ANTIGOS COM FOTO PERFEITA (FORÇA CAMPO)
+        # GARANTIR FOTO EM TODOS OS PROFESSORES ANTIGOS
         # ============================
         try:
-            todos = db.collection("professores_online").stream()
-            for doc in todos:
-                dados_prof = doc.to_dict()
-                if "foto_perfil" not in dados_prof:
+            for doc in db.collection("professores_online").stream():
+                if "foto_perfil" not in doc.to_dict():
                     db.collection("professores_online").document(doc.id).update({
                         "foto_perfil": "perfil.png"
                     })
         except Exception as e:
-            print("⚠️ Erro ao atualizar professores antigos:", e)
+            print("Erro ao atualizar professores antigos:", e)
 
+        # ============================
+        # RETORNO
+        # ============================
         return templates.TemplateResponse("sucesso.html", {
             "request": request,
             "mensagem": "Professor cadastrado com sucesso!"
         })
 
     except Exception as e:
-        print("❌ Erro ao cadastrar professor:", e)
+        print("❌ ERRO:", e)
         return templates.TemplateResponse("erro.html", {
             "request": request,
             "mensagem": f"Erro ao cadastrar professor: {str(e)}"
         })
-
-
-    # ============================
-    # SALVA NA SEGUNDA COLEÇÃO
-    # ============================
-    try:
-        db.collection("professores_online2").document(email).set(dados)
-        print(f"✅ Salvo em professores_online2 com ID {email}")
-    except Exception as e:
-        print(f"❌ Erro ao salvar em professores_online2: {e}")
-
-    return templates.TemplateResponse("sucesso.html", {
-        "request": request,
-        "mensagem": "Professor cadastrado com sucesso!"
-    })
 
 
 @app.get("/login_prof", response_class=HTMLResponse)
