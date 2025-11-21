@@ -2038,8 +2038,10 @@ async def verificar_aluno(request: Request):
 @app.get("/professor-do-aluno/{nome_aluno}")
 async def professor_do_aluno(nome_aluno: str):
     try:
+        # Normaliza o nome do aluno
         aluno_normalizado = nome_aluno.strip().lower()
 
+        # Busca vínculo aluno-professor
         query = db.collection("alunos_professor") \
                   .where("aluno", "==", aluno_normalizado) \
                   .limit(1).stream()
@@ -2051,6 +2053,7 @@ async def professor_do_aluno(nome_aluno: str):
                 content={
                     "professor": None,
                     "disciplina": None,
+                    "foto_perfil": None,
                     "mensagem": f"Aluno '{aluno_normalizado}' não vinculado a nenhum professor"
                 }
             )
@@ -2059,30 +2062,44 @@ async def professor_do_aluno(nome_aluno: str):
         professor_email = vinculo_data.get("professor")
 
         if not professor_email:
-            return {"professor": "Desconhecido", "disciplina": "Desconhecida"}
+            return {
+                "professor": "Desconhecido",
+                "disciplina": "Desconhecida",
+                "foto_perfil": None
+            }
 
+        # Busca dados do professor
         prof_query = db.collection("professores_online") \
                        .where("email", "==", professor_email.strip().lower()) \
                        .limit(1).stream()
         prof_doc = next(prof_query, None)
 
         if not prof_doc:
-            return {"professor": "Desconhecido", "disciplina": "Desconhecida"}
+            return {
+                "professor": "Desconhecido",
+                "disciplina": "Desconhecida",
+                "foto_perfil": None
+            }
 
         prof_data = prof_doc.to_dict()
 
+        # Retorna também a foto de perfil
         return {
             "professor": prof_data.get("nome_completo", "Desconhecido"),
             "disciplina": prof_data.get("area_formacao", "Desconhecida"),
             "email": professor_email.strip().lower(),
-            "mensagens": vinculo_data.get("mensagens", [])  # 🔹 já retorna as mensagens
+            "foto_perfil": prof_data.get("foto_perfil", "perfil.png"),
+            "mensagens": vinculo_data.get("mensagens", [])  # mensagens do vínculo
         }
 
     except Exception as e:
         print("Erro ao buscar professor do aluno:", e)
         return JSONResponse(
             status_code=500,
-            content={"detail": "Erro interno ao buscar professor do aluno", "erro": str(e)}
+            content={
+                "detail": "Erro interno ao buscar professor do aluno",
+                "erro": str(e)
+            }
         )
 
 
