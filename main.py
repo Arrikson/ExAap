@@ -4689,3 +4689,19 @@ async def ajustar_professores_foto():
 @app.get("/paginavendas", response_class=HTMLResponse)
 async def paginavendas(request: Request):
     return templates.TemplateResponse("paginavendas.html", {"request": request})
+
+
+@app.get("/sucesso", response_class=HTMLResponse)
+async def pagina_sucesso(request: Request, mensagem: str = "Operação concluída com sucesso!"):
+    return templates.TemplateResponse("sucesso.html", {
+        "request": request,
+        "mensagem": mensagem
+    })
+    
+@app.get("/erro", response_class=HTMLResponse)
+async def pagina_erro(request: Request, mensagem: str = "Ocorreu um erro inesperado."):
+    return templates.TemplateResponse("erro.html", {
+        "request": request,
+        "mensagem": mensagem
+    })
+
