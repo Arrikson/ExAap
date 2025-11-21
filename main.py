@@ -1852,21 +1852,17 @@ async def post_cadastro(
             "area_formacao": area_formacao,
             "senha": senha,
             "online": True,
-            "foto_perfil": "perfil.png"  # foto padrão
+            "foto_perfil": "perfil.png"
         }
 
         # ============================
-        # SALVAR NA COLEÇÃO PRINCIPAL
+        # SALVAR NAS DUAS COLEÇÕES
         # ============================
         db.collection("professores_online").add(dados)
-
-        # ============================
-        # SALVAR NA COLEÇÃO COM EMAIL COMO ID
-        # ============================
         db.collection("professores_online2").document(email).set(dados)
 
         # ============================
-        # GARANTIR FOTO EM TODOS OS PROFESSORES ANTIGOS
+        # FORÇAR FOTO EM PROFESSORES ANTIGOS
         # ============================
         try:
             for doc in db.collection("professores_online").stream():
@@ -1874,15 +1870,16 @@ async def post_cadastro(
                     db.collection("professores_online").document(doc.id).update({
                         "foto_perfil": "perfil.png"
                     })
-        except Exception as e:
-            print("Erro ao atualizar professores antigos:", e)
+        except:
+            pass
 
         # ============================
-        # RETORNO
+        # RETORNO COM REDIRECIONAMENTO
         # ============================
         return templates.TemplateResponse("sucesso.html", {
             "request": request,
-            "mensagem": "Professor cadastrado com sucesso!"
+            "mensagem": "Professor cadastrado com sucesso!",
+            "redirect_url": "/login_prof"   # envia a rota para o HTML
         })
 
     except Exception as e:
