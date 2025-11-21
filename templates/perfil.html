@@ -849,6 +849,7 @@ async function carregarProfessorDoAluno() {
       return;
     }
 
+    // Chama a rota do backend
     const res = await fetch(`/professor-do-aluno/${encodeURIComponent(nomeAluno)}`);
     if (!res.ok) throw new Error("Erro ao buscar professor");
 
@@ -856,6 +857,8 @@ async function carregarProfessorDoAluno() {
     const container = document.getElementById("professor-vinculado");
 
     container.style.display = "block";
+
+    // Se houver professor, mostra foto e nome
     container.innerHTML = `
       <div class="professor-container">
         <img src="${data.foto_perfil || 'perfil.png'}" alt="Foto do Professor" class="professor-foto">
@@ -896,11 +899,11 @@ function fecharProfessor() {
   border-radius: 12px;
   padding: 20px;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   position: relative;
-  flex-direction: column;
-  text-align: center;
 }
 
 .professor-foto {
