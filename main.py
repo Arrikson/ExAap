@@ -2053,7 +2053,7 @@ async def professor_do_aluno(nome_aluno: str):
                 content={
                     "professor": None,
                     "disciplina": None,
-                    "foto_perfil": None,
+                    "foto_perfil": "perfil.png",
                     "mensagem": f"Aluno '{aluno_normalizado}' não vinculado a nenhum professor"
                 }
             )
@@ -2065,10 +2065,10 @@ async def professor_do_aluno(nome_aluno: str):
             return {
                 "professor": "Desconhecido",
                 "disciplina": "Desconhecida",
-                "foto_perfil": None
+                "foto_perfil": "perfil.png"
             }
 
-        # Busca dados do professor
+        # Busca dados do professor na coleção professores_online
         prof_query = db.collection("professores_online") \
                        .where("email", "==", professor_email.strip().lower()) \
                        .limit(1).stream()
@@ -2078,17 +2078,17 @@ async def professor_do_aluno(nome_aluno: str):
             return {
                 "professor": "Desconhecido",
                 "disciplina": "Desconhecida",
-                "foto_perfil": None
+                "foto_perfil": "perfil.png"
             }
 
         prof_data = prof_doc.to_dict()
 
-        # Retorna também a foto de perfil
+        # Retorna dados do professor incluindo foto de perfil
         return {
             "professor": prof_data.get("nome_completo", "Desconhecido"),
             "disciplina": prof_data.get("area_formacao", "Desconhecida"),
             "email": professor_email.strip().lower(),
-            "foto_perfil": prof_data.get("foto_perfil", "perfil.png"),
+            "foto_perfil": prof_data.get("foto_perfil") or "perfil.png",
             "mensagens": vinculo_data.get("mensagens", [])  # mensagens do vínculo
         }
 
