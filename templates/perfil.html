@@ -1570,7 +1570,7 @@ onSnapshot(chamadaRef, (docSnap) => {
     }
   };
 
-let professoresCache = null; 
+let professoresCache = null;
 
 async function abrirProfessores() {
   try {
@@ -1597,28 +1597,43 @@ async function abrirProfessores() {
         .prof-list li i {
           margin-right: 6px;
         }
+        ul.horarios li {
+          margin-bottom: 4px;
+        }
         @media (max-width: 480px) {
           .prof-list li {
             font-size: 14px;
             padding: 8px;
           }
-          h3 {
-            font-size: 17px !important;
-          }
+          h3 { font-size: 17px !important; }
+          ul.horarios li { font-size: 14px; }
         }
       </style>
 
       <h3 style="margin-bottom:12px;">Professores com horários disponíveis</h3>
       <ul class="prof-list" style="padding-left:10px; list-style:none;">`;
 
+    // Loop pelos professores e buscar nome
     for (const prof of lista) {
       const email = prof.professor;
 
+      // Buscar nome real
+      const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
+      const dadosNome = await resNome.json();
+      const nomeProfessor = dadosNome.nome || email;
+
+      // Gerar HTML com nome e horários disponíveis
       html += `
         <li style="cursor:pointer; color:#007bff;"
             onclick="verHorariosProfessor('${email}')">
-            <i class="fa-solid fa-user"></i> ${email}
-        </li>`;
+            <i class="fa-solid fa-user"></i> ${nomeProfessor}
+            <ul class="horarios">`;
+
+      for (const dia in prof.dias_disponiveis) {
+        html += `<li><b>${dia}:</b> ${prof.dias_disponiveis[dia].join(", ")}</li>`;
+      }
+
+      html += `</ul></li>`;
     }
 
     html += "</ul>";
@@ -1650,29 +1665,13 @@ async function verHorariosProfessor(email) {
 
     const dias = prof.dias_disponiveis;
 
-
-    // CSS Responsivo
+    // Modal detalhado
     let html = `
-      <style>
-        ul.horarios li {
-          margin-bottom: 4px;
-        }
-        @media (max-width: 480px) {
-          h3 { font-size: 17px !important; }
-          ul.horarios li { font-size: 14px; }
-        }
-      </style>
-
-      <h3>Horários disponíveis<br>
-      <small>${nomeProfessor}</small></h3>`;
+      <h3>Horários disponíveis<br><small>${nomeProfessor}</small></h3>`;
 
     for (const dia in dias) {
       html += `<b>${dia}:</b><ul class="horarios">`;
-
-      dias[dia].forEach(h => {
-        html += `<li>${h}</li>`;
-      });
-
+      dias[dia].forEach(h => html += `<li>${h}</li>`);
       html += "</ul><hr>";
     }
 
@@ -1683,6 +1682,7 @@ async function verHorariosProfessor(email) {
   }
 }
 
+// Adicionar listener ao botão
 document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("btn-professores");
     if (btn) {
