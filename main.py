@@ -4835,16 +4835,27 @@ async def buscar_professor_nome(email: str):
 
         for doc in query:
             data = doc.to_dict()
+
             return {
                 "nome": data.get("nome_completo", "Sem Nome"),
-                "foto_perfil": data.get("foto_perfil") or "perfil.png"
+                "foto_perfil": data.get("foto_perfil") or "perfil.png",
+                "nivel_ensino": data.get("nivel_ensino", "Não informado"),
+                "telefone": data.get("telefone", "Não informado"),
+                "residencia": data.get("residencia", "Não informada"),
+                "bairro": data.get("bairro", "Não informado"),
+                "morada_completa": f"{data.get('bairro', '')}, {data.get('residencia', '')}".strip(", ")
             }
 
+        # Se não encontrou o professor:
         return {
             "nome": "Desconhecido",
-            "foto_perfil": "perfil.png"
+            "foto_perfil": "perfil.png",
+            "nivel_ensino": "Não informado",
+            "telefone": "Não informado",
+            "residencia": "Não informada",
+            "bairro": "Não informado",
+            "morada_completa": "Não informada"
         }
 
     except Exception as e:
         return {"erro": str(e)}
-
