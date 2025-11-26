@@ -1602,7 +1602,6 @@ async function abrirProfessores() {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          cursor: pointer;
         }
 
         .prof-foto {
@@ -1614,9 +1613,15 @@ async function abrirProfessores() {
           flex-shrink: 0;
         }
 
-        /* 👇 Correção para permitir clique no <li> */
-        .prof-info, .prof-info *, .prof-foto {
-          pointer-events: none;
+        .dados-btn {
+          margin-top: 6px;
+          padding: 4px 8px;
+          font-size: 13px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
         }
 
         .prof-info {
@@ -1633,6 +1638,7 @@ async function abrirProfessores() {
         @media (max-width: 480px) {
           .prof-foto { width: 36px; height: 36px; }
           .prof-list li { font-size: 14px; padding: 8px; }
+          .dados-btn { font-size: 12px; }
           h3 { font-size: 17px !important; }
         }
       </style>
@@ -1650,8 +1656,11 @@ async function abrirProfessores() {
       const dadosNome = await resNome.json();
 
       html += `
-        <li onclick="verHorariosProfessor('${email}')">
-            <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
+        <li>
+            <div style="text-align:center;">
+                <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
+                <button class="dados-btn" onclick="verHorariosProfessor('${email}')">Dados</button>
+            </div>
 
             <div class="prof-info">
               <div style="color:#007bff; font-weight:600;">
