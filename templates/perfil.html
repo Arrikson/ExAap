@@ -1586,54 +1586,82 @@ async function abrirProfessores() {
       return;
     }
 
-    // CSS RESPONSIVO DENTRO DO MODAL
+    // CSS RESPONSIVO PARA O MODAL
     let html = `
       <style>
         .prof-list li {
           padding: 10px;
           font-size: 15px;
           border-bottom: 1px solid #ddd;
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
-        .prof-list li i {
-          margin-right: 6px;
+
+        .prof-foto {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #f1f1f1;
         }
-        ul.horarios li {
-          margin-bottom: 4px;
+
+        .prof-info {
+          flex: 1;
         }
+
+        .prof-info ul {
+          margin-top: 4px;
+        }
+
         @media (max-width: 480px) {
+          .prof-foto {
+            width: 36px;
+            height: 36px;
+          }
+
           .prof-list li {
             font-size: 14px;
             padding: 8px;
           }
+
           h3 { font-size: 17px !important; }
-          ul.horarios li { font-size: 14px; }
         }
       </style>
 
       <h3 style="margin-bottom:12px;">Professores com horários disponíveis</h3>
-      <ul class="prof-list" style="padding-left:10px; list-style:none;">`;
+      <ul class="prof-list" style="padding-left:0; list-style:none;">`;
 
-    // Loop pelos professores e buscar nome
+    // LOOP PELOS PROFESSORES
     for (const prof of lista) {
       const email = prof.professor;
 
-      // Buscar nome real
+      // Buscar nome + foto
       const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
       const dadosNome = await resNome.json();
-      const nomeProfessor = dadosNome.nome || email;
 
-      // Gerar HTML com nome e horários disponíveis
+      const nomeProfessor = dadosNome.nome || email;
+      const fotoProfessor = dadosNome.foto_perfil || "perfil.png";
+
       html += `
-        <li style="cursor:pointer; color:#007bff;"
-            onclick="verHorariosProfessor('${email}')">
-            <i class="fa-solid fa-user"></i> ${nomeProfessor}
-            <ul class="horarios">`;
+        <li onclick="verHorariosProfessor('${email}')" style="cursor:pointer;">
+            <img src="/static/${fotoProfessor}" class="prof-foto">
+
+            <div class="prof-info">
+              <div style="color:#007bff; font-weight:600;">
+                <i class="fa-solid fa-user"></i> ${nomeProfessor}
+              </div>
+
+              <ul class="horarios">`;
 
       for (const dia in prof.dias_disponiveis) {
         html += `<li><b>${dia}:</b> ${prof.dias_disponiveis[dia].join(", ")}</li>`;
       }
 
-      html += `</ul></li>`;
+      html += `
+              </ul>
+            </div>
+        </li>`;
     }
 
     html += "</ul>";
@@ -1661,13 +1689,30 @@ async function verHorariosProfessor(email) {
 
     const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
     const dadosNome = await resNome.json();
+
     const nomeProfessor = dadosNome.nome || email;
+    const fotoProfessor = dadosNome.foto_perfil || "perfil.png";
 
     const dias = prof.dias_disponiveis;
 
-    // Modal detalhado
     let html = `
-      <h3>Horários disponíveis<br><small>${nomeProfessor}</small></h3>`;
+      <style>
+        .foto-detalhe {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          margin-bottom: 10px;
+          object-fit: cover;
+          border: 3px solid #ddd;
+        }
+      </style>
+
+      <div style="text-align:center;">
+        <img src="/static/${fotoProfessor}" class="foto-detalhe">
+        <h3 style="margin-top:8px;">${nomeProfessor}</h3>
+      </div>
+
+      <hr style="margin:10px 0;">`;
 
     for (const dia in dias) {
       html += `<b>${dia}:</b><ul class="horarios">`;
