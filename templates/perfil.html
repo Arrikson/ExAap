@@ -1629,8 +1629,6 @@ async function abrirProfessores() {
   }
 }
 
-
-
 async function verHorariosProfessor(email) {
   try {
     if (!professoresCache) {
@@ -1684,7 +1682,14 @@ async function verHorariosProfessor(email) {
     console.error("Erro ao mostrar horários:", err);
   }
 }
-  
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btn-professores");
+    if (btn) {
+        btn.addEventListener("click", abrirProfessores);
+    }
+});
+
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
   desafio.style.display =
