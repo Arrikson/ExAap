@@ -1602,6 +1602,7 @@ async function abrirProfessores() {
           display: flex;
           align-items: flex-start;
           gap: 10px;
+          cursor: pointer;
         }
 
         .prof-foto {
@@ -1611,6 +1612,11 @@ async function abrirProfessores() {
           object-fit: cover;
           border: 2px solid #f1f1f1;
           flex-shrink: 0;
+        }
+
+        /* 👇 Correção para permitir clique no <li> */
+        .prof-info, .prof-info *, .prof-foto {
+          pointer-events: none;
         }
 
         .prof-info {
@@ -1644,7 +1650,7 @@ async function abrirProfessores() {
       const dadosNome = await resNome.json();
 
       html += `
-        <li onclick="verHorariosProfessor('${email}')" style="cursor:pointer;">
+        <li onclick="verHorariosProfessor('${email}')">
             <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
 
             <div class="prof-info">
@@ -1759,7 +1765,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btn-professores");
   if (btn) btn.addEventListener("click", abrirProfessores);
 });
-
 
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
