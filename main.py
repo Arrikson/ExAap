@@ -4823,3 +4823,19 @@ async def professores_disponiveis():
         print("🔴 Erro ao consultar professores disponíveis:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
+@app.get("/buscar-professor-nome")
+async def buscar_professor_nome(email: str):
+    try:
+        email = email.strip().lower()
+        query = db.collection("professores_online") \
+                  .where("email", "==", email) \
+                  .limit(1).stream()
+
+        for doc in query:
+            data = doc.to_dict()
+            return {"nome": data.get("nome_completo", "Sem Nome")}
+
+        return {"nome": "Desconhecido"}
+
+    except Exception as e:
+        return {"erro": str(e)}
