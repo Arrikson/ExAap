@@ -3000,13 +3000,22 @@ async def enviar_horario(request: Request):
             print("⚠️ Não encontrado em alunos_professor")
 
         # ============================================================
-        # 3️⃣ ATUALIZAR HORÁRIO NA COLEÇÃO PROFESSORES_ONLINE
+        # 3️⃣ ATUALIZAR NA COLEÇÃO PROFESSORES_ONLINE
         # ============================================================
 
-        # Verificar se todos os dias estão preenchidos
         dias_necessarios = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
-        horario_completo = all(d in horario and horario[d] for d in dias_necessarios)
 
+        # 🔥 LÓGICA CORRETA:
+        # True SOMENTE SE O ARRAY TIVER EXATAMENTE 7 HORÁRIOS
+        horario_estado = {}
+        for dia in dias_necessarios:
+            horarios_do_dia = horario.get(dia, [])
+            horario_estado[dia] = isinstance(horarios_do_dia, list) and len(horarios_do_dia) == 7
+
+        # True somente se TODOS OS DIAS estiverem completos com 7 horários
+        horario_completo = all(horario_estado.values())
+
+        # Buscar professor
         prof_query = db.collection("professores_online") \
             .where("email", "==", professor_email) \
             .limit(1).stream()
@@ -3016,16 +3025,20 @@ async def enviar_horario(request: Request):
         if prof_doc:
             prof_doc.reference.update({
                 "horario": horario,
+                "horario_estado": horario_estado,
                 "horario_completo": horario_completo
             })
             print(f"🟦 Horário atualizado em PROFESSORES_ONLINE → {prof_doc.id}")
         else:
             print("⚠️ Professor não encontrado em professores_online")
 
-        # Também atualizar na coleção professores_online2
+        # ============================================================
+        # 4️⃣ ATUALIZAR PROFESSORES_ONLINE2
+        # ============================================================
         try:
             db.collection("professores_online2").document(professor_email).update({
                 "horario": horario,
+                "horario_estado": horario_estado,
                 "horario_completo": horario_completo
             })
             print("🟦 Horário atualizado em PROFESSORES_ONLINE2")
