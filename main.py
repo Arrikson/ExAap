@@ -4769,3 +4769,57 @@ async def pagina_erro(request: Request, mensagem: str = "Ocorreu um erro inesper
         "mensagem": mensagem
     })
 
+@app.get("/professores-disponiveis")
+async def professores_disponiveis():
+    try:
+        # Horários padrão para comparar
+        horarios_padrao = [
+            "7:30 - 8:30",
+            "9:30 - 10:30",
+            "11:30 - 12:30",
+            "13:30 - 14:30",
+            "15:30 - 16:30",
+            "17:30 - 18:30",
+            "19:30 - 20:30"
+        ]
+
+        dias_semana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+
+        resposta = []
+
+        # Buscar professores com horário incompleto
+        profs_query = db.collection("professores_online") \
+            .where("horario_completo", "==", False) \
+            .stream()
+
+        for prof_doc in profs_query:
+            prof_data = prof_doc.to_dict()
+            email = prof_data.get("email", "")
+            horario = prof_data.get("horario", {})
+            estado = prof_data.get("horario_estado", {})
+
+            dias_disponiveis = {}
+
+            # Verificar dias que estão marcados como "False"
+            for dia in dias_semana:
+                if estado.get(dia) is False:
+
+                    # Horários já preenchidos
+                    preenchidos = horario.get(dia, [])
+
+                    # Filtrar os horários que ainda não existem
+                    faltando = [h for h in horarios_padrao if h not in preenchidos]
+
+                    dias_disponiveis[dia] = faltando
+
+            resposta.append({
+                "professor": email,
+                "dias_disponiveis": dias_disponiveis
+            })
+
+        return resposta
+
+    except Exception as e:
+        print("🔴 Erro ao consultar professores disponíveis:", e)
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
