@@ -1574,7 +1574,6 @@ let professoresCache = null;
 
 async function abrirProfessores() {
   try {
-    // Buscar professores apenas 1 vez
     if (!professoresCache) {
       const res = await fetch("/professores-disponiveis");
       professoresCache = await res.json();
@@ -1587,14 +1586,36 @@ async function abrirProfessores() {
       return;
     }
 
-    // Listagem dos professores
-    let html = `<h3>Professores com horários disponíveis</h3><ul style="padding-left:15px;">`;
+    // CSS RESPONSIVO DENTRO DO MODAL
+    let html = `
+      <style>
+        .prof-list li {
+          padding: 10px;
+          font-size: 15px;
+          border-bottom: 1px solid #ddd;
+        }
+        .prof-list li i {
+          margin-right: 6px;
+        }
+        @media (max-width: 480px) {
+          .prof-list li {
+            font-size: 14px;
+            padding: 8px;
+          }
+          h3 {
+            font-size: 17px !important;
+          }
+        }
+      </style>
+
+      <h3 style="margin-bottom:12px;">Professores com horários disponíveis</h3>
+      <ul class="prof-list" style="padding-left:10px; list-style:none;">`;
 
     for (const prof of lista) {
       const email = prof.professor;
 
       html += `
-        <li style="margin-bottom:8px; cursor:pointer; color:#007bff;"
+        <li style="cursor:pointer; color:#007bff;"
             onclick="verHorariosProfessor('${email}')">
             <i class="fa-solid fa-user"></i> ${email}
         </li>`;
@@ -1608,9 +1629,10 @@ async function abrirProfessores() {
   }
 }
 
+
+
 async function verHorariosProfessor(email) {
   try {
-    // Garantir cache
     if (!professoresCache) {
       const res = await fetch("/professores-disponiveis");
       professoresCache = await res.json();
@@ -1624,18 +1646,30 @@ async function verHorariosProfessor(email) {
       return;
     }
 
-    // Buscar nome do professor
     const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
     const dadosNome = await resNome.json();
     const nomeProfessor = dadosNome.nome || email;
 
     const dias = prof.dias_disponiveis;
 
-    // Construção do modal
-    let html = `<h3>Horários disponíveis<br><small>${nomeProfessor}</small></h3>`;
+
+    // CSS Responsivo
+    let html = `
+      <style>
+        ul.horarios li {
+          margin-bottom: 4px;
+        }
+        @media (max-width: 480px) {
+          h3 { font-size: 17px !important; }
+          ul.horarios li { font-size: 14px; }
+        }
+      </style>
+
+      <h3>Horários disponíveis<br>
+      <small>${nomeProfessor}</small></h3>`;
 
     for (const dia in dias) {
-      html += `<b>${dia}:</b><ul>`;
+      html += `<b>${dia}:</b><ul class="horarios">`;
 
       dias[dia].forEach(h => {
         html += `<li>${h}</li>`;
