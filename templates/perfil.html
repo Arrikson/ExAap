@@ -1589,7 +1589,6 @@ async function abrirProfessores() {
     // CSS RESPONSIVO + SCROLLS
     let html = `
       <style>
-        /* LISTA GERAL COM SCROLL */
         .prof-list-container {
           max-height: 60vh;
           overflow-y: auto;
@@ -1618,7 +1617,6 @@ async function abrirProfessores() {
           flex: 1;
         }
 
-        /* SCROLL INDIVIDUAL DOS HORÁRIOS */
         .horarios {
           max-height: 120px;
           overflow-y: auto;
@@ -1626,21 +1624,9 @@ async function abrirProfessores() {
           padding-right: 4px;
         }
 
-        .horarios li {
-          margin-bottom: 3px;
-        }
-
         @media (max-width: 480px) {
-          .prof-foto {
-            width: 36px;
-            height: 36px;
-          }
-
-          .prof-list li {
-            font-size: 14px;
-            padding: 8px;
-          }
-
+          .prof-foto { width: 36px; height: 36px; }
+          .prof-list li { font-size: 14px; padding: 8px; }
           h3 { font-size: 17px !important; }
         }
       </style>
@@ -1654,20 +1640,16 @@ async function abrirProfessores() {
     for (const prof of lista) {
       const email = prof.professor;
 
-      // Buscar nome + foto
       const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
       const dadosNome = await resNome.json();
 
-      const nomeProfessor = dadosNome.nome || email;
-      const fotoProfessor = dadosNome.foto_perfil || "perfil.png";
-
       html += `
         <li onclick="verHorariosProfessor('${email}')" style="cursor:pointer;">
-            <img src="/static/${fotoProfessor}" class="prof-foto">
+            <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
 
             <div class="prof-info">
               <div style="color:#007bff; font-weight:600;">
-                <i class="fa-solid fa-user"></i> ${nomeProfessor}
+                <i class="fa-solid fa-user"></i> ${dadosNome.nome}
               </div>
 
               <ul class="horarios">`;
@@ -1687,7 +1669,6 @@ async function abrirProfessores() {
       </div>`;
 
     mostrarModalAulas(html);
-
   } catch (err) {
     console.error("Erro ao carregar professores:", err);
   }
@@ -1700,21 +1681,11 @@ async function verHorariosProfessor(email) {
       professoresCache = await res.json();
     }
 
-    const lista = professoresCache;
-    const prof = lista.find(p => p.professor === email);
+    const prof = professoresCache.find(p => p.professor === email);
 
-    if (!prof) {
-      mostrarModalAulas("<b>Horário não encontrado.</b>");
-      return;
-    }
+    const dados = await fetch(`/buscar-professor-nome?email=${email}`).then(r => r.json());
 
-    const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
-    const dadosNome = await resNome.json();
-
-    const nomeProfessor = dadosNome.nome || email;
-    const fotoProfessor = dadosNome.foto_perfil || "perfil.png";
-
-    const dias = prof.dias_disponiveis;
+    const foto = dados.foto_perfil || "perfil.png";
 
     let html = `
       <style>
@@ -1727,7 +1698,22 @@ async function verHorariosProfessor(email) {
           border: 3px solid #ddd;
         }
 
-        /* SCROLL PARA O DETALHE */
+        .info-box {
+          margin-top: 10px;
+          font-size: 15px;
+          line-height: 1.6;
+        }
+
+        .copy-btn {
+          padding: 5px 10px;
+          background:#007bff;
+          color:#fff;
+          border:none;
+          border-radius:6px;
+          cursor:pointer;
+          margin-left:10px;
+        }
+
         .horarios-detalhe {
           max-height: 55vh;
           overflow-y: auto;
@@ -1736,17 +1722,27 @@ async function verHorariosProfessor(email) {
       </style>
 
       <div style="text-align:center;">
-        <img src="/static/${fotoProfessor}" class="foto-detalhe">
-        <h3 style="margin-top:8px;">${nomeProfessor}</h3>
+        <img src="/static/${foto}" class="foto-detalhe">
+        <h3 style="margin-top:8px;">${dados.nome}</h3>
+      </div>
+
+      <div class="info-box">
+        <b>Telefone:</b> ${dados.telefone}
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('${dados.telefone}')">Copiar</button> <br>
+
+        <b>Bairro:</b> ${dados.bairro} <br>
+        <b>Residência:</b> ${dados.residencia} <br>
+        <b>Nível de ensino:</b> ${dados.nivel_ensino} <br>
+        <b>Morada completa:</b> ${dados.morada_completa}
       </div>
 
       <hr style="margin:10px 0;">
 
       <div class="horarios-detalhe">`;
 
-    for (const dia in dias) {
-      html += `<b>${dia}:</b><ul class="horarios">`;
-      dias[dia].forEach(h => html += `<li>${h}</li>`);
+    for (const dia in prof.dias_disponiveis) {
+      html += `<b>${dia}:</b><ul>`;
+      prof.dias_disponiveis[dia].forEach(h => html += `<li>${h}</li>`);
       html += "</ul><hr>";
     }
 
@@ -1763,6 +1759,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btn-professores");
   if (btn) btn.addEventListener("click", abrirProfessores);
 });
+
 
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
