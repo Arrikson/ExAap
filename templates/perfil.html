@@ -1586,15 +1586,22 @@ async function abrirProfessores() {
       return;
     }
 
-    // CSS RESPONSIVO PARA O MODAL
+    // CSS RESPONSIVO + SCROLLS
     let html = `
       <style>
+        /* LISTA GERAL COM SCROLL */
+        .prof-list-container {
+          max-height: 60vh;
+          overflow-y: auto;
+          padding-right: 5px;
+        }
+
         .prof-list li {
           padding: 10px;
           font-size: 15px;
           border-bottom: 1px solid #ddd;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           gap: 10px;
         }
 
@@ -1604,14 +1611,23 @@ async function abrirProfessores() {
           border-radius: 50%;
           object-fit: cover;
           border: 2px solid #f1f1f1;
+          flex-shrink: 0;
         }
 
         .prof-info {
           flex: 1;
         }
 
-        .prof-info ul {
-          margin-top: 4px;
+        /* SCROLL INDIVIDUAL DOS HORÁRIOS */
+        .horarios {
+          max-height: 120px;
+          overflow-y: auto;
+          margin-top: 6px;
+          padding-right: 4px;
+        }
+
+        .horarios li {
+          margin-bottom: 3px;
         }
 
         @media (max-width: 480px) {
@@ -1630,7 +1646,9 @@ async function abrirProfessores() {
       </style>
 
       <h3 style="margin-bottom:12px;">Professores com horários disponíveis</h3>
-      <ul class="prof-list" style="padding-left:0; list-style:none;">`;
+
+      <div class="prof-list-container">
+        <ul class="prof-list" style="padding-left:0; list-style:none;">`;
 
     // LOOP PELOS PROFESSORES
     for (const prof of lista) {
@@ -1664,7 +1682,10 @@ async function abrirProfessores() {
         </li>`;
     }
 
-    html += "</ul>";
+    html += `
+        </ul>
+      </div>`;
+
     mostrarModalAulas(html);
 
   } catch (err) {
@@ -1705,6 +1726,13 @@ async function verHorariosProfessor(email) {
           object-fit: cover;
           border: 3px solid #ddd;
         }
+
+        /* SCROLL PARA O DETALHE */
+        .horarios-detalhe {
+          max-height: 55vh;
+          overflow-y: auto;
+          padding-right: 5px;
+        }
       </style>
 
       <div style="text-align:center;">
@@ -1712,13 +1740,17 @@ async function verHorariosProfessor(email) {
         <h3 style="margin-top:8px;">${nomeProfessor}</h3>
       </div>
 
-      <hr style="margin:10px 0;">`;
+      <hr style="margin:10px 0;">
+
+      <div class="horarios-detalhe">`;
 
     for (const dia in dias) {
       html += `<b>${dia}:</b><ul class="horarios">`;
       dias[dia].forEach(h => html += `<li>${h}</li>`);
       html += "</ul><hr>";
     }
+
+    html += `</div>`;
 
     mostrarModalAulas(html);
 
@@ -1727,12 +1759,9 @@ async function verHorariosProfessor(email) {
   }
 }
 
-// Adicionar listener ao botão
 document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("btn-professores");
-    if (btn) {
-        btn.addEventListener("click", abrirProfessores);
-    }
+  const btn = document.getElementById("btn-professores");
+  if (btn) btn.addEventListener("click", abrirProfessores);
 });
 
   function toggleDesafio() {
