@@ -827,9 +827,9 @@
     <span>Ver Horário</span>
   </div>
 
-  <div class="acao" id="btn-aulas-ativas">
-    <i id="icone-aulas" class="fa-solid fa-chalkboard-teacher"></i>
-    <span id="texto-aulas">Aulas Ativas</span>
+  <div class="acao" id="btn-professores">
+    <i id="icone-professores" class="fa-solid fa-user-tie"></i>
+    <span id="texto-professores">Professores</span>
   </div>
 
 <!-- Botão Ver Professor -->
@@ -1570,48 +1570,86 @@ onSnapshot(chamadaRef, (docSnap) => {
     }
   };
 
-async function verificarAulaAtiva() {
+let professoresCache = null; 
+
+async function abrirProfessores() {
   try {
-    const res = await fetch(`/buscar-id-professor?aluno=${aluno}`);
-    const data = await res.json();
-
-    const icone = document.getElementById("icone-aulas");
-    const texto = document.getElementById("texto-aulas");
-    const btn = document.getElementById("btn-aulas-ativas");
-
-    if (data.peer_id) {
-      icone.classList.add("fa-beat-fade", "text-success");
-      texto.textContent = "Aula Ativa";
-      btn.classList.add("active");
-
-      const hora = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
-      const html = `
-        <div style="margin-bottom:10px;">
-          <b><i class="fa-solid fa-video"></i> Aula a decorrer</b> — ${hora}
-        </div>
-        <div>
-          <i class="fa-solid fa-chalkboard-user"></i> Professor: ${data.professor || "Desconhecido"}
-        </div>
-      `;
-
-      mostrarModalAulas(html);
-    } else {
-      icone.classList.remove("fa-beat-fade", "text-success");
-      texto.textContent = "Aulas Ativas";
-      btn.classList.remove("active");
+    // Buscar professores apenas 1 vez
+    if (!professoresCache) {
+      const res = await fetch("/professores-disponiveis");
+      professoresCache = await res.json();
     }
+
+    const lista = professoresCache;
+
+    if (!Array.isArray(lista) || lista.length === 0) {
+      mostrarModalAulas("<b>Nenhum professor com horário disponível.</b>");
+      return;
+    }
+
+    // Listagem dos professores
+    let html = `<h3>Professores com horários disponíveis</h3><ul style="padding-left:15px;">`;
+
+    for (const prof of lista) {
+      const email = prof.professor;
+
+      html += `
+        <li style="margin-bottom:8px; cursor:pointer; color:#007bff;"
+            onclick="verHorariosProfessor('${email}')">
+            <i class="fa-solid fa-user"></i> ${email}
+        </li>`;
+    }
+
+    html += "</ul>";
+    mostrarModalAulas(html);
+
   } catch (err) {
-    console.error("Erro ao verificar aula ativa:", err);
+    console.error("Erro ao carregar professores:", err);
   }
 }
 
+async function verHorariosProfessor(email) {
+  try {
+    // Garantir cache
+    if (!professoresCache) {
+      const res = await fetch("/professores-disponiveis");
+      professoresCache = await res.json();
+    }
 
-document.getElementById("btn-aulas-ativas").addEventListener("click", verificarAulaAtiva);
+    const lista = professoresCache;
+    const prof = lista.find(p => p.professor === email);
 
+    if (!prof) {
+      mostrarModalAulas("<b>Horário não encontrado.</b>");
+      return;
+    }
+
+    // Buscar nome do professor
+    const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
+    const dadosNome = await resNome.json();
+    const nomeProfessor = dadosNome.nome || email;
+
+    const dias = prof.dias_disponiveis;
+
+    // Construção do modal
+    let html = `<h3>Horários disponíveis<br><small>${nomeProfessor}</small></h3>`;
+
+    for (const dia in dias) {
+      html += `<b>${dia}:</b><ul>`;
+
+      dias[dia].forEach(h => {
+        html += `<li>${h}</li>`;
+      });
+
+      html += "</ul><hr>";
+    }
+
+    mostrarModalAulas(html);
+
+  } catch (err) {
+    console.error("Erro ao mostrar horários:", err);
+  }
+}
   
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
