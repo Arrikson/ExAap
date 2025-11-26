@@ -4826,16 +4826,25 @@ async def professores_disponiveis():
 @app.get("/buscar-professor-nome")
 async def buscar_professor_nome(email: str):
     try:
-        email = email.strip().lower()
+        email_normalizado = email.strip().lower()
+
+        # Busca professor pela coleção professores_online
         query = db.collection("professores_online") \
-                  .where("email", "==", email) \
+                  .where("email", "==", email_normalizado) \
                   .limit(1).stream()
 
         for doc in query:
             data = doc.to_dict()
-            return {"nome": data.get("nome_completo", "Sem Nome")}
+            return {
+                "nome": data.get("nome_completo", "Sem Nome"),
+                "foto_perfil": data.get("foto_perfil") or "perfil.png"
+            }
 
-        return {"nome": "Desconhecido"}
+        return {
+            "nome": "Desconhecido",
+            "foto_perfil": "perfil.png"
+        }
 
     except Exception as e:
         return {"erro": str(e)}
+
