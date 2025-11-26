@@ -2957,53 +2957,90 @@ async def enviar_horario(request: Request):
         dados = await request.json()
         aluno_nome = dados.get("aluno_nome", "").strip().lower()
         professor_email = dados.get("professor_email", "").strip().lower()
-        horario = dados.get("horario")  # dict esperado
+        horario = dados.get("horario")  # dict recebido
 
         if not aluno_nome or not professor_email or not horario:
             return JSONResponse(status_code=400, content={"detail": "Dados incompletos."})
 
-        doc_id = f"{aluno_nome}_{professor_email}"
+        print(f"🟢 Horário recebido → {horario}")
 
-        print(f"🟢 Vai gravar EM alunos → nome_normalizado: {aluno_nome} | Dados: {horario}")
-
-        # ✅ Atualiza o campo 'horario' na coleção 'alunos' usando 'nome_normalizado'
+        # ============================================================
+        # 1️⃣ ATUALIZAR HORÁRIO NA COLEÇÃO ALUNOS
+        # ============================================================
         alunos_query = db.collection("alunos") \
             .where("nome_normalizado", "==", aluno_nome) \
-            .limit(1) \
-            .stream()
+            .limit(1).stream()
 
         aluno_found = False
         for aluno_doc in alunos_query:
             aluno_doc.reference.update({"horario": horario})
             aluno_found = True
-            print(f"✅ Horário atualizado na coleção alunos → ID: {aluno_doc.id}")
+            print(f"✅ Horário atualizado em ALUNOS → {aluno_doc.id}")
             break
 
         if not aluno_found:
-            print("⚠️ Aluno não encontrado na coleção alunos para atualizar horário.")
+            print("⚠️ Aluno não encontrado para atualizar horário.")
 
-        # Atualizar também o campo horario na coleção alunos_professor
+        # ============================================================
+        # 2️⃣ ATUALIZAR HORÁRIO NA COLEÇÃO ALUNOS_PROFESSOR
+        # ============================================================
         query = db.collection("alunos_professor") \
             .where("professor", "==", professor_email) \
             .where("aluno", "==", aluno_nome) \
-            .limit(1) \
-            .stream()
+            .limit(1).stream()
 
         doc_found = False
         for doc in query:
             doc.reference.update({"horario": horario})
             doc_found = True
-            print(f"✅ Horário também atualizado em alunos_professor → ID: {doc.id}")
+            print(f"✅ Horário atualizado em ALUNOS_PROFESSOR → {doc.id}")
             break
 
         if not doc_found:
-            print("⚠️ Vínculo não encontrado na coleção alunos_professor para atualizar horário.")
+            print("⚠️ Não encontrado em alunos_professor")
 
-        return {"mensagem": "Horário enviado e atualizado com sucesso."}
+        # ============================================================
+        # 3️⃣ ATUALIZAR HORÁRIO NA COLEÇÃO PROFESSORES_ONLINE
+        # ============================================================
+
+        # Verificar se todos os dias estão preenchidos
+        dias_necessarios = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+        horario_completo = all(d in horario and horario[d] for d in dias_necessarios)
+
+        prof_query = db.collection("professores_online") \
+            .where("email", "==", professor_email) \
+            .limit(1).stream()
+
+        prof_doc = next(prof_query, None)
+
+        if prof_doc:
+            prof_doc.reference.update({
+                "horario": horario,
+                "horario_completo": horario_completo
+            })
+            print(f"🟦 Horário atualizado em PROFESSORES_ONLINE → {prof_doc.id}")
+        else:
+            print("⚠️ Professor não encontrado em professores_online")
+
+        # Também atualizar na coleção professores_online2
+        try:
+            db.collection("professores_online2").document(professor_email).update({
+                "horario": horario,
+                "horario_completo": horario_completo
+            })
+            print("🟦 Horário atualizado em PROFESSORES_ONLINE2")
+        except:
+            print("⚠️ Professor não encontrado em professores_online2")
+
+        # ============================================================
+        # RETORNO FINAL
+        # ============================================================
+        return {"mensagem": "Horário enviado, atualizado e sincronizado com sucesso."}
 
     except Exception as e:
         print("🔴 Erro ao enviar horário:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
+
 
 @app.get("/ver-horario-aluno/{nome}")
 async def ver_horario_aluno(nome: str):
