@@ -1586,7 +1586,7 @@ async function abrirProfessores() {
       return;
     }
 
-    // CSS RESPONSIVO + SCROLLS
+    // CSS RESPONSIVO + FONTE MENOR
     let html = `
       <style>
         .prof-list-container {
@@ -1596,8 +1596,8 @@ async function abrirProfessores() {
         }
 
         .prof-list li {
-          padding: 10px;
-          font-size: 15px;
+          padding: 8px;
+          font-size: 13px; /* FONTE MENOR */
           border-bottom: 1px solid #ddd;
           display: flex;
           align-items: flex-start;
@@ -1605,18 +1605,18 @@ async function abrirProfessores() {
         }
 
         .prof-foto {
-          width: 42px;
-          height: 42px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
-          border: 2px solid #f1f1f1;
+          border: 2px solid #ececec;
           flex-shrink: 0;
         }
 
         .dados-btn {
           margin-top: 6px;
-          padding: 4px 8px;
-          font-size: 13px;
+          padding: 3px 7px;
+          font-size: 12px;
           background: #007bff;
           color: white;
           border: none;
@@ -1624,31 +1624,25 @@ async function abrirProfessores() {
           cursor: pointer;
         }
 
-        .prof-info {
-          flex: 1;
-        }
-
         .horarios {
-          max-height: 120px;
+          max-height: 100px;
           overflow-y: auto;
-          margin-top: 6px;
+          margin-top: 4px;
           padding-right: 4px;
         }
 
         @media (max-width: 480px) {
-          .prof-foto { width: 36px; height: 36px; }
-          .prof-list li { font-size: 14px; padding: 8px; }
-          .dados-btn { font-size: 12px; }
-          h3 { font-size: 17px !important; }
+          .prof-foto { width: 34px; height: 34px; }
+          .prof-list li { font-size: 12px; padding: 6px; }
+          h3 { font-size: 16px !important; }
         }
       </style>
 
-      <h3 style="margin-bottom:12px;">Professores com horários disponíveis</h3>
+      <h3 style="margin-bottom:10px;">Professores com horários disponíveis</h3>
 
       <div class="prof-list-container">
         <ul class="prof-list" style="padding-left:0; list-style:none;">`;
 
-    // LOOP PELOS PROFESSORES
     for (const prof of lista) {
       const email = prof.professor;
 
@@ -1659,7 +1653,7 @@ async function abrirProfessores() {
         <li>
             <div style="text-align:center;">
                 <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
-                <button class="dados-btn" onclick="verHorariosProfessor('${email}')">Dados</button>
+                <button class="dados-btn" onclick="verDadosProfessor('${email}')">Dados</button>
             </div>
 
             <div class="prof-info">
@@ -1684,61 +1678,48 @@ async function abrirProfessores() {
       </div>`;
 
     mostrarModalAulas(html);
+
   } catch (err) {
     console.error("Erro ao carregar professores:", err);
   }
 }
 
-async function verHorariosProfessor(email) {
+  async function verDadosProfessor(email) {
   try {
-    if (!professoresCache) {
-      const res = await fetch("/professores-disponiveis");
-      professoresCache = await res.json();
-    }
-
-    const prof = professoresCache.find(p => p.professor === email);
-
     const dados = await fetch(`/buscar-professor-nome?email=${email}`).then(r => r.json());
-
     const foto = dados.foto_perfil || "perfil.png";
 
     let html = `
       <style>
         .foto-detalhe {
-          width: 80px;
-          height: 80px;
+          width: 85px;
+          height: 85px;
           border-radius: 50%;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
           object-fit: cover;
           border: 3px solid #ddd;
         }
 
         .info-box {
           margin-top: 10px;
-          font-size: 15px;
-          line-height: 1.6;
+          font-size: 14px; /* FONTE MENOR */
+          line-height: 1.5;
         }
 
         .copy-btn {
-          padding: 5px 10px;
+          padding: 4px 8px;
           background:#007bff;
           color:#fff;
           border:none;
-          border-radius:6px;
+          border-radius:5px;
           cursor:pointer;
-          margin-left:10px;
-        }
-
-        .horarios-detalhe {
-          max-height: 55vh;
-          overflow-y: auto;
-          padding-right: 5px;
+          font-size: 12px;
         }
       </style>
 
       <div style="text-align:center;">
         <img src="/static/${foto}" class="foto-detalhe">
-        <h3 style="margin-top:8px;">${dados.nome}</h3>
+        <h3>${dados.nome}</h3>
       </div>
 
       <div class="info-box">
@@ -1750,23 +1731,12 @@ async function verHorariosProfessor(email) {
         <b>Nível de ensino:</b> ${dados.nivel_ensino} <br>
         <b>Morada completa:</b> ${dados.morada_completa}
       </div>
-
-      <hr style="margin:10px 0;">
-
-      <div class="horarios-detalhe">`;
-
-    for (const dia in prof.dias_disponiveis) {
-      html += `<b>${dia}:</b><ul>`;
-      prof.dias_disponiveis[dia].forEach(h => html += `<li>${h}</li>`);
-      html += "</ul><hr>";
-    }
-
-    html += `</div>`;
+    `;
 
     mostrarModalAulas(html);
 
   } catch (err) {
-    console.error("Erro ao mostrar horários:", err);
+    console.error("Erro ao carregar dados:", err);
   }
 }
 
@@ -1774,7 +1744,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btn-professores");
   if (btn) btn.addEventListener("click", abrirProfessores);
 });
-
+ 
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
   desafio.style.display =
