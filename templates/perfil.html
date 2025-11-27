@@ -1569,7 +1569,7 @@ onSnapshot(chamadaRef, (docSnap) => {
       mostrarModalAulas(`<i class="fa-solid fa-circle-xmark"></i> Erro ao buscar dados.`);
     }
   };
-
+  
 let professoresCache = null;
 
 async function abrirProfessores() {
@@ -1646,14 +1646,16 @@ async function abrirProfessores() {
     for (const prof of lista) {
       const email = prof.professor;
 
-      const resNome = await fetch(`/buscar-professor-nome?email=${email}`);
+      // busca dados básicos (nome, foto) para listar
+      const resNome = await fetch(`/buscar-professor-nome?email=${encodeURIComponent(email)}`);
       const dadosNome = await resNome.json();
 
+      // botão tem data-email (sem onclick inline)
       html += `
         <li>
             <div style="text-align:center;">
-                <img src="/static/${dadosNome.foto_perfil}" class="prof-foto">
-                <button class="dados-btn" onclick="verDadosProfessor('${email}')">Dados</button>
+                <img src="/static/${dadosNome.foto_perfil}" class="prof-foto" alt="foto">
+                <button class="dados-btn" data-email="${email}">Dados</button>
             </div>
 
             <div class="prof-info">
@@ -1677,17 +1679,44 @@ async function abrirProfessores() {
         </ul>
       </div>`;
 
+    // mostra o modal com a lista
     mostrarModalAulas(html);
+
+    // --- ligar listeners aos botões Dados após o modal ser renderizado ---
+    // usamos um pequeno timeout para dar tempo do modal inserir o HTML no DOM
+    setTimeout(() => {
+      try {
+        const botoes = document.querySelectorAll(".dados-btn");
+        botoes.forEach(btn => {
+          // evitar duplicar listeners
+          btn.removeEventListener("click", dadosBtnHandler);
+          btn.addEventListener("click", dadosBtnHandler);
+        });
+      } catch (e) {
+        console.error("Erro ao ligar listeners dos botões Dados:", e);
+      }
+    }, 60); // 60ms é suficiente na maioria dos casos
 
   } catch (err) {
     console.error("Erro ao carregar professores:", err);
   }
 }
 
-  async function verDadosProfessor(email) {
+// handler separado para facilitar add/remove
+function dadosBtnHandler(evt) {
+  const email = evt.currentTarget && evt.currentTarget.dataset && evt.currentTarget.dataset.email;
+  if (email) verDadosProfessor(email);
+  else console.warn("Email do professor não encontrado no botão Dados.");
+}
+
+async function verDadosProfessor(email) {
   try {
-    const dados = await fetch(`/buscar-professor-nome?email=${email}`).then(r => r.json());
+    // normaliza email na query
+    const dados = await fetch(`/buscar-professor-nome?email=${encodeURIComponent(email)}`).then(r => r.json());
     const foto = dados.foto_perfil || "perfil.png";
+
+    // usamos JSON.stringify para inserir o telefone de forma segura (evita quebra por aspas)
+    const telefoneForCopy = JSON.stringify(dados.telefone || "");
 
     let html = `
       <style>
@@ -1704,6 +1733,7 @@ async function abrirProfessores() {
           margin-top: 10px;
           font-size: 14px; /* FONTE MENOR */
           line-height: 1.5;
+          text-align: left;
         }
 
         .copy-btn {
@@ -1714,22 +1744,28 @@ async function abrirProfessores() {
           border-radius:5px;
           cursor:pointer;
           font-size: 12px;
+          display: inline-block;
+          margin-left: 8px;
+        }
+
+        .campo-label {
+          display: inline-block;
+          min-width: 110px;
+          font-weight: 600;
         }
       </style>
 
       <div style="text-align:center;">
-        <img src="/static/${foto}" class="foto-detalhe">
+        <img src="/static/${foto}" class="foto-detalhe" alt="foto">
         <h3>${dados.nome}</h3>
       </div>
 
       <div class="info-box">
-        <b>Telefone:</b> ${dados.telefone}
-        <button class="copy-btn" onclick="navigator.clipboard.writeText('${dados.telefone}')">Copiar</button> <br>
-
-        <b>Bairro:</b> ${dados.bairro} <br>
-        <b>Residência:</b> ${dados.residencia} <br>
-        <b>Nível de ensino:</b> ${dados.nivel_ensino} <br>
-        <b>Morada completa:</b> ${dados.morada_completa}
+        <div><span class="campo-label">Telefone:</span> ${dados.telefone || "Não informado"} <button class="copy-btn" onclick="navigator.clipboard.writeText(${telefoneForCopy})">Copiar</button></div>
+        <div><span class="campo-label">Bairro:</span> ${dados.bairro || "Não informado"}</div>
+        <div><span class="campo-label">Residência:</span> ${dados.residencia || "Não informada"}</div>
+        <div><span class="campo-label">Nível de ensino:</span> ${dados.nivel_ensino || "Não informado"}</div>
+        <div><span class="campo-label">Morada completa:</span> ${dados.morada_completa || "Não informada"}</div>
       </div>
     `;
 
@@ -1737,6 +1773,7 @@ async function abrirProfessores() {
 
   } catch (err) {
     console.error("Erro ao carregar dados:", err);
+    mostrarModalAulas("<b>Erro ao carregar dados do professor.</b>");
   }
 }
 
@@ -1744,6 +1781,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btn-professores");
   if (btn) btn.addEventListener("click", abrirProfessores);
 });
+
  
   function toggleDesafio() {
   const desafio = document.getElementById("container-desafio");
