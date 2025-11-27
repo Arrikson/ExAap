@@ -1794,89 +1794,203 @@ document.addEventListener("DOMContentLoaded", () => {
 function fecharDesafio() {
   document.getElementById("container-desafio").style.display = "none";
 }
+
 window.verHorario = async function () {
+
   
   const oldModal = document.querySelector(".custom-modal-overlay");
   if (oldModal) oldModal.remove();
 
-
+  // overlay
   const overlay = document.createElement("div");
   overlay.className = "custom-modal-overlay";
 
- 
+  // adiciona estilo local 
+  const style = document.createElement("style");
+  style.innerHTML = `
+    .custom-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    .custom-modal {
+      background: #fff;
+      border-radius: 10px;
+      width: 520px;
+      max-width: 100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      padding: 14px 16px 12px 16px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+    }
+
+    .custom-close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #333;
+    }
+
+    .custom-modal h3 {
+      margin: 4px 0 8px 0;
+      font-size: 16px;
+      text-align: left;
+      color: #0b5ed7;
+    }
+
+    .horario-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      padding-right: 8px;
+      
+      max-height: calc(85vh - 150px);
+    }
+
+    .dia-item {
+      margin-top: 8px;
+      font-size: 13px; 
+      color: #333;
+      line-height: 1.35;
+    }
+
+    .hora-item {
+      margin-left: 16px;
+      margin-top: 4px;
+      font-size: 12px; 
+      color: #444;
+      line-height: 1.3;
+    }
+
+    .loading-item, .error-item, .empty-item {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .modal-action-row {
+      display:flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      flex-shrink: 0;
+    }
+
+    .custom-action-btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    
+    @media (max-width: 420px) {
+      .custom-modal {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+      }
+      .custom-modal h3 { font-size: 15px; }
+      .dia-item { font-size: 12px; }
+      .hora-item { font-size: 11px; margin-left: 12px; }
+      .custom-action-btn { font-size: 12px; padding: 7px 10px; }
+      .custom-close-btn { font-size: 16px; top: 8px; right: 8px; }
+      .horario-list { max-height: calc(85vh - 130px); }
+    }
+  `;
+  overlay.appendChild(style);
+
+  
   const modal = document.createElement("div");
   modal.className = "custom-modal";
 
- 
+  
   const closeBtn = document.createElement("button");
   closeBtn.className = "custom-close-btn";
-  closeBtn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+  closeBtn.innerHTML = `<i class="fa-solid fa-xmark" aria-hidden="true"></i>`;
   closeBtn.onclick = () => overlay.remove();
 
-  
+ 
   const titulo = document.createElement("h3");
   titulo.innerHTML = `<i class="fa-solid fa-calendar-days"></i> Horário do Aluno`;
 
   
   const listaHorario = document.createElement("ul");
-  listaHorario.style.listStyle = "none";
-  listaHorario.style.padding = "0";
-  listaHorario.style.marginTop = "15px";
+  listaHorario.className = "horario-list";
   listaHorario.innerHTML = `
-    <li style="color:#666;">
-      <i class="fa-solid fa-spinner fa-spin"></i> Carregando...
-    </li>`;
+    <li class="loading-item"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</li>
+  `;
 
   
+  const actionRow = document.createElement("div");
+  actionRow.className = "modal-action-row";
   const actionBtn = document.createElement("button");
   actionBtn.className = "custom-action-btn";
   actionBtn.textContent = "Fechar";
   actionBtn.onclick = () => overlay.remove();
+  actionRow.appendChild(actionBtn);
 
   
   modal.appendChild(closeBtn);
   modal.appendChild(titulo);
   modal.appendChild(listaHorario);
-  modal.appendChild(actionBtn);
+  modal.appendChild(actionRow);
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
   try {
+    
     const res = await fetch(`/ver-horario-aluno/${encodeURIComponent(nomeAluno)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
     listaHorario.innerHTML = "";
 
     if (data.erro || !data.horario || Object.keys(data.horario).length === 0) {
       listaHorario.innerHTML = `
-        <li style="color:#b00;">
-          <i class="fa-solid fa-triangle-exclamation"></i> Nenhum horário encontrado.
-        </li>`;
+        <li class="empty-item"><i class="fa-solid fa-triangle-exclamation"></i> Nenhum horário encontrado.</li>
+      `;
     } else {
+      
       for (const [dia, horarios] of Object.entries(data.horario)) {
         const diaItem = document.createElement("li");
-        diaItem.innerHTML = `
-          <strong><i class="fa-solid fa-calendar-day"></i> ${traduzirDia(dia)}:</strong>`;
-        diaItem.style.marginTop = "10px";
+        diaItem.className = "dia-item";
+        diaItem.innerHTML = `<strong><i class="fa-solid fa-calendar-day"></i> ${traduzirDia(dia)}:</strong>`;
         listaHorario.appendChild(diaItem);
 
         (horarios || []).forEach((h) => {
           const horaItem = document.createElement("li");
+          horaItem.className = "hora-item";
           horaItem.innerHTML = `<i class="fa-regular fa-clock"></i> ${h}`;
-          horaItem.style.marginLeft = "20px";
-          horaItem.style.color = "#333";
           listaHorario.appendChild(horaItem);
         });
       }
     }
+
   } catch (e) {
     console.error("Erro verHorario:", e);
     listaHorario.innerHTML = `
-      <li style="color:#b00;">
-        <i class="fa-solid fa-circle-xmark"></i> Erro ao buscar horário.
-      </li>`;
+      <li class="error-item"><i class="fa-solid fa-circle-xmark"></i> Erro ao buscar horário.</li>
+    `;
   }
 };
+
 
 function traduzirDia(diaAbreviado) {
   const dias = {
@@ -1891,11 +2005,12 @@ function traduzirDia(diaAbreviado) {
   return dias[diaAbreviado] || diaAbreviado;
 }
 
-  window.toggle = function (id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
-  };
+
+window.toggle = function (id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+};
 
   window.fazerLogout = function () {
     const nomeAlunoForm = document.getElementById("aluno-id")?.value || nomeAluno;
