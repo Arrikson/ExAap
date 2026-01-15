@@ -176,88 +176,56 @@ CONTAS_100MS = [
 ]
 
 # ============================
-# 🔹 Inicializar CONTAS_100MS no Firebase (corrigido)
+# 🔹 CONFIGURAÇÃO
+# ============================
+MAX_USOS = 50
+
+
+# ============================
+# 🔹 Inicializar CONTAS_100MS
 # ============================
 def init_contas_100ms():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get()
-    if not doc.exists:
-        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
-        data = {
-            "conta_atual": 0,
-            "usos": usos
-        }
-        ref.set(data)
-        print("🔥 Documento 'CONTAS_100MS/contador' criado automaticamente no Firebase.")
 
-# Chamar na inicialização da aplicação
+    if not doc.exists:
+        ref.set({
+            "conta_atual": 0,
+            "usos": {str(i): 0 for i in range(len(CONTAS_100MS))}
+        })
+        print("🔥 CONTAS_100MS inicializado corretamente.")
+
 init_contas_100ms()
 
+
 # ============================
-# 🔹 FUNÇÕES DE CONTROLE DE CONTA
+# 🔹 FUNÇÃO CORRETA (USO ATÉ 50)
 # ============================
-async def get_current_account():
+async def get_account_and_increment():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
 
-    if not data:
-        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
-        data = {"conta_atual": 0, "usos": usos}
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
-
-    usos = {str(k): v for k, v in data["usos"].items()}
-    return data["conta_atual"], usos
-
-
-async def rotate_account():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
-
-    if not data:
-        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
-        data = {"conta_atual": 0, "usos": usos}
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
+    data = doc.to_dict()
 
     conta = data["conta_atual"]
-    usos = {str(k): v for k, v in data["usos"].items()}
-
+    usos = data["usos"]
     conta_str = str(conta)
-    # 🔥 ALTERADO DE 10 PARA 50
-    if usos.get(conta_str, 0) >= 50:
+
+    # ✅ SÓ TROCA DE CONTA SE ATINGIR 50
+    if usos[conta_str] >= MAX_USOS:
         conta = (conta + 1) % len(CONTAS_100MS)
         conta_str = str(conta)
         usos[conta_str] = 0
 
-    ref.update({"conta_atual": conta, "usos": usos})
+    # ✅ INCREMENTA SEM TROCAR
+    usos[conta_str] += 1
+
+    ref.update({
+        "conta_atual": conta,
+        "usos": usos
+    })
+
     return conta
-
-
-async def incrementar_uso():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
-    data = doc.to_dict() if doc.exists else None
-
-    if not data:
-        usos = {str(i): 0 for i in range(len(CONTAS_100MS))}
-        data = {"conta_atual": 0, "usos": usos}
-        ref.set(data)
-        print("🔥 Documento 'contador' criado automaticamente no Firebase.")
-
-    conta = data["conta_atual"]
-    usos = {str(k): v for k, v in data["usos"].items()}
-
-    conta_str = str(conta)
-    usos[conta_str] = usos.get(conta_str, 0) + 1
-
-    ref.update({"usos": usos})
-
-    await rotate_account()
-
-
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
