@@ -1,363 +1,241 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login do Administrador</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Painel Administrativo | SabApp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- AdminLTE -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Nunito', sans-serif;
-  background: #f4f7fa;
-  color: #333;
-  line-height: 1.6;
+.hidden{display:none!important}
+.status-verde{color:#28a745;font-weight:bold}
+.status-vermelho{color:#dc3545;font-weight:bold}
+.status-circulo{
+ width:10px;height:10px;border-radius:50%;
+ display:inline-block;margin-right:6px
 }
-
-
-.navbar {
-  background: linear-gradient(135deg, #0061a8, #00b4d8);
-  padding: 18px 20px;
-  color: #fff;
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  letter-spacing: 0.5px;
-}
-
-
-.login-form {
-  max-width: 400px;
-  margin: 80px auto;
-  padding: 35px 25px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-  text-align: center;
-}
-.login-form h2 {
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: 600;
-  color: #0061a8;
-}
-.login-form input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 15px;
-}
-.login-form button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 600;
-  font-size: 15px;
-  background: linear-gradient(135deg, #0078d7, #00b4d8);
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.3s ease;
-}
-.login-form button:hover {
-  background: linear-gradient(135deg, #005fa3, #0090b8);
-  transform: translateY(-2px);
-}
-#login-erro { font-size: 13px; margin-top: 8px; }
-
-/* 🔹 Painel */
-.container {
-  padding: 25px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  justify-content: center;
-  max-width: 1300px;
-  margin: 0 auto;
-}
-
-
-.card {
-  flex: 1 1 360px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  padding: 20px;
-  transition: transform 0.2s ease;
-}
-.card:hover { transform: translateY(-4px); }
-.card h2 { font-size: 18px; margin-bottom: 12px; color: #0061a8; }
-
-
-.btn {
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #0078d7, #00b4d8);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.3s ease;
-}
-.btn:hover {
-  background: linear-gradient(135deg, #005fa3, #0090b8);
-  transform: scale(1.05);
-}
-.toggle-btn {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  margin-top: 10px;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-}
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-th {
-  background: #f0f4f8;
-  font-weight: 700;
-  color: #333;
-}
-tr:hover td { background: #f9fcff; }
-
-
-.status-circulo {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-}
-.status-verde { background-color: #2ecc71; }
-.status-vermelho { background-color: #e74c3c; }
-
-
-textarea, select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-}
-
-
-@media (max-width: 768px) {
-  .container { flex-direction: column; padding: 15px; }
-  .card { flex: 1 1 100%; }
-  table, th, td { font-size: 12px; }
-  .btn { font-size: 13px; padding: 8px 14px; }
-}
-@media (max-width: 500px) {
-  .navbar { font-size: 20px; padding: 15px; }
-  .login-form { margin: 40px 15px; padding: 25px; }
-  .btn { font-size: 12px; padding: 7px 12px; }
-  table, th, td { font-size: 11px; }
-}
+.section{display:none}
 </style>
 </head>
-<body>
-  <div class="navbar">Painel do Administrador</div>
 
-  <div class="login-form" id="login-form">
-    <h2>Entrar</h2>
-    <input type="text" id="username" placeholder="Nome de utilizador">
-    <input type="password" id="password" placeholder="Palavra-passe">
-    <button onclick="verificarLogin()">Entrar</button>
-    <p id="login-erro" style="color:red;"></p>
-  </div>
+<body class="hold-transition sidebar-mini">
 
-  <div class="container" id="painel" style="display:none">
-    <div class="card">
-      <button class="btn toggle-btn" onclick="alternarVisibilidade('alunos-cadastrados')">👨‍🎓 Alunos Cadastrados</button>
-      <div class="section" id="alunos-cadastrados">
-        <button class="btn" onclick="carregarAlunos()">Atualizar</button>
-        <table id="tabela-alunos">
-          <thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+<div class="wrapper">
 
-    <div class="card">
-      <button class="btn toggle-btn" onclick="alternarVisibilidade('alunos-disponiveis')">📋 Alunos sem Vínculo</button>
-      <div class="section" id="alunos-disponiveis">
-        <button class="btn" onclick="carregarAlunosDisponiveis()">Atualizar</button>
-        <table id="tabela-disponiveis">
-          <thead><tr><th>Nome</th><th>Disciplina</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+<!-- NAVBAR -->
+<nav class="main-header navbar navbar-expand navbar-dark bg-primary">
+<ul class="navbar-nav">
+<li class="nav-item">
+<a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+</li>
+</ul>
+<span class="navbar-text font-weight-bold text-white ml-2">
+Painel Administrativo — SabApp
+</span>
+</nav>
 
-    <div class="card">
-      <button class="btn toggle-btn" onclick="alternarVisibilidade('professores-online')">🧑‍🏫 Professores Online</button>
-      <div class="section" id="professores-online">
-        <button class="btn" onclick="carregarProfessores()">Atualizar</button>
-        <table id="tabela-professores">
-          <thead><tr><th>Email</th><th>Status</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+<!-- SIDEBAR -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
 
-    <div class="card">
-      <button class="btn toggle-btn" onclick="alternarVisibilidade('aulas-ao-vivo')">🎥 Aulas em Andamento</button>
-      <div class="section" id="aulas-ao-vivo">
-        <button class="btn" onclick="carregarAulas()">Atualizar</button>
-        <table id="tabela-aulas">
-          <thead><tr><th>Aluno</th><th>Professor</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+<a href="#" class="brand-link text-center">
+<span class="brand-text font-weight-bold">SabApp Admin</span>
+</a>
 
-   <div class="card">
-  <button class="btn toggle-btn" onclick="alternarVisibilidade('aulas-dadas')">📚 Relatório de Aulas</button>
-  <div class="section" id="aulas-dadas">
-    <!-- Div para exibir notificações -->
-    <div id="notificacoes" style="margin-bottom: 15px;"></div>
+<div class="sidebar">
 
-    <!-- Botão para atualizar manualmente -->
-    <button class="btn" onclick="carregarRelatorioAulas()">Atualizar</button>
+<nav>
+<ul class="nav nav-pills nav-sidebar flex-column">
 
-    <!-- Tabela de relatório de aulas -->
-    <table id="tabela-aulas-dadas">
-      <thead>
-        <tr>
-          <th>Professor</th>
-          <th>Aluno</th>
-          <th>Aulas Dadas</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<li class="nav-item">
+<a href="#" onclick="mostrar('alunos')" class="nav-link">
+<i class="nav-icon fas fa-user-graduate"></i>
+<p>Alunos</p>
+</a>
+</li>
+
+<li class="nav-item">
+<a href="#" onclick="mostrar('professores')" class="nav-link">
+<i class="nav-icon fas fa-chalkboard-teacher"></i>
+<p>Professores</p>
+</a>
+</li>
+
+<li class="nav-item">
+<a href="#" onclick="mostrar('pagamentos')" class="nav-link">
+<i class="nav-icon fas fa-wallet"></i>
+<p>Pagamentos</p>
+</a>
+</li>
+
+<li class="nav-item">
+<a href="#" onclick="mostrar('mensagens')" class="nav-link">
+<i class="nav-icon fas fa-envelope"></i>
+<p>Mensagens</p>
+</a>
+</li>
+
+</ul>
+</nav>
+
 </div>
+</aside>
 
-    <div class="card">
-      <button class="btn toggle-btn" onclick="alternarVisibilidade('enviar-mensagem')">✉️ Enviar Mensagem</button>
-      <div class="section" id="enviar-mensagem">
-        <h2>Mensagem ao Professor</h2>
-        <select id="lista-professores">
-          <option disabled selected>Selecione o professor</option>
-        </select>
-        <textarea id="mensagem-texto" placeholder="Digite sua mensagem"></textarea>
-        <button class="btn" onclick="enviarMensagem()">Enviar Mensagem</button>
-      </div>
-    </div>
+<!-- CONTENT -->
+<div class="content-wrapper p-3">
 
-<!-- Controle de Pagamentos de Alunos -->
+<!-- LOGIN -->
+<div id="login-form" class="login-box mx-auto">
 <div class="card">
-  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos')">
-    💰 Controle de Pagamentos de Alunos
-  </button>
-  
-  <div class="section" id="controle-pagamentos">
-    <button class="btn" onclick="carregarPagamentos()">Atualizar</button>
-    
-    <!-- Tabela principal de alunos -->
-    <table id="tabela-pagamentos">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Status Atual</th>
-          <th>Dívida</th>
-          <th>Último Pagamento</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+<div class="card-body login-card-body">
 
-    <!-- Tabela de meses (detalhes do aluno) -->
-    <div id="detalhes-aluno" style="display:none; margin-top:15px; position: relative;">
-      <!-- Botão Fechar -->
-      <button onclick="document.getElementById('detalhes-aluno').style.display='none'" 
-              style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 18px; cursor: pointer;">
-        ❌
-      </button>
+<h4 class="text-center mb-3">Login Administrador</h4>
 
-      <h3 id="nome-aluno" style="margin-top:0;"></h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th>Ano</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-meses"></tbody>
-      </table>
-    </div>
-  </div>
+<input class="form-control mb-2" id="username" placeholder="Usuário">
+<input type="password" class="form-control mb-3" id="password" placeholder="Senha">
+
+<button class="btn btn-primary btn-block" onclick="verificarLogin()">Entrar</button>
+
+<p id="login-erro" class="text-danger mt-2"></p>
+
+</div>
+</div>
 </div>
 
-<!-- Controle de Pagamentos de Professores -->
+<!-- PAINEL -->
+<div id="painel" class="hidden">
+
+<!-- ================= ALUNOS ================= -->
+<section id="alunos">
+
 <div class="card">
-  <button class="btn toggle-btn" onclick="alternarVisibilidade('controle-pagamentos-prof')">
-    💰 Controle de Pagamento de Professores
-  </button>
-  
-  <div class="section" id="controle-pagamentos-prof">
-    <button class="btn" onclick="carregarPagamentosProf()">Atualizar</button>
-    
-    <!-- Tabela principal de professores -->
-    <table id="tabela-pagamentos-prof">
-      <thead>
-        <tr>
-          <th>Professor</th>
-          <th>Status Atual</th>
-          <th>Valor a Pagar (R$)</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <!-- Tabela de meses (detalhes do professor) -->
-    <div id="detalhes-prof" style="display:none; margin-top:15px; position: relative;">
-      <button onclick="document.getElementById('detalhes-prof').style.display='none'" 
-              style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 18px; cursor: pointer;">
-        ❌
-      </button>
-      <h3 id="nome-prof" style="margin-top:0;"></h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th>Data Pagamento</th>
-            <th>Valor Pago (Kz)</th>
-            <th>Email do Professor</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-meses-prof"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="card-header">
+<h3 class="card-title">👨‍🎓 Alunos</h3>
+<button class="btn btn-success btn-sm float-right" onclick="carregarAlunos()">Atualizar</button>
 </div>
 
+<div class="card-body table-responsive">
+<table class="table" id="tabela-alunos">
+<thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th><th></th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 
+</section>
 
+<!-- ================= PROFESSORES ================= -->
+<section id="professores" class="hidden">
 
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">🧑‍🏫 Professores</h3>
+<button class="btn btn-success btn-sm float-right" onclick="carregarProfessores()">Atualizar</button>
+</div>
+
+<div class="card-body table-responsive">
+<table class="table" id="tabela-professores">
+<thead><tr><th>Email</th><th>Status</th><th></th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+
+</section>
+
+<!-- ================= PAGAMENTOS ================= -->
+<section id="pagamentos" class="hidden">
+
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">💰 Pagamentos</h3>
+<button class="btn btn-success btn-sm float-right" onclick="carregarPagamentos()">Atualizar</button>
+</div>
+
+<div class="card-body table-responsive">
+
+<table class="table table-hover" id="tabela-pagamentos">
+<thead>
+<tr>
+<th>Nome</th>
+<th>Status</th>
+<th>Dívida</th>
+<th>Último Pagamento</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<div id="detalhes-aluno" class="mt-3 hidden">
+<h5 id="nome-aluno"></h5>
+<table class="table">
+<thead>
+<tr><th>Mês</th><th>Ano</th><th>Valor</th><th>Status</th></tr>
+</thead>
+<tbody id="tabela-meses"></tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+</section>
+
+<!-- ================= MENSAGENS ================= -->
+<section id="mensagens" class="hidden">
+
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">✉️ Mensagens</h3>
+</div>
+
+<div class="card-body">
+
+<select id="lista-professores" class="form-control mb-2"></select>
+
+<textarea id="mensagem-texto" class="form-control mb-2"
+placeholder="Digite sua mensagem"></textarea>
+
+<button class="btn btn-primary" onclick="enviarMensagem()">Enviar</button>
+
+</div>
+</div>
+
+</section>
+
+</div>
+</div>
+
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+<script>
+
+/* ===== CONTROLE DE TELAS ===== */
+function mostrar(id){
+document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"))
+document.getElementById(id)?.classList.remove("hidden")
+}
+
+/* ===== LOGIN ===== */
+function verificarLogin(){
+const u=username.value.trim()
+const p=password.value.trim()
+
+if(u==="admin" && p==="12345"){
+document.getElementById("login-form").classList.add("hidden")
+document.getElementById("painel").classList.remove("hidden")
+}else{
+login-erro.innerText="Credenciais inválidas"
+}
+}
 <script>
   function alternarVisibilidade(id) {
     const el = document.getElementById(id);
