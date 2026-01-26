@@ -22,156 +22,206 @@
     border-radius: 10px;
   }
 
-  /* ===============================
-     BLOCO DE LISTAGEM DE ALUNOS
-  =============================== */
+/* ===============================
+   OVERLAY LISTA DE ALUNOS
+================================ */
+
+.alunos-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.55);
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+/* ===============================
+   BLOCO DE LISTAGEM DE ALUNOS
+================================ */
+
+.alunos-container {
+  width: 90%;
+  max-width: 1150px;
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+
+  animation: zoomIn .25s ease;
+  transition: all .3s ease;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.dark-mode .alunos-container {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TÍTULO
+================================ */
+
+.alunos-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   TABELA
+================================ */
+
+table.tabela-alunos {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.tabela-alunos thead {
+  background: linear-gradient(45deg,#007bff,#0056b3);
+  color: white;
+}
+
+table.tabela-alunos th,
+table.tabela-alunos td {
+  padding: 11px;
+  border-bottom: 1px solid #e1e1e1;
+  vertical-align: middle;
+}
+
+.dark-mode table.tabela-alunos th,
+.dark-mode table.tabela-alunos td {
+  border-color: #3b3b3b;
+}
+
+table.tabela-alunos tbody tr:hover {
+  background: rgba(0,123,255,0.08);
+}
+
+.dark-mode table.tabela-alunos tbody tr:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+/* ===============================
+   STATUS VISUAL
+================================ */
+
+.status-online {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-offline {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.status-vinculado {
+  background: #28a745;
+  color: white;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.status-nao-vinculado {
+  background: #dc3545;
+  color: white;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ===============================
+   BOTÕES
+================================ */
+
+.btn-remover {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.btn-remover:hover {
+  opacity: .8;
+}
+
+/* ===============================
+   LOADING
+================================ */
+
+.loader-alunos {
+  text-align: center;
+  padding: 25px;
+  font-weight: bold;
+  font-size: 15px;
+  color: #007bff;
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+@media (max-width: 768px) {
 
   .alunos-container {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    transition: all .3s ease;
-  }
-
-  .dark-mode .alunos-container {
-    background: #1f2d3d;
-  }
-
-  .alunos-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 15px;
-  }
-
-  /* ===============================
-     TABELA
-  =============================== */
-
-  table.tabela-alunos {
-    width: 100%;
-    border-collapse: collapse;
+    width: 95%;
+    max-height: 90vh;
+    padding: 15px;
   }
 
   table.tabela-alunos thead {
-    background: linear-gradient(45deg,#007bff,#0056b3);
-    color: white;
+    display: none;
   }
 
-  table.tabela-alunos th,
+  table.tabela-alunos tr {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 5px;
+  }
+
+  .dark-mode table.tabela-alunos tr {
+    border-color: #444;
+  }
+
   table.tabela-alunos td {
-    padding: 11px;
-    border-bottom: 1px solid #e1e1e1;
-    vertical-align: middle;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
   }
 
-  .dark-mode table.tabela-alunos th,
-  .dark-mode table.tabela-alunos td {
-    border-color: #3b3b3b;
+  table.tabela-alunos td::before {
+    content: attr(data-label);
+    font-weight: 600;
   }
+}
 
-  table.tabela-alunos tbody tr:hover {
-    background: rgba(0,123,255,0.08);
-  }
-
-  .dark-mode table.tabela-alunos tbody tr:hover {
-    background: rgba(255,255,255,0.06);
-  }
-
-  /* ===============================
-     STATUS VISUAL
-  =============================== */
-
-  .status-online {
-    color: #28a745;
-    font-weight: bold;
-  }
-
-  .status-offline {
-    color: #dc3545;
-    font-weight: bold;
-  }
-
-  .status-vinculado {
-    background: #28a745;
-    color: white;
-    padding: 4px 9px;
-    border-radius: 8px;
-    font-size: 12px;
-  }
-
-  .status-nao-vinculado {
-    background: #dc3545;
-    color: white;
-    padding: 4px 9px;
-    border-radius: 8px;
-    font-size: 12px;
-  }
-
-  /* ===============================
-     BOTÕES
-  =============================== */
-
-  .btn-remover {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: .2s;
-  }
-
-  .btn-remover:hover {
-    opacity: .8;
-  }
-
-  /* ===============================
-     LOADING
-  =============================== */
-
-  .loader-alunos {
-    text-align: center;
-    padding: 25px;
-    font-weight: bold;
-    font-size: 15px;
-    color: #007bff;
-  }
-
-  /* ===============================
-     RESPONSIVO
-  =============================== */
-
-  @media (max-width: 768px) {
-
-    table.tabela-alunos thead {
-      display: none;
-    }
-
-    table.tabela-alunos tr {
-      display: block;
-      margin-bottom: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 5px;
-    }
-
-    .dark-mode table.tabela-alunos tr {
-      border-color: #444;
-    }
-
-    table.tabela-alunos td {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px;
-    }
-
-    table.tabela-alunos td::before {
-      content: attr(data-label);
-      font-weight: 600;
-    }
-  }
 </style>
+
 
 </head>
 
@@ -217,23 +267,38 @@
 
             <ul class="nav nav-treeview">
 
-  <li class="nav-item">
-    <a href="#" class="nav-link"
-       onclick="event.preventDefault(); carregarAlunos();">
-      <i class="far fa-circle nav-icon"></i>
-      <p>Alunos Cadastrados</p>
-    </a>
-  </li>
+ <li class="nav-item">
+  <a href="#" class="nav-link"
+     onclick="event.preventDefault(); carregarAlunos();">
+    <i class="far fa-circle nav-icon"></i>
+    <p>Alunos Cadastrados</p>
+  </a>
+</li>
 
-              <!-- LISTAGEM DE ALUNOS -->
-<div class="row mt-4">
-  <div class="col-12">
+<!-- ===============================
+     OVERLAY LISTAGEM DE ALUNOS
+================================ -->
 
-    <div class="alunos-container">
+<div class="alunos-overlay" id="overlayAlunos">
+
+  <div class="alunos-container">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
 
       <div class="alunos-title">
-        Alunos Cadastrados
+        📋 Alunos Cadastrados
       </div>
+
+      <button class="btn btn-secondary"
+              onclick="fecharAlunos()">
+        Fechar
+      </button>
+
+    </div>
+
+    <!-- Loader / tabela -->
+    <div id="listaAlunos">
 
       <table class="tabela-alunos" id="tabela-alunos">
         <thead>
@@ -251,8 +316,8 @@
     </div>
 
   </div>
-</div>
 
+</div>
 
   <li class="nav-item">
     <a href="#" class="nav-link"
@@ -451,20 +516,36 @@ const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 
- async function carregarAlunos() {
+async function carregarAlunos() {
+
+  const overlay = document.getElementById("overlayAlunos");
+  const container = document.getElementById("listaAlunos");
+  const tbody = document.querySelector("#tabela-alunos tbody");
+
+  // abre o modal
+  overlay.style.display = "flex";
+
+  // mostra loading
+  container.innerHTML = `
+    <div class="loader-alunos">
+      Carregando alunos...
+    </div>
+  `;
 
   try {
 
     const res = await fetch("/listar-alunos");
 
     if (!res.ok) {
-      alert("Erro ao buscar alunos");
+      container.innerHTML = `
+        <div class="loader-alunos" style="color:red">
+          Erro ao buscar alunos
+        </div>
+      `;
       return;
     }
 
     const alunos = await res.json();
-
-    const tbody = document.querySelector("#tabela-alunos tbody");
 
     if (!tbody) {
       console.error("Tabela #tabela-alunos não encontrada");
@@ -473,20 +554,36 @@ L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 
     tbody.innerHTML = "";
 
+    if (alunos.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center;font-weight:bold">
+            Nenhum aluno cadastrado
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
     alunos.forEach(a => {
+
       tbody.innerHTML += `
         <tr>
-          <td>${a.nome}</td>
-          <td>${a.disciplina}</td>
-          <td class="${a.online ? 'status-online' : 'status-offline'}">
+          <td data-label="Nome">${a.nome}</td>
+          <td data-label="Disciplina">${a.disciplina}</td>
+
+          <td data-label="Status"
+              class="${a.online ? 'status-online' : 'status-offline'}">
             ${a.online ? "Online" : "Offline"}
           </td>
-          <td>
+
+          <td data-label="Vinculado">
             <span class="${a.vinculado ? 'status-vinculado' : 'status-nao-vinculado'}">
               ${a.vinculado ? "Sim" : "Não"}
             </span>
           </td>
-          <td>
+
+          <td data-label="Ações">
             <button class="btn-remover"
               onclick="removerAluno('${a.nome}')">
               Remover
@@ -497,8 +594,17 @@ L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
     });
 
   } catch (err) {
+
     console.error("Erro JS:", err);
+
+    container.innerHTML = `
+      <div class="loader-alunos" style="color:red">
+        Erro inesperado ao carregar alunos
+      </div>
+    `;
+
   }
+
 }
 
   async function carregarAlunosDisponiveis() {
