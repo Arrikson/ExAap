@@ -842,7 +842,22 @@ function fecharAlunos() {
     `;
   }
 }
+  
+function fecharAlunosDisponiveis() {
 
+  const overlay = document.getElementById("overlayDisponiveis");
+  const tbody = document.querySelector("#tabela-disponiveis tbody");
+
+  // fecha o overlay
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+
+  // limpa tabela
+  if (tbody) {
+    tbody.innerHTML = "";
+  }
+}
   
 </script>
 
