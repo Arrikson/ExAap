@@ -620,7 +620,14 @@ async function carregarAlunos() {
   }
 
 }
+function fecharAlunos() {
+  const overlay = document.getElementById("overlayAlunos");
 
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+}
+  
   async function carregarAlunosDisponiveis() {
     const res = await fetch("/alunos-nao-vinculados");
     const dados = await res.json();
