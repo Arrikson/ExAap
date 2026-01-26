@@ -4828,3 +4828,54 @@ async def buscar_professor_nome(email: str):
 
     except Exception as e:
         return {"erro": str(e)}
+        
+@app.get("/estatisticas-dashboard")
+async def estatisticas_dashboard():
+    # =========================
+    # 📊 ALUNOS
+    # =========================
+    alunos_ref = db.collection("alunos").stream()
+
+    total_alunos = 0
+    alunos_online = 0
+    alunos_offline = 0
+
+    for aluno in alunos_ref:
+        dados = aluno.to_dict()
+        total_alunos += 1
+
+        if dados.get("online") is True:
+            alunos_online += 1
+        else:
+            alunos_offline += 1
+
+    # =========================
+    # 📊 PROFESSORES
+    # =========================
+    professores_ref = db.collection("professores_online").stream()
+
+    total_professores = 0
+    professores_online = 0
+    professores_offline = 0
+
+    for prof in professores_ref:
+        dados = prof.to_dict()
+        total_professores += 1
+
+        if dados.get("online") is True:
+            professores_online += 1
+        else:
+            professores_offline += 1
+
+    return JSONResponse({
+        "alunos": {
+            "total": total_alunos,
+            "online": alunos_online,
+            "offline": alunos_offline
+        },
+        "professores": {
+            "total": total_professores,
+            "online": professores_online,
+            "offline": professores_offline
+        }
+    })
