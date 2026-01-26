@@ -39,9 +39,94 @@
 
   <!-- Sidebar -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
+
     <a href="#" class="brand-link text-center">
-      <span class="brand-text font-weight-light">SabApp</span>
+      <span class="brand-text font-weight-light">Todos os direitos reservados à SabApp 2026</span>
     </a>
+
+    <!-- MENU -->
+    <div class="sidebar">
+      <nav class="mt-3">
+        <ul class="nav nav-pills nav-sidebar flex-column" 
+            data-widget="treeview" role="menu" data-accordion="false">
+
+          <!-- ALUNOS -->
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user-graduate"></i>
+              <p>
+                Alunos
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/alunos-cadastrados" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Alunos Cadastrados</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/alunos-sem-vinculo" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Alunos sem vínculo</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- PROFESSORES -->
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-chalkboard-teacher"></i>
+              <p>
+                Professores
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/professores-online" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Professores Online</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- FINANÇAS -->
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-coins"></i>
+              <p>
+                Finanças
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/controle-pagamento-alunos" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Controle de pagamentos de alunos</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/controle-pagamento-professores" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Controle de pagamento de professores</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+        </ul>
+      </nav>
+    </div>
   </aside>
 
   <!-- Conteúdo -->
@@ -51,6 +136,7 @@
 
         <!-- CARDS -->
         <div class="row">
+
           <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
               <div class="inner">
@@ -90,13 +176,17 @@
               <div class="icon"><i class="fas fa-unlink"></i></div>
             </div>
           </div>
+
         </div>
 
         <!-- GRÁFICO + MAPA -->
         <div class="row">
+
           <div class="col-md-6">
             <div class="card">
-              <div class="card-header"><h3 class="card-title">Resumo Geral</h3></div>
+              <div class="card-header">
+                <h3 class="card-title">Resumo Geral</h3>
+              </div>
               <div class="card-body">
                 <canvas id="grafico"></canvas>
               </div>
@@ -105,12 +195,15 @@
 
           <div class="col-md-6">
             <div class="card">
-              <div class="card-header"><h3 class="card-title">Mapa de Angola</h3></div>
+              <div class="card-header">
+                <h3 class="card-title">Mapa de Angola</h3>
+              </div>
               <div class="card-body">
                 <div id="mapAngola"></div>
               </div>
             </div>
           </div>
+
         </div>
 
       </div>
@@ -120,6 +213,7 @@
   <footer class="main-footer text-center">
     <strong>SabApp</strong>
   </footer>
+
 </div>
 
 <!-- Scripts -->
@@ -144,7 +238,6 @@ fetch("/estatisticas-dashboard")
     document.getElementById("chamadas-ativas").innerText = dados.chamadas.em_andamento;
     document.getElementById("alunos-nao-vinculados").innerText = dados.alunos.nao_vinculados;
 
-    // Gráfico dinâmico
     new Chart(document.getElementById("grafico"), {
       type: "doughnut",
       data: {
@@ -166,7 +259,7 @@ fetch("/estatisticas-dashboard")
     });
   });
 
-// 🗺️ MAPA
+
 const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
@@ -174,3 +267,4 @@ L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 
 </body>
 </html>
+
