@@ -311,6 +311,137 @@ table.tabela-disponiveis tbody tr:hover {
   font-size: 15px;
   color: #17a2b8;
 }
+
+    /* ===============================
+   MENU PROFESSORES ONLINE
+================================ */
+
+.nav-treeview .nav-link.prof-online-btn {
+  border-left: 3px solid transparent;
+  transition: .2s;
+}
+
+.nav-treeview .nav-link.prof-online-btn:hover {
+  background: rgba(0,123,255,.08);
+  border-left-color: #007bff;
+}
+
+.dark-mode .nav-treeview .nav-link.prof-online-btn:hover {
+  background: rgba(255,255,255,.05);
+}
+
+/* ===============================
+   OVERLAY PROFESSORES
+================================ */
+
+.professores-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ===============================
+   CONTAINER
+================================ */
+
+.professores-container {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  width: 95%;
+  max-width: 900px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+}
+
+.dark-mode .professores-container {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TABELA
+================================ */
+
+table.tabela-professores {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.tabela-professores thead {
+  background: linear-gradient(45deg,#17a2b8,#117a8b);
+  color: white;
+}
+
+table.tabela-professores th,
+table.tabela-professores td {
+  padding: 11px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dark-mode table.tabela-professores td {
+  border-color: #444;
+}
+
+/* ===============================
+   STATUS
+================================ */
+
+.prof-online {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.prof-offline {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* ===============================
+   BOTÕES
+================================ */
+
+.btn-prof-remover {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.btn-prof-remover:hover {
+  opacity: .8;
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+@media(max-width:768px){
+
+  table.tabela-professores thead{display:none}
+
+  table.tabela-professores tr{
+    display:block;
+    margin-bottom:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:6px;
+  }
+
+  table.tabela-professores td{
+    display:flex;
+    justify-content:space-between;
+  }
+
+  table.tabela-professores td::before{
+    content:attr(data-label);
+    font-weight:600;
+  }
+}
     
 </style>
 
@@ -470,16 +601,53 @@ table.tabela-disponiveis tbody tr:hover {
               </p>
             </a>
 
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="/professores-online" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Professores Online</p>
-                </a>
-              </li>
-            </ul>
-          </li>
+           <ul class="nav nav-treeview">
+             
+  <li class="nav-item">
+    <a href="#"
+       class="nav-link prof-online-btn"
+       onclick="event.preventDefault(); carregarProfessores();">
+      <i class="far fa-circle nav-icon"></i>
+      <p>Professores Online</p>
+    </a>
+  </li>
+</ul>
+<div class="professores-overlay" id="overlayProfessores">
 
+  <div class="professores-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+
+      <div class="alunos-title">
+        👨‍🏫 Professores Online
+      </div>
+
+      <button class="btn btn-secondary"
+              onclick="fecharProfessores()">
+        Fechar
+      </button>
+
+    </div>
+
+    <table class="tabela-professores" id="tabela-professores">
+
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Nome</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody></tbody>
+
+    </table>
+
+  </div>
+
+</div>
+            
           <!-- FINANÇAS -->
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
@@ -857,6 +1025,109 @@ function fecharAlunosDisponiveis() {
   if (tbody) {
     tbody.innerHTML = "";
   }
+}
+
+async function carregarProfessores() {
+
+  const overlay = document.getElementById("overlayProfessores");
+  const tbody = document.querySelector("#tabela-professores tbody");
+  const select = document.getElementById("lista-professores");
+
+  if (!overlay || !tbody) {
+    console.error("Overlay professores não encontrado");
+    return;
+  }
+
+  overlay.style.display = "flex";
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" class="loader-alunos">
+        Carregando professores...
+      </td>
+    </tr>
+  `;
+
+  try {
+
+    const res = await fetch("/listar-professores-online");
+
+    if (!res.ok) throw new Error();
+
+    const profs = await res.json();
+
+    tbody.innerHTML = "";
+
+    if (!profs.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center;font-weight:bold">
+            Nenhum professor online
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    if (select) {
+      select.innerHTML = `
+        <option disabled selected>Selecione o professor</option>
+        <option value="todos">Todos os Professores</option>
+      `;
+    }
+
+    profs.forEach(p => {
+
+      tbody.innerHTML += `
+        <tr>
+
+          <td data-label="Email">${p.email}</td>
+
+          <td data-label="Nome">${p.nome}</td>
+
+          <td data-label="Status"
+              class="${p.online ? 'prof-online' : 'prof-offline'}">
+            ${p.online ? "Online" : "Offline"}
+          </td>
+
+          <td data-label="Ações">
+            <button class="btn-prof-remover"
+              onclick="removerProfessor('${p.email}')">
+              Remover
+            </button>
+          </td>
+
+        </tr>
+      `;
+
+      if (select && p.email) {
+        select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
+      }
+
+    });
+
+  } catch (err) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="loader-alunos" style="color:red">
+          Erro ao carregar professores
+        </td>
+      </tr>
+    `;
+
+  }
+
+}
+  
+function fecharProfessores() {
+
+  const overlay = document.getElementById("overlayProfessores");
+  const tbody = document.querySelector("#tabela-professores tbody");
+
+  if (overlay) overlay.style.display = "none";
+
+  if (tbody) tbody.innerHTML = "";
 }
   
 </script>
