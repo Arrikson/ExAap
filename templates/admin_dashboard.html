@@ -43,49 +43,6 @@
   <a href="#" class="brand-link text-center">
     <span class="brand-text font-weight-light">SabApp</span>
   </a>
-
-  <div class="sidebar">
-    <nav>
-      <ul class="nav nav-pills nav-sidebar flex-column">
-
-        <li class="nav-item">
-          <a class="nav-link active" onclick="mostrarSecao('dashboard')">
-            <i class="fas fa-chart-line nav-icon"></i>
-            <p>Dashboard</p>
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" onclick="mostrarSecao('alunos-cadastrados')">
-            <i class="fas fa-user-graduate nav-icon"></i>
-            <p>Alunos cadastrados</p>
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" onclick="mostrarSecao('alunos-disponiveis')">
-            <i class="fas fa-unlink nav-icon"></i>
-            <p>Alunos sem vínculo</p>
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" onclick="mostrarSecao('professores-online')">
-            <i class="fas fa-chalkboard-teacher nav-icon"></i>
-            <p>Professores online</p>
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" onclick="mostrarSecao('aulas-ao-vivo')">
-            <i class="fas fa-video nav-icon"></i>
-            <p>Aulas em andamento</p>
-          </a>
-        </li>
-
-      </ul>
-    </nav>
-  </div>
 </aside>
 
 <!-- CONTEÚDO -->
@@ -96,77 +53,75 @@
 <!-- DASHBOARD -->
 <div id="dashboard" class="secao" style="display:block">
 
-  <!-- CARDS -->
-  <div class="row">
+<div class="row">
 
-    <div class="col-lg-3 col-6">
-      <div class="small-box bg-info">
-        <div class="inner">
-          <h3 id="total-alunos">0</h3>
-          <p>Total de Alunos</p>
-        </div>
-        <div class="icon"><i class="fas fa-user-graduate"></i></div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3 id="total-alunos">0</h3>
+        <p>Total de Alunos</p>
       </div>
+      <div class="icon"><i class="fas fa-user-graduate"></i></div>
     </div>
-
-    <div class="col-lg-3 col-6">
-      <div class="small-box bg-success">
-        <div class="inner">
-          <h3 id="total-professores">0</h3>
-          <p>Professores</p>
-        </div>
-        <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
-      </div>
-    </div>
-
-    <div class="col-lg-3 col-6">
-      <div class="small-box bg-warning">
-        <div class="inner">
-          <h3 id="chamadas-ativas">0</h3>
-          <p>Aulas Ativas</p>
-        </div>
-        <div class="icon"><i class="fas fa-video"></i></div>
-      </div>
-    </div>
-
-    <div class="col-lg-3 col-6">
-      <div class="small-box bg-danger">
-        <div class="inner">
-          <h3 id="alunos-nao-vinculados">0</h3>
-          <p>Alunos Não Vinculados</p>
-        </div>
-        <div class="icon"><i class="fas fa-unlink"></i></div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- GRÁFICO + MAPA -->
-  <div class="row">
-
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Resumo dos Alunos</h3>
-        </div>
-        <div class="card-body">
-          <canvas id="grafico"></canvas>
-        </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3 id="total-professores">0</h3>
+        <p>Professores</p>
       </div>
+      <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
     </div>
-
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Mapa de Angola</h3>
-        </div>
-        <div class="card-body">
-          <div id="mapAngola"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
+
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-warning">
+      <div class="inner">
+        <h3 id="chamadas-ativas">0</h3>
+        <p>Aulas Ativas</p>
+      </div>
+      <div class="icon"><i class="fas fa-video"></i></div>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3 id="alunos-nao-vinculados">0</h3>
+        <p>Alunos Não Vinculados</p>
+      </div>
+      <div class="icon"><i class="fas fa-unlink"></i></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Resumo dos Alunos</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="grafico"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Mapa de Angola</h3>
+      </div>
+      <div class="card-body">
+        <div id="mapAngola"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 </div>
 
@@ -188,18 +143,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-function mostrarSecao(id){
-  document.querySelectorAll(".secao").forEach(s => s.style.display="none");
-  document.getElementById(id).style.display="block";
-}
-
 function toggleDarkMode() {
   document.body.classList.toggle("dark-mode");
 }
 
-// 📊 DASHBOARD
+// 📊 DASHBOARD (100% alinhado com a rota)
 fetch("/estatisticas-dashboard")
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error("Erro ao buscar estatísticas");
+    return res.json();
+  })
   .then(dados => {
 
     document.getElementById("total-alunos").innerText = dados.alunos.total;
@@ -213,8 +166,8 @@ fetch("/estatisticas-dashboard")
         labels: [
           "Alunos Online",
           "Alunos Offline",
-          "Alunos Vinculados",
-          "Alunos Não Vinculados"
+          "Vinculados",
+          "Não Vinculados"
         ],
         datasets: [{
           data: [
@@ -226,6 +179,9 @@ fetch("/estatisticas-dashboard")
         }]
       }
     });
+  })
+  .catch(err => {
+    console.error("Erro no dashboard:", err);
   });
 
 // 🗺️ MAPA
