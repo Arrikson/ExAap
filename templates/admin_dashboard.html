@@ -1,25 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <title>Painel Administrativo | AdminLTE</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Painel do Administrador</title>
 
-  <!-- AdminLTE & Bootstrap -->
+  <!-- AdminLTE + Bootstrap -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet (Mapa) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
-    body { font-family: 'Nunito', sans-serif; }
-    .brand-text { font-weight: 700; }
-    .content-wrapper { padding: 20px; }
-    .hidden { display: none !important; }
+    #mapAngola { height: 350px; }
   </style>
 </head>
 
@@ -27,32 +24,49 @@
 <div class="wrapper">
 
   <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light hidden" id="navbar">
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+        <a class="nav-link" data-widget="pushmenu"><i class="fas fa-bars"></i></a>
       </li>
     </ul>
+
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link" href="#" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></a>
+        <a class="nav-link" href="#" onclick="toggleDarkMode()">
+          <i class="fas fa-moon"></i>
+        </a>
       </li>
     </ul>
   </nav>
 
   <!-- Sidebar -->
-  <aside class="main-sidebar sidebar-dark-primary elevation-4 hidden" id="sidebar">
-    <a href="#" class="brand-link">
-      <i class="fas fa-user-shield ml-3"></i>
-      <span class="brand-text ml-2">Admin</span>
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="#" class="brand-link text-center">
+      <span class="brand-text font-weight-light">AdminLTE</span>
     </a>
+
     <div class="sidebar">
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview">
-          <li class="nav-item"><a href="#sec-alunos" class="nav-link"><i class="nav-icon fas fa-user-graduate"></i><p>Alunos</p></a></li>
-          <li class="nav-item"><a href="#sec-professores" class="nav-link"><i class="nav-icon fas fa-chalkboard-teacher"></i><p>Professores</p></a></li>
-          <li class="nav-item"><a href="#sec-aulas" class="nav-link"><i class="nav-icon fas fa-video"></i><p>Aulas</p></a></li>
-          <li class="nav-item"><a href="#sec-pagamentos" class="nav-link"><i class="nav-icon fas fa-money-bill"></i><p>Pagamentos</p></a></li>
+      <nav>
+        <ul class="nav nav-pills nav-sidebar flex-column">
+          <li class="nav-item">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>Dashboard</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>Tabelas</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-map"></i>
+              <p>Mapa</p>
+            </a>
+          </li>
         </ul>
       </nav>
     </div>
@@ -60,54 +74,104 @@
 
   <!-- Conteúdo -->
   <div class="content-wrapper">
+    <section class="content pt-3">
+      <div class="container-fluid">
 
-    <!-- LOGIN -->
-    <div class="card card-primary" id="login-form">
-      <div class="card-header"><h3 class="card-title">Login do Administrador</h3></div>
-      <div class="card-body">
-        <input class="form-control mb-3" id="username" placeholder="Usuário">
-        <input type="password" class="form-control mb-3" id="password" placeholder="Senha">
-        <button class="btn btn-primary btn-block" onclick="verificarLogin()">Entrar</button>
-        <p id="login-erro" class="text-danger mt-2"></p>
+        <!-- Cards -->
+        <div class="row">
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3>120</h3>
+                <p>Alunos</p>
+              </div>
+              <div class="icon"><i class="fas fa-user-graduate"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3>45</h3>
+                <p>Professores</p>
+              </div>
+              <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3>30</h3>
+                <p>Aulas Ativas</p>
+              </div>
+              <div class="icon"><i class="fas fa-video"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3>8</h3>
+                <p>Pendências</p>
+              </div>
+              <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Relatório Mensal</h3></div>
+              <div class="card-body">
+                <canvas id="grafico"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mapa Angola -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Mapa de Angola</h3></div>
+              <div class="card-body">
+                <div id="mapAngola"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Tabela de Usuários</h3></div>
+              <div class="card-body table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Ana</td><td>ana@email.com</td><td>Ativo</td></tr>
+                    <tr><td>João</td><td>joao@email.com</td><td>Inativo</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-
-    <!-- PAINEL -->
-    <div id="painel" class="hidden">
-
-      <!-- ALUNOS -->
-      <section id="sec-alunos" class="card">
-        <div class="card-header"><h3 class="card-title">Alunos Cadastrados</h3></div>
-        <div class="card-body">
-          <button class="btn btn-secondary mb-2" onclick="carregarAlunos()">Atualizar</button>
-          <table class="table table-striped"><thead><tr><th>Nome</th><th>Disciplina</th><th>Online</th><th>Vinculado</th><th>Ação</th></tr></thead><tbody id="tabela-alunos"></tbody></table>
-        </div>
-      </section>
-
-      <!-- PROFESSORES -->
-      <section id="sec-professores" class="card">
-        <div class="card-header"><h3 class="card-title">Professores Online</h3></div>
-        <div class="card-body">
-          <button class="btn btn-secondary mb-2" onclick="carregarProfessores()">Atualizar</button>
-          <table class="table table-striped"><thead><tr><th>Email</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabela-professores"></tbody></table>
-        </div>
-      </section>
-
-      <!-- MENSAGEM -->
-      <section class="card">
-        <div class="card-header"><h3 class="card-title">Enviar Mensagem</h3></div>
-        <div class="card-body">
-          <select id="lista-professores" class="form-control mb-2"></select>
-          <textarea id="mensagem-texto" class="form-control mb-2" placeholder="Mensagem"></textarea>
-          <button class="btn btn-success" onclick="enviarMensagem()">Enviar</button>
-        </div>
-      </section>
-
-    </div>
+    </section>
   </div>
 
-  <footer class="main-footer text-center hidden" id="footer">
-    <strong>Painel Administrativo</strong>
+  <footer class="main-footer text-center">
+    <strong>AdminLTE.IO</strong>
   </footer>
 </div>
 
@@ -115,520 +179,32 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); }
-
-function verificarLogin(){
-  const u = username.value.trim();
-  const p = password.value.trim();
-  if(u==='admin' && p==='12345'){
-    login-form.classList.add('hidden');
-    painel.classList.remove('hidden');
-    navbar.classList.remove('hidden');
-    sidebar.classList.remove('hidden');
-    footer.classList.remove('hidden');
-    carregarProfessores();
-  } else login-erro.innerText='Credenciais inválidas';
-}
-
-async function carregarAlunos(){
-  const r=await fetch('/listar-alunos');
-  const d=await r.json();
-  tabela-alunos.innerHTML='';
-  d.forEach(a=>{
-    tabela-alunos.innerHTML+=`<tr><td>${a.nome}</td><td>${a.disciplina}</td><td>${a.online?'✅':'❌'}</td><td>${a.vinculado?'Sim':'Não'}</td><td><button class='btn btn-danger btn-sm' onclick="removerAluno('${a.nome}')">Remover</button></td></tr>`;
-  });
-}
-
-async function carregarProfessores(){
-  const r=await fetch('/listar-professores-online');
-  const d=await r.json();
-  tabela-professores.innerHTML='';
-  lista-professores.innerHTML='<option value="">Selecione</option><option value="todos">Todos</option>';
-  d.forEach(p=>{
-    tabela-professores.innerHTML+=`<tr><td>${p.email}</td><td>${p.online?'Online':'Offline'}</td><td><button class='btn btn-danger btn-sm' onclick="removerProfessor('${p.email}')">Remover</button></td></tr>`;
-    lista-professores.innerHTML+=`<option value="${p.email}">${p.email}</option>`;
-  });
-}
-
-async function removerAluno(n){ if(confirm('Remover aluno?')) await fetch('/remover-aluno',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:n})}),carregarAlunos(); }
-async function removerProfessor(e){ if(confirm('Remover professor?')) await fetch('/remover-professor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})}),carregarProfessores(); }
-
-async function enviarMensagem(){
-  const email=lista-professores.value;
-  const msg=mensagem-texto.value.trim();
-  if(!email||!msg) return alert('Selecione e escreva a mensagem');
-  if(email==='todos'){
-    const r=await fetch('/listar-professores-online');
-    const p=await r.json();
-    for(const prof of p) await fetch('/enviar-mensagem-professor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:prof.email,mensagem:msg})});
-  } else await fetch('/enviar-mensagem-professor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mensagem:msg})});
-  alert('Mensagem enviada'); mensagem-texto.value='';
-}
-  async function carregarAlunosDisponiveis() {
-    const res = await fetch("/alunos-nao-vinculados");
-    const dados = await res.json();
-    const tbody = document.querySelector("#tabela-disponiveis tbody");
-    tbody.innerHTML = "";
-    dados.forEach(aluno => {
-      tbody.innerHTML += `
-        <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>
-      `;
-    });
+  // Dark Mode
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
   }
 
-  async function carregarAulas() {
-    const res = await fetch("/listar-chamadas");
-    const chamadas = await res.json();
-    const tbody = document.querySelector("#tabela-aulas tbody");
-    tbody.innerHTML = "";
-    chamadas.forEach(ch => {
-      tbody.innerHTML += `
-        <tr><td>${ch.aluno}</td><td>${ch.professor}</td><td>${ch.status}</td></tr>
-      `;
-    });
-  }
-
- async function carregarRelatorioAulas() {
-  const res = await fetch("/relatorio-aulas");
-  const dados = await res.json();
-
-  // Atualiza tabela
-  const tbody = document.querySelector("#tabela-aulas-dadas tbody");
-  tbody.innerHTML = "";
-  dados.relatorio.forEach(item => {
-    tbody.innerHTML += `
-      <tr><td>${item.professor}</td><td>${item.aluno}</td><td>${item.aulas_dadas}</td></tr>
-    `;
+  // Gráfico
+  new Chart(document.getElementById("grafico"), {
+    type: "bar",
+    data: {
+      labels: ["Jan","Fev","Mar","Abr","Mai"],
+      datasets: [{
+        label: "Aulas",
+        data: [12,19,8,15,22]
+      }]
+    }
   });
 
-  // Mostra notificações
-  const notificacoesDiv = document.querySelector("#notificacoes");
-  notificacoesDiv.innerHTML = "";
-  if (dados.notificacoes.length > 0) {
-    dados.notificacoes.forEach(msg => {
-      const p = document.createElement("p");
-      p.textContent = msg;
-      p.style.fontWeight = "bold";
-      p.style.color = "green";
-      notificacoesDiv.appendChild(p);
-    });
-  }
-}
-
-// Chama a função ao carregar a página
-window.addEventListener("load", carregarRelatorioAulas);
-
-  async function removerAluno(nome) {
-    if (confirm(`Deseja mesmo remover o aluno "${nome}"?`)) {
-      await fetch("/remover-aluno", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome })
-      });
-      carregarAlunos();
-    }
-  }
-
-  async function removerProfessor(email) {
-    if (confirm(`Deseja mesmo remover o professor "${email}"?`)) {
-      await fetch("/remover-professor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      carregarProfessores();
-    }
-  }
-
-  async function enviarMensagem() {
-    const email = document.getElementById("lista-professores").value;
-    const mensagem = document.getElementById("mensagem-texto").value.trim();
-
-    if (!email || !mensagem) {
-      alert("Selecione o professor ou todos, e digite a mensagem.");
-      return;
-    }
-
-    if (email === "todos") {
-      const res = await fetch("/listar-professores-online");
-      const professores = await res.json();
-      for (const prof of professores) {
-        if (prof.email) {
-          await fetch("/enviar-mensagem-professor", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: prof.email, mensagem })
-          });
-        }
-      }
-      alert("Mensagem enviada para todos os professores.");
-    } else {
-      await fetch("/enviar-mensagem-professor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, mensagem })
-      });
-      alert("Mensagem enviada com sucesso.");
-    }
-
-    document.getElementById("mensagem-texto").value = "";
-  }
-
-async function marcarPago(alunoId, temDivida) {
-
-    if (!temDivida) {
-        alert("Este aluno já está com o pagamento em dia.");
-        return;
-    }
-
-    const res = await fetch("/listar-pagamentos");
-    const alunos = await res.json();
-
-    const aluno = alunos.find(a =>
-        a.id === alunoId &&
-        a.nome &&
-        a.nome.trim() !== ""
-    );
-
-    if (!aluno) {
-        alert("Aluno não encontrado ou nome inválido.");
-        return;
-    }
-
-    const hoje = new Date();
-    const mes = hoje.getMonth() + 1;
-    const ano = hoje.getFullYear();
-
-    const valorMensal = aluno.valor_mensal_aluno || 0;
-
-    const resposta = await fetch("/api/registrar-pagamento", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            aluno_nome: aluno.nome,
-            mes,
-            ano,
-            valor_pago: valorMensal,
-            pago: true
-        })
-    });
-
-    if (resposta.ok) {
-        alert(`Pagamento de ${aluno.nome} registrado para ${mes}/${ano}.`);
-        carregarPagamentos();
-    } else {
-        alert("Erro ao registrar pagamento.");
-    }
-}
-
-async function carregarPagamentos() {
-    try {
-
-        const res = await fetch("/listar-pagamentos");
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
-
-        const alunos = await res.json();
-        const tbody = document.querySelector("#tabela-pagamentos tbody");
-
-        tbody.innerHTML = "";
-
-        alunos.forEach(a => {
-
-            // 🚫 IGNORA registros sem nome
-            if (!a.nome || a.nome.trim() === "") {
-                return;
-            }
-
-            const temValor = a.divida && Number(a.divida) > 0;
-
-            const statusCor = temValor ? "status-verde" : "status-vermelho";
-            const statusTexto = temValor ? "Pago" : "Não Pago";
-
-            let ultimoPagamento = "—";
-            if (a.paga_passado && a.paga_passado.length > 0) {
-                const ultimo = a.paga_passado[a.paga_passado.length - 1];
-                const mes = ultimo.mes || "-";
-                const ano = ultimo.ano || "-";
-                const valor = ultimo.valor_pago != null
-                    ? Number(ultimo.valor_pago).toLocaleString("pt-AO")
-                    : "0";
-
-                ultimoPagamento = `${mes}/${ano} - Kz ${valor},00`;
-            }
-
-            tbody.innerHTML += `
-                <tr>
-                  <td>${a.nome}</td>
-
-                  <td>
-                    <span class="status-circulo ${statusCor}"></span>
-                    ${statusTexto}
-                  </td>
-
-                  <td>Kz ${a.divida ? Number(a.divida).toLocaleString("pt-AO") : 0},00</td>
-
-                  <td>${ultimoPagamento}</td>
-
-                  <td>
-                    <button 
-                        onclick="marcarPago('${a.id}', ${temValor})"
-                        style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-                        PAGO
-                    </button>
-
-                    <button 
-                        onclick="verPagamentos('${a.nome}', '${a.nome}')"
-                        style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;margin-left:5px;">
-                        Ver Pagamentos
-                    </button>
-                  </td>
-                </tr>
-            `;
-        });
-
-    } catch (err) {
-        console.error("Erro ao carregar pagamentos:", err);
-        alert("Erro ao carregar lista de pagamentos.");
-    }
-}
-  
-async function verPagamentos(nomeAluno, nomeExibicao) {
-
-    if (!nomeAluno || nomeAluno.trim() === "") {
-        alert("Nome inválido.");
-        return;
-    }
-
-    try {
-
-        const res = await fetch(`/ver-pagamentos/${encodeURIComponent(nomeAluno)}`);
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
-
-        const data = await res.json();
-
-        document.getElementById("nome-aluno").innerText =
-            `📌 Pagamentos de ${nomeExibicao}`;
-
-        const tbody = document.getElementById("tabela-meses");
-        tbody.innerHTML = "";
-
-        const historico = data.historico_pagamentos || [];
-
-        if (!historico.length) {
-            tbody.innerHTML = `<tr><td colspan="4">Nenhum pagamento encontrado</td></tr>`;
-            return;
-        }
-
-        historico.forEach(p => {
-
-            const mes = p.mes || "-";
-            const ano = p.ano || "-";
-
-            const valor = p.valor_pago
-                ? `Kz ${Number(p.valor_pago).toLocaleString("pt-AO")},00`
-                : "Kz 0,00";
-
-            const status = p.valor_pago > 0 ? "Pago" : "Não pago";
-            const cor = status === "Pago" ? "green" : "red";
-
-            tbody.innerHTML += `
-                <tr>
-                    <td>${mes}</td>
-                    <td>${ano}</td>
-                    <td>${valor}</td>
-                    <td style="color:${cor};font-weight:bold;">${status}</td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("detalhes-aluno").style.display = "block";
-
-    } catch (err) {
-        console.error("Erro ao buscar pagamentos:", err);
-        alert("Erro ao carregar histórico.");
-    }
-}
-  
-async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
-    try {
-        // Se ainda não estava pago → registra pagamento
-        if (!statusAtual) {
-            await fetch("/registrar-pagamento-prof", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: id,
-                    professor: professor,
-                    valor_pago: saldoAtual 
-                })
-            });
-        } else {
-           
-            await fetch("/atualizar-pagamento-prof", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: id,
-                    professor: professor,
-                    valor_pago: 0 
-                })
-            });
-        }
-
-       
-        carregarPagamentosProf();
-
-    } catch (err) {
-        console.error("Erro ao atualizar pagamento do professor:", err);
-        alert("Ocorreu um erro ao atualizar o pagamento. Veja o console para detalhes.");
-    }
-}
-
-async function verMeses(id) {
-    const res = await fetch(`/detalhes-pagamento/${id}`);
-    const dados = await res.json();
-
-    document.getElementById("nome-aluno").textContent = dados.aluno;
-    const tbody = document.getElementById("tabela-meses");
-    tbody.innerHTML = "";
-
-    dados.meses.forEach(m => {
-        const cor = m.status ? "status-verde" : "status-vermelho";
-        const texto = m.status ? "PAGA" : "Não paga";
-
-        tbody.innerHTML += `
-            <tr>
-              <td>${m.mes}</td>
-              <td><span class="status-circulo ${cor}"></span>${texto}</td>
-              <td>
-                <button onclick="marcarPagoMes('${id}', '${m.campo}', ${m.status})" 
-                        style="background:green;color:white;border:none;padding:4px 8px;border-radius:4px;">
-                  PAGO
-                </button>
-              </td>
-            </tr>
-        `;
-    });
-
-    document.getElementById("detalhes-aluno").style.display = "block";
-}
-
-async function marcarPagoMes(id, campo, statusAtual) {
-    const novoStatus = !statusAtual;
-    await fetch("/atualizar-pagamento-mes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, campo, status: novoStatus })
-    });
-    verMeses(id);
-}
-
-async function carregarPagamentosProf() {
-    try {
-        const res = await fetch("/listar-pagamentos-prof");
-        const professores = await res.json();
-        const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
-        tbody.innerHTML = "";
-
-        professores.forEach(p => {
-            // Agora o status depende do saldo_atual
-            const statusCor = p.saldo_atual > 0 ? "status-vermelho" : "status-verde";
-            const statusTexto = p.saldo_atual > 0 ? "NÃO PAGO" : "PAGO";
-
-            tbody.innerHTML += `
-                <tr>
-                  <td><a href="#" onclick="verMesesProf('${p.id}')">${p.professor}</a></td>
-                  <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
-                  <td>R$ ${Number(p.saldo_atual).toFixed(2)}</td>
-                  <td>
-                    <button onclick="marcarPagoProf('${p.id}', '${p.proximo_mes_a_pagar}', '${p.professor}', ${p.saldo_atual})" 
-                            style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                      ${statusTexto}
-                    </button>
-                    <button onclick="verHistoricoPagamentos('${p.professor}')" 
-                            style="background:blue;color:white;border:none;padding:4px 8px;border-radius:4px; margin-left:5px;">
-                      Ver Histórico de Pagamentos
-                    </button>
-                  </td>
-                </tr>
-            `;
-        });
-    } catch (error) {
-        console.error("Erro ao carregar pagamentos de professores:", error);
-    }
-}
-
-
-function verHistoricoPagamentos(nomeProfessor) {
-    window.location.href = `/ver-pagamentos?professor=${encodeURIComponent(nomeProfessor)}`;
-}
-
-async function verMesesProf(emailProf) {
-    try {
-        // Faz a requisição passando o email como query parameter
-        const res = await fetch(`/salarios?email=${encodeURIComponent(emailProf)}`);
-        if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados`);
-
-        // Recebe o JSON com nome, saldo e pagamentos
-        const data = await res.json();
-
-        if (!data || !data.nome) {
-            alert("Professor não encontrado.");
-            return;
-        }
-
-        // Atualiza o nome do professor
-        document.getElementById("nome-prof").textContent = data.nome;
-
-        // Atualiza o saldo atual
-        document.getElementById("saldo-prof").textContent = `${Number(data.saldo_atual).toFixed(2)} Kz`;
-
-        // Preenche a tabela de meses/pagamentos
-        const tbody = document.getElementById("tabela-meses");
-        tbody.innerHTML = "";
-
-        if (data.pagamentos && data.pagamentos.length > 0) {
-            data.pagamentos.forEach(pagamento => {
-                const statusCor = pagamento.valor_pago > 0 ? "status-verde" : "status-vermelho";
-                const statusTexto = pagamento.valor_pago > 0 ? "PAGO" : "NÃO PAGO";
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${pagamento.mes}</td>
-                        <td>${pagamento.data_pagamento || "-"}</td>
-                        <td>R$ ${Number(pagamento.valor_pago).toFixed(2)}</td>
-                        <td>${pagamento.email_professor || "-"}</td>
-                        <td><span class="${statusCor}">${statusTexto}</span></td>
-                        <td>
-                            <button onclick="marcarPagoMesProf('${emailProf}', '${pagamento.mes}', ${!!pagamento.valor_pago})" 
-                                    style="background:${statusCor === 'status-verde' ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
-                                ${statusTexto}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="color:#777;">Nenhum pagamento registrado.</td>
-                </tr>
-            `;
-        }
-
-        // Mostra o modal ou div de detalhes
-        document.getElementById("detalhes-prof").style.display = "block";
-
-    } catch (err) {
-        console.error("Erro ao carregar meses do professor:", err);
-        alert("Erro ao carregar detalhes do professor.");
-    }
-}
-  
+  // Mapa Angola
+  const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 </script>
 </body>
 </html>
-
 
