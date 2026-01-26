@@ -519,17 +519,23 @@ L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 async function carregarAlunos() {
 
   const overlay = document.getElementById("overlayAlunos");
-  const container = document.getElementById("listaAlunos");
   const tbody = document.querySelector("#tabela-alunos tbody");
 
-  // abre o modal
+  if (!overlay || !tbody) {
+    console.error("Overlay ou tabela não encontrados");
+    return;
+  }
+
+  // abre modal
   overlay.style.display = "flex";
 
-  // mostra loading
-  container.innerHTML = `
-    <div class="loader-alunos">
-      Carregando alunos...
-    </div>
+  // mostra loading dentro do tbody
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="loader-alunos">
+        Carregando alunos...
+      </td>
+    </tr>
   `;
 
   try {
@@ -537,24 +543,21 @@ async function carregarAlunos() {
     const res = await fetch("/listar-alunos");
 
     if (!res.ok) {
-      container.innerHTML = `
-        <div class="loader-alunos" style="color:red">
-          Erro ao buscar alunos
-        </div>
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="loader-alunos" style="color:red">
+            Erro ao buscar alunos
+          </td>
+        </tr>
       `;
       return;
     }
 
     const alunos = await res.json();
 
-    if (!tbody) {
-      console.error("Tabela #tabela-alunos não encontrada");
-      return;
-    }
-
     tbody.innerHTML = "";
 
-    if (alunos.length === 0) {
+    if (!alunos.length) {
       tbody.innerHTML = `
         <tr>
           <td colspan="5" style="text-align:center;font-weight:bold">
@@ -597,12 +600,13 @@ async function carregarAlunos() {
 
     console.error("Erro JS:", err);
 
-    container.innerHTML = `
-      <div class="loader-alunos" style="color:red">
-        Erro inesperado ao carregar alunos
-      </div>
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="loader-alunos" style="color:red">
+          Erro inesperado
+        </td>
+      </tr>
     `;
-
   }
 
 }
