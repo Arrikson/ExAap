@@ -19,29 +19,39 @@
 <body class="hold-transition sidebar-mini layout-fixed">
 
 <!-- 🔐 LOGIN -->
-<div id="login-container" class="login-page">
-  <div class="login-box">
-    <div class="card card-outline card-primary">
-      <div class="card-header text-center">
-        <b>SabApp</b> Admin
-      </div>
-      <div class="card-body">
-        <p class="login-box-msg">Faça login para continuar</p>
+<div id="login-container" class="login-box">
+  <div class="card card-outline card-primary">
+    <div class="card-header text-center">
+      <b>SabApp</b> Admin
+    </div>
+
+    <div class="card-body">
+      <p class="login-box-msg">Faça login para continuar</p>
+
+      <!-- ✅ FORM resolve o bug -->
+      <form onsubmit="return verificarLogin()">
 
         <div class="input-group mb-3">
-          <input type="text" id="username" class="form-control" placeholder="Usuário">
-          <div class="input-group-append"><div class="input-group-text"><i class="fas fa-user"></i></div></div>
+          <input type="text" id="username" class="form-control" placeholder="Usuário" required>
+          <div class="input-group-append">
+            <div class="input-group-text"><i class="fas fa-user"></i></div>
+          </div>
         </div>
 
         <div class="input-group mb-3">
-          <input type="password" id="password" class="form-control" placeholder="Senha">
-          <div class="input-group-append"><div class="input-group-text"><i class="fas fa-lock"></i></div></div>
+          <input type="password" id="password" class="form-control" placeholder="Senha" required>
+          <div class="input-group-append">
+            <div class="input-group-text"><i class="fas fa-lock"></i></div>
+          </div>
         </div>
 
-        <button class="btn btn-primary btn-block" onclick="verificarLogin()">Entrar</button>
+        <button type="submit" class="btn btn-primary btn-block">
+          Entrar
+        </button>
 
         <p id="login-erro" class="text-danger mt-3 text-center"></p>
-      </div>
+
+      </form>
     </div>
   </div>
 </div>
@@ -109,13 +119,16 @@ const SENHA_ADMIN = "12345";
 function verificarLogin() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
-    const loginErro = document.getElementById("login-erro");
+    const erro = document.getElementById("login-erro");
 
     if (user === USUARIO_ADMIN && pass === SENHA_ADMIN) {
+        document.body.classList.remove("login-page");
         document.getElementById("login-container").style.display = "none";
         document.getElementById("painel").style.display = "block";
+        return false; // ⛔ impede reload
     } else {
-        loginErro.innerText = "Usuário ou senha inválidos";
+        erro.innerText = "Usuário ou senha inválidos";
+        return false;
     }
 }
 
