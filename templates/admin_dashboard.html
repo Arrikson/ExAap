@@ -225,6 +225,35 @@
     </a>
   </li>
 
+              <!-- LISTAGEM DE ALUNOS -->
+<div class="row mt-4">
+  <div class="col-12">
+
+    <div class="alunos-container">
+
+      <div class="alunos-title">
+        Alunos Cadastrados
+      </div>
+
+      <table class="tabela-alunos" id="tabela-alunos">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Disciplina</th>
+            <th>Online</th>
+            <th>Vínculo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+    </div>
+
+  </div>
+</div>
+
+
   <li class="nav-item">
     <a href="#" class="nav-link"
        onclick="event.preventDefault(); carregarAlunosDisponiveis();">
@@ -422,23 +451,55 @@ const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 
-  async function carregarAlunos() {
+ async function carregarAlunos() {
+
+  try {
+
     const res = await fetch("/listar-alunos");
+
+    if (!res.ok) {
+      alert("Erro ao buscar alunos");
+      return;
+    }
+
     const alunos = await res.json();
+
     const tbody = document.querySelector("#tabela-alunos tbody");
+
+    if (!tbody) {
+      console.error("Tabela #tabela-alunos não encontrada");
+      return;
+    }
+
     tbody.innerHTML = "";
+
     alunos.forEach(a => {
       tbody.innerHTML += `
         <tr>
           <td>${a.nome}</td>
           <td>${a.disciplina}</td>
-          <td>${a.online ? "✅" : "❌"}</td>
-          <td>${a.vinculado ? "Sim" : "Não"}</td>
-          <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+          <td class="${a.online ? 'status-online' : 'status-offline'}">
+            ${a.online ? "Online" : "Offline"}
+          </td>
+          <td>
+            <span class="${a.vinculado ? 'status-vinculado' : 'status-nao-vinculado'}">
+              ${a.vinculado ? "Sim" : "Não"}
+            </span>
+          </td>
+          <td>
+            <button class="btn-remover"
+              onclick="removerAluno('${a.nome}')">
+              Remover
+            </button>
+          </td>
         </tr>
       `;
     });
+
+  } catch (err) {
+    console.error("Erro JS:", err);
   }
+}
 
   async function carregarAlunosDisponiveis() {
     const res = await fetch("/alunos-nao-vinculados");
