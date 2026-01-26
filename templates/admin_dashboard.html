@@ -83,13 +83,6 @@
           </a>
         </li>
 
-        <li class="nav-item">
-          <a class="nav-link" onclick="mostrarSecao('controle-pagamentos')">
-            <i class="fas fa-money-bill nav-icon"></i>
-            <p>Pagamentos alunos</p>
-          </a>
-        </li>
-
       </ul>
     </nav>
   </div>
@@ -105,11 +98,12 @@
 
   <!-- CARDS -->
   <div class="row">
+
     <div class="col-lg-3 col-6">
       <div class="small-box bg-info">
         <div class="inner">
           <h3 id="total-alunos">0</h3>
-          <p>Alunos</p>
+          <p>Total de Alunos</p>
         </div>
         <div class="icon"><i class="fas fa-user-graduate"></i></div>
       </div>
@@ -144,14 +138,16 @@
         <div class="icon"><i class="fas fa-unlink"></i></div>
       </div>
     </div>
+
   </div>
 
   <!-- GRÁFICO + MAPA -->
   <div class="row">
+
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Resumo Geral</h3>
+          <h3 class="card-title">Resumo dos Alunos</h3>
         </div>
         <div class="card-body">
           <canvas id="grafico"></canvas>
@@ -169,16 +165,10 @@
         </div>
       </div>
     </div>
+
   </div>
 
 </div>
-
-<!-- OUTRAS SEÇÕES (vazias por enquanto) -->
-<div id="alunos-cadastrados" class="secao"></div>
-<div id="alunos-disponiveis" class="secao"></div>
-<div id="professores-online" class="secao"></div>
-<div id="aulas-ao-vivo" class="secao"></div>
-<div id="controle-pagamentos" class="secao"></div>
 
 </div>
 </section>
@@ -212,15 +202,20 @@ fetch("/estatisticas-dashboard")
   .then(res => res.json())
   .then(dados => {
 
-    total-alunos.innerText = dados.alunos.total;
-    total-professores.innerText = dados.professores.total;
-    chamadas-ativas.innerText = dados.chamadas.em_andamento;
-    alunos-nao-vinculados.innerText = dados.alunos.nao_vinculados;
+    document.getElementById("total-alunos").innerText = dados.alunos.total;
+    document.getElementById("total-professores").innerText = dados.professores.total;
+    document.getElementById("chamadas-ativas").innerText = dados.chamadas.em_andamento;
+    document.getElementById("alunos-nao-vinculados").innerText = dados.alunos.nao_vinculados;
 
     new Chart(document.getElementById("grafico"), {
       type: "doughnut",
       data: {
-        labels: ["Alunos Online","Alunos Offline","Vinculados","Não Vinculados"],
+        labels: [
+          "Alunos Online",
+          "Alunos Offline",
+          "Alunos Vinculados",
+          "Alunos Não Vinculados"
+        ],
         datasets: [{
           data: [
             dados.alunos.online,
