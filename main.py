@@ -4829,6 +4829,7 @@ async def buscar_professor_nome(email: str):
     except Exception as e:
         return {"erro": str(e)}
         
+
 @app.get("/estatisticas-dashboard")
 async def estatisticas_dashboard():
     # =========================
@@ -4839,15 +4840,24 @@ async def estatisticas_dashboard():
     total_alunos = 0
     alunos_online = 0
     alunos_offline = 0
+    alunos_vinculados = 0
+    alunos_nao_vinculados = 0
 
     for aluno in alunos_ref:
         dados = aluno.to_dict()
         total_alunos += 1
 
+        # Online / Offline
         if dados.get("online") is True:
             alunos_online += 1
         else:
             alunos_offline += 1
+
+        # Vinculado / Não vinculado
+        if dados.get("vinculado") is True:
+            alunos_vinculados += 1
+        else:
+            alunos_nao_vinculados += 1
 
     # =========================
     # 📊 PROFESSORES
@@ -4867,15 +4877,45 @@ async def estatisticas_dashboard():
         else:
             professores_offline += 1
 
+    # =========================
+    # 📞 CHAMADAS AO VIVO
+    # =========================
+    chamadas_ref = db.collection("chamadas_ao_vivo").stream()
+
+    chamadas_em_andamento = 0
+    chamadas_pendentes = 0
+    chamadas_recusadas = 0
+
+    for chamada in chamadas_ref:
+        dados = chamada.to_dict()
+        status = dados.get("status", "").lower()
+
+        if status == "aceito":
+            chamadas_em_andamento += 1
+        elif status == "pendente":
+            chamadas_pendentes += 1
+        elif status == "recusado":
+            chamadas_recusadas += 1
+
+    # =========================
+    # 📦 RESPOSTA FINAL
+    # =========================
     return JSONResponse({
         "alunos": {
             "total": total_alunos,
             "online": alunos_online,
-            "offline": alunos_offline
+            "offline": alunos_offline,
+            "vinculados": alunos_vinculados,
+            "nao_vinculados": alunos_nao_vinculados
         },
         "professores": {
             "total": total_professores,
             "online": professores_online,
             "offline": professores_offline
+        },
+        "chamadas": {
+            "em_andamento": chamadas_em_andamento,
+            "pendentes": chamadas_pendentes,
+            "recusadas": chamadas_recusadas
         }
     })
