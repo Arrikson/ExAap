@@ -529,7 +529,7 @@ async function carregarAlunos() {
   // abre modal
   overlay.style.display = "flex";
 
-  // mostra loading dentro do tbody
+  // loading inicial
   tbody.innerHTML = `
     <tr>
       <td colspan="5" class="loader-alunos">
@@ -553,7 +553,14 @@ async function carregarAlunos() {
       return;
     }
 
-    const alunos = await res.json();
+    let alunos = await res.json();
+
+    // ✅ FILTRA NOMES VAZIOS / NULL
+    alunos = alunos.filter(a =>
+      a &&
+      a.nome &&
+      a.nome.toString().trim() !== ""
+    );
 
     tbody.innerHTML = "";
 
@@ -561,7 +568,7 @@ async function carregarAlunos() {
       tbody.innerHTML = `
         <tr>
           <td colspan="5" style="text-align:center;font-weight:bold">
-            Nenhum aluno cadastrado
+            Nenhum aluno válido encontrado
           </td>
         </tr>
       `;
@@ -570,10 +577,13 @@ async function carregarAlunos() {
 
     alunos.forEach(a => {
 
+      const nome = a.nome?.toString().trim() || "—";
+      const disciplina = a.disciplina || "—";
+
       tbody.innerHTML += `
         <tr>
-          <td data-label="Nome">${a.nome}</td>
-          <td data-label="Disciplina">${a.disciplina}</td>
+          <td data-label="Nome">${nome}</td>
+          <td data-label="Disciplina">${disciplina}</td>
 
           <td data-label="Status"
               class="${a.online ? 'status-online' : 'status-offline'}">
@@ -588,7 +598,7 @@ async function carregarAlunos() {
 
           <td data-label="Ações">
             <button class="btn-remover"
-              onclick="removerAluno('${a.nome}')">
+              onclick="removerAluno('${nome}')">
               Remover
             </button>
           </td>
