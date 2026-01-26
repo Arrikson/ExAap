@@ -41,7 +41,7 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
 
     <a href="#" class="brand-link text-center">
-      <span class="brand-text font-weight-light">Administração SabApp</span>
+      <span class="brand-text font-weight-light">SabApp</span>
     </a>
 
     <!-- MENU -->
@@ -61,13 +61,13 @@
             </a>
 
             <ul class="nav nav-treeview">
-             <li class="nav-item">
-               <a href="#" class="nav-link" onclick="event.preventDefault(); carregarAlunos();">
-               <i class="far fa-circle nav-icon"></i>
-               <p>Alunos Cadastrados</p>
-           </a>
-         </li>
-       </ul>
+              <li class="nav-item">
+                <a href="/alunos-cadastrados" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Alunos Cadastrados</p>
+                </a>
+              </li>
+
               <li class="nav-item">
                 <a href="/alunos-sem-vinculo" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
@@ -211,7 +211,7 @@
   </div>
 
   <footer class="main-footer text-center">
-    <strong>Todos os direitos reservados à SabApp 2026</strong>
+    <strong>Todos os Direitos reservados à SabApp</strong>
   </footer>
 
 </div>
@@ -259,31 +259,13 @@ fetch("/estatisticas-dashboard")
     });
   });
 
-
+// 🗺️ MAPA
 const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
-  
-  async function carregarAlunos() {
-    const res = await fetch("/listar-alunos");
-    const alunos = await res.json();
-    const tbody = document.querySelector("#tabela-alunos tbody");
-    tbody.innerHTML = "";
-    alunos.forEach(a => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${a.nome}</td>
-          <td>${a.disciplina}</td>
-          <td>${a.online ? "✅" : "❌"}</td>
-          <td>${a.vinculado ? "Sim" : "Não"}</td>
-          <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
-        </tr>
-      `;
-    });
-  }
-
 </script>
 
 </body>
 </html>
+
 
