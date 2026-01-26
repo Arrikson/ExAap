@@ -16,7 +16,8 @@
 </style>
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed">
+<!-- ✅ INICIA EM MODO LOGIN -->
+<body class="hold-transition login-page">
 
 <!-- 🔐 LOGIN -->
 <div id="login-container" class="login-box">
@@ -28,7 +29,6 @@
     <div class="card-body">
       <p class="login-box-msg">Faça login para continuar</p>
 
-      <!-- ✅ FORM resolve o bug -->
       <form onsubmit="return verificarLogin()">
 
         <div class="input-group mb-3">
@@ -75,7 +75,13 @@
   <div class="sidebar">
     <nav>
       <ul class="nav nav-pills nav-sidebar flex-column">
-        <li class="nav-item"><a class="nav-link active" onclick="mostrarSecao('dashboard')"><i class="fas fa-chart-line nav-icon"></i><p>Dashboard</p></a></li>
+        <li class="nav-item">
+          <a class="nav-link active" onclick="mostrarSecao('dashboard')">
+            <i class="fas fa-chart-line nav-icon"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+
         <li class="nav-item"><a class="nav-link" onclick="mostrarSecao('alunos-cadastrados')"><i class="fas fa-user-graduate nav-icon"></i><p>Alunos cadastrados</p></a></li>
         <li class="nav-item"><a class="nav-link" onclick="mostrarSecao('alunos-disponiveis')"><i class="fas fa-unlink nav-icon"></i><p>Alunos sem vínculo</p></a></li>
         <li class="nav-item"><a class="nav-link" onclick="mostrarSecao('professores-online')"><i class="fas fa-chalkboard-teacher nav-icon"></i><p>Professores online</p></a></li>
@@ -104,7 +110,9 @@
 </section>
 </div>
 
-<footer class="main-footer text-center"><strong>Todos direitos reservados a SabApp 2026</strong></footer>
+<footer class="main-footer text-center">
+  <strong>Todos direitos reservados a SabApp 2026</strong>
+</footer>
 </div>
 
 <!-- SCRIPTS -->
@@ -122,20 +130,25 @@ function verificarLogin() {
     const erro = document.getElementById("login-erro");
 
     if (user === USUARIO_ADMIN && pass === SENHA_ADMIN) {
-        document.body.classList.remove("login-page");
+
+        // 🔄 ativa layout AdminLTE após login
+        document.body.className = "hold-transition sidebar-mini layout-fixed";
+
         document.getElementById("login-container").style.display = "none";
         document.getElementById("painel").style.display = "block";
-        return false; // ⛔ impede reload
-    } else {
-        erro.innerText = "Usuário ou senha inválidos";
-        return false;
+
+        return false; 
     }
+
+    erro.innerText = "Usuário ou senha inválidos";
+    return false;
 }
 
 function mostrarSecao(id){
   document.querySelectorAll(".secao").forEach(s => s.style.display="none");
   document.getElementById(id).style.display="block";
 }
+  
   async function carregarAlunos() {
     const res = await fetch("/listar-alunos");
     const alunos = await res.json();
