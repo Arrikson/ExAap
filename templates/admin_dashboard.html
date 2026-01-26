@@ -94,7 +94,7 @@
 </section>
 </div>
 
-<footer class="main-footer text-center"><strong>SabApp</strong></footer>
+<footer class="main-footer text-center"><strong>Todos direitos reservados a SabApp 2026</strong></footer>
 </div>
 
 <!-- SCRIPTS -->
@@ -226,7 +226,6 @@ function mostrarSecao(id){
   }
 }
 
-// Chama a função ao carregar a página
 window.addEventListener("load", carregarRelatorioAulas);
 
   async function removerAluno(nome) {
@@ -345,7 +344,6 @@ async function carregarPagamentos() {
 
         alunos.forEach(a => {
 
-            // 🚫 IGNORA registros sem nome
             if (!a.nome || a.nome.trim() === "") {
                 return;
             }
@@ -638,5 +636,3 @@ async function verMesesProf(emailProf) {
 
 </body>
 </html>
-
-
