@@ -103,29 +103,21 @@
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+const USUARIO_ADMIN = "admin";
+const SENHA_ADMIN = "12345";
 
-    const USUARIO_ADMIN = "admin";
-    const SENHA_ADMIN = "12345";
-
-    const btnLogin = document.querySelector("#login-container button");
-    const inputUser = document.getElementById("username");
-    const inputPass = document.getElementById("password");
+function verificarLogin() {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
     const loginErro = document.getElementById("login-erro");
 
-    btnLogin.addEventListener("click", () => {
-        const user = inputUser.value.trim();
-        const pass = inputPass.value.trim();
-
-        if (user === USUARIO_ADMIN && pass === SENHA_ADMIN) {
-            document.getElementById("login-container").style.display = "none";
-            document.getElementById("painel").style.display = "block";
-        } else {
-            loginErro.innerText = "Usuário ou senha inválidos";
-        }
-    });
-
-});
+    if (user === USUARIO_ADMIN && pass === SENHA_ADMIN) {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("painel").style.display = "block";
+    } else {
+        loginErro.innerText = "Usuário ou senha inválidos";
+    }
+}
 
 function mostrarSecao(id){
   document.querySelectorAll(".secao").forEach(s => s.style.display="none");
