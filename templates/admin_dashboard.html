@@ -61,21 +61,24 @@
             </a>
 
             <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="/alunos-cadastrados" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Alunos Cadastrados</p>
-                </a>
-              </li>
 
-              <li class="nav-item">
-                <a href="/alunos-sem-vinculo" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Alunos sem vínculo</p>
-                </a>
-              </li>
-            </ul>
-          </li>
+  <li class="nav-item">
+    <a href="#" class="nav-link"
+       onclick="event.preventDefault(); carregarAlunos();">
+      <i class="far fa-circle nav-icon"></i>
+      <p>Alunos Cadastrados</p>
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a href="#" class="nav-link"
+       onclick="event.preventDefault(); carregarAlunosDisponiveis();">
+      <i class="far fa-circle nav-icon"></i>
+      <p>Alunos sem vínculo</p>
+    </a>
+  </li>
+
+</ul>
 
           <!-- PROFESSORES -->
           <li class="nav-item has-treeview">
@@ -263,6 +266,37 @@ fetch("/estatisticas-dashboard")
 const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
+
+  async function carregarAlunos() {
+    const res = await fetch("/listar-alunos");
+    const alunos = await res.json();
+    const tbody = document.querySelector("#tabela-alunos tbody");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${a.nome}</td>
+          <td>${a.disciplina}</td>
+          <td>${a.online ? "✅" : "❌"}</td>
+          <td>${a.vinculado ? "Sim" : "Não"}</td>
+          <td><button onclick="removerAluno('${a.nome}')" style="background:red;color:white;border:none;padding:4px 8px;border-radius:4px;">Remover</button></td>
+        </tr>
+      `;
+    });
+  }
+
+  async function carregarAlunosDisponiveis() {
+    const res = await fetch("/alunos-nao-vinculados");
+    const dados = await res.json();
+    const tbody = document.querySelector("#tabela-disponiveis tbody");
+    tbody.innerHTML = "";
+    dados.forEach(aluno => {
+      tbody.innerHTML += `
+        <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>
+      `;
+    });
+  }
+  
 </script>
 
 </body>
