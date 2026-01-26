@@ -16,8 +16,163 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
-    #mapAngola { height: 350px; }
-  </style>
+  /* MAPA */
+  #mapAngola { 
+    height: 350px; 
+    border-radius: 10px;
+  }
+
+  /* ===============================
+     BLOCO DE LISTAGEM DE ALUNOS
+  =============================== */
+
+  .alunos-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all .3s ease;
+  }
+
+  .dark-mode .alunos-container {
+    background: #1f2d3d;
+  }
+
+  .alunos-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  /* ===============================
+     TABELA
+  =============================== */
+
+  table.tabela-alunos {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table.tabela-alunos thead {
+    background: linear-gradient(45deg,#007bff,#0056b3);
+    color: white;
+  }
+
+  table.tabela-alunos th,
+  table.tabela-alunos td {
+    padding: 11px;
+    border-bottom: 1px solid #e1e1e1;
+    vertical-align: middle;
+  }
+
+  .dark-mode table.tabela-alunos th,
+  .dark-mode table.tabela-alunos td {
+    border-color: #3b3b3b;
+  }
+
+  table.tabela-alunos tbody tr:hover {
+    background: rgba(0,123,255,0.08);
+  }
+
+  .dark-mode table.tabela-alunos tbody tr:hover {
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* ===============================
+     STATUS VISUAL
+  =============================== */
+
+  .status-online {
+    color: #28a745;
+    font-weight: bold;
+  }
+
+  .status-offline {
+    color: #dc3545;
+    font-weight: bold;
+  }
+
+  .status-vinculado {
+    background: #28a745;
+    color: white;
+    padding: 4px 9px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .status-nao-vinculado {
+    background: #dc3545;
+    color: white;
+    padding: 4px 9px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  /* ===============================
+     BOTÕES
+  =============================== */
+
+  .btn-remover {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .btn-remover:hover {
+    opacity: .8;
+  }
+
+  /* ===============================
+     LOADING
+  =============================== */
+
+  .loader-alunos {
+    text-align: center;
+    padding: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    color: #007bff;
+  }
+
+  /* ===============================
+     RESPONSIVO
+  =============================== */
+
+  @media (max-width: 768px) {
+
+    table.tabela-alunos thead {
+      display: none;
+    }
+
+    table.tabela-alunos tr {
+      display: block;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 5px;
+    }
+
+    .dark-mode table.tabela-alunos tr {
+      border-color: #444;
+    }
+
+    table.tabela-alunos td {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+    }
+
+    table.tabela-alunos td::before {
+      content: attr(data-label);
+      font-weight: 600;
+    }
+  }
+</style>
+
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
