@@ -220,6 +220,98 @@ table.tabela-alunos tbody tr:hover {
   }
 }
 
+/* ===============================
+   OVERLAY ALUNOS DISPONÍVEIS
+================================ */
+
+.alunos-disponiveis-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.55);
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+/* ===============================
+   CONTAINER
+================================ */
+
+.alunos-disponiveis-container {
+  width: 90%;
+  max-width: 1050px;
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+
+  animation: zoomIn .25s ease;
+}
+
+.dark-mode .alunos-disponiveis-container {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TABELA
+================================ */
+
+table.tabela-disponiveis {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.tabela-disponiveis thead {
+  background: linear-gradient(45deg,#17a2b8,#0f6674);
+  color: white;
+}
+
+table.tabela-disponiveis th,
+table.tabela-disponiveis td {
+  padding: 11px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.dark-mode table.tabela-disponiveis th,
+.dark-mode table.tabela-disponiveis td {
+  border-color: #3b3b3b;
+}
+
+table.tabela-disponiveis tbody tr:hover {
+  background: rgba(23,162,184,0.12);
+}
+
+/* ===============================
+   STATUS
+================================ */
+
+.status-disponivel {
+  color: #17a2b8;
+  font-weight: bold;
+}
+
+/* ===============================
+   LOADING
+================================ */
+
+.loader-disponiveis {
+  text-align: center;
+  padding: 25px;
+  font-weight: bold;
+  font-size: 15px;
+  color: #17a2b8;
+}
+    
 </style>
 
 
@@ -320,15 +412,54 @@ table.tabela-alunos tbody tr:hover {
 </div>
 
   <li class="nav-item">
-    <a href="#" class="nav-link"
-       onclick="event.preventDefault(); carregarAlunosDisponiveis();">
-      <i class="far fa-circle nav-icon"></i>
-      <p>Alunos sem vínculo</p>
-    </a>
-  </li>
+  <a href="#" class="nav-link"
+     onclick="event.preventDefault(); carregarAlunosDisponiveis();">
+    <i class="far fa-circle nav-icon"></i>
+    <p>Alunos sem vínculo</p>
+  </a>
+</li>
 
-</ul>
+  <!-- ===============================
+     OVERLAY ALUNOS SEM VÍNCULO
+================================ -->
 
+<div class="alunos-disponiveis-overlay" id="overlayDisponiveis">
+
+  <div class="alunos-disponiveis-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+
+      <div class="alunos-title">
+        👤 Alunos sem vínculo
+      </div>
+
+      <button class="btn btn-secondary"
+              onclick="fecharAlunosDisponiveis()">
+        Fechar
+      </button>
+
+    </div>
+
+    <table class="tabela-disponiveis" id="tabela-disponiveis">
+
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Disciplina</th>
+          <th>Bairro</th>
+          <th>Província</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody></tbody>
+
+    </table>
+
+  </div>
+
+</div>              
+              
           <!-- PROFESSORES -->
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
@@ -629,16 +760,89 @@ function fecharAlunos() {
 }
   
   async function carregarAlunosDisponiveis() {
+
+  const overlay = document.getElementById("overlayDisponiveis");
+  const tbody = document.querySelector("#tabela-disponiveis tbody");
+
+  if (!overlay || !tbody) {
+    console.error("Overlay ou tabela disponíveis não encontrados");
+    return;
+  }
+
+  overlay.style.display = "flex";
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="loader-disponiveis">
+        Carregando alunos...
+      </td>
+    </tr>
+  `;
+
+  try {
+
     const res = await fetch("/alunos-nao-vinculados");
-    const dados = await res.json();
-    const tbody = document.querySelector("#tabela-disponiveis tbody");
+
+    if (!res.ok) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="loader-disponiveis" style="color:red">
+            Erro ao buscar alunos
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let alunos = await res.json();
+
+    // filtra nomes vazios
+    alunos = alunos.filter(a =>
+      a.nome && a.nome.toString().trim() !== ""
+    );
+
     tbody.innerHTML = "";
-    dados.forEach(aluno => {
+
+    if (!alunos.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center;font-weight:bold">
+            Nenhum aluno disponível
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    alunos.forEach(a => {
+
       tbody.innerHTML += `
-        <tr><td>${aluno.nome}</td><td>${aluno.disciplina}</td></tr>
+        <tr>
+          <td>${a.nome}</td>
+          <td>${a.disciplina || "—"}</td>
+          <td>${a.bairro || "—"}</td>
+          <td>${a.provincia || "—"}</td>
+          <td class="status-disponivel">
+            ${a.online ? "Online" : "Offline"}
+          </td>
+        </tr>
       `;
     });
+
+  } catch (err) {
+
+    console.error("Erro JS:", err);
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="loader-disponiveis" style="color:red">
+          Erro inesperado
+        </td>
+      </tr>
+    `;
   }
+}
+
   
 </script>
 
