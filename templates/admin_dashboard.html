@@ -495,271 +495,7 @@ table.tabela-professores td {
     font-weight:600;
   }
 }
-
-/* ================================
-   SEÇÕES
-================================ */
-.secao {
-    display: none;
-    animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ================================
-   STATUS
-================================ */
-
-.status-circulo {
-    display: inline-block;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    margin-right: 6px;
-}
-
-.status-verde {
-    background: #28a745;
-    color: #28a745;
-}
-
-.status-vermelho {
-    background: #dc3545;
-    color: #dc3545;
-}
-
-/* ================================
-   TABELAS
-================================ */
-
-#tabela-pagamentos,
-#tabela-pagamentos-prof {
-    font-size: 14px;
-}
-
-.table thead th {
-    background: #f4f6f9;
-    font-weight: 600;
-}
-
-.dark-mode .table thead th {
-    background: #1f2d3d;
-}
-
-.table tbody tr:hover {
-    background: rgba(0,0,0,.04);
-}
-
-/* ================================
-   BOTÕES
-================================ */
-
-.table button {
-    font-size: 12px;
-    font-weight: 600;
-    transition: .2s;
-}
-
-.table button:hover {
-    transform: scale(1.05);
-    opacity: .9;
-}
-
-/* ================================
-   DETALHES (ALUNO / PROF)
-================================ */
-
-#detalhes-aluno,
-#detalhes-prof {
-    border-left: 5px solid #007bff;
-    box-shadow: 0 3px 12px rgba(0,0,0,.1);
-}
-
-/* ======================================
-   OVERLAY FINANÇAS
-====================================== */
-
-.finance-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-/* ======================================
-   CONTAINER FINANÇAS
-====================================== */
-
-.finance-container {
-  width: 95%;
-  max-width: 1150px;
-  max-height: 85vh;
-  overflow-y: auto;
-
-  background: #fff;
-  border-radius: 14px;
-  padding: 22px;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,.25);
-  animation: zoomIn .25s ease;
-}
-
-.dark-mode .finance-container {
-  background: #1f2d3d;
-}
-
-/* ======================================
-   TÍTULO
-====================================== */
-
-.finance-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-}
-
-/* ======================================
-   TABELAS FINANÇAS
-====================================== */
-
-table.tabela-finance {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table.tabela-finance thead {
-  background: linear-gradient(45deg,#007bff,#0056b3);
-  color: white;
-}
-
-table.tabela-finance th,
-table.tabela-finance td {
-  padding: 11px;
-  border-bottom: 1px solid #e1e1e1;
-  vertical-align: middle;
-}
-
-.dark-mode table.tabela-finance th,
-.dark-mode table.tabela-finance td {
-  border-color: #3b3b3b;
-}
-
-table.tabela-finance tbody tr:hover {
-  background: rgba(0,123,255,.08);
-}
-
-.dark-mode table.tabela-finance tbody tr:hover {
-  background: rgba(255,255,255,.06);
-}
-
-/* ======================================
-   STATUS
-====================================== */
-
-.status-circulo {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-.status-verde { background:#28a745 }
-.status-vermelho { background:#dc3545 }
-
-/* ======================================
-   BOTÕES
-====================================== */
-
-.tabela-finance button {
-  font-size: 12px;
-  font-weight: 600;
-  transition: .2s;
-}
-
-.tabela-finance button:hover {
-  transform: scale(1.05);
-  opacity: .9;
-}
-
-/* ======================================
-   LOADING
-====================================== */
-
-.loader-finance {
-  text-align: center;
-  padding: 25px;
-  font-weight: bold;
-  font-size: 15px;
-  color: #007bff;
-}
-
-/* ======================================
-   RESPONSIVO
-====================================== */
-
-@media(max-width:768px){
-
-  table.tabela-finance thead {
-    display: none;
-  }
-
-  table.tabela-finance tr {
-    display: block;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 6px;
-  }
-
-  .dark-mode table.tabela-finance tr {
-    border-color: #444;
-  }
-
-  table.tabela-finance td {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px;
-  }
-
-  table.tabela-finance td::before {
-    content: attr(data-label);
-    font-weight: 600;
-  }
-
-  table.tabela-finance button {
-    width: 100%;
-    margin-top: 5px;
-  }
-}
-
-/* ======================================
-   DETALHES FINANCEIROS
-====================================== */
-
-.finance-detalhes {
-  border-left: 5px solid #007bff;
-  box-shadow: 0 3px 12px rgba(0,0,0,.1);
-  margin-top: 15px;
-}
-
-/* ======================================
-   DIVISOR
-====================================== */
-
-.finance-divider {
-  height: 3px;
-  background: linear-gradient(to right,#007bff,#28a745);
-  margin: 15px 0;
-  border-radius: 5px;
-}
-
+    
 </style>
 
 
@@ -853,29 +589,33 @@ table.tabela-finance tbody tr:hover {
 </li>
 
 <!-- ================= MENU FINANÇAS ================= -->
+
 <li class="nav-item has-treeview">
-  <a href="#" class="nav-link">
-    <i class="nav-icon fas fa-coins"></i>
-    <p>Finanças <i class="right fas fa-angle-left"></i></p>
-  </a>
 
-  <ul class="nav nav-treeview">
-    <li class="nav-item">
-      <a href="#" class="nav-link"
-         onclick="event.preventDefault(); mostrarSecao('secao-pagamentos'); carregarPagamentos();">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Pagamento de Alunos</p>
-      </a>
-    </li>
+<a href="#" class="nav-link">
+<i class="nav-icon fas fa-coins"></i>
+<p>Finanças <i class="right fas fa-angle-left"></i></p>
+</a>
 
-    <li class="nav-item">
-      <a href="#" class="nav-link"
-         onclick="event.preventDefault(); mostrarSecao('secao-prof'); carregarPagamentosProf();">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Pagamento de Professores</p>
-      </a>
-    </li>
-  </ul>
+<ul class="nav nav-treeview">
+
+<li class="nav-item">
+<a href="#" class="nav-link"
+ onclick="event.preventDefault(); mostrarSecao('secao-pagamentos'); carregarPagamentos();">
+<i class="far fa-circle nav-icon"></i>
+<p>Pagamento de Alunos</p>
+</a>
+</li>
+
+<li class="nav-item">
+<a href="#" class="nav-link"
+ onclick="event.preventDefault(); mostrarSecao('secao-prof'); carregarPagamentosProf();">
+<i class="far fa-circle nav-icon"></i>
+<p>Pagamento de Professores</p>
+</a>
+</li>
+
+</ul>
 </li>
 
 </ul>
@@ -887,83 +627,117 @@ table.tabela-finance tbody tr:hover {
         CONTENT WRAPPER
 ===================================== -->
 <div class="content-wrapper">
-  <section class="content pt-3">
 
-    <!-- ================= PAGAMENTO ALUNOS ================= -->
-    <section class="content secao finance-overlay" id="secao-pagamentos">
-      <div class="finance-container">
-        <h3 class="finance-title">💰 Pagamento de Alunos</h3>
-        <table class="table tabela-finance" id="tabela-pagamentos">
-          <thead>
-            <tr>
-              <th>Aluno</th>
-              <th>Status</th>
-              <th>Dívida</th>
-              <th>Último Pagamento</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+<section class="content pt-3">
 
-    <!-- ================= DETALHES ALUNO ================= -->
-    <div id="detalhes-aluno" class="finance-detalhes finance-container" style="display:none">
-      <h4 id="nome-aluno"></h4>
-      <table class="table tabela-finance table-sm">
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th>Ano</th>
-            <th>Valor</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-meses"></tbody>
-      </table>
-    </div>
+<!-- ================= PAGAMENTO ALUNOS ================= -->
 
-    <!-- ================= PAGAMENTO PROFESSORES ================= -->
-    <section class="content secao finance-overlay" id="secao-prof">
-      <div class="finance-container">
-        <h3 class="finance-title">👨‍🏫 Pagamento de Professores</h3>
-        <table class="table tabela-finance" id="tabela-pagamentos-prof">
-          <thead>
-            <tr>
-              <th>Professor</th>
-              <th>Status</th>
-              <th>Saldo Atual</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+<section class="content secao" id="secao-pagamentos">
 
-    <!-- ================= DETALHES PROFESSOR ================= -->
-    <div id="detalhes-prof" class="finance-detalhes finance-container" style="display:none">
-      <h4 id="nome-prof"></h4>
-      <p>Saldo Atual: <strong id="saldo-prof"></strong></p>
-      <table class="table tabela-finance table-sm">
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th>Data</th>
-            <th>Valor</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-meses"></tbody>
-      </table>
-    </div>
-
-  </section>
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">💰 Pagamento de Alunos</h3>
 </div>
 
+<div class="card-body">
+<table class="table table-bordered table-striped" id="tabela-pagamentos">
+<thead>
+<tr>
+<th>Aluno</th>
+<th>Status</th>
+<th>Dívida</th>
+<th>Último Pagamento</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+
+</section>
+
+<!-- ================= DETALHES ALUNO ================= -->
+
+<div id="detalhes-aluno" class="card mt-3" style="display:none">
+
+<div class="card-header">
+<h4 id="nome-aluno"></h4>
+</div>
+
+<div class="card-body">
+<table class="table table-sm table-bordered">
+<thead>
+<tr>
+<th>Mês</th>
+<th>Ano</th>
+<th>Valor</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="tabela-meses"></tbody>
+</table>
+</div>
+
+</div>
+
+<!-- ================= PAGAMENTO PROFESSORES ================= -->
+
+<section class="content secao" id="secao-prof">
+
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">👨‍🏫 Pagamento de Professores</h3>
+</div>
+
+<div class="card-body">
+<table class="table table-bordered" id="tabela-pagamentos-prof">
+<thead>
+<tr>
+<th>Professor</th>
+<th>Status</th>
+<th>Saldo Atual</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+
+</section>
+
+<!-- ================= DETALHES PROFESSOR ================= -->
+
+<div id="detalhes-prof" class="card mt-3" style="display:none">
+
+<div class="card-header">
+<h4 id="nome-prof"></h4>
+<p>Saldo Atual: <strong id="saldo-prof"></strong></p>
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+<thead>
+<tr>
+<th>Mês</th>
+<th>Data</th>
+<th>Valor</th>
+<th>Email</th>
+<th>Status</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="tabela-meses"></tbody>
+
+</table>
+
+</div>
+</div>
+
+</section>
 </div>
 
 <!-- =====================================
@@ -971,7 +745,7 @@ table.tabela-finance tbody tr:hover {
 ===================================== -->
 
 <footer class="main-footer text-center">
-<strong>© 2026 SabApp - Todos os direitos reservados.</strong>
+<strong>Todos os Direitos reservados à SabApp 2026</strong>
 </footer>
 
 </div>
@@ -987,7 +761,6 @@ table.tabela-finance tbody tr:hover {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-
 function toggleDarkMode() {
   document.body.classList.toggle("dark-mode");
 }
@@ -1333,356 +1106,21 @@ async function carregarProfessores() {
 
 }
   
-/* =====================================================
-   CONTROLE DE SEÇÕES (MENU FINANÇAS)
-===================================================== */
+function fecharProfessores() {
 
-function mostrarSecao(id) {
+  const overlay = document.getElementById("overlayProfessores");
+  const tbody = document.querySelector("#tabela-professores tbody");
 
-    // Esconde todas as seções
-    document.querySelectorAll(".secao").forEach(sec => {
-        sec.style.display = "none";
-    });
+  if (overlay) overlay.style.display = "none";
 
-    // Esconde detalhes
-    const detAluno = document.getElementById("detalhes-aluno");
-    const detProf = document.getElementById("detalhes-prof");
-
-    if (detAluno) detAluno.style.display = "none";
-    if (detProf) detProf.style.display = "none";
-
-    // Mostra seção solicitada
-    const secao = document.getElementById(id);
-    if (secao) secao.style.display = "block";
+  if (tbody) tbody.innerHTML = "";
 }
-
-
-
-/* =====================================================
-   PAGAMENTOS — ALUNOS
-===================================================== */
-
-async function marcarPago(alunoId, temDivida) {
-
-    if (!temDivida) {
-        alert("Este aluno já está com o pagamento em dia.");
-        return;
-    }
-
-    const res = await fetch("/listar-pagamentos");
-    const alunos = await res.json();
-
-    const aluno = alunos.find(a =>
-        a.id === alunoId &&
-        a.nome &&
-        a.nome.trim() !== ""
-    );
-
-    if (!aluno) {
-        alert("Aluno não encontrado.");
-        return;
-    }
-
-    const hoje = new Date();
-    const mes = hoje.getMonth() + 1;
-    const ano = hoje.getFullYear();
-
-    const valorMensal = aluno.valor_mensal_aluno || 0;
-
-    const resposta = await fetch("/api/registrar-pagamento", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            aluno_nome: aluno.nome,
-            mes,
-            ano,
-            valor_pago: valorMensal,
-            pago: true
-        })
-    });
-
-    if (resposta.ok) {
-        alert(`Pagamento de ${aluno.nome} registrado.`);
-        carregarPagamentos();
-    } else {
-        alert("Erro ao registrar pagamento.");
-    }
-}
-
-
-async function carregarPagamentos() {
-
-    mostrarSecao("secao-pagamentos");
-
-    try {
-
-        const res = await fetch("/listar-pagamentos");
-        if (!res.ok) throw new Error(res.status);
-
-        const alunos = await res.json();
-        const tbody = document.querySelector("#tabela-pagamentos tbody");
-
-        tbody.innerHTML = "";
-
-        alunos.forEach(a => {
-
-            if (!a.nome || a.nome.trim() === "") return;
-
-            const temDivida = a.divida && Number(a.divida) > 0;
-
-            const statusCor = temDivida ? "status-vermelho" : "status-verde";
-            const statusTexto = temDivida ? "NÃO PAGO" : "PAGO";
-
-            let ultimoPagamento = "—";
-
-            if (a.paga_passado?.length) {
-                const ult = a.paga_passado.at(-1);
-                ultimoPagamento =
-                    `${ult.mes}/${ult.ano} - Kz ${Number(ult.valor_pago || 0).toLocaleString("pt-AO")},00`;
-            }
-
-            tbody.innerHTML += `
-                <tr>
-                  <td>${a.nome}</td>
-
-                  <td>
-                    <span class="status-circulo ${statusCor}"></span>
-                    ${statusTexto}
-                  </td>
-
-                  <td>Kz ${Number(a.divida || 0).toLocaleString("pt-AO")},00</td>
-
-                  <td>${ultimoPagamento}</td>
-
-                  <td>
-                    <button onclick="marcarPago('${a.id}', ${temDivida})"
-                        class="btn btn-sm btn-success">
-                        PAGO
-                    </button>
-
-                    <button onclick="verPagamentos('${a.nome}', '${a.nome}')"
-                        class="btn btn-sm btn-primary ml-1">
-                        Ver Pagamentos
-                    </button>
-                  </td>
-                </tr>
-            `;
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar pagamentos.");
-    }
-}
-
-
-
-async function verPagamentos(nomeAluno, nomeExibicao) {
-
-    mostrarSecao("secao-pagamentos");
-
-    try {
-
-        const res = await fetch(`/ver-pagamentos/${encodeURIComponent(nomeAluno)}`);
-        if (!res.ok) throw new Error(res.status);
-
-        const data = await res.json();
-
-        document.getElementById("nome-aluno").textContent =
-            `📌 Pagamentos de ${nomeExibicao}`;
-
-        const tbody = document.getElementById("tabela-meses");
-        tbody.innerHTML = "";
-
-        const historico = data.historico_pagamentos || [];
-
-        if (!historico.length) {
-            tbody.innerHTML =
-                `<tr><td colspan="4">Nenhum pagamento encontrado</td></tr>`;
-        }
-
-        historico.forEach(p => {
-
-            const valor = `Kz ${Number(p.valor_pago || 0).toLocaleString("pt-AO")},00`;
-            const pago = p.valor_pago > 0;
-
-            tbody.innerHTML += `
-                <tr>
-                    <td>${p.mes}</td>
-                    <td>${p.ano}</td>
-                    <td>${valor}</td>
-                    <td class="${pago ? "text-success" : "text-danger"}">
-                        ${pago ? "Pago" : "Não pago"}
-                    </td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("detalhes-aluno").style.display = "block";
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao buscar histórico.");
-    }
-}
-
-/* =====================================================
-   PAGAMENTOS — PROFESSORES
-===================================================== */
-
-async function carregarPagamentosProf() {
-
-    mostrarSecao("secao-prof");
-
-    try {
-
-        const res = await fetch("/listar-pagamentos-prof");
-        const professores = await res.json();
-
-        const tbody =
-            document.querySelector("#tabela-pagamentos-prof tbody");
-
-        tbody.innerHTML = "";
-
-        professores.forEach(p => {
-
-            const emDivida = p.saldo_atual > 0;
-
-            const statusCor = emDivida ? "status-vermelho" : "status-verde";
-            const statusTexto = emDivida ? "NÃO PAGO" : "PAGO";
-
-            tbody.innerHTML += `
-                <tr>
-                  <td>
-                    <a href="#" onclick="verMesesProf('${p.id}')">
-                        ${p.professor}
-                    </a>
-                  </td>
-
-                  <td>
-                    <span class="status-circulo ${statusCor}"></span>
-                    ${statusTexto}
-                  </td>
-
-                  <td>Kz ${Number(p.saldo_atual).toFixed(2)}</td>
-
-                  <td>
-                    <button onclick="marcarPagoProf('${p.id}', ${!emDivida}, '${p.professor}', ${p.saldo_atual})"
-                        class="btn btn-sm ${emDivida ? "btn-danger" : "btn-success"}">
-                        ${statusTexto}
-                    </button>
-
-                    <button onclick="verHistoricoPagamentos('${p.professor}')"
-                        class="btn btn-sm btn-primary ml-1">
-                        Histórico
-                    </button>
-                  </td>
-                </tr>
-            `;
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar professores.");
-    }
-}
-
-
-
-async function marcarPagoProf(id, statusAtual, professor, saldoAtual) {
-
-    try {
-
-        const url = statusAtual
-            ? "/atualizar-pagamento-prof"
-            : "/registrar-pagamento-prof";
-
-        await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id,
-                professor,
-                valor_pago: statusAtual ? 0 : saldoAtual
-            })
-        });
-
-        carregarPagamentosProf();
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao atualizar pagamento.");
-    }
-}
-
-
-
-function verHistoricoPagamentos(nomeProfessor) {
-    window.location.href =
-        `/ver-pagamentos?professor=${encodeURIComponent(nomeProfessor)}`;
-}
-
-
-
-async function verMesesProf(emailProf) {
-
-    mostrarSecao("secao-prof");
-
-    try {
-
-        const res =
-            await fetch(`/salarios?email=${encodeURIComponent(emailProf)}`);
-
-        if (!res.ok) throw new Error(res.status);
-
-        const data = await res.json();
-
-        document.getElementById("nome-prof").textContent = data.nome;
-        document.getElementById("saldo-prof").textContent =
-            `${Number(data.saldo_atual).toFixed(2)} Kz`;
-
-        const tbody = document.getElementById("tabela-meses");
-        tbody.innerHTML = "";
-
-        if (!data.pagamentos?.length) {
-            tbody.innerHTML =
-                `<tr><td colspan="6">Nenhum pagamento registrado.</td></tr>`;
-        }
-
-        data.pagamentos.forEach(p => {
-
-            const pago = p.valor_pago > 0;
-
-            tbody.innerHTML += `
-                <tr>
-                    <td>${p.mes}</td>
-                    <td>${p.data_pagamento || "-"}</td>
-                    <td>Kz ${Number(p.valor_pago).toFixed(2)}</td>
-                    <td>${p.email_professor || "-"}</td>
-                    <td class="${pago ? "text-success" : "text-danger"}">
-                        ${pago ? "PAGO" : "NÃO PAGO"}
-                    </td>
-                    <td>
-                        <button onclick="marcarPagoMesProf('${emailProf}','${p.mes}',${pago})"
-                            class="btn btn-sm ${pago ? "btn-success" : "btn-danger"}">
-                            ${pago ? "PAGO" : "NÃO PAGO"}
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("detalhes-prof").style.display = "block";
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar meses.");
-    }
-}
-
+  
 </script>
 
 </body>
 </html>
+
+
 
 
