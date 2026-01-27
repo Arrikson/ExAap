@@ -242,12 +242,8 @@ ADMIN_PASS = "12345"
 # ===============================
 # ROTA LOGIN
 # ===============================
-@app.get("/", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
 
-
-@app.post("/login")
+@app.post("/logini")
 def login(
     request: Request,
     username: str = Form(...),
@@ -258,7 +254,7 @@ def login(
         return RedirectResponse("/admin", status_code=302)
 
     return templates.TemplateResponse(
-        "login.html",
+        "logini.html",
         {
             "request": request,
             "error": "Usuário ou senha inválidos"
