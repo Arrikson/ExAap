@@ -227,6 +227,62 @@ async def get_account_and_increment():
 
     return conta
 
+# 🔐 CHAVE DA SESSÃO (MUDE EM PRODUÇÃO)
+app.add_middleware(SessionMiddleware, secret_key="segredo_super_secreto")
+
+templates = Jinja2Templates(directory="templates")
+
+# ===============================
+# CONFIGURAÇÃO DO ADMIN
+# (PODE ALTERAR AQUI)
+# ===============================
+ADMIN_USER = "admin"
+ADMIN_PASS = "1234"
+
+# ===============================
+# ROTA LOGIN
+# ===============================
+@app.get("/", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    if username == ADMIN_USER and password == ADMIN_PASS:
+        request.session["logged_in"] = True
+        return RedirectResponse("/admin", status_code=302)
+
+    return templates.TemplateResponse(
+        "login.html",
+        {
+            "request": request,
+            "error": "Usuário ou senha inválidos"
+        }
+    )
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_dashboard(request: Request):
+
+   
+    if not request.session.get("logged_in"):
+        return RedirectResponse("/", status_code=302)
+
+    return templates.TemplateResponse(
+        "admin_dashboard.html",
+        {"request": request}
+    )
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/", status_code=302)
+
+        
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
