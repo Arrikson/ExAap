@@ -495,6 +495,122 @@ table.tabela-professores td {
     font-weight:600;
   }
 }
+
+/* ===============================
+   FINANCE OVERLAY
+================================ */
+
+.finance-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+/* ===============================
+   FINANCE CONTAINER
+================================ */
+
+.finance-container {
+  width: 92%;
+  max-width: 1100px;
+  max-height: 85vh;
+
+  overflow-y: auto;
+
+  background: white;
+  border-radius: 14px;
+  padding: 22px;
+
+  box-shadow: 0 15px 40px rgba(0,0,0,.25);
+
+  animation: zoomFinance .25s ease;
+}
+
+.dark-mode .finance-container {
+  background: #1f2d3d;
+}
+
+@keyframes zoomFinance {
+  from {
+    transform: scale(.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   TITULO
+================================ */
+
+.finance-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+/* ===============================
+   TABELA FINANCE
+================================ */
+
+table.tabela-finance {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table.tabela-finance thead {
+  background: linear-gradient(45deg,#28a745,#1e7e34);
+  color: white;
+}
+
+table.tabela-finance th,
+table.tabela-finance td {
+  padding: 11px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dark-mode table.tabela-finance td {
+  border-color: #444;
+}
+
+table.tabela-finance tbody tr:hover {
+  background: rgba(40,167,69,.12);
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+@media(max-width:768px){
+
+  table.tabela-finance thead{display:none}
+
+  table.tabela-finance tr{
+    display:block;
+    margin-bottom:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:6px;
+  }
+
+  table.tabela-finance td{
+    display:flex;
+    justify-content:space-between;
+  }
+
+  table.tabela-finance td::before{
+    content:attr(data-label);
+    font-weight:600;
+  }
+}
     
 </style>
 
@@ -1179,6 +1295,24 @@ function fecharProfessores() {
   if (overlay) overlay.style.display = "none";
 
   if (tbody) tbody.innerHTML = "";
+}
+
+function abrirFinanceAlunos(){
+  fecharFinanceProf();
+  document.getElementById("overlayFinanceAlunos").style.display = "flex";
+}
+
+function fecharFinanceAlunos(){
+  document.getElementById("overlayFinanceAlunos").style.display = "none";
+}
+
+function abrirFinanceProf(){
+  fecharFinanceAlunos();
+  document.getElementById("overlayFinanceProf").style.display = "flex";
+}
+
+function fecharFinanceProf(){
+  document.getElementById("overlayFinanceProf").style.display = "none";
 }
   
 </script>
