@@ -1027,40 +1027,41 @@ table tbody {
   }
 }
 <style>
-    /* ===============================
-       FORMULÁRIO DE LOGIN
-    ================================= */
-    #login-form {
-      width: 300px;
-      margin: 150px auto;
-      padding: 20px;
-      background-color: #f9f9f9;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    #login-form input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    
-    #login-form button {
-      width: 100%;
-      padding: 10px;
-      background-color: #17a2b8;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    
-    #login-form button:hover {
-      opacity: 0.8;
-    }
-  </style>
+#login-form {
+  width: 320px;
+  margin: 150px auto;
+  padding: 25px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
+#login-form h2 {
+  text-align: center;
+}
+
+#login-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#login-form button {
+  width: 100%;
+  padding: 10px;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#login-form button:hover {
+  opacity: .85;
+}
+</style>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed" onload="checkLogin()">
@@ -1437,40 +1438,61 @@ table tbody {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    function checkLogin() {
-      const loggedIn = localStorage.getItem('loggedIn');
-      if (loggedIn === 'true') {
-        showAdminContent();
-      } else {
-        showLoginForm();
-      }
-    }
+/* ===============================
+   VERIFICA LOGIN AO CARREGAR
+================================ */
+function checkLogin() {
+  const loggedIn = localStorage.getItem('loggedIn');
 
-    // Exibe o formulário de login
-    function showLoginForm() {
-      document.getElementById('login-form').style.display = 'block';
-      document.getElementById('admin-content').style.display = 'none';
-    }
+  if (loggedIn === 'true') {
+    showAdminContent();
+  } else {
+    showLoginForm();
+  }
+}
 
-    // Exibe o conteúdo protegido (Admin)
-    function showAdminContent() {
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('admin-content').style.display = 'block';
-    }
+/* ===============================
+   MOSTRA LOGIN
+================================ */
+function showLoginForm() {
+  document.getElementById("login-form").style.display = "block";
+  document.getElementById("admin-content").style.display = "none";
+}
 
-    // Verifica as credenciais
-    document.getElementById('formLogin').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+/* ===============================
+   MOSTRA ADMIN
+================================ */
+function showAdminContent() {
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("admin-content").style.display = "block";
+}
 
-      if (username === 'admin' && password === '12345') {
-        localStorage.setItem('loggedIn', 'true');
-        showAdminContent();
-      } else {
-        alert('Usuário ou senha incorretos!');
-      }
-    });
+/* ===============================
+   SUBMIT DO LOGIN
+================================ */
+document.getElementById("formLogin").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+
+  // LOGIN SIMPLES (EXEMPLO)
+  if (user === "admin" && pass === "1234") {
+    localStorage.setItem("loggedIn", "true");
+    showAdminContent();
+  } else {
+    alert("Usuário ou senha inválidos!");
+  }
+});
+
+/* ===============================
+   LOGOUT (OPCIONAL)
+================================ */
+function logout() {
+  localStorage.removeItem("loggedIn");
+  showLoginForm();
+}
+
   
 function toggleDarkMode() {
   document.body.classList.toggle("dark-mode");
