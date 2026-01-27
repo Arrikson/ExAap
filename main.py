@@ -266,9 +266,9 @@ def login(
     )
 
 @app.get("/admin", response_class=HTMLResponse)
-def admin_dashboard(request: Request):
+def painel_admin(request: Request):
 
-   
+    # 🔐 Bloqueio: só entra se estiver logado
     if not request.session.get("logged_in"):
         return RedirectResponse("/", status_code=302)
 
@@ -4285,12 +4285,6 @@ async def atualizar_pagamento_prof(item: AtualizarPagamentoProfIn):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
         
-
-        
-@app.get("/admin", response_class=HTMLResponse)
-async def painel_admin(request: Request):
-    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
-
 class EntradaItem(BaseModel):
     nome: str
     preco: float
