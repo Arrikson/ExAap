@@ -495,7 +495,7 @@ table.tabela-professores td {
     font-weight:600;
   }
 }
-    
+
 </style>
 
 
@@ -655,8 +655,89 @@ table.tabela-professores td {
     </div>
   </div>
 
+ <!-- Conteúdo -->
+  <div class="content-wrapper">
+    <section class="content pt-3">
+      <div class="container-fluid">
+
+        <!-- CARDS -->
+        <div class="row">
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3 id="total-alunos">0</h3>
+                <p>Alunos</p>
+              </div>
+              <div class="icon"><i class="fas fa-user-graduate"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3 id="total-professores">0</h3>
+                <p>Professores</p>
+              </div>
+              <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3 id="chamadas-ativas">0</h3>
+                <p>Aulas Ativas</p>
+              </div>
+              <div class="icon"><i class="fas fa-video"></i></div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3 id="alunos-nao-vinculados">0</h3>
+                <p>Alunos Não Vinculados</p>
+              </div>
+              <div class="icon"><i class="fas fa-unlink"></i></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- GRÁFICO + MAPA -->
+        <div class="row">
+
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Resumo Geral</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="grafico"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Mapa de Angola</h3>
+              </div>
+              <div class="card-body">
+                <div id="mapAngola"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  </div>
+
   <footer class="main-footer text-center">
-    <strong>© 2026 SabApp - Todos os direitos reservados.</strong>
+    <strong>Todos os Direitos reservados à SabApp 2026</strong>
   </footer>
 
 </div>
