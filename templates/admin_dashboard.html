@@ -654,6 +654,151 @@ table button {
 table tbody {
   scroll-behavior: smooth;
 }
+
+/* ===============================
+   WRAPPER
+================================ */
+.tabela-wrapper {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.dark-mode .tabela-wrapper {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TÍTULO
+================================ */
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   TABELA DESKTOP
+================================ */
+.tabela-pagamentos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabela-pagamentos thead {
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  color: #fff;
+}
+
+.tabela-pagamentos th,
+.tabela-pagamentos td {
+  padding: 12px;
+  border-bottom: 1px solid #e1e1e1;
+  text-align: left;
+}
+
+.dark-mode .tabela-pagamentos th,
+.dark-mode .tabela-pagamentos td {
+  border-color: #444;
+}
+
+.tabela-pagamentos tbody tr:hover {
+  background: rgba(0,123,255,.08);
+}
+
+/* ===============================
+   STATUS
+================================ */
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-pago {
+  background: #28a745;
+  color: #fff;
+}
+
+.status-pendente {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* ===============================
+   BOTÕES
+================================ */
+.btn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  opacity: .85;
+}
+
+/* ===============================
+   MOBILE (≤ 768px)
+================================ */
+@media (max-width: 768px) {
+
+  .tabela-pagamentos thead {
+    display: none;
+  }
+
+  .tabela-pagamentos tbody tr {
+    display: block;
+    margin-bottom: 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+
+  .dark-mode .tabela-pagamentos tbody tr {
+    background: #1f2d3d;
+    border-color: #444;
+  }
+
+  .tabela-pagamentos tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    border: none;
+  }
+
+  .tabela-pagamentos tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+  }
+
+  .dark-mode .tabela-pagamentos tbody td::before {
+    color: #bbb;
+  }
+
+  .tabela-pagamentos tbody td:last-child {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tabela-pagamentos tbody td:last-child button {
+    width: 100%;
+  }
+}
     
 </style>
 
@@ -756,14 +901,14 @@ table tbody {
      OVERLAY FINANÇAS PROFESSORES
 ================================ -->
 <div class="professores-overlay" id="overlayFinanceProf">
-  <div class="professores-container">
+  <div class="professores-container tabela-wrapper">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="alunos-title">💰 Pagamentos – Professores</div>
+    <div class="modal-header">
+      <h3 class="modal-title">💰 Pagamentos – Professores</h3>
       <button class="btn btn-secondary" onclick="fecharFinanceProf()">Fechar</button>
     </div>
 
-    <table class="tabela-professores" id="tabela-pagamentos-prof">
+    <table class="tabela-pagamentos" id="tabela-pagamentos-prof">
       <thead>
         <tr>
           <th>Professor</th>
@@ -772,27 +917,31 @@ table tbody {
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        <!-- JS injeta linhas aqui -->
+      </tbody>
     </table>
 
   </div>
 </div>
-
- <!-- ===============================
+<!-- ===============================
      DETALHES PAGAMENTOS PROFESSOR
 ================================ -->
 <div class="professores-overlay" id="detalhes-prof">
-  <div class="professores-container">
+  <div class="professores-container tabela-wrapper">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="modal-header">
       <div>
-        <div class="alunos-title" id="nome-prof">Professor</div>
-        <small>Saldo atual: <strong id="saldo-prof">0 Kz</strong></small>
+        <h3 class="modal-title" id="nome-prof">Professor</h3>
+        <small>
+          Saldo atual:
+          <strong id="saldo-prof">0 Kz</strong>
+        </small>
       </div>
       <button class="btn btn-secondary" onclick="fecharDetalhesProf()">Fechar</button>
     </div>
 
-    <table class="tabela-professores">
+    <table class="tabela-pagamentos">
       <thead>
         <tr>
           <th>Mês</th>
@@ -803,8 +952,14 @@ table tbody {
           <th>Ação</th>
         </tr>
       </thead>
-      <tbody id="tabela-meses"></tbody>
+      <tbody id="tabela-meses">
+        <!-- JS injeta linhas aqui -->
+      </tbody>
     </table>
+
+  </div>
+</div>
+
 
   </div>
 </div>
