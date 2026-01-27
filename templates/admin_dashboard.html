@@ -710,14 +710,15 @@ table.tabela-professores td {
                </a>
             </li>
 
-              <li class="nav-item">
-                <a href="#" class="nav-link" onclick="event.preventDefault(); abrirFinanceProf();">
-                   <i class="far fa-circle nav-icon"></i>
-                   <p>Paga. Professores</p>
-                </a>
-              </li>
+         <li class="nav-item">
+           <a href="#" class="nav-link"
+              onclick="event.preventDefault(); abrirFinanceProf();">
+             <i class="far fa-circle nav-icon"></i>
+             <p>Paga. Professores</p>
+           </a>
+        </li>
 
-              <!-- ===============================
+<!-- ===============================
      OVERLAY FINANÇAS PROFESSORES
 ================================ -->
 <div class="professores-overlay" id="overlayFinanceProf">
@@ -1462,6 +1463,19 @@ function fecharDetalhesAluno() {
   document.getElementById("detalhes-aluno").style.display = "none";
 }
 
+/* ==============================
+   ABRIR FINANÇAS PROFESSORES
+================================ */
+function abrirFinanceProf() {
+  const overlay = document.getElementById("overlayFinanceProf");
+  overlay.style.display = "flex";
+
+  carregarPagamentosProf();
+}
+
+/* ==============================
+   LISTAR PAGAMENTOS PROFESSORES
+================================ */
 async function carregarPagamentosProf() {
   try {
     const res = await fetch("/listar-pagamentos-prof");
@@ -1479,7 +1493,10 @@ async function carregarPagamentosProf() {
       tbody.innerHTML += `
         <tr>
           <td>${p.professor}</td>
-          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+          <td>
+            <span class="status-circulo ${statusCor}"></span>
+            ${statusTexto}
+          </td>
           <td>${Number(p.saldo_atual).toFixed(2)} Kz</td>
           <td>
             <button
@@ -1504,7 +1521,9 @@ async function carregarPagamentosProf() {
   }
 }
 
-
+/* ==============================
+   MARCAR PAGO / NÃO PAGO
+================================ */
 async function marcarPagoProf(id, statusPago, professor, saldoAtual) {
   try {
 
@@ -1538,7 +1557,10 @@ async function marcarPagoProf(id, statusPago, professor, saldoAtual) {
   }
 }
 
-  async function verMesesProf(id) {
+/* ==============================
+   VER MESES DO PROFESSOR
+================================ */
+async function verMesesProf(id) {
   try {
     const res = await fetch(`/salarios?email=${encodeURIComponent(id)}`);
     const data = await res.json();
@@ -1557,7 +1579,9 @@ async function marcarPagoProf(id, statusPago, professor, saldoAtual) {
 
     if (!data.pagamentos || !data.pagamentos.length) {
       tbody.innerHTML = `
-        <tr><td colspan="6">Nenhum pagamento registrado</td></tr>
+        <tr>
+          <td colspan="6" style="color:#777;">Nenhum pagamento registrado</td>
+        </tr>
       `;
     }
 
@@ -1592,6 +1616,9 @@ async function marcarPagoProf(id, statusPago, professor, saldoAtual) {
   }
 }
 
+/* ==============================
+   FECHAR OVERLAYS
+================================ */
 function fecharFinanceProf() {
   document.getElementById("overlayFinanceProf").style.display = "none";
 }
@@ -1599,7 +1626,6 @@ function fecharFinanceProf() {
 function fecharDetalhesProf() {
   document.getElementById("detalhes-prof").style.display = "none";
 }
-
   
 </script>
 
