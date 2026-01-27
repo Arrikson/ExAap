@@ -249,6 +249,18 @@ ADMIN_PASS = "1234"
 # ROTA LOGIN
 # ===============================
 
+@app.get("/logini", response_class=HTMLResponse)
+def logini_get(request: Request):
+
+    # 🔁 Se já estiver logado, não mostra login
+    if request.session.get("logged_in"):
+        return RedirectResponse("/admin", status_code=302)
+
+    return templates.TemplateResponse(
+        "logini.html",
+        {"request": request}
+    )
+
 @app.post("/logini")
 def logini(
     request: Request,
