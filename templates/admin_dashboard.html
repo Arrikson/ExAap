@@ -594,6 +594,53 @@ table.tabela-professores td {
             </ul>
           </li>
 
+          <div class="professores-overlay" id="overlayFinanceAlunos">
+  <div class="professores-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h4>💰 Pagamentos de Alunos</h4>
+      <button class="btn btn-secondary" onclick="fecharFinanceAlunos()">Fechar</button>
+    </div>
+
+    <table class="tabela-professores" id="tabela-pagamentos">
+      <thead>
+        <tr>
+          <th>Aluno</th>
+          <th>Status</th>
+          <th>Dívida</th>
+          <th>Último Pagamento</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+</div>
+
+<div class="professores-overlay" id="detalhes-aluno">
+  <div class="professores-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h4 id="nome-aluno">📌 Pagamentos</h4>
+      <button class="btn btn-secondary" onclick="fecharDetalhesAluno()">Fechar</button>
+    </div>
+
+    <table class="tabela-professores">
+      <thead>
+        <tr>
+          <th>Mês</th>
+          <th>Ano</th>
+          <th>Valor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-meses"></tbody>
+    </table>
+
+  </div>
+</div>          
+          
         </ul>
       </nav>
     </div>
@@ -1105,7 +1152,135 @@ function fecharProfessores() {
 
   if (tbody) tbody.innerHTML = "";
 }
+
+ async function marcarPago(alunoId, temDivida) {
+
+  if (!temDivida) {
+    alert("Este aluno já está com o pagamento em dia.");
+    return;
+  }
+
+  const res = await fetch("/listar-pagamentos");
+  const alunos = await res.json();
+
+  const aluno = alunos.find(a => a.id === alunoId && a.nome);
+
+  if (!aluno) {
+    alert("Aluno não encontrado.");
+    return;
+  }
+
+  const hoje = new Date();
+  const mes = hoje.getMonth() + 1;
+  const ano = hoje.getFullYear();
+
+  const resposta = await fetch("/api/registrar-pagamento", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      aluno_nome: aluno.nome,
+      mes,
+      ano,
+      valor_pago: aluno.valor_mensal_aluno || 0,
+      pago: true
+    })
+  });
+
+  if (resposta.ok) {
+    alert("Pagamento registrado com sucesso!");
+    carregarPagamentos();
+  } else {
+    alert("Erro ao registrar pagamento.");
+  }
+}
+
+async function carregarPagamentos() {
+
+  const res = await fetch("/listar-pagamentos");
+  const alunos = await res.json();
+  const tbody = document.querySelector("#tabela-pagamentos tbody");
+
+  tbody.innerHTML = "";
+
+  alunos.forEach(a => {
+
+    if (!a.nome) return;
+
+    const temDivida = a.divida && Number(a.divida) > 0;
+    const statusTexto = temDivida ? "Não Pago" : "Pago";
+    const statusCor = temDivida ? "prof-offline" : "prof-online";
+
+    let ultimoPagamento = "—";
+    if (a.paga_passado?.length) {
+      const u = a.paga_passado[a.paga_passado.length - 1];
+      ultimoPagamento = `${u.mes}/${u.ano} - Kz ${Number(u.valor_pago).toLocaleString("pt-AO")},00`;
+    }
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${a.nome}</td>
+        <td class="${statusCor}">${statusTexto}</td>
+        <td>Kz ${Number(a.divida || 0).toLocaleString("pt-AO")},00</td>
+        <td>${ultimoPagamento}</td>
+        <td>
+          <button class="btn-prof-remover"
+            onclick="marcarPago('${a.id}', ${temDivida})">
+            PAGO
+          </button>
+
+          <button class="btn btn-info btn-sm"
+            onclick="verPagamentos('${a.nome}', '${a.nome}')">
+            Ver
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+  async function verPagamentos(nomeAluno, nomeExibicao) {
+
+  const res = await fetch(`/ver-pagamentos/${encodeURIComponent(nomeAluno)}`);
+  const data = await res.json();
+
+  document.getElementById("nome-aluno").innerText =
+    `📌 Pagamentos de ${nomeExibicao}`;
+
+  const tbody = document.getElementById("tabela-meses");
+  tbody.innerHTML = "";
+
+  if (!data.historico_pagamentos.length) {
+    tbody.innerHTML = `<tr><td colspan="4">Nenhum pagamento encontrado</td></tr>`;
+  }
+
+  data.historico_pagamentos.forEach(p => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.mes}</td>
+        <td>${p.ano}</td>
+        <td>Kz ${Number(p.valor_pago).toLocaleString("pt-AO")},00</td>
+        <td style="color:green;font-weight:bold">Pago</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("detalhes-aluno").style.display = "flex";
+}
   
+  
+
+  function abrirFinanceAlunos() {
+  document.getElementById("overlayFinanceAlunos").style.display = "flex";
+  carregarPagamentos();
+}
+
+function fecharFinanceAlunos() {
+  document.getElementById("overlayFinanceAlunos").style.display = "none";
+}
+
+function fecharDetalhesAluno() {
+  document.getElementById("detalhes-aluno").style.display = "none";
+}
 </script>
 
 </body>
