@@ -682,120 +682,7 @@ table.tabela-professores td {
 
   </div>
 </div>
-         <!-- ===============================
-           MENU PROFESSORES
-      ================================== -->
-
-      <li class="nav-item has-treeview">
-        <a href="#" class="nav-link">
-          <i class="nav-icon fas fa-chalkboard-teacher"></i>
-          <p>
-            Professores
-            <i class="right fas fa-angle-left"></i>
-          </p>
-        </a>
-
-        <ul class="nav nav-treeview">
-
-          <!-- Professores Online -->
-          <li class="nav-item">
-            <a href="#"
-               class="nav-link prof-online-btn"
-               onclick="event.preventDefault(); carregarProfessores();">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Professores Online</p>
-            </a>
-          </li>
-
-        </ul>
-      </li>
-
-    </ul>
-  </nav>
-</div>
-
-<!-- ===============================
-     OVERLAY ALUNOS CADASTRADOS
-================================ -->
-<div class="alunos-overlay" id="overlayAlunos">
-  <div class="alunos-container">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div class="alunos-title">📋 Alunos Cadastrados</div>
-      <button class="btn btn-secondary" onclick="fecharAlunos()">Fechar</button>
-    </div>
-
-    <div id="listaAlunos">
-      <table class="tabela-alunos" id="tabela-alunos">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Disciplina</th>
-            <th>Online</th>
-            <th>Vínculo</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-  </div>
-</div>
-
-<!-- ===============================
-     OVERLAY ALUNOS SEM VÍNCULO
-================================ -->
-<div class="alunos-disponiveis-overlay" id="overlayDisponiveis">
-  <div class="alunos-disponiveis-container">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div class="alunos-title">👤 Alunos sem vínculo</div>
-      <button class="btn btn-secondary" onclick="fecharAlunosDisponiveis()">Fechar</button>
-    </div>
-
-    <table class="tabela-disponiveis" id="tabela-disponiveis">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Disciplina</th>
-          <th>Bairro</th>
-          <th>Província</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-  </div>
-</div>
-
-<!-- ===============================
-     OVERLAY PROFESSORES ONLINE
-================================ -->
-<div class="professores-overlay" id="overlayProfessores">
-  <div class="professores-container">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="alunos-title">👨‍🏫 Professores Online</div>
-      <button class="btn btn-secondary" onclick="fecharProfessores()">Fechar</button>
-    </div>
-
-    <table class="tabela-professores" id="tabela-professores">
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Nome</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-  </div>
-</div>
-
+    
     </ul>
   </nav>
 </div>
@@ -1254,6 +1141,7 @@ function fecharProfessores() {
 
 </body>
 </html>
+
 
 
 
