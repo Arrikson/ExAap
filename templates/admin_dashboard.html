@@ -683,38 +683,44 @@ table.tabela-professores td {
   </div>
 </div>
 
- <li class="nav-item has-treeview">
+     <!-- ===============================
+           MENU FINANÇAS (NOVO)
+      ================================== -->
+
+      <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
-          <i class="nav-icon fas fa-user-graduate"></i>
+          <i class="nav-icon fas fa-coins"></i>
           <p>
-            Alunos
+            Finanças
             <i class="right fas fa-angle-left"></i>
           </p>
         </a>
 
         <ul class="nav nav-treeview">
 
-          <!-- Alunos Cadastrados -->
+          <!-- FINANÇAS ALUNOS -->
           <li class="nav-item">
-            <a href="#" class="nav-link"
-               onclick="event.preventDefault(); carregarAlunos();">
+            <a href="#"
+               class="nav-link"
+               onclick="event.preventDefault(); abrirFinanceAlunos();">
               <i class="far fa-circle nav-icon"></i>
-              <p>Alunos Cadastrados</p>
+              <p>Controle de Pagamentos - Alunos</p>
             </a>
           </li>
 
-          <!-- Alunos Sem Vínculo -->
+          <!-- FINANÇAS PROFESSORES -->
           <li class="nav-item">
-            <a href="#" class="nav-link"
-               onclick="event.preventDefault(); carregarAlunosDisponiveis();">
+            <a href="#"
+               class="nav-link"
+               onclick="event.preventDefault(); abrirFinanceProf();">
               <i class="far fa-circle nav-icon"></i>
-              <p>Alunos sem vínculo</p>
+              <p>Controle de Pagamentos - Professores</p>
             </a>
           </li>
 
         </ul>
       </li>
-
+  
     </ul>
   </nav>
 </div>
@@ -801,7 +807,7 @@ table.tabela-professores td {
   </div>
 
   <footer class="main-footer text-center">
-    <strong>Todos os Direitos reservados à SabApp 2026</strong>
+    <strong>© 2026 SabApp - Todos os direitos reservados.</strong>
   </footer>
 
 </div>
