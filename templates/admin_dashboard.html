@@ -496,81 +496,37 @@ table.tabela-professores td {
   }
 }
 
-/* ===============================
-   OVERLAY FINANÇAS / PROFESSORES
-================================ */
+/* =================================
+   TABELAS – PADRÃO GERAL
+================================= */
 
-.professores-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-/* ===============================
-   CONTAINER
-================================ */
-
-.professores-container {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  width: 95%;
-  max-width: 1000px;
-  max-height: 80vh;
-  box-shadow: 0 10px 40px rgba(0,0,0,.25);
-  display: flex;
-  flex-direction: column;
-}
-
-.dark-mode .professores-container {
-  background: #1f2d3d;
-}
-
-/* ===============================
-   TABELA
-================================ */
-
-table.tabela-professores {
+table {
   width: 100%;
   border-collapse: collapse;
-  flex: 1;
-  display: block;
+  font-size: 14px;
 }
 
-table.tabela-professores thead {
-  background: linear-gradient(45deg,#28a745,#1e7e34);
-  color: white;
-  display: table;
-  width: 100%;
-  table-layout: fixed;
+table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-table.tabela-professores tbody {
-  display: block;
-  overflow-y: auto;
-  max-height: calc(80vh - 140px);
-  width: 100%;
+table th,
+table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e1e1e1;
+  vertical-align: middle;
 }
 
-table.tabela-professores th,
-table.tabela-professores td {
-  padding: 11px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-  width: 20%;
-}
-
-.dark-mode table.tabela-professores td {
+.dark-mode table th,
+.dark-mode table td {
   border-color: #444;
 }
 
-/* ===============================
+/* =================================
    STATUS
-================================ */
+================================= */
 
 .status-circulo {
   width: 10px;
@@ -592,33 +548,111 @@ table.tabela-professores td {
   font-weight: bold;
 }
 
-/* ===============================
-   RESPONSIVO
-================================ */
+/* =================================
+   BOTÕES (MOBILE FRIENDLY)
+================================= */
 
-@media(max-width:768px){
+table button {
+  min-width: 80px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
 
-  table.tabela-professores thead {
+@media (max-width: 768px) {
+
+  /* ===============================
+     REMOVE HEADER
+  ============================== */
+  table thead {
     display: none;
   }
 
-  table.tabela-professores tr {
+  /* ===============================
+     CARD POR LINHA
+  ============================== */
+  table tbody tr {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 6px;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fff;
   }
 
-  table.tabela-professores td {
+  .dark-mode table tbody tr {
+    background: #1f2d3d;
+    border-color: #444;
+  }
+
+  /* ===============================
+     CÉLULAS EM COLUNA
+  ============================== */
+  table tbody td {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    font-size: 14px;
   }
 
-  table.tabela-professores td::before {
+  table tbody td::before {
     content: attr(data-label);
     font-weight: 600;
+    color: #555;
   }
+
+  .dark-mode table tbody td::before {
+    color: #bbb;
+  }
+
+  /* ===============================
+     BOTÕES EM LINHA / COLUNA
+  ============================== */
+  table tbody td:last-child {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  table tbody td:last-child button {
+    width: 100%;
+    border-radius: 8px;
+  }
+}
+
+/* =================================
+   TÍTULOS DENTRO DOS MODAIS
+================================= */
+
+.alunos-title,
+.professores-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* =================================
+   CONTAINERS – MOBILE
+================================= */
+
+@media (max-width: 768px) {
+
+  .alunos-container,
+  .professores-container {
+    width: 96%;
+    max-height: 92vh;
+    padding: 14px;
+    border-radius: 14px;
+  }
+}
+
+/* =================================
+   SCROLL SUAVE EM MOBILE
+================================= */
+
+table tbody {
+  scroll-behavior: smooth;
 }
     
 </style>
