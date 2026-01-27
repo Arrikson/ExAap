@@ -587,12 +587,11 @@ table.tabela-professores td {
 
               <li class="nav-item">
                 <a href="#" class="nav-link" onclick="event.preventDefault(); abrirFinanceProf();">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Pagamentos Professores</p>
+                   <i class="far fa-circle nav-icon"></i>
+                   <p>Paga. Professores</p>
                 </a>
               </li>
-            </ul>
-          </li>
+
 
           <div class="professores-overlay" id="overlayFinanceAlunos">
   <div class="professores-container">
@@ -1281,6 +1280,137 @@ function fecharFinanceAlunos() {
 function fecharDetalhesAluno() {
   document.getElementById("detalhes-aluno").style.display = "none";
 }
+
+async function carregarPagamentosProf() {
+  try {
+    const res = await fetch("/listar-pagamentos-prof");
+    const professores = await res.json();
+    const tbody = document.querySelector("#tabela-pagamentos-prof tbody");
+
+    tbody.innerHTML = "";
+
+    professores.forEach(p => {
+
+      const statusPago = Number(p.saldo_atual) <= 0;
+      const statusCor = statusPago ? "status-verde" : "status-vermelho";
+      const statusTexto = statusPago ? "PAGO" : "NÃO PAGO";
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.professor}</td>
+          <td><span class="status-circulo ${statusCor}"></span>${statusTexto}</td>
+          <td>${Number(p.saldo_atual).toFixed(2)} Kz</td>
+          <td>
+            <button
+              onclick="marcarPagoProf('${p.id}', ${statusPago}, '${p.professor}', ${p.saldo_atual})"
+              style="background:${statusPago ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+              ${statusTexto}
+            </button>
+
+            <button
+              onclick="verMesesProf('${p.id}')"
+              style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;margin-left:5px;">
+              Ver Meses
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Erro ao carregar pagamentos de professores:", err);
+    alert("Erro ao carregar pagamentos.");
+  }
+}
+
+
+async function marcarPagoProf(id, statusPago, professor, saldoAtual) {
+  try {
+
+    if (!statusPago) {
+      await fetch("/registrar-pagamento-prof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          professor,
+          valor_pago: saldoAtual
+        })
+      });
+    } else {
+      await fetch("/atualizar-pagamento-prof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          professor,
+          valor_pago: 0
+        })
+      });
+    }
+
+    carregarPagamentosProf();
+
+  } catch (err) {
+    console.error("Erro ao atualizar pagamento do professor:", err);
+    alert("Erro ao atualizar pagamento.");
+  }
+}
+
+  async function verMesesProf(id) {
+  try {
+    const res = await fetch(`/salarios?email=${encodeURIComponent(id)}`);
+    const data = await res.json();
+
+    if (!data || !data.nome) {
+      alert("Professor não encontrado.");
+      return;
+    }
+
+    document.getElementById("nome-prof").textContent = data.nome;
+    document.getElementById("saldo-prof").textContent =
+      `${Number(data.saldo_atual).toFixed(2)} Kz`;
+
+    const tbody = document.getElementById("tabela-meses");
+    tbody.innerHTML = "";
+
+    if (!data.pagamentos || !data.pagamentos.length) {
+      tbody.innerHTML = `
+        <tr><td colspan="6">Nenhum pagamento registrado</td></tr>
+      `;
+    }
+
+    data.pagamentos.forEach(p => {
+      const pago = Number(p.valor_pago) > 0;
+      const cor = pago ? "status-verde" : "status-vermelho";
+      const texto = pago ? "PAGO" : "NÃO PAGO";
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.mes}</td>
+          <td>${p.data_pagamento || "-"}</td>
+          <td>${Number(p.valor_pago).toFixed(2)} Kz</td>
+          <td>${p.email_professor || "-"}</td>
+          <td><span class="${cor}">${texto}</span></td>
+          <td>
+            <button
+              onclick="marcarPagoMesProf('${id}', '${p.mes}', ${pago})"
+              style="background:${pago ? 'green' : 'red'};color:white;border:none;padding:4px 8px;border-radius:4px;">
+              ${texto}
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("detalhes-prof").style.display = "flex";
+
+  } catch (err) {
+    console.error("Erro ao carregar meses do professor:", err);
+    alert("Erro ao carregar detalhes.");
+  }
+}
+   
 </script>
 
 </body>
