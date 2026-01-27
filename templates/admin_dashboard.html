@@ -977,10 +977,33 @@ fetch("/estatisticas-dashboard")
     });
   });
 
-// 🗺️ MAPA
-const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
+// ===============================
+// 🗺️ MAPA ANGOLA (RESPONSIVO)
+// ===============================
+
+let map;
+
+function iniciarMapa() {
+
+  if (map) return; // evita recriar
+
+  map = L.map("mapAngola").setView([-11.2027, 17.8739], 5);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap"
+  }).addTo(map);
+
+  L.marker([-8.839, 13.289])
+    .addTo(map)
+    .bindPopup("Luanda");
+}
+
+// inicia depois da renderização
+setTimeout(() => {
+  iniciarMapa();
+  map.invalidateSize();
+}, 400);
+
 
 async function carregarAlunos() {
 
@@ -1287,6 +1310,10 @@ async function carregarProfessores() {
 
 }
   
+// ===============================
+// FECHAR LISTA DE PROFESSORES
+// ===============================
+
 function fecharProfessores() {
 
   const overlay = document.getElementById("overlayProfessores");
@@ -1295,7 +1322,17 @@ function fecharProfessores() {
   if (overlay) overlay.style.display = "none";
 
   if (tbody) tbody.innerHTML = "";
+
+  // reajusta mapa
+  setTimeout(() => {
+    if (window.map) map.invalidateSize();
+  }, 300);
 }
+
+
+// ===============================
+// FINANCEIRO — ALUNOS
+// ===============================
 
 function abrirFinanceAlunos(){
   fecharFinanceProf();
@@ -1303,8 +1340,20 @@ function abrirFinanceAlunos(){
 }
 
 function fecharFinanceAlunos(){
-  document.getElementById("overlayFinanceAlunos").style.display = "none";
+
+  const overlay = document.getElementById("overlayFinanceAlunos");
+
+  if (overlay) overlay.style.display = "none";
+
+  setTimeout(() => {
+    if (window.map) map.invalidateSize();
+  }, 300);
 }
+
+
+// ===============================
+// FINANCEIRO — PROFESSORES
+// ===============================
 
 function abrirFinanceProf(){
   fecharFinanceAlunos();
@@ -1312,9 +1361,16 @@ function abrirFinanceProf(){
 }
 
 function fecharFinanceProf(){
-  document.getElementById("overlayFinanceProf").style.display = "none";
+
+  const overlay = document.getElementById("overlayFinanceProf");
+
+  if (overlay) overlay.style.display = "none";
+
+  setTimeout(() => {
+    if (window.map) map.invalidateSize();
+  }, 300);
 }
-  
+
 </script>
 
 </body>
