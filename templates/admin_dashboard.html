@@ -400,40 +400,29 @@ table.tabela-disponiveis tbody tr:hover {
 }
 
 /* ===============================
-   TABELA
+   TABELA – PAGAMENTOS ALUNOS
 ================================ */
 
 table.tabela-professores {
   width: 100%;
   border-collapse: collapse;
-  overflow-y: auto;
-  flex: 1;                      
-  display: block;
+  font-size: 14px;
 }
 
 table.tabela-professores thead {
   background: linear-gradient(45deg,#17a2b8,#117a8b);
   color: white;
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-table.tabela-professores tbody {
-  display: block;
-  max-height: calc(80vh - 120px); /* altura da tabela, ajustando espaço de header e botões */
-  overflow-y: auto;
-  width: 100%;
 }
 
 table.tabela-professores th,
 table.tabela-professores td {
-  padding: 11px;
-  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  border-bottom: 1px solid #e1e1e1;
   text-align: left;
-  width: 20%; /* ajusta colunas */
+  vertical-align: middle;
 }
 
+.dark-mode table.tabela-professores th,
 .dark-mode table.tabela-professores td {
   border-color: #444;
 }
@@ -453,20 +442,80 @@ table.tabela-professores td {
 }
 
 /* ===============================
-   BOTÕES REMOVER
+   BOTÃO PAGO
 ================================ */
 
 .btn-prof-remover {
   background: #dc3545;
-  color: white;
+  color: #fff;
   border: none;
   padding: 6px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .btn-prof-remover:hover {
-  opacity: .8;
+  opacity: .85;
+}
+
+/* ===============================
+   MOBILE (≤ 768px)
+   MESMO COMPORTAMENTO DA TABELA MODERNA
+================================ */
+
+@media (max-width: 768px) {
+
+  /* Remove header */
+  table.tabela-professores thead {
+    display: none;
+  }
+
+  /* Cada linha vira um card */
+  table.tabela-professores tbody tr {
+    display: block;
+    margin-bottom: 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+
+  .dark-mode table.tabela-professores tbody tr {
+    background: #1f2d3d;
+    border-color: #444;
+  }
+
+  /* Células em coluna */
+  table.tabela-professores tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    font-size: 14px;
+  }
+
+  table.tabela-professores tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+  }
+
+  .dark-mode table.tabela-professores tbody td::before {
+    color: #bbb;
+  }
+
+  /* Ações (botões) */
+  table.tabela-professores tbody td:last-child {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  table.tabela-professores tbody td:last-child button {
+    width: 100%;
+    border-radius: 8px;
+  }
 }
 
 /* ===============================
