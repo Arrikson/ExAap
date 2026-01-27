@@ -578,84 +578,188 @@ table.tabela-professores td {
     box-shadow: 0 3px 12px rgba(0,0,0,.1);
 }
 
-/* ================================
-   CARDS FINANCEIROS
-================================ */
+/* ======================================
+   OVERLAY FINANÇAS
+====================================== */
 
-.card {
-    border-radius: 10px;
+.finance-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
-.card-header {
-    background: linear-gradient(90deg,#007bff,#0056b3);
-    color: white;
+/* ======================================
+   CONTAINER FINANÇAS
+====================================== */
+
+.finance-container {
+  width: 95%;
+  max-width: 1150px;
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px;
+
+  box-shadow: 0 15px 40px rgba(0,0,0,.25);
+  animation: zoomIn .25s ease;
 }
 
-.dark-mode .card-header {
-    background: linear-gradient(90deg,#1f6fb2,#163d63);
+.dark-mode .finance-container {
+  background: #1f2d3d;
 }
 
-/* ================================
-   BOTÕES STATUS
-================================ */
+/* ======================================
+   TÍTULO
+====================================== */
 
-.btn-pago {
-    background: #28a745 !important;
-    color: white;
+.finance-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 15px;
 }
 
-.btn-nao-pago {
-    background: #dc3545 !important;
-    color: white;
+/* ======================================
+   TABELAS FINANÇAS
+====================================== */
+
+table.tabela-finance {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-/* ================================
-   SALDO PROFESSOR
-================================ */
-
-#saldo-prof {
-    font-size: 18px;
-    color: #007bff;
+table.tabela-finance thead {
+  background: linear-gradient(45deg,#007bff,#0056b3);
+  color: white;
 }
 
-/* ================================
+table.tabela-finance th,
+table.tabela-finance td {
+  padding: 11px;
+  border-bottom: 1px solid #e1e1e1;
+  vertical-align: middle;
+}
+
+.dark-mode table.tabela-finance th,
+.dark-mode table.tabela-finance td {
+  border-color: #3b3b3b;
+}
+
+table.tabela-finance tbody tr:hover {
+  background: rgba(0,123,255,.08);
+}
+
+.dark-mode table.tabela-finance tbody tr:hover {
+  background: rgba(255,255,255,.06);
+}
+
+/* ======================================
+   STATUS
+====================================== */
+
+.status-circulo {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-verde { background:#28a745 }
+.status-vermelho { background:#dc3545 }
+
+/* ======================================
+   BOTÕES
+====================================== */
+
+.tabela-finance button {
+  font-size: 12px;
+  font-weight: 600;
+  transition: .2s;
+}
+
+.tabela-finance button:hover {
+  transform: scale(1.05);
+  opacity: .9;
+}
+
+/* ======================================
+   LOADING
+====================================== */
+
+.loader-finance {
+  text-align: center;
+  padding: 25px;
+  font-weight: bold;
+  font-size: 15px;
+  color: #007bff;
+}
+
+/* ======================================
    RESPONSIVO
-================================ */
+====================================== */
 
-@media(max-width:768px) {
+@media(max-width:768px){
 
-    .table td,
-    .table th {
-        font-size: 12px;
-        padding: 6px;
-    }
+  table.tabela-finance thead {
+    display: none;
+  }
 
-    .table button {
-        margin-top: 4px;
-        width: 100%;
-    }
+  table.tabela-finance tr {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 6px;
+  }
 
+  .dark-mode table.tabela-finance tr {
+    border-color: #444;
+  }
+
+  table.tabela-finance td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+  }
+
+  table.tabela-finance td::before {
+    content: attr(data-label);
+    font-weight: 600;
+  }
+
+  table.tabela-finance button {
+    width: 100%;
+    margin-top: 5px;
+  }
 }
 
-/* ================================
-   ANIMAÇÃO BOTÃO
-================================ */
+/* ======================================
+   DETALHES FINANCEIROS
+====================================== */
 
-.table button:active {
-    transform: scale(.95);
+.finance-detalhes {
+  border-left: 5px solid #007bff;
+  box-shadow: 0 3px 12px rgba(0,0,0,.1);
+  margin-top: 15px;
 }
 
-/* ================================
-   SEPARADOR
-================================ */
+/* ======================================
+   DIVISOR
+====================================== */
 
 .finance-divider {
-    height: 3px;
-    background: linear-gradient(to right,#007bff,#28a745);
-    margin: 15px 0;
-    border-radius: 5px;
+  height: 3px;
+  background: linear-gradient(to right,#007bff,#28a745);
+  margin: 15px 0;
+  border-radius: 5px;
 }
-    
+
 </style>
 
 
@@ -749,33 +853,29 @@ table.tabela-professores td {
 </li>
 
 <!-- ================= MENU FINANÇAS ================= -->
-
 <li class="nav-item has-treeview">
+  <a href="#" class="nav-link">
+    <i class="nav-icon fas fa-coins"></i>
+    <p>Finanças <i class="right fas fa-angle-left"></i></p>
+  </a>
 
-<a href="#" class="nav-link">
-<i class="nav-icon fas fa-coins"></i>
-<p>Finanças <i class="right fas fa-angle-left"></i></p>
-</a>
+  <ul class="nav nav-treeview">
+    <li class="nav-item">
+      <a href="#" class="nav-link"
+         onclick="event.preventDefault(); mostrarSecao('secao-pagamentos'); carregarPagamentos();">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Pagamento de Alunos</p>
+      </a>
+    </li>
 
-<ul class="nav nav-treeview">
-
-<li class="nav-item">
-<a href="#" class="nav-link"
- onclick="event.preventDefault(); mostrarSecao('secao-pagamentos'); carregarPagamentos();">
-<i class="far fa-circle nav-icon"></i>
-<p>Pagamento de Alunos</p>
-</a>
-</li>
-
-<li class="nav-item">
-<a href="#" class="nav-link"
- onclick="event.preventDefault(); mostrarSecao('secao-prof'); carregarPagamentosProf();">
-<i class="far fa-circle nav-icon"></i>
-<p>Pagamento de Professores</p>
-</a>
-</li>
-
-</ul>
+    <li class="nav-item">
+      <a href="#" class="nav-link"
+         onclick="event.preventDefault(); mostrarSecao('secao-prof'); carregarPagamentosProf();">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Pagamento de Professores</p>
+      </a>
+    </li>
+  </ul>
 </li>
 
 </ul>
@@ -787,117 +887,83 @@ table.tabela-professores td {
         CONTENT WRAPPER
 ===================================== -->
 <div class="content-wrapper">
+  <section class="content pt-3">
 
-<section class="content pt-3">
+    <!-- ================= PAGAMENTO ALUNOS ================= -->
+    <section class="content secao finance-overlay" id="secao-pagamentos">
+      <div class="finance-container">
+        <h3 class="finance-title">💰 Pagamento de Alunos</h3>
+        <table class="table tabela-finance" id="tabela-pagamentos">
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Status</th>
+              <th>Dívida</th>
+              <th>Último Pagamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
 
-<!-- ================= PAGAMENTO ALUNOS ================= -->
+    <!-- ================= DETALHES ALUNO ================= -->
+    <div id="detalhes-aluno" class="finance-detalhes finance-container" style="display:none">
+      <h4 id="nome-aluno"></h4>
+      <table class="table tabela-finance table-sm">
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Ano</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-meses"></tbody>
+      </table>
+    </div>
 
-<section class="content secao" id="secao-pagamentos">
+    <!-- ================= PAGAMENTO PROFESSORES ================= -->
+    <section class="content secao finance-overlay" id="secao-prof">
+      <div class="finance-container">
+        <h3 class="finance-title">👨‍🏫 Pagamento de Professores</h3>
+        <table class="table tabela-finance" id="tabela-pagamentos-prof">
+          <thead>
+            <tr>
+              <th>Professor</th>
+              <th>Status</th>
+              <th>Saldo Atual</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
 
-<div class="card">
-<div class="card-header">
-<h3 class="card-title">💰 Pagamento de Alunos</h3>
+    <!-- ================= DETALHES PROFESSOR ================= -->
+    <div id="detalhes-prof" class="finance-detalhes finance-container" style="display:none">
+      <h4 id="nome-prof"></h4>
+      <p>Saldo Atual: <strong id="saldo-prof"></strong></p>
+      <table class="table tabela-finance table-sm">
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Data</th>
+            <th>Valor</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-meses"></tbody>
+      </table>
+    </div>
+
+  </section>
 </div>
 
-<div class="card-body">
-<table class="table table-bordered table-striped" id="tabela-pagamentos">
-<thead>
-<tr>
-<th>Aluno</th>
-<th>Status</th>
-<th>Dívida</th>
-<th>Último Pagamento</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
-
-</section>
-
-<!-- ================= DETALHES ALUNO ================= -->
-
-<div id="detalhes-aluno" class="card mt-3" style="display:none">
-
-<div class="card-header">
-<h4 id="nome-aluno"></h4>
-</div>
-
-<div class="card-body">
-<table class="table table-sm table-bordered">
-<thead>
-<tr>
-<th>Mês</th>
-<th>Ano</th>
-<th>Valor</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="tabela-meses"></tbody>
-</table>
-</div>
-
-</div>
-
-<!-- ================= PAGAMENTO PROFESSORES ================= -->
-
-<section class="content secao" id="secao-prof">
-
-<div class="card">
-<div class="card-header">
-<h3 class="card-title">👨‍🏫 Pagamento de Professores</h3>
-</div>
-
-<div class="card-body">
-<table class="table table-bordered" id="tabela-pagamentos-prof">
-<thead>
-<tr>
-<th>Professor</th>
-<th>Status</th>
-<th>Saldo Atual</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
-
-</section>
-
-<!-- ================= DETALHES PROFESSOR ================= -->
-
-<div id="detalhes-prof" class="card mt-3" style="display:none">
-
-<div class="card-header">
-<h4 id="nome-prof"></h4>
-<p>Saldo Atual: <strong id="saldo-prof"></strong></p>
-</div>
-
-<div class="card-body">
-
-<table class="table table-bordered">
-<thead>
-<tr>
-<th>Mês</th>
-<th>Data</th>
-<th>Valor</th>
-<th>Email</th>
-<th>Status</th>
-<th>Ação</th>
-</tr>
-</thead>
-
-<tbody id="tabela-meses"></tbody>
-
-</table>
-
-</div>
-</div>
-
-</section>
 </div>
 
 <!-- =====================================
@@ -905,7 +971,7 @@ table.tabela-professores td {
 ===================================== -->
 
 <footer class="main-footer text-center">
-<strong>Todos os Direitos reservados à SabApp 2026</strong>
+<strong>Direitos reservados à SabApp 2026</strong>
 </footer>
 
 </div>
