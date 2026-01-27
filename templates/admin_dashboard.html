@@ -495,122 +495,6 @@ table.tabela-professores td {
     font-weight:600;
   }
 }
-
-/* ===============================
-   FINANCE OVERLAY
-================================ */
-
-.finance-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-
-  display: none;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 9999;
-}
-
-/* ===============================
-   FINANCE CONTAINER
-================================ */
-
-.finance-container {
-  width: 92%;
-  max-width: 1100px;
-  max-height: 85vh;
-
-  overflow-y: auto;
-
-  background: white;
-  border-radius: 14px;
-  padding: 22px;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,.25);
-
-  animation: zoomFinance .25s ease;
-}
-
-.dark-mode .finance-container {
-  background: #1f2d3d;
-}
-
-@keyframes zoomFinance {
-  from {
-    transform: scale(.92);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* ===============================
-   TITULO
-================================ */
-
-.finance-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-}
-
-/* ===============================
-   TABELA FINANCE
-================================ */
-
-table.tabela-finance {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-table.tabela-finance thead {
-  background: linear-gradient(45deg,#28a745,#1e7e34);
-  color: white;
-}
-
-table.tabela-finance th,
-table.tabela-finance td {
-  padding: 11px;
-  border-bottom: 1px solid #ddd;
-}
-
-.dark-mode table.tabela-finance td {
-  border-color: #444;
-}
-
-table.tabela-finance tbody tr:hover {
-  background: rgba(40,167,69,.12);
-}
-
-/* ===============================
-   RESPONSIVO
-================================ */
-
-@media(max-width:768px){
-
-  table.tabela-finance thead{display:none}
-
-  table.tabela-finance tr{
-    display:block;
-    margin-bottom:10px;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:6px;
-  }
-
-  table.tabela-finance td{
-    display:flex;
-    justify-content:space-between;
-  }
-
-  table.tabela-finance td::before{
-    content:attr(data-label);
-    font-weight:600;
-  }
-}
     
 </style>
 
@@ -798,22 +682,111 @@ table.tabela-finance tbody tr:hover {
 
   </div>
 </div>
+         <!-- ===============================
+           MENU PROFESSORES
+      ================================== -->
 
-    <div class="finance-overlay" id="overlayFinanceAlunos">
-  <div class="finance-container">
+      <li class="nav-item has-treeview">
+        <a href="#" class="nav-link">
+          <i class="nav-icon fas fa-chalkboard-teacher"></i>
+          <p>
+            Professores
+            <i class="right fas fa-angle-left"></i>
+          </p>
+        </a>
 
-    <div style="display:flex;justify-content:space-between">
-      <div class="finance-title">💰 Pagamentos de Alunos</div>
-      <button class="btn btn-secondary" onclick="fecharFinanceAlunos()">Fechar</button>
+        <ul class="nav nav-treeview">
+
+          <!-- Professores Online -->
+          <li class="nav-item">
+            <a href="#"
+               class="nav-link prof-online-btn"
+               onclick="event.preventDefault(); carregarProfessores();">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Professores Online</p>
+            </a>
+          </li>
+
+        </ul>
+      </li>
+
+    </ul>
+  </nav>
+</div>
+
+<!-- ===============================
+     OVERLAY ALUNOS CADASTRADOS
+================================ -->
+<div class="alunos-overlay" id="overlayAlunos">
+  <div class="alunos-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="alunos-title">📋 Alunos Cadastrados</div>
+      <button class="btn btn-secondary" onclick="fecharAlunos()">Fechar</button>
     </div>
 
-    <table class="tabela-finance" id="tabela-pagamentos">
+    <div id="listaAlunos">
+      <table class="tabela-alunos" id="tabela-alunos">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Disciplina</th>
+            <th>Online</th>
+            <th>Vínculo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===============================
+     OVERLAY ALUNOS SEM VÍNCULO
+================================ -->
+<div class="alunos-disponiveis-overlay" id="overlayDisponiveis">
+  <div class="alunos-disponiveis-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="alunos-title">👤 Alunos sem vínculo</div>
+      <button class="btn btn-secondary" onclick="fecharAlunosDisponiveis()">Fechar</button>
+    </div>
+
+    <table class="tabela-disponiveis" id="tabela-disponiveis">
       <thead>
         <tr>
-          <th>Aluno</th>
+          <th>Nome</th>
+          <th>Disciplina</th>
+          <th>Bairro</th>
+          <th>Província</th>
           <th>Status</th>
-          <th>Dívida</th>
-          <th>Último Pagamento</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- ===============================
+     OVERLAY PROFESSORES ONLINE
+================================ -->
+<div class="professores-overlay" id="overlayProfessores">
+  <div class="professores-container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="alunos-title">👨‍🏫 Professores Online</div>
+      <button class="btn btn-secondary" onclick="fecharProfessores()">Fechar</button>
+    </div>
+
+    <table class="tabela-professores" id="tabela-professores">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Nome</th>
+          <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -823,30 +796,10 @@ table.tabela-finance tbody tr:hover {
   </div>
 </div>
 
-<div class="finance-overlay" id="overlayFinanceProf">
-  <div class="finance-container">
-
-    <div style="display:flex;justify-content:space-between">
-      <div class="finance-title">👨‍🏫 Pagamentos de Professores</div>
-      <button class="btn btn-secondary" onclick="fecharFinanceProf()">Fechar</button>
-    </div>
-
-    <table class="tabela-finance" id="tabela-pagamentos-prof">
-      <thead>
-        <tr>
-          <th>Professor</th>
-          <th>Status</th>
-          <th>Saldo Atual</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-  </div>
+    </ul>
+  </nav>
 </div>
 
-    
   <!-- Conteúdo -->
   <div class="content-wrapper">
     <section class="content pt-3">
@@ -977,33 +930,10 @@ fetch("/estatisticas-dashboard")
     });
   });
 
-// ===============================
-// 🗺️ MAPA ANGOLA (RESPONSIVO)
-// ===============================
-
-let map;
-
-function iniciarMapa() {
-
-  if (map) return; // evita recriar
-
-  map = L.map("mapAngola").setView([-11.2027, 17.8739], 5);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap"
-  }).addTo(map);
-
-  L.marker([-8.839, 13.289])
-    .addTo(map)
-    .bindPopup("Luanda");
-}
-
-// inicia depois da renderização
-setTimeout(() => {
-  iniciarMapa();
-  map.invalidateSize();
-}, 400);
-
+// 🗺️ MAPA
+const map = L.map('mapAngola').setView([-11.2027, 17.8739], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.marker([-8.839, 13.289]).addTo(map).bindPopup("Luanda");
 
 async function carregarAlunos() {
 
@@ -1310,10 +1240,6 @@ async function carregarProfessores() {
 
 }
   
-// ===============================
-// FECHAR LISTA DE PROFESSORES
-// ===============================
-
 function fecharProfessores() {
 
   const overlay = document.getElementById("overlayProfessores");
@@ -1322,58 +1248,12 @@ function fecharProfessores() {
   if (overlay) overlay.style.display = "none";
 
   if (tbody) tbody.innerHTML = "";
-
-  // reajusta mapa
-  setTimeout(() => {
-    if (window.map) map.invalidateSize();
-  }, 300);
 }
-
-
-// ===============================
-// FINANCEIRO — ALUNOS
-// ===============================
-
-function abrirFinanceAlunos(){
-  fecharFinanceProf();
-  document.getElementById("overlayFinanceAlunos").style.display = "flex";
-}
-
-function fecharFinanceAlunos(){
-
-  const overlay = document.getElementById("overlayFinanceAlunos");
-
-  if (overlay) overlay.style.display = "none";
-
-  setTimeout(() => {
-    if (window.map) map.invalidateSize();
-  }, 300);
-}
-
-
-// ===============================
-// FINANCEIRO — PROFESSORES
-// ===============================
-
-function abrirFinanceProf(){
-  fecharFinanceAlunos();
-  document.getElementById("overlayFinanceProf").style.display = "flex";
-}
-
-function fecharFinanceProf(){
-
-  const overlay = document.getElementById("overlayFinanceProf");
-
-  if (overlay) overlay.style.display = "none";
-
-  setTimeout(() => {
-    if (window.map) map.invalidateSize();
-  }, 300);
-}
-
+  
 </script>
 
 </body>
 </html>
+
 
 
