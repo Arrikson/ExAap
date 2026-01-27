@@ -227,8 +227,14 @@ async def get_account_and_increment():
 
     return conta
 
-# 🔐 CHAVE DA SESSÃO (MUDE EM PRODUÇÃO)
-app.add_middleware(SessionMiddleware, secret_key="segredo_super_secreto")
+from starlette.middleware.sessions import SessionMiddleware
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="segredo_super_secreto",
+    same_site="lax",
+    https_only=False  # True em produção
+)
 
 templates = Jinja2Templates(directory="templates")
 
@@ -237,22 +243,27 @@ templates = Jinja2Templates(directory="templates")
 # (PODE ALTERAR AQUI)
 # ===============================
 ADMIN_USER = "admin"
-ADMIN_PASS = "12345"
+ADMIN_PASS = "1234"
 
 # ===============================
 # ROTA LOGIN
 # ===============================
 
 @app.post("/logini")
-def login(
+def logini(
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
 ):
+    # 🧹 Garante sessão limpa
+    request.session.clear()
+
+    # 🔐 Validação simples (editável)
     if username == ADMIN_USER and password == ADMIN_PASS:
         request.session["logged_in"] = True
-        return RedirectResponse("/admin", status_code=302)
+        return RedirectResponse(url="/admin", status_code=302)
 
+    # ❌ Login inválido
     return templates.TemplateResponse(
         "logini.html",
         {
@@ -264,14 +275,14 @@ def login(
 @app.get("/admin", response_class=HTMLResponse)
 def painel_admin(request: Request):
 
-    # 🔐 Bloqueio: só entra se estiver logado
     if not request.session.get("logged_in"):
-        return RedirectResponse("/", status_code=302)
+        return RedirectResponse("/logini", status_code=302)
 
     return templates.TemplateResponse(
         "admin_dashboard.html",
         {"request": request}
     )
+
 
 @app.get("/logout")
 def logout(request: Request):
