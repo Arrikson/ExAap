@@ -460,6 +460,33 @@ table.tabela-professores td {
 }
 
 /* ===============================
+   SCROLL DA TABELA
+================================ */
+
+.tabela-scroll {
+  max-height: 70vh;          
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding-right: 4px;        
+}
+
+
+.tabela-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tabela-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.25);
+  border-radius: 6px;
+}
+
+.dark-mode .tabela-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.25);
+}
+    
+    
+/* ===============================
    MOBILE (≤ 768px)
    MESMO COMPORTAMENTO DA TABELA MODERNA
 ================================ */
