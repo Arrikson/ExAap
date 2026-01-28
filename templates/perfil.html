@@ -181,6 +181,22 @@ body {
     font-size: 0.9rem;
   }
 
+.badge-notificacao {
+  position: absolute;
+  top: 4px;
+  right: 14px;
+  background: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+  
  /* 🔹 Fundo transparente escurecido */
 .overlay-info {
     position: fixed;
@@ -648,13 +664,22 @@ body {
 }
 
 .top-bar .fechar-btn {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: white;
+  all: unset;          
   cursor: pointer;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.top-bar .fechar-btn i {
+  color: #ffffff;
+  font-size: 18px;
+}
+  
 /* Área de mensagens */
 .chat-messages {
   flex: 1;
@@ -768,9 +793,66 @@ body {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  /* ===============================
+   BOTÃO SAIR - ALUNO
+================================ */
+.btn-logout-aluno {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #dc3545;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 30px;
+
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+}
+
+.btn-logout-aluno i {
+  font-size: 14px;
+}
+
+.btn-logout-aluno:hover {
+  background: #b02a37;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .btn-logout-aluno span {
+    display: none;
+  }
+
+  .btn-logout-aluno {
+    padding: 8px 10px;
+  }
+}
 </style>
 </head>
 <body>
+
+<button
+  type="button"
+  class="btn-logout-aluno"
+  id="btnLogoutAluno"
+>
+  <i class="fa-solid fa-right-from-bracket"></i>
+  <span>Sair</span>
+</button>
+
+</a>
  <div class="top-bar">
   <img src="/static/perfil.png" alt="Perfil" />
   <div class="info">
@@ -1031,29 +1113,323 @@ function fecharDesafio() {
 <p id="mensagem-feedback" style="margin-top: 10px; font-weight: bold;"></p>
 </div>
 
-<!-- Rodapé do aluno -->
+<!-- ===============================
+     🔻 RODAPÉ DO ALUNO
+================================ -->
 <div class="footer">
   <div class="item active" onclick="abrirPerfil()">
     <i class="fa-solid fa-user"></i>
     O Meu Perfil
   </div>
+
   <div class="item" onclick="abrirPagamentos()">
     <i class="fa-solid fa-credit-card"></i>
     Pagamentos
   </div>
+
+  <!-- 🔔 BOTÃO ÚNICO DE NOTIFICAÇÕES -->
+<div class="item notification-item" onclick="abrirNotificacoesAluno()" style="position: relative;">
+  <i class="fa-solid fa-bell"></i>
+  <span id="badge-notificacoes" class="badge-notificacao" style="display:none;">1</span>
+  Notificações
+</div>
+
   <div class="item" onclick="abrirInfoEmpresa()">
     <i class="fa-solid fa-circle-info"></i>
     Informações
   </div>
-<!-- Botão que abre o chat -->
-<div class="item" onclick="abrirChatAluno()">
-  <i class="fa-solid fa-comments"></i>
-  Chat
+
+  <div class="item" onclick="abrirChatAluno()">
+    <i class="fa-solid fa-comments"></i>
+    Chat
+  </div>
 </div>
+
+<!-- ===============================
+     🔔 MODAL DE NOTIFICAÇÕES
+================================ -->
+<div id="modal-notificacoes" class="modal-notificacoes">
+  <div>
+    <div class="modal-header">
+      <h3>Notificações</h3>
+      <button onclick="fecharNotificacoes()">✖</button>
+    </div>
+
+    <div id="lista-notificacoes">
+      <!-- Conteúdo via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// 🔹 NOME DO ALUNO
+// =====================================================
+function getNomeAluno() {
+  let nome = localStorage.getItem("alunoNome");
+  if (!nome || nome.trim() === "") {
+    nome = "{{ aluno.nome }}";
+    if (nome && nome !== "{{ aluno.nome }}") {
+      localStorage.setItem("alunoNome", nome.trim().toLowerCase());
+    }
+  }
+  return nome.trim().toLowerCase();
+}
+
+// =====================================================
+// 🔹 STYLES DO MODAL
+// =====================================================
+(function inserirStylesNotificacoes() {
+  if (document.getElementById("styles-notificacoes")) return;
+
+  const style = document.createElement("style");
+style.id = "styles-notificacoes";
+style.innerHTML = `
+  .modal-notificacoes {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .modal-notificacoes > div {
+    background: #0b0b0b;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 35px rgba(0,255,150,0.15);
+    animation: fadeIn .3s ease-in-out;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* 🔹 Cabeçalho */
+  .modal-header {
+    background: linear-gradient(135deg, #00c9ff, #92fe9d);
+    color: #000;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .modal-header button {
+    background: rgba(0,0,0,0.15);
+    border: none;
+    color: #000;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  /* 🔹 Lista */
+  #lista-notificacoes {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 🔹 Item */
+  .notificacao-item {
+    background: #141414;
+    padding: 14px;
+    border-radius: 14px;
+    color: #eaeaea;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+
+  .notificacao-item.ativa {
+    border-left: 4px solid #00ff7f;
+    background: linear-gradient(
+      135deg,
+      rgba(0,255,150,0.08),
+      rgba(0,0,0,0.6)
+    );
+  }
+
+  .notificacao-item h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: #00ffb3;
+  }
+
+  .notificacao-item p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  /* 🔹 Ações */
+  .acoes-notificacao {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .acoes-notificacao button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+  }
+
+  .btn-entrar {
+    background: linear-gradient(135deg, #00d26a, #00ff7f);
+    color: #003d1f;
+    box-shadow: 0 0 14px rgba(0,255,150,0.45);
+  }
+
+  .btn-entrar:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-nao-entrar {
+    background: #1f1f1f;
+    color: #aaa;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .btn-nao-entrar:hover {
+    background: #2a2a2a;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+`;
+document.head.appendChild(style);
+})();
+
+// =====================================================
+// 🔹 ABRIR / FECHAR MODAL
+// =====================================================
+function abrirNotificacoes() {
+  document.getElementById("modal-notificacoes").style.display = "flex";
+}
+
+function fecharNotificacoes() {
+  document.getElementById("modal-notificacoes").style.display = "none";
+}
+
+// =====================================================
+// 🔹 BOTÃO DO FOOTER → NOTIFICAÇÕES
+// =====================================================
+function abrirNotificacoesAluno() {
+  const nomeAluno = getNomeAluno();
+  verificarNotificacaoTodos(nomeAluno);
+}
+
+// =====================================================
+// 🔹 ENTRAR NA AULA
+// =====================================================
+async function entrarNaAula() {
+  const nomeAluno = getNomeAluno();
+
+  try {
+    await fetch("/desativar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno: nomeAluno })
+    });
+
+    if (window.professorEmailAtual) {
+      const sala = encodeURIComponent(
+        `${window.professorEmailAtual}-${nomeAluno}`
+      );
+      window.location.href = `/sala_virtual_aluno/${sala}`;
+    }
+  } catch (e) {
+    console.error("Erro ao entrar na aula:", e);
+  }
+}
+  
+// =====================================================
+// 🔹 CONTROLO DE VERIFICAÇÃO AUTOMÁTICA
+// =====================================================
+let intervaloNotificacao = null;
+
+// 🔁 Verifica automaticamente a cada 1 segundo
+function iniciarVerificacaoAutomatica(aluno) {
+  if (intervaloNotificacao) return;
+
+  intervaloNotificacao = setInterval(() => {
+    verificarNotificacaoTodos(aluno, false);
+  }, 1000);
+}
+
+
+// =====================================================
+// 🔹 VERIFICAR NOTIFICAÇÕES
+// =====================================================
+async function verificarNotificacaoTodos(aluno, abrirModal = true) {
+  try {
+    const response = await fetch("/verificar-notificacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aluno })
+    });
+
+    const data = await response.json();
+    const lista = document.getElementById("lista-notificacoes");
+    const badge = document.getElementById("badge-notificacoes");
+
+    lista.innerHTML = "";
+
+    if (data.notificacao_todos === true) {
+      // 🔔 Mostra badge "1"
+      badge.style.display = "flex";
+      badge.textContent = "1";
+
+      window.professorEmailAtual = data.professor_email;
+
+      lista.innerHTML = `
+        <div class="notificacao-item ativa">
+          <strong>📢 Aula iniciada</strong>
+          <p>A sua aula já começou, deseja entrar?</p>
+
+          <div class="acoes-notificacao">
+            <button class="btn-entrar" onclick="entrarNaAula()">Entrar</button>
+            <button class="btn-nao-entrar" onclick="fecharNotificacoes()">Agora não</button>
+          </div>
+        </div>
+      `;
+
+      if (abrirModal) abrirNotificacoes();
+
+    } else {
+      // ❌ Remove badge
+      badge.style.display = "none";
+
+      lista.innerHTML = `
+        <div class="notificacao-item">
+          <p>📭 <strong>Sem notificações no momento</strong></p>
+        </div>
+      `;
+    }
+
+  } catch (error) {
+    console.error("Erro ao verificar notificações:", error);
+  }
+}
+
+  
+</script>
 
 <!-- Modal do chat (inicialmente oculto) -->
 <div id="chat-modal-aluno" style="display: none;">
   <div id="chat-container">
+
     <!-- Barra superior com nome e disciplina do professor -->
     <div class="top-bar" id="top-bar-professor">
       <i class="fa-solid fa-chalkboard-user" style="font-size: 1.5rem; color: white;"></i>
@@ -1068,12 +1444,16 @@ function fecharDesafio() {
     <!-- Input de mensagem -->
     <div class="input-chat">
       <input type="text" id="input-msg" placeholder="Escreva uma mensagem...">
-      <button id="enviar-msg"><i class="fa-solid fa-paper-plane"></i></button>
+      <button id="enviar-msg">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
     </div>
+
   </div>
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
 <script>
 let professorSelecionado = null;
@@ -2509,8 +2889,88 @@ window.carregarPerguntas();
       inglesEl.textContent = "{{ aluno.nivel_ingles }}";
     }
   };
+/* ===============================
+   CONFIGURAÇÃO
+================================ */
+const TEMPO_INATIVIDADE = 30 * 60 * 1000; // 30 minutos
+let timerInatividade = null;
+let jaSaiu = false;
 
+console.log("🔥 logout.js carregado com sucesso");
 
+/* ===============================
+   FUNÇÃO ÚNICA DE LOGOUT
+================================ */
+function executarLogout(tipo) {
+  if (jaSaiu) return;
+  jaSaiu = true;
+
+  if (tipo === "automatico") {
+    alert("Sessão expirada por inatividade. Você será desconectado.");
+    console.log("⏳ Logout automático por inatividade");
+  } else {
+    console.log("🔴 Logout manual acionado");
+  }
+
+  window.location.href = "/logout_aluno";
+}
+
+/* ===============================
+   LOGOUT MANUAL
+================================ */
+function logoutManual() {
+  executarLogout("manual");
+}
+
+/* ===============================
+   LOGOUT AUTOMÁTICO (INATIVIDADE)
+================================ */
+function logoutAutomatico() {
+  executarLogout("automatico");
+}
+
+/* ===============================
+   CONTROLE DE INATIVIDADE
+================================ */
+function resetarInatividade() {
+  if (jaSaiu) return;
+
+  clearTimeout(timerInatividade);
+
+  timerInatividade = setTimeout(
+    logoutAutomatico,
+    TEMPO_INATIVIDADE
+  );
+}
+
+/* ===============================
+   EVENTOS DE ATIVIDADE
+================================ */
+["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(evento => {
+  document.addEventListener(evento, resetarInatividade, true);
+});
+
+/* ===============================
+   INICIALIZAÇÃO APÓS DOM
+================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  // Inicia o temporizador
+  resetarInatividade();
+
+  // Liga o botão de logout (SEM onclick no HTML)
+  const btnLogout = document.querySelector(".btn-logout-aluno");
+
+  if (btnLogout) {
+    btnLogout.addEventListener("click", logoutManual);
+    console.log("✅ Botão de logout conectado");
+  } else {
+    console.warn("⚠️ Botão .btn-logout-aluno não encontrado");
+  }
+});
+
+console.log("✅ Controle de logout ativo (manual + 30min inatividade)");
+
+  
   console.log("Funções exportadas para window: toggleAulas, verNotificacao, verHorario, toggleProfessor, verificarResposta, proximaPergunta, subirNivel, carregarPerguntas");
 </script>
 
