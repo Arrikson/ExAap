@@ -242,8 +242,8 @@ templates = Jinja2Templates(directory="templates")
 # CONFIGURAÇÃO DO ADMIN
 # (PODE ALTERAR AQUI)
 # ===============================
-ADMIN_USER = "Maria Eduardo"
-ADMIN_PASS = "928911299"
+ADMIN_USER = "admin"
+ADMIN_PASS = "1234"
 
 # ===============================
 # ROTA LOGIN
