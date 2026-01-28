@@ -1225,13 +1225,14 @@ table tbody {
           <i class="nav-icon fas fa-users-cog"></i>
           <p>RH Administrativo <i class="right fas fa-angle-left"></i></p>
         </a>
-        <ul class="nav nav-treeview">
-          <li class="nav-item">
-            <a href="#" class="nav-link" onclick="abrirEquipaAdministrativa(); return false;">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Equipa Administrativa</p>
-            </a>
-          </li>
+       <ul class="nav nav-treeview">
+         <li class="nav-item">
+           <a href="#" class="nav-link" onclick="abrirEquipaAdministrativa(); return false;">
+             <i class="far fa-circle nav-icon"></i>
+             <p>Equipa Administrativa</p>
+          </a>
+       </li>
+    </ul>
 
           <li class="nav-item">
             <a href="#" class="nav-link" onclick="event.preventDefault(); abrirRemuneracoes();">
@@ -2307,12 +2308,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function abrirEquipaAdministrativa() {
-  window.location.href = "/equipa-administrativa";
+  document.getElementById("equipaAdministrativaWrapper").style.display = "block";
 }
 
- function fecharEquipaAdministrativa() {
+function fecharEquipaAdministrativa() {
   document.getElementById("equipaAdministrativaWrapper").style.display = "none";
-} 
+}
   
 /* ==============================
    FECHAR OVERLAYS
