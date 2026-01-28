@@ -2180,6 +2180,34 @@ async function verMesesProf(id) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+
+  document.querySelectorAll(".nav-item.has-treeview > a").forEach(link => {
+
+    link.addEventListener("click", function (e) {
+
+      // Impede navegar
+      e.preventDefault();
+
+      const parent = this.closest(".nav-item");
+
+      // Fecha se já estiver aberto
+      if (parent.classList.contains("menu-open")) {
+        parent.classList.remove("menu-open");
+        parent.querySelector(".nav-treeview").style.display = "none";
+      } 
+      // Abre se estiver fechado
+      else {
+        parent.classList.add("menu-open");
+        parent.querySelector(".nav-treeview").style.display = "block";
+      }
+
+    });
+
+  });
+
+});
+  
 /* ==============================
    FECHAR OVERLAYS
 ================================ */
