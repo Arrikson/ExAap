@@ -1050,170 +1050,6 @@ table tbody {
     width: 100%;
   }
 }
-
-/* ===============================
-   WRAPPER DA TABELA ADMINISTRATIVA
-================================= */
-#equipaAdministrativaWrapper {
-  display: none; /* inicialmente escondida */
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.dark-mode #equipaAdministrativaWrapper {
-  background: #1f2d3d;
-}
-
-/* ===============================
-   TÍTULO E BOTÃO FECHAR
-================================= */
-#equipaAdministrativaWrapper .modal-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-}
-
-#equipaAdministrativaWrapper > div:first-child {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-/* ===============================
-   BOTÃO ADICIONAR PESSOAL
-================================= */
-#equipaAdministrativaWrapper .btn-primary {
-  margin-bottom: 15px;
-}
-
-/* ===============================
-   TABELA
-================================= */
-table.tabela-professores {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-table.tabela-professores thead {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #f8f9fa;
-}
-
-table.tabela-professores th,
-table.tabela-professores td {
-  padding: 12px;
-  border-bottom: 1px solid #e1e1e1;
-  vertical-align: middle;
-}
-
-.dark-mode table.tabela-professores th,
-.dark-mode table.tabela-professores td {
-  border-color: #444;
-}
-
-table.tabela-professores tbody tr:hover {
-  background: rgba(0, 123, 255, 0.08);
-}
-
-table.tabela-professores tbody td {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 6px;
-  border: none;
-  font-size: 14px;
-}
-
-table.tabela-professores tbody td::before {
-  content: attr(data-label);
-  font-weight: 600;
-  color: #555;
-}
-
-.dark-mode table.tabela-professores tbody td::before {
-  color: #bbb;
-}
-
-/* ===============================
-   BOTÕES DENTRO DA TABELA
-================================= */
-table.tabela-professores tbody td:last-child {
-  flex-direction: column;
-  gap: 6px;
-}
-
-table.tabela-professores tbody td:last-child button {
-  width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-/* ===============================
-   RESPONSIVO MOBILE
-================================= */
-@media (max-width: 768px) {
-  table.tabela-professores thead {
-    display: none;
-  }
-
-  table.tabela-professores tbody tr {
-    display: block;
-    margin-bottom: 14px;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 12px;
-    background: #fff;
-  }
-
-  .dark-mode table.tabela-professores tbody tr {
-    background: #1f2d3d;
-    border-color: #444;
-  }
-
-  table.tabela-professores tbody td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 4px;
-    border: none;
-  }
-
-  table.tabela-professores tbody td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #555;
-  }
-
-  .dark-mode table.tabela-professores tbody td::before {
-    color: #bbb;
-  }
-
-  table.tabela-professores tbody td:last-child {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  table.tabela-professores tbody td:last-child button {
-    width: 100%;
-  }
-
-  /* Container do overlay */
-  .professores-container, #equipaAdministrativaWrapper {
-    width: 96%;
-    max-height: 92vh;
-    padding: 14px;
-  }
-}
     
 </style>
 
@@ -1549,8 +1385,77 @@ table.tabela-professores tbody td:last-child button {
     </table>
 
   </div>
-</div>          
+</div>
 
+<!-- ===============================
+     TABELA ADMINISTRATIVA
+================================ -->
+<div class="professores-overlay" id="equipaAdministrativaWrapper" style="display:none;">
+  <div class="professores-container tabela-wrapper">
+
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 class="modal-title">Equipa Administrativa</h2>
+      <button class="btn btn-secondary" onclick="fecharEquipaAdministrativa()">✖ Fechar</button>
+    </div>
+
+    <!-- BOTÃO ADICIONAR PESSOAL -->
+    <button class="btn btn-primary" onclick="document.getElementById('formAdd').style.display='block'">
+      ➕ Adicionar Pessoal
+    </button>
+
+    <!-- TABELA -->
+    <table class="tabela-professores">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Cargo</th>
+          <th>Telefone</th>
+          <th>Localização</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in equipa %}
+        <tr>
+          <td data-label="Nome">{{ p.nome }}</td>
+          <td data-label="Cargo">{{ p.cargo }}</td>
+          <td data-label="Telefone">{{ p.telefone }}</td>
+          <td data-label="Localização">{{ p.localizacao }}</td>
+          <td data-label="Ações">
+            <form method="post" action="/equipa-administrativa/editar/{{ p.id }}">
+              <button class="btn">✏️ Editar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- ===============================
+     FORMULÁRIO ADICIONAR PESSOAL
+================================ -->
+<div id="formAdd" class="professores-overlay" style="display:none;">
+  <div class="professores-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 class="professores-title">Adicionar Pessoal Administrativo</h3>
+      <button class="btn btn-secondary" onclick="document.getElementById('formAdd').style.display='none'">✖ Fechar</button>
+    </div>
+
+    <form method="post" action="/equipa-administrativa/adicionar">
+      <input name="nome" placeholder="Nome completo" required>
+      <input name="cargo" placeholder="Cargo" required>
+      <input name="telefone" placeholder="Telefone" required>
+      <input name="localizacao" placeholder="Localização" required>
+
+      <button class="btn btn-primary">Guardar</button>
+    </form>
+  </div>
+</div>
+  
         </ul>
       </nav>
     </div>
