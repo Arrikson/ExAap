@@ -1233,7 +1233,6 @@ table tbody {
           </a>
        </li>
     </ul>
-
           <li class="nav-item">
             <a href="#" class="nav-link" onclick="event.preventDefault(); abrirRemuneracoes();">
               <i class="far fa-circle nav-icon"></i>
@@ -1429,8 +1428,7 @@ table tbody {
   </div>
 </div>          
 
-
-<div class="tabela-wrapper" id="equipaAdministrativaWrapper">
+<div class="tabela-wrapper" id="equipaAdministrativaWrapper" style="display:none;">
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
     <h2 class="modal-title">Equipa Administrativa</h2>
@@ -2307,13 +2305,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-function abrirEquipaAdministrativa() {
-  document.getElementById("equipaAdministrativaWrapper").style.display = "block";
-}
+document.addEventListener("DOMContentLoaded", function () {
 
-function fecharEquipaAdministrativa() {
-  document.getElementById("equipaAdministrativaWrapper").style.display = "none";
-}
+  window.abrirEquipaAdministrativa = function () {
+    const wrapper = document.getElementById("equipaAdministrativaWrapper");
+    if (!wrapper) {
+      console.warn("equipaAdministrativaWrapper não encontrado");
+      return;
+    }
+
+    wrapper.style.display = "block";
+    wrapper.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  window.fecharEquipaAdministrativa = function () {
+    const wrapper = document.getElementById("equipaAdministrativaWrapper");
+    if (!wrapper) {
+      console.warn("equipaAdministrativaWrapper não encontrado");
+      return;
+    }
+
+    wrapper.style.display = "none";
+  };
+
+});
   
 /* ==============================
    FECHAR OVERLAYS
