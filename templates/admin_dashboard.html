@@ -2391,6 +2391,7 @@ async function verMesesProf(id) {
         </tr>
       `;
     });
+
 document.addEventListener("DOMContentLoaded", function () {
 
   // ===============================
@@ -2398,14 +2399,13 @@ document.addEventListener("DOMContentLoaded", function () {
   // ===============================
   document.querySelectorAll(".nav-item.has-treeview > a").forEach(link => {
     link.addEventListener("click", function (e) {
-      e.preventDefault(); // impede a navegação padrão
+      e.preventDefault(); // impede navegação padrão
 
       const parent = this.closest(".nav-item");
       const submenu = parent.querySelector(".nav-treeview");
-
       if (!submenu) return;
 
-      // Alterna menu aberto/fechado
+      // Alterna aberto/fechado
       if (parent.classList.contains("menu-open")) {
         parent.classList.remove("menu-open");
         submenu.style.display = "none";
@@ -2427,8 +2427,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     wrapper.style.display = "block";
-
-    // Suaviza o scroll até a tabela
     wrapper.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -2443,7 +2441,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // ===============================
-  // EXEMPLO: ABRIR DETALHES DO PROFESSOR
+  // ABRIR DETALHES DO PROFESSOR (EXEMPLO)
   // ===============================
   window.abrirDetalhesProfessor = function () {
     try {
@@ -2459,6 +2457,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
 });
+
   
 /* ==============================
    FECHAR OVERLAYS
