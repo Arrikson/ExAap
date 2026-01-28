@@ -1052,34 +1052,74 @@ table tbody {
 }
 
 /* ===============================
-   TABELA ADMINISTRATIVA
+   WRAPPER DA TABELA ADMINISTRATIVA
 ================================= */
-.tabela-professores {
+#equipaAdministrativaWrapper {
+  display: none; /* inicialmente escondida */
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dark-mode #equipaAdministrativaWrapper {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TÍTULO E BOTÃO FECHAR
+================================= */
+#equipaAdministrativaWrapper .modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+#equipaAdministrativaWrapper > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* ===============================
+   BOTÃO ADICIONAR PESSOAL
+================================= */
+#equipaAdministrativaWrapper .btn-primary {
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   TABELA
+================================= */
+table.tabela-professores {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.tabela-professores thead {
+table.tabela-professores thead {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f8f9fa; /* cor de fundo para o cabeçalho */
+  background: #f8f9fa;
 }
 
-.tabela-professores th,
-.tabela-professores td {
+table.tabela-professores th,
+table.tabela-professores td {
   padding: 12px;
   border-bottom: 1px solid #e1e1e1;
   vertical-align: middle;
 }
 
-.dark-mode .tabela-professores th,
-.dark-mode .tabela-professores td {
+.dark-mode table.tabela-professores th,
+.dark-mode table.tabela-professores td {
   border-color: #444;
 }
 
-.tabela-professores tbody tr:hover {
+table.tabela-professores tbody tr:hover {
   background: rgba(0, 123, 255, 0.08);
 }
 
@@ -1122,7 +1162,6 @@ table.tabela-professores tbody td:last-child button {
    RESPONSIVO MOBILE
 ================================= */
 @media (max-width: 768px) {
-
   table.tabela-professores thead {
     display: none;
   }
@@ -1167,31 +1206,13 @@ table.tabela-professores tbody td:last-child button {
   table.tabela-professores tbody td:last-child button {
     width: 100%;
   }
-}
 
-/* ===============================
-   WRAPPER DA TABELA
-================================= */
-.tabela-wrapper {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  max-height: 85vh;
-  overflow-y: auto;
-  display: block; /* garante visibilidade */
-}
-
-.dark-mode .tabela-wrapper {
-  background: #1f2d3d;
-}
-
-/* ===============================
-   TÍTULO DA TABELA
-================================= */
-.modal-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 15px;
+  /* Container do overlay */
+  .professores-container, #equipaAdministrativaWrapper {
+    width: 96%;
+    max-height: 92vh;
+    padding: 14px;
+  }
 }
     
 </style>
@@ -2370,45 +2391,34 @@ async function verMesesProf(id) {
         </tr>
       `;
     });
-
-    document.getElementById("detalhes-prof").style.display = "flex";
-
-  } catch (err) {
-    console.error("Erro ao carregar meses do professor:", err);
-    alert("Erro ao carregar detalhes.");
-  }
-}
-
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ===============================
+  // MENU LATERAL TREEVIEW
+  // ===============================
   document.querySelectorAll(".nav-item.has-treeview > a").forEach(link => {
-
     link.addEventListener("click", function (e) {
-
-      // Impede navegar
-      e.preventDefault();
+      e.preventDefault(); // impede a navegação padrão
 
       const parent = this.closest(".nav-item");
+      const submenu = parent.querySelector(".nav-treeview");
 
-      // Fecha se já estiver aberto
+      if (!submenu) return;
+
+      // Alterna menu aberto/fechado
       if (parent.classList.contains("menu-open")) {
         parent.classList.remove("menu-open");
-        parent.querySelector(".nav-treeview").style.display = "none";
-      } 
-      // Abre se estiver fechado
-      else {
+        submenu.style.display = "none";
+      } else {
         parent.classList.add("menu-open");
-        parent.querySelector(".nav-treeview").style.display = "block";
+        submenu.style.display = "block";
       }
-
     });
-
   });
 
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-
+  // ===============================
+  // ABRIR E FECHAR TABELA ADMINISTRATIVA
+  // ===============================
   window.abrirEquipaAdministrativa = function () {
     const wrapper = document.getElementById("equipaAdministrativaWrapper");
     if (!wrapper) {
@@ -2417,6 +2427,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     wrapper.style.display = "block";
+
+    // Suaviza o scroll até a tabela
     wrapper.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -2428,6 +2440,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     wrapper.style.display = "none";
+  };
+
+  // ===============================
+  // EXEMPLO: ABRIR DETALHES DO PROFESSOR
+  // ===============================
+  window.abrirDetalhesProfessor = function () {
+    try {
+      const overlay = document.getElementById("detalhes-prof");
+      if (!overlay) throw new Error("detalhes-prof não encontrado");
+
+      overlay.style.display = "flex";
+      overlay.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (err) {
+      console.error("Erro ao carregar meses do professor:", err);
+      alert("Erro ao carregar detalhes.");
+    }
   };
 
 });
