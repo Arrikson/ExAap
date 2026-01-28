@@ -1051,45 +1051,147 @@ table tbody {
   }
 }
 
+/* ===============================
+   TABELA ADMINISTRATIVA
+================================= */
 .tabela-professores {
   width: 100%;
   border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabela-professores thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8f9fa; /* cor de fundo para o cabeçalho */
 }
 
 .tabela-professores th,
 .tabela-professores td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  border-bottom: 1px solid #e1e1e1;
+  vertical-align: middle;
 }
 
-@media (max-width:768px) {
+.dark-mode .tabela-professores th,
+.dark-mode .tabela-professores td {
+  border-color: #444;
+}
 
-  .tabela-professores thead {
+.tabela-professores tbody tr:hover {
+  background: rgba(0, 123, 255, 0.08);
+}
+
+table.tabela-professores tbody td {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px;
+  border: none;
+  font-size: 14px;
+}
+
+table.tabela-professores tbody td::before {
+  content: attr(data-label);
+  font-weight: 600;
+  color: #555;
+}
+
+.dark-mode table.tabela-professores tbody td::before {
+  color: #bbb;
+}
+
+/* ===============================
+   BOTÕES DENTRO DA TABELA
+================================= */
+table.tabela-professores tbody td:last-child {
+  flex-direction: column;
+  gap: 6px;
+}
+
+table.tabela-professores tbody td:last-child button {
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* ===============================
+   RESPONSIVO MOBILE
+================================= */
+@media (max-width: 768px) {
+
+  table.tabela-professores thead {
     display: none;
   }
 
-  .tabela-professores tr {
+  table.tabela-professores tbody tr {
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     border: 1px solid #ddd;
     border-radius: 12px;
-    padding: 10px;
+    padding: 12px;
+    background: #fff;
   }
 
-  .tabela-professores td {
+  .dark-mode table.tabela-professores tbody tr {
+    background: #1f2d3d;
+    border-color: #444;
+  }
+
+  table.tabela-professores tbody td {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    border: none;
   }
 
-  .tabela-professores td::before {
+  table.tabela-professores tbody td::before {
     content: attr(data-label);
     font-weight: 600;
+    color: #555;
   }
 
-  .tabela-professores td:last-child {
+  .dark-mode table.tabela-professores tbody td::before {
+    color: #bbb;
+  }
+
+  table.tabela-professores tbody td:last-child {
     flex-direction: column;
     gap: 6px;
   }
+
+  table.tabela-professores tbody td:last-child button {
+    width: 100%;
+  }
+}
+
+/* ===============================
+   WRAPPER DA TABELA
+================================= */
+.tabela-wrapper {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: block; /* garante visibilidade */
+}
+
+.dark-mode .tabela-wrapper {
+  background: #1f2d3d;
+}
+
+/* ===============================
+   TÍTULO DA TABELA
+================================= */
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 15px;
 }
     
 </style>
