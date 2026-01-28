@@ -5020,18 +5020,30 @@ async def logout_aluno(request: Request):
         print(f"❌ Erro no logout do aluno: {e}")
         return RedirectResponse("/login", status_code=303)
 
-@app.get("/equipa-administrativa")
+
+@app.get("/equipa-administrativa", response_class=HTMLResponse)
 def listar_equipa(request: Request):
+
     if not request.session.get("logged_in"):
         return RedirectResponse("/logini", status_code=302)
 
     docs = db.collection("equipa_administrativa").stream()
-    equipa = [{**doc.to_dict(), "id": doc.id} for doc in docs]
+    equipa = []
+
+    for doc in docs:
+        data = doc.to_dict()
+        if data:
+            data["id"] = doc.id
+            equipa.append(data)
 
     return templates.TemplateResponse(
         "equipa_administrativa.html",
-        {"request": request, "equipa": equipa}
+        {
+            "request": request,
+            "equipa": equipa
+        }
     )
+
 
 @app.post("/equipa-administrativa/adicionar")
 def adicionar_equipa(
