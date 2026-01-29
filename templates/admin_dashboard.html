@@ -1270,14 +1270,6 @@ table.tabela-professores tbody td:last-child button {
         <ul class="nav nav-pills nav-sidebar flex-column"
             data-widget="treeview" role="menu" data-accordion="false">
 
-<!-- ===============================  
-     MENU
-================================== -->
-<div class="sidebar">
-  <nav class="mt-3">
-    <ul class="nav nav-pills nav-sidebar flex-column"
-        data-widget="treeview" role="menu" data-accordion="false">
-
       <!-- MENU ALUNOS -->
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
@@ -1503,7 +1495,7 @@ table.tabela-professores tbody td:last-child button {
   </div>
 </div>
 
-          <div class="professores-overlay" id="overlayFinanceAlunos">
+  <div class="professores-overlay" id="overlayFinanceAlunos">
   <div class="professores-container">
 
     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1549,7 +1541,76 @@ table.tabela-professores tbody td:last-child button {
 
   </div>
 </div>          
-          
+
+<!-- ===============================
+     TABELA ADMINISTRATIVA
+================================ -->
+<div class="professores-overlay" id="equipaAdministrativaWrapper" style="display:none;">
+  <div class="professores-container tabela-wrapper">
+
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 class="modal-title">Equipa Administrativa</h2>
+      <button class="btn btn-secondary" onclick="fecharEquipaAdministrativa()">✖ Fechar</button>
+    </div>
+
+    <!-- BOTÃO ADICIONAR PESSOAL -->
+    <button class="btn btn-primary" onclick="document.getElementById('formAdd').style.display='block'">
+      ➕ Adicionar Pessoal
+    </button>
+
+    <!-- TABELA -->
+    <table class="tabela-professores">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Cargo</th>
+          <th>Telefone</th>
+          <th>Localização</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in equipa %}
+        <tr>
+          <td data-label="Nome">{{ p.nome }}</td>
+          <td data-label="Cargo">{{ p.cargo }}</td>
+          <td data-label="Telefone">{{ p.telefone }}</td>
+          <td data-label="Localização">{{ p.localizacao }}</td>
+          <td data-label="Ações">
+            <form method="post" action="/equipa-administrativa/editar/{{ p.id }}">
+              <button class="btn">✏️ Editar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- ===============================
+     FORMULÁRIO ADICIONAR PESSOAL
+================================ -->
+<div id="formAdd" class="professores-overlay" style="display:none;">
+  <div class="professores-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 class="professores-title">Adicionar Pessoal Administrativo</h3>
+      <button class="btn btn-secondary" onclick="document.getElementById('formAdd').style.display='none'">✖ Fechar</button>
+    </div>
+
+    <form method="post" action="/equipa-administrativa/adicionar">
+      <input name="nome" placeholder="Nome completo" required>
+      <input name="cargo" placeholder="Cargo" required>
+      <input name="telefone" placeholder="Telefone" required>
+      <input name="localizacao" placeholder="Localização" required>
+
+      <button class="btn btn-primary">Guardar</button>
+    </form>
+  </div>
+</div>
+    
         </ul>
       </nav>
     </div>
