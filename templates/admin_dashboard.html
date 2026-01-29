@@ -2412,27 +2412,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     link.addEventListener("click", function (e) {
 
-      // Impede navegar
       e.preventDefault();
+      e.stopPropagation();         
+      e.stopImmediatePropagation(); 
 
       const parent = this.closest(".nav-item");
+      const submenu = parent.querySelector(".nav-treeview");
 
-      // Fecha se já estiver aberto
+      if (!submenu) return;
+
+      // Toggle manual controlado
       if (parent.classList.contains("menu-open")) {
         parent.classList.remove("menu-open");
-        parent.querySelector(".nav-treeview").style.display = "none";
-      } 
-      // Abre se estiver fechado
-      else {
+        submenu.style.display = "none";
+      } else {
         parent.classList.add("menu-open");
-        parent.querySelector(".nav-treeview").style.display = "block";
+        submenu.style.display = "block";
       }
 
-    });
-
+    }, true); 
+    
   });
 
 });
+  
   document.addEventListener("DOMContentLoaded", function () {
 
   window.abrirEquipaAdministrativa = function () {
