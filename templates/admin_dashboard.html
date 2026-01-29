@@ -1342,11 +1342,12 @@ table.tabela-professores tbody td:last-child button {
         </a>
         <ul class="nav nav-treeview">
           <li class="nav-item">
-            <a href="#" class="nav-link" onclick="event.preventDefault(); abrirEquipaAdministrativa();">
+            <a href="#" class="nav-link" onclick="abrirEquipaAdministrativa(); return false;">
               <i class="far fa-circle nav-icon"></i>
               <p>Equipa Administrativa</p>
             </a>
-          </li>
+         </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link" onclick="event.preventDefault(); abrirRemuneracoes();">
               <i class="far fa-circle nav-icon"></i>
@@ -2432,7 +2433,34 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
-  
+  document.addEventListener("DOMContentLoaded", function () {
+
+  window.abrirEquipaAdministrativa = function () {
+    const overlay = document.getElementById("equipaAdministrativaWrapper");
+    if (!overlay) {
+      console.warn("equipaAdministrativaWrapper não encontrado");
+      return;
+    }
+
+    // Fecha outros overlays abertos (opcional, mas recomendado)
+    document.querySelectorAll(".professores-overlay").forEach(el => {
+      el.style.display = "none";
+    });
+
+    overlay.style.display = "flex";
+  };
+
+  window.fecharEquipaAdministrativa = function () {
+    const overlay = document.getElementById("equipaAdministrativaWrapper");
+    if (!overlay) {
+      console.warn("equipaAdministrativaWrapper não encontrado");
+      return;
+    }
+
+    overlay.style.display = "none";
+  };
+
+});
 /* ==============================
    FECHAR OVERLAYS
 ================================ */
