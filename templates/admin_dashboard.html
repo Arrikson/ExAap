@@ -1071,18 +1071,25 @@ table tbody {
 /* ===============================
    TÍTULO E BOTÃO FECHAR
 ================================= */
+
 #equipaAdministrativaWrapper .modal-title {
   font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: 15px;
+  margin: 0;
 }
 
+/* header */
 #equipaAdministrativaWrapper > div:first-child {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
+
+/* empurra o botão para o canto direito */
+#equipaAdministrativaWrapper > div:first-child button {
+  margin-left: auto;
+}
+
 
 /* ===============================
    BOTÃO ADICIONAR PESSOAL
@@ -1107,6 +1114,18 @@ table.tabela-professores thead {
   background: #f8f9fa;
 }
 
+/* ===============================
+   CORES DOS HEADERS DA TABELA
+================================= */
+table.tabela-professores thead th {
+  color: #333; /* cor dos títulos no modo claro */
+  font-weight: 600;
+}
+
+.dark-mode table.tabela-professores thead th {
+  color: #eee; /* cor dos títulos no modo escuro */
+}
+    
 table.tabela-professores th,
 table.tabela-professores td {
   padding: 12px;
@@ -1207,12 +1226,21 @@ table.tabela-professores tbody td:last-child button {
     width: 100%;
   }
 
-  /* Container do overlay */
-  .professores-container, #equipaAdministrativaWrapper {
-    width: 96%;
-    max-height: 92vh;
-    padding: 14px;
-  }
+  /* ===============================
+   CONTAINER DO OVERLAY CENTRALIZADO
+================================= */
+.professores-container, #equipaAdministrativaWrapper, #formAdd {
+  width: 96%;
+  max-height: 92vh;
+  padding: 14px;
+
+  /* Centralização */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;     
+  margin: 0 auto;
+  box-sizing: border-box;
 }
     
 </style>
