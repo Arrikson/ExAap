@@ -5048,7 +5048,8 @@ def adicionar_equipa(
         "telefone": telefone,
         "localizacao": localizacao
     })
-    return RedirectResponse("/equipa-administrativa", status_code=302)
+    return RedirectResponse("/admin", status_code=302)
+
 
 @app.post("/equipa-administrativa/editar/{id}")
 def editar_equipa(
@@ -5064,5 +5065,6 @@ def editar_equipa(
         "telefone": telefone,
         "localizacao": localizacao
     })
-    return RedirectResponse("/equipa-administrativa", status_code=302)
+    return RedirectResponse("/admin", status_code=302)
+
 
