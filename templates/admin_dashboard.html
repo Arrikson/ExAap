@@ -2524,6 +2524,31 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
 });
+
+function abrirEditar(id, nome, cargo, telefone, localizacao) {
+  console.log("Editar:", id); // 👈 ajuda a testar
+
+  const overlay = document.getElementById("formEdit");
+  const form = document.getElementById("formEditar");
+
+  if (!overlay || !form) {
+    console.warn("Formulário de edição não encontrado");
+    return;
+  }
+
+  // Define action da rota
+  form.action = `/equipa-administrativa/editar/${id}`;
+
+  // Preenche campos
+  document.getElementById("editNome").value = nome;
+  document.getElementById("editCargo").value = cargo;
+  document.getElementById("editTelefone").value = telefone;
+  document.getElementById("editLocalizacao").value = localizacao;
+
+  // Mostra modal
+  overlay.style.display = "flex";
+}
+  
 /* ==============================
    FECHAR OVERLAYS
 ================================ */
