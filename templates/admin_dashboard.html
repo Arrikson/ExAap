@@ -1226,22 +1226,39 @@ table.tabela-professores tbody td:last-child button {
     width: 100%;
   }
 
-  /* ===============================
+/* ===============================
    CONTAINER DO OVERLAY CENTRALIZADO
 ================================= */
-.professores-container, #equipaAdministrativaWrapper, #formAdd {
+
+/* Overlay / formulário (centralizado) */
+.professores-container,
+#formAdd {
   width: 96%;
   max-height: 92vh;
   padding: 14px;
 
-  /* Centralização */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;     
+  align-items: center;
+
   margin: 0 auto;
   box-sizing: border-box;
 }
+
+/* Wrapper da equipa administrativa (COM SCROLL) */
+#equipaAdministrativaWrapper {
+  width: 96%;
+  max-height: 85vh;
+  padding: 20px;
+
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  overflow-y: auto; 
+  display: block;  
+}
+
     
 </style>
 
