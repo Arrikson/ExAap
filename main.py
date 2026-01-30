@@ -4454,7 +4454,7 @@ async def rotate_account():
     usos = {str(k): v for k, v in doc["usos"].items()}  # converte chaves para string
 
     conta_str = str(conta)
-    if usos.get(conta_str, 0) >= 10:  # limite de usos por conta
+    if usos.get(conta_str, 0) >= 50:  
         conta = (conta + 1) % len(CONTAS_100MS)
         conta_str = str(conta)
         usos[conta_str] = 0  # reset da nova conta
@@ -4471,11 +4471,11 @@ async def incrementar_uso():
     doc = ref.get().to_dict()
 
     conta = doc["conta_atual"]
-    usos = {str(k): v for k, v in doc["usos"].items()}  # garante chaves como string
-
+    usos = {str(k): v for k, v in doc["usos"].items()} 
+    
     conta_str = str(conta)
-    usos[conta_str] = usos.get(conta_str, 0) + 1  # incrementa o uso da conta atual
-
+    usos[conta_str] = usos.get(conta_str, 0) + 1  
+    
     ref.update({"usos": usos})
     await rotate_account()
 
@@ -4491,7 +4491,7 @@ async def generate_100ms_token():
         "iat": int(time.time()),
         "exp": int(time.time()) + 3600,  # válido por 1 hora
         "access_key": conta["ACCESS_KEY"],
-        "type": "management",  # 🔥 ESSENCIAL para criar salas e room codes
+        "type": "management",  
         "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, conta["SECRET"], algorithm="HS256")
