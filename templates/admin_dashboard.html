@@ -1052,140 +1052,163 @@ table tbody {
 }
 
 /* ===============================
-   WRAPPER DA TABELA ADMINISTRATIVA
-================================= */
-#equipaAdministrativaWrapper {
-  display: none; /* inicialmente escondida */
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  max-height: 85vh;
+   OVERLAY — EQUIPA ADMINISTRATIVA
+================================ */
+#equipaAdministrativaWrapper.professores-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 40px 0;
 }
 
-.dark-mode #equipaAdministrativaWrapper {
+/* ===============================
+   CONTAINER
+================================ */
+#equipaAdministrativaWrapper .professores-container {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: 95%;
+  max-width: 1200px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.dark-mode #equipaAdministrativaWrapper .professores-container {
   background: #1f2d3d;
 }
 
 /* ===============================
-   TÍTULO E BOTÃO FECHAR
-================================= */
-
+   TÍTULO E HEADER
+================================ */
 #equipaAdministrativaWrapper .modal-title {
   font-size: 1.3rem;
   font-weight: 600;
   margin: 0;
 }
 
-/* header */
 #equipaAdministrativaWrapper > div:first-child {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
 
-/* empurra o botão para o canto direito */
 #equipaAdministrativaWrapper > div:first-child button {
   margin-left: auto;
 }
 
-
 /* ===============================
-   BOTÃO ADICIONAR PESSOAL
-================================= */
-#equipaAdministrativaWrapper .btn-primary {
-  margin-bottom: 15px;
-}
-
-/* ===============================
-   TABELA
-================================= */
-table.tabela-professores {
+   TABELA — APENAS EQUIPA
+================================ */
+#equipaAdministrativaWrapper table.tabela-professores {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-table.tabela-professores thead {
+/* HEADER */
+#equipaAdministrativaWrapper table.tabela-professores thead {
+  background: #f8f9fa;
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f8f9fa;
 }
 
-/* ===============================
-   CORES DOS HEADERS DA TABELA
-================================= */
-table.tabela-professores thead th {
-  color: #333; /* cor dos títulos no modo claro */
+/* HEADER SEMPRE PRETO (MESMO NO DARK MODE) */
+#equipaAdministrativaWrapper table.tabela-professores thead th {
+  color: #000;
   font-weight: 600;
 }
 
-.dark-mode table.tabela-professores thead th {
-  color: #eee; /* cor dos títulos no modo escuro */
-}
-    
-table.tabela-professores th,
-table.tabela-professores td {
+/* CÉLULAS */
+#equipaAdministrativaWrapper table.tabela-professores th,
+#equipaAdministrativaWrapper table.tabela-professores td {
   padding: 12px;
   border-bottom: 1px solid #e1e1e1;
   vertical-align: middle;
 }
 
-.dark-mode table.tabela-professores th,
-.dark-mode table.tabela-professores td {
+.dark-mode
+#equipaAdministrativaWrapper table.tabela-professores th,
+.dark-mode
+#equipaAdministrativaWrapper table.tabela-professores td {
   border-color: #444;
 }
 
-table.tabela-professores tbody tr:hover {
-  background: rgba(0, 123, 255, 0.08);
-}
-
-table.tabela-professores tbody td {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 6px;
-  border: none;
-  font-size: 14px;
-}
-
-table.tabela-professores tbody td::before {
-  content: attr(data-label);
-  font-weight: 600;
-  color: #555;
-}
-
-.dark-mode table.tabela-professores tbody td::before {
-  color: #bbb;
+/* HOVER */
+#equipaAdministrativaWrapper table.tabela-professores tbody tr:hover {
+  background: rgba(0,123,255,.08);
 }
 
 /* ===============================
-   BOTÕES DENTRO DA TABELA
-================================= */
-table.tabela-professores tbody td:last-child {
-  flex-direction: column;
-  gap: 6px;
+   STATUS
+================================ */
+#equipaAdministrativaWrapper .prof-online {
+  color: #28a745;
+  font-weight: bold;
 }
 
-table.tabela-professores tbody td:last-child button {
-  width: 100%;
+#equipaAdministrativaWrapper .prof-offline {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* ===============================
+   BOTÕES
+================================ */
+#equipaAdministrativaWrapper .btn-prof-remover {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
-  padding: 6px 12px;
   font-size: 13px;
 }
 
+#equipaAdministrativaWrapper .btn-prof-remover:hover {
+  opacity: .85;
+}
+
 /* ===============================
-   RESPONSIVO MOBILE
-================================= */
+   SCROLL DA TABELA
+================================ */
+#equipaAdministrativaWrapper .tabela-scroll {
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+#equipaAdministrativaWrapper .tabela-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+#equipaAdministrativaWrapper .tabela-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.25);
+  border-radius: 6px;
+}
+
+.dark-mode
+#equipaAdministrativaWrapper .tabela-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.25);
+}
+
+/* ===============================
+   MOBILE — SOMENTE EQUIPA
+================================ */
 @media (max-width: 768px) {
-  table.tabela-professores thead {
+
+  #equipaAdministrativaWrapper table.tabela-professores thead {
     display: none;
   }
 
-  table.tabela-professores tbody tr {
+  #equipaAdministrativaWrapper table.tabela-professores tbody tr {
     display: block;
     margin-bottom: 14px;
     border: 1px solid #ddd;
@@ -1194,76 +1217,41 @@ table.tabela-professores tbody td:last-child button {
     background: #fff;
   }
 
-  .dark-mode table.tabela-professores tbody tr {
+  .dark-mode
+  #equipaAdministrativaWrapper table.tabela-professores tbody tr {
     background: #1f2d3d;
     border-color: #444;
   }
 
-  table.tabela-professores tbody td {
+  #equipaAdministrativaWrapper table.tabela-professores tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 4px;
+    padding: 8px 6px;
     border: none;
   }
 
-  table.tabela-professores tbody td::before {
+  #equipaAdministrativaWrapper table.tabela-professores tbody td::before {
     content: attr(data-label);
     font-weight: 600;
     color: #555;
   }
 
-  .dark-mode table.tabela-professores tbody td::before {
+  .dark-mode
+  #equipaAdministrativaWrapper table.tabela-professores tbody td::before {
     color: #bbb;
   }
 
-  table.tabela-professores tbody td:last-child {
+  #equipaAdministrativaWrapper table.tabela-professores tbody td:last-child {
     flex-direction: column;
     gap: 6px;
   }
 
-  table.tabela-professores tbody td:last-child button {
+  #equipaAdministrativaWrapper table.tabela-professores tbody td:last-child button {
     width: 100%;
   }
-
-/* ===============================
-   CONTAINER DO OVERLAY — APENAS EQUIPA
-================================= */
-
-/* Overlay externo da equipa administrativa */
-#equipaAdministrativaWrapper.professores-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
-
-/* Container interno da tabela */
-#equipaAdministrativaWrapper .professores-container {
-  width: 100%;
-  max-width: 1200px;       
-  max-height: 85vh;
-
-  padding: 24px;
-  margin: 0 auto;            
-
-  box-sizing: border-box;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Formulário adicionar — SOMENTE da equipa */
-#equipaAdministrativaWrapper #formAdd {
-  width: 96%;
-  max-height: 92vh;
-  padding: 14px;
-
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-    
+ 
 </style>
 
 
