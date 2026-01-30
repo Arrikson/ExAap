@@ -198,37 +198,34 @@ def init_contas_100ms():
 init_contas_100ms()
 
 
-from google.cloud.firestore import transactional
-
-
-@transactional
-def _get_account_and_increment_tx(transaction):
+# ============================
+# 🔹 FUNÇÃO CORRETA (USO ATÉ 50)
+# ============================
+async def get_account_and_increment():
     ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get()
 
-    snapshot = ref.get(transaction=transaction)
-    data = snapshot.to_dict()
+    data = doc.to_dict()
 
     conta = data["conta_atual"]
     usos = data["usos"]
-
     conta_str = str(conta)
 
-    # 🔁 roda só se chegar ao limite
-    if usos.get(conta_str, 0) >= MAX_USOS:
+    # ✅ SÓ TROCA DE CONTA SE ATINGIR 50
+    if usos[conta_str] >= MAX_USOS:
         conta = (conta + 1) % len(CONTAS_100MS)
         conta_str = str(conta)
         usos[conta_str] = 0
 
-    # ➕ incrementa
+    # ✅ INCREMENTA SEM TROCAR
     usos[conta_str] += 1
 
-    transaction.update(ref, {
+    ref.update({
         "conta_atual": conta,
         "usos": usos
     })
 
     return conta
-
 
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -4425,6 +4422,63 @@ async def desvincular_aluno(data: dict):
             content={"detail": "Erro interno", "erro": str(e)}
         )
         
+# ============================
+# CONFIG 100ms - DINÂMICA DE TROCA DE CONTA
+# ============================
+HMS_API_BASE = "https://api.100ms.live/v2"
+
+# ============================
+# SCHEMA DA REQUISIÇÃO
+# ============================
+class CreateRoomRequest(BaseModel):
+    name: str
+
+# ============================
+# BUSCA CONTA ATIVA
+# ============================
+async def get_current_account():
+    doc = db.collection("CONTAS_100MS").document("contador").get()
+    data = doc.to_dict()
+
+    # garante que todas as chaves do 'usos' são strings
+    usos = {str(k): v for k, v in data["usos"].items()}
+
+    return data["conta_atual"], usos
+
+
+async def rotate_account():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get().to_dict()
+
+    conta = doc["conta_atual"]
+    usos = {str(k): v for k, v in doc["usos"].items()}  # converte chaves para string
+
+    conta_str = str(conta)
+    if usos.get(conta_str, 0) >= 50:  
+        conta = (conta + 1) % len(CONTAS_100MS)
+        conta_str = str(conta)
+        usos[conta_str] = 0  # reset da nova conta
+
+    ref.update({
+        "conta_atual": conta,
+        "usos": usos
+    })
+    return conta
+
+
+async def incrementar_uso():
+    ref = db.collection("CONTAS_100MS").document("contador")
+    doc = ref.get().to_dict()
+
+    conta = doc["conta_atual"]
+    usos = {str(k): v for k, v in doc["usos"].items()} 
+    
+    conta_str = str(conta)
+    usos[conta_str] = usos.get(conta_str, 0) + 1  
+    
+    ref.update({"usos": usos})
+    await rotate_account()
+
 
 # ============================
 # GERA TOKEN 100ms (com permissão de management)
@@ -4435,7 +4489,7 @@ async def generate_100ms_token():
 
     payload = {
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600, 
+        "exp": int(time.time()) + 3600,  # válido por 1 hora
         "access_key": conta["ACCESS_KEY"],
         "type": "management",  
         "jti": str(uuid.uuid4()),
@@ -4464,75 +4518,46 @@ def normalize_room_name(name: str):
 # ============================
 # Cria sala 100ms (corrigido)
 # ============================
-class CreateRoomRequest(BaseModel):
-    name: str
-
-
 @app.post("/create-room")
 async def create_room(req: CreateRoomRequest):
     import asyncio
-
     async with httpx.AsyncClient(timeout=30.0) as client:
         normalized_name = normalize_room_name(req.name)
         print(f"🟦 Criando sala com nome normalizado: {normalized_name}")
 
-        # 🔹 BUSCA + INCREMENTA DE FORMA ATÔMICA
-        conta_atual = await get_account_and_increment()
+        # 🔹 Busca conta ativa
+        conta_atual, _ = await get_current_account()
         conta = CONTAS_100MS[conta_atual]
-
         template_id = conta["TEMPLATE"]
         subdomain = conta["SUBDOMAIN"]
 
-        body = {
-            "name": normalized_name,
-            "template_id": template_id
-        }
+        body = {"name": normalized_name, "template_id": template_id}
 
-        # ====== CRIAÇÃO DA SALA ======
+        # ====== Criação da sala ======
         headers = await get_headers()
-
-        r = await client.post(
-            f"{HMS_API_BASE}/rooms",
-            json=body,
-            headers=headers
-        )
-
+        r = await client.post(f"{HMS_API_BASE}/rooms", json=body, headers=headers)
         print(f"📡 [100ms /rooms] STATUS: {r.status_code} | RESPOSTA: {r.text}")
 
         if r.status_code >= 400:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erro ao criar sala: {r.status_code} - {r.text}"
-            )
+            raise HTTPException(status_code=500, detail=f"Erro ao criar sala: {r.status_code} - {r.text}")
 
         room = r.json()
         room_id = room.get("id")
-
         if not room_id:
-            raise HTTPException(
-                status_code=500,
-                detail="⚠️ Sala criada, mas sem ID retornado."
-            )
+            raise HTTPException(status_code=500, detail="⚠️ Sala criada, mas sem ID retornado.")
 
         print(f"✅ Sala criada com ID: {room_id}")
 
         await asyncio.sleep(1)
 
-        # ====== CRIAÇÃO DOS ROOM CODES ======
+        # ====== Criação dos códigos (room-codes) ======
         body_codes = {"roles": ["host", "guest"]}
-
         r2 = await client.post(
             f"{HMS_API_BASE}/room-codes/room/{room_id}",
             json=body_codes,
             headers=headers,
         )
-
-        print(
-            f"📡 [100ms /room-codes/room/{room_id}] "
-            f"STATUS: {r2.status_code} | "
-            f"BODY ENVIADO: {body_codes} | "
-            f"RESPOSTA: {r2.text}"
-        )
+        print(f"📡 [100ms /room-codes/room/{room_id}] STATUS: {r2.status_code} | BODY ENVIADO: {body_codes} | RESPOSTA: {r2.text}")
 
         if r2.status_code >= 400:
             raise HTTPException(
@@ -4542,30 +4567,21 @@ async def create_room(req: CreateRoomRequest):
 
         data_codes = r2.json()
         codes = data_codes.get("data", [])
-
         if not codes:
-            raise HTTPException(
-                status_code=500,
-                detail=f"⚠️ Nenhum room code retornado: {data_codes}"
-            )
+            raise HTTPException(status_code=500, detail=f"⚠️ Nenhum room code retornado: {data_codes}")
 
         role_map = {c.get("role"): c.get("code") for c in codes}
-
         room_code_host = role_map.get("host")
         room_code_guest = role_map.get("guest")
 
         if not room_code_host or not room_code_guest:
-            raise HTTPException(
-                status_code=500,
-                detail=f"⚠️ Room codes ausentes: {data_codes}"
-            )
+            raise HTTPException(status_code=500, detail=f"⚠️ Room codes ausentes: {data_codes}")
 
-        print(
-            f"✅ Room codes criados com sucesso → "
-            f"Host={room_code_host}, Guest={room_code_guest}"
-        )
+        print(f"✅ Room codes criados com sucesso → Host={room_code_host}, Guest={room_code_guest}")
 
-        # ====== RESPOSTA FINAL ======
+        # ====== Incrementa uso da conta ativa ======
+        await incrementar_uso()
+
         return {
             "room_id": room_id,
             "room_code_host": room_code_host,
@@ -4574,7 +4590,7 @@ async def create_room(req: CreateRoomRequest):
                 "host": f"https://{subdomain}.app.100ms.live/meeting/{room_code_host}",
                 "guest": f"https://{subdomain}.app.100ms.live/meeting/{room_code_guest}",
             },
-            "conta_usada": conta_atual
+            "conta_usada": conta_atual  # ✅ retorna qual conta foi usada
         }
 
 # -------------------------
