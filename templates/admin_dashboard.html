@@ -16,9 +16,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
-/* =====================================================
-   AJUSTES GERAIS (NÃO AFETAM TABELAS)
-===================================================== */
+    
 body { padding-top: 56px; }
 
 .btn-logout {
@@ -38,7 +36,7 @@ body { padding-top: 56px; }
 }
 
 /* =====================================================
-   OVERLAY — ALUNOS
+   OVERLAYS
 ===================================================== */
 .alunos-overlay,
 .alunos-disponiveis-overlay,
@@ -122,7 +120,7 @@ body { padding-top: 56px; }
 }
 
 /* =====================================================
-   TABELA — PROFESSORES
+   TABELA — PROFESSORES (LISTAGEM)
 ===================================================== */
 .professores-container table.tabela-professores {
   width: 100%;
@@ -142,7 +140,43 @@ body { padding-top: 56px; }
 }
 
 /* =====================================================
-   STATUS
+   TABELA — PAGAMENTOS · PROFESSORES (NOVA)
+===================================================== */
+.professores-container table.tabela-pagamentos-professores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.professores-container table.tabela-pagamentos-professores thead {
+  background: linear-gradient(45deg,#28a745,#1e7e34);
+  color: #fff;
+}
+
+.professores-container table.tabela-pagamentos-professores th,
+.professores-container table.tabela-pagamentos-professores td {
+  padding: 12px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+/* valores monetários */
+.tabela-pagamentos-professores .valor {
+  font-weight: 700;
+  color: #28a745;
+}
+
+.dark-mode
+.tabela-pagamentos-professores .valor {
+  color: #6ee7b7;
+}
+
+/* status de pagamento */
+.status-pago { color: #28a745; font-weight: 600; }
+.status-pendente { color: #ffc107; font-weight: 600; }
+.status-atrasado { color: #dc3545; font-weight: 600; }
+
+/* =====================================================
+   STATUS GERAIS
 ===================================================== */
 .status-online { color: #28a745; font-weight: 600; }
 .status-offline { color: #dc3545; font-weight: 600; }
@@ -170,13 +204,15 @@ body { padding-top: 56px; }
 
   .alunos-container table.tabela-alunos thead,
   .alunos-disponiveis-container table.tabela-disponiveis thead,
-  .professores-container table.tabela-professores thead {
+  .professores-container table.tabela-professores thead,
+  .professores-container table.tabela-pagamentos-professores thead {
     display: none;
   }
 
   .alunos-container table.tabela-alunos tr,
   .alunos-disponiveis-container table.tabela-disponiveis tr,
-  .professores-container table.tabela-professores tr {
+  .professores-container table.tabela-professores tr,
+  .professores-container table.tabela-pagamentos-professores tr {
     display: block;
     margin-bottom: 12px;
     border: 1px solid #ddd;
@@ -216,7 +252,6 @@ body { padding-top: 56px; }
     color: #bbb;
   }
 }
-
  
 </style>
 
