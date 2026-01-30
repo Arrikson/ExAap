@@ -198,34 +198,37 @@ def init_contas_100ms():
 init_contas_100ms()
 
 
-# ============================
-# 🔹 FUNÇÃO CORRETA (USO ATÉ 50)
-# ============================
-async def get_account_and_increment():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get()
+from google.cloud.firestore import transactional
 
-    data = doc.to_dict()
+
+@transactional
+def _get_account_and_increment_tx(transaction):
+    ref = db.collection("CONTAS_100MS").document("contador")
+
+    snapshot = ref.get(transaction=transaction)
+    data = snapshot.to_dict()
 
     conta = data["conta_atual"]
     usos = data["usos"]
+
     conta_str = str(conta)
 
-    # ✅ SÓ TROCA DE CONTA SE ATINGIR 50
-    if usos[conta_str] >= MAX_USOS:
+    # 🔁 roda só se chegar ao limite
+    if usos.get(conta_str, 0) >= MAX_USOS:
         conta = (conta + 1) % len(CONTAS_100MS)
         conta_str = str(conta)
         usos[conta_str] = 0
 
-    # ✅ INCREMENTA SEM TROCAR
+    # ➕ incrementa
     usos[conta_str] += 1
 
-    ref.update({
+    transaction.update(ref, {
         "conta_atual": conta,
         "usos": usos
     })
 
     return conta
+
 
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -4422,63 +4425,6 @@ async def desvincular_aluno(data: dict):
             content={"detail": "Erro interno", "erro": str(e)}
         )
         
-# ============================
-# CONFIG 100ms - DINÂMICA DE TROCA DE CONTA
-# ============================
-HMS_API_BASE = "https://api.100ms.live/v2"
-
-# ============================
-# SCHEMA DA REQUISIÇÃO
-# ============================
-class CreateRoomRequest(BaseModel):
-    name: str
-
-# ============================
-# BUSCA CONTA ATIVA
-# ============================
-async def get_current_account():
-    doc = db.collection("CONTAS_100MS").document("contador").get()
-    data = doc.to_dict()
-
-    # garante que todas as chaves do 'usos' são strings
-    usos = {str(k): v for k, v in data["usos"].items()}
-
-    return data["conta_atual"], usos
-
-
-async def rotate_account():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get().to_dict()
-
-    conta = doc["conta_atual"]
-    usos = {str(k): v for k, v in doc["usos"].items()}  # converte chaves para string
-
-    conta_str = str(conta)
-    if usos.get(conta_str, 0) >= 50:  
-        conta = (conta + 1) % len(CONTAS_100MS)
-        conta_str = str(conta)
-        usos[conta_str] = 0  # reset da nova conta
-
-    ref.update({
-        "conta_atual": conta,
-        "usos": usos
-    })
-    return conta
-
-
-async def incrementar_uso():
-    ref = db.collection("CONTAS_100MS").document("contador")
-    doc = ref.get().to_dict()
-
-    conta = doc["conta_atual"]
-    usos = {str(k): v for k, v in doc["usos"].items()} 
-    
-    conta_str = str(conta)
-    usos[conta_str] = usos.get(conta_str, 0) + 1  
-    
-    ref.update({"usos": usos})
-    await rotate_account()
-
 
 # ============================
 # GERA TOKEN 100ms (com permissão de management)
@@ -4489,7 +4435,7 @@ async def generate_100ms_token():
 
     payload = {
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,  # válido por 1 hora
+        "exp": int(time.time()) + 3600, 
         "access_key": conta["ACCESS_KEY"],
         "type": "management",  
         "jti": str(uuid.uuid4()),
