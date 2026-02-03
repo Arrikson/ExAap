@@ -2645,15 +2645,13 @@ async def listar_alunos():
 
     for doc in alunos_ref:
         dados = doc.to_dict()
-        nome = dados.get("nome", "")
-        disciplina = dados.get("disciplina", "")
-        online = dados.get("online", False)
-        vinculado = dados.get("vinculado", False)
+
         alunos.append({
-            "nome": nome,
-            "disciplina": disciplina,
-            "online": online,
-            "vinculado": vinculado
+            "nome": dados.get("nome", ""),
+            "disciplina": dados.get("disciplina", ""),
+            "telefone": dados.get("telefone", ""),
+            "online": dados.get("online", False),
+            "vinculado": dados.get("vinculado", False)
         })
 
     return alunos
