@@ -197,6 +197,14 @@ body { padding-top: 56px; }
 .btn-remover:hover,
 .btn-prof-remover:hover { opacity: .85; }
 
+   .btn-copiar {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin-left: 6px;
+  font-size: 14px;
+} 
+    
 /* =====================================================
    MOBILE — ISOLADO POR TABELA
 ===================================================== */
@@ -866,13 +874,11 @@ async function carregarAlunos() {
     return;
   }
 
-  // abre modal
   overlay.style.display = "flex";
 
-  // loading inicial
   tbody.innerHTML = `
     <tr>
-      <td colspan="5" class="loader-alunos">
+      <td colspan="6" class="loader-alunos">
         Carregando alunos...
       </td>
     </tr>
@@ -885,7 +891,7 @@ async function carregarAlunos() {
     if (!res.ok) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="loader-alunos" style="color:red">
+          <td colspan="6" class="loader-alunos" style="color:red">
             Erro ao buscar alunos
           </td>
         </tr>
@@ -895,7 +901,6 @@ async function carregarAlunos() {
 
     let alunos = await res.json();
 
-    // ✅ FILTRA NOMES VAZIOS / NULL
     alunos = alunos.filter(a =>
       a &&
       a.nome &&
@@ -907,7 +912,7 @@ async function carregarAlunos() {
     if (!alunos.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" style="text-align:center;font-weight:bold">
+          <td colspan="6" style="text-align:center;font-weight:bold">
             Nenhum aluno válido encontrado
           </td>
         </tr>
@@ -919,11 +924,20 @@ async function carregarAlunos() {
 
       const nome = a.nome?.toString().trim() || "—";
       const disciplina = a.disciplina || "—";
+      const telefone = a.telefone || "—";
 
       tbody.innerHTML += `
         <tr>
           <td data-label="Nome">${nome}</td>
           <td data-label="Disciplina">${disciplina}</td>
+
+          <td data-label="Telefone">
+            ${telefone}
+            <button class="btn-copiar"
+                onclick="copiarTelefone('${telefone}')">
+                📋
+            </button>
+          </td>
 
           <td data-label="Status"
               class="${a.online ? 'status-online' : 'status-offline'}">
@@ -952,7 +966,7 @@ async function carregarAlunos() {
 
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="loader-alunos" style="color:red">
+        <td colspan="6" class="loader-alunos" style="color:red">
           Erro inesperado
         </td>
       </tr>
@@ -960,6 +974,17 @@ async function carregarAlunos() {
   }
 
 }
+
+function copiarTelefone(numero) {
+
+  if (!numero || numero === "—") return;
+
+  navigator.clipboard.writeText(numero).then(() => {
+    alert("📞 Número copiado: " + numero);
+  });
+
+}
+  
 function fecharAlunos() {
   const overlay = document.getElementById("overlayAlunos");
 
