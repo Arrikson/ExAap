@@ -5100,3 +5100,30 @@ async def remover_professor(payload: dict = Body(...)):
         "success": True,
         "message": "Professor removido com sucesso"
     }
+
+@app.post("/remover-aluno")
+async def remover_aluno(payload: dict = Body(...)):
+
+    nome = payload.get("nome")
+
+    # Nunca gera erro visual
+    if not nome:
+        return {
+            "success": True,
+            "message": "Nenhum aluno para remover"
+        }
+
+    docs = list(
+        db.collection("alunos")
+        .where("nome", "==", nome)
+        .stream()
+    )
+
+    for doc in docs:
+        doc.reference.delete()
+        print(f"🗑️ Removido de alunos: {doc.id}")
+
+    return {
+        "success": True,
+        "message": "Aluno removido com sucesso"
+    }
