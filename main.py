@@ -5081,24 +5081,23 @@ async def remover_professor(payload: dict = Body(...)):
     if not email:
         return {"success": False, "message": "Email não informado"}
 
-    docs = (
+    docs = list(
         db.collection("professores_online")
         .where("email", "==", email)
         .stream()
     )
 
-    removidos = 0
+    if not docs:
+        return {"success": False, "message": "Professor não encontrado"}
 
     for doc in docs:
         doc.reference.delete()
-        removidos += 1
-
-    if removidos == 0:
-        return {"success": False, "message": "Professor não encontrado"}
+        print(f"🗑️ Removido de professores_online: {doc.id}")
 
     return {
         "success": True,
         "message": "Professor removido com sucesso"
     }
+}
 
 
