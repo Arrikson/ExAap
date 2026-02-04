@@ -8,6 +8,7 @@ import shutil
 import time
 import jwt
 import unicodedata
+from fastapi import Body
 from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from urllib.parse import unquote
@@ -5070,5 +5071,34 @@ def editar_equipa(
         "localizacao": localizacao
     })
     return RedirectResponse("/admin", status_code=302)
+
+
+@app.post("/remover-professor")
+async def remover_professor(payload: dict = Body(...)):
+
+    email = payload.get("email")
+
+    if not email:
+        return {"success": False, "message": "Email não informado"}
+
+    docs = (
+        db.collection("professores_online")
+        .where("email", "==", email)
+        .stream()
+    )
+
+    removidos = 0
+
+    for doc in docs:
+        doc.reference.delete()
+        removidos += 1
+
+    if removidos == 0:
+        return {"success": False, "message": "Professor não encontrado"}
+
+    return {
+        "success": True,
+        "message": "Professor removido com sucesso"
+    }
 
 
