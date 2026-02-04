@@ -100,6 +100,52 @@ body { padding-top: 56px; }
   border-color: #444;
 }
 
+/* ============================
+   BOTÃO COPIAR TELEFONE
+============================ */
+
+.btn-copiar-tel {
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  margin-left: 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.btn-copiar-tel:hover {
+  background: #0b5ed7;
+  transform: scale(1.05);
+}
+
+/* ============================
+   TOAST DE CONFIRMAÇÃO
+============================ */
+
+.toast-copia {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: #222;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: .3s ease;
+  font-size: 0.9rem;
+  z-index: 9999;
+  box-shadow: 0 8px 25px rgba(0,0,0,.2);
+}
+
+.toast-copia.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+    
 /* =====================================================
    TABELA — ALUNOS DISPONÍVEIS
 ===================================================== */
@@ -1108,7 +1154,7 @@ async function carregarProfessores() {
 
   tbody.innerHTML = `
     <tr>
-      <td colspan="4" class="loader-alunos">
+      <td colspan="5" class="loader-alunos">
         Carregando professores...
       </td>
     </tr>
@@ -1127,7 +1173,7 @@ async function carregarProfessores() {
     if (!profs.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" style="text-align:center;font-weight:bold">
+          <td colspan="5" style="text-align:center;font-weight:bold">
             Nenhum professor online
           </td>
         </tr>
@@ -1147,9 +1193,21 @@ async function carregarProfessores() {
       tbody.innerHTML += `
         <tr>
 
-          <td data-label="Email">${p.email}</td>
+          <td data-label="Email">${p.email || "-"}</td>
 
-          <td data-label="Nome">${p.nome}</td>
+          <td data-label="Nome">${p.nome || "-"}</td>
+
+          <td data-label="Telefone">
+            <span class="telefone-texto">${p.telefone || "-"}</span>
+
+            ${p.telefone ? `
+              <button 
+                class="btn-copiar-tel"
+                onclick="copiarTelefone('${p.telefone}')">
+                Copiar
+              </button>
+            ` : ""}
+          </td>
 
           <td data-label="Status"
               class="${p.online ? 'prof-online' : 'prof-offline'}">
@@ -1167,7 +1225,10 @@ async function carregarProfessores() {
       `;
 
       if (select && p.email) {
-        select.innerHTML += `<option value="${p.email}">${p.email}</option>`;
+        select.innerHTML += `
+          <option value="${p.email}">
+            ${p.nome} - ${p.telefone || "Sem nº"}
+          </option>`;
       }
 
     });
@@ -1176,7 +1237,7 @@ async function carregarProfessores() {
 
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" class="loader-alunos" style="color:red">
+        <td colspan="5" class="loader-alunos" style="color:red">
           Erro ao carregar professores
         </td>
       </tr>
@@ -1185,6 +1246,34 @@ async function carregarProfessores() {
   }
 
 }
+
+  function copiarTelefone(numero) {
+
+  if (!numero || numero === "-") {
+    alert("Número indisponível");
+    return;
+  }
+
+  navigator.clipboard.writeText(numero)
+    .then(() => {
+
+      const toast = document.createElement("div");
+      toast.className = "toast-copia";
+      toast.innerText = "📋 Número copiado!";
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => toast.classList.add("show"), 50);
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+
+    })
+    .catch(() => alert("Erro ao copiar número"));
+}
+
   
 function fecharProfessores() {
 
