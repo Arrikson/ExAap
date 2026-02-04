@@ -757,23 +757,30 @@ body { padding-top: 56px; }
     </div>
   </div>
 
-  <!-- PROFESSORES -->
-  <div class="professores-overlay" id="overlayProfessores">
-    <div class="professores-container">
-      <div style="display:flex;justify-content:space-between">
-        <div class="alunos-title">👨‍🏫 Professores Online</div>
-        <button class="btn btn-secondary" onclick="fecharProfessores()">Fechar</button>
-      </div>
-      <table class="tabela-professores" id="tabela-professores">
-        <thead>
-          <tr>
-            <th>Email</th><th>Nome</th><th>Status</th><th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+ <!-- PROFESSORES -->
+<div class="professores-overlay" id="overlayProfessores">
+  <div class="professores-container">
+    <div style="display:flex;justify-content:space-between">
+      <div class="alunos-title">👨‍🏫 Professores Online</div>
+      <button class="btn btn-secondary" onclick="fecharProfessores()">Fechar</button>
     </div>
+
+    <table class="tabela-professores" id="tabela-professores">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Nome</th>
+          <th>Telefone</th> 
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody></tbody>
+    </table>
   </div>
+</div>
+
 
  <!-- Conteúdo -->
   <div class="content-wrapper">
@@ -874,7 +881,7 @@ function toggleDarkMode() {
   document.body.classList.toggle("dark-mode");
 }
 
-// 📊 BUSCAR ESTATÍSTICAS
+
 fetch("/estatisticas-dashboard")
   .then(res => res.json())
   .then(dados => {
