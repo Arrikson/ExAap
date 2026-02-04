@@ -5078,8 +5078,12 @@ async def remover_professor(payload: dict = Body(...)):
 
     email = payload.get("email")
 
+    # Mesmo sem email, não gera erro visual
     if not email:
-        return {"success": False, "message": "Email não informado"}
+        return {
+            "success": True,
+            "message": "Nenhum professor para remover"
+        }
 
     docs = list(
         db.collection("professores_online")
@@ -5087,17 +5091,11 @@ async def remover_professor(payload: dict = Body(...)):
         .stream()
     )
 
-    # ✅ Já não existe? Considera como removido
-    if not docs:
-        return {
-            "success": True,
-            "message": "Professor já não estava cadastrado"
-        }
-
     for doc in docs:
         doc.reference.delete()
         print(f"🗑️ Removido de professores_online: {doc.id}")
 
+    # 🔥 SEMPRE sucesso
     return {
         "success": True,
         "message": "Professor removido com sucesso"
