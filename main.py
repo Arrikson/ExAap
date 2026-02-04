@@ -5098,6 +5098,3 @@ async def remover_professor(payload: dict = Body(...)):
         "success": True,
         "message": "Professor removido com sucesso"
     }
-}
-
-
