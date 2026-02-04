@@ -2665,15 +2665,18 @@ async def listar_professores_online():
     for prof in professores:
         dados = prof.to_dict()
 
+        telefone = dados.get("telefone") or dados.get("telefone_alternativo")
+
         lista.append({
             "email": dados.get("email", ""),
             "nome": dados.get("nome_completo", ""),
-            "telefone": dados.get("Telefone"),  
+            "telefone": telefone,
             "online": dados.get("online", False),
             "foto_perfil": dados.get("foto_perfil", "perfil.png")
         })
 
     return lista
+
 
 
 @app.get("/listar-chamadas")
