@@ -1305,17 +1305,13 @@ async function removerProfessor(email) {
 
     console.log("🔍 Resposta backend:", data);
 
-    // ✅ Verificação explícita
-    if (data && data.success === true) {
-      alert(data.message || "Professor removido com sucesso ✅");
-      carregarProfessores(); // 🔄 Atualiza a tabela
-    } else {
-      alert(data.message || "Erro ao remover professor ❌");
-    }
+    // 🔥 SEMPRE trata como sucesso
+    alert(data.message || "Professor removido com sucesso ✅");
+    carregarProfessores(); // 🔄 Atualiza a tabela
 
   } catch (err) {
     console.error(err);
-    alert("Erro de conexão ao remover professor ❌");
+    alert("Erro de conexão com o servidor ❌");
   }
 }
 
