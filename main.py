@@ -2658,16 +2658,19 @@ async def listar_alunos():
 
 @app.get("/listar-professores-online")
 async def listar_professores_online():
+
     professores = db.collection("professores_online").stream()
     lista = []
 
     for prof in professores:
         dados = prof.to_dict()
+
         lista.append({
             "email": dados.get("email", ""),
             "nome": dados.get("nome_completo", ""),
+            "telefone": dados.get("Telefone"),  
             "online": dados.get("online", False),
-            "foto_perfil": dados.get("foto_perfil", "perfil.png")  # 🔹 Incluído
+            "foto_perfil": dados.get("foto_perfil", "perfil.png")
         })
 
     return lista
