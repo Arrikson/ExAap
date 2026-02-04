@@ -5087,8 +5087,12 @@ async def remover_professor(payload: dict = Body(...)):
         .stream()
     )
 
+    # ✅ Já não existe? Considera como removido
     if not docs:
-        return {"success": False, "message": "Professor não encontrado"}
+        return {
+            "success": True,
+            "message": "Professor já não estava cadastrado"
+        }
 
     for doc in docs:
         doc.reference.delete()
