@@ -1303,20 +1303,22 @@ async function removerProfessor(email) {
 
     const data = await res.json();
 
-    if (!res.ok || !data.success) {
-      alert(data.message || "Erro ao remover professor");
-      return;
+    console.log("🔍 Resposta backend:", data);
+
+    // ✅ Verificação explícita
+    if (data && data.success === true) {
+      alert(data.message || "Professor removido com sucesso ✅");
+      carregarProfessores(); // 🔄 Atualiza a tabela
+    } else {
+      alert(data.message || "Erro ao remover professor ❌");
     }
 
-    alert("Professor removido com sucesso ✅");
-
-    // 🔄 Recarregar lista
-    carregarProfessores();
-
   } catch (err) {
-    alert("Erro de conexão ao remover professor");
+    console.error(err);
+    alert("Erro de conexão ao remover professor ❌");
   }
 }
+
   
 function fecharProfessores() {
 
