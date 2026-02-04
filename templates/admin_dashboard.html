@@ -1281,6 +1281,42 @@ async function carregarProfessores() {
     .catch(() => alert("Erro ao copiar número"));
 }
 
+async function removerProfessor(email) {
+
+  if (!email) return;
+
+  const confirmar = confirm(
+    `Tem certeza que deseja remover o professor:\n${email}?`
+  );
+
+  if (!confirmar) return;
+
+  try {
+
+    const res = await fetch("/remover-professor", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "Erro ao remover professor");
+      return;
+    }
+
+    alert("Professor removido com sucesso ✅");
+
+    // 🔄 Recarregar lista
+    carregarProfessores();
+
+  } catch (err) {
+    alert("Erro de conexão ao remover professor");
+  }
+}
   
 function fecharProfessores() {
 
