@@ -811,11 +811,13 @@ async function mostrarAulasDaSemana() {
       alert("Erro ao iniciar a chamada.");
     }
   }
-  
+
 let alunoSelecionado = null;
 let modalChatAberta = false;
 let professorSelecionado = null;
 let chatInterval = null;
+
+let timeoutRegistrarAula = null; // 🔹 Controle do tempo
 
 async function listarMeusAlunos() {
   const emailProfessorLogado = "{{ professor.email }}";
@@ -848,7 +850,6 @@ async function listarMeusAlunos() {
         </div>
       `;
 
-      // Função auxiliar para criar botões
       const criarBotao = (texto, onClick) => {
         const btn = document.createElement('button');
         btn.textContent = texto;
@@ -857,15 +858,24 @@ async function listarMeusAlunos() {
         return btn;
       };
 
-      // Botão Dar Aula
+      // 🔹 BOTÃO DAR AULA (ATUALIZADO)
       if (aluno.online) {
-        card.appendChild(criarBotao('Dar Aula', () => iniciarChamada(aluno.nome, emailProfessorLogado)));
+        card.appendChild(criarBotao('Dar Aula', () => {
+          iniciarChamada(aluno.nome, emailProfessorLogado);
+
+          // ⏳ Após 1 minuto mostrar notificação
+          if (timeoutRegistrarAula) {
+            clearTimeout(timeoutRegistrarAula);
+          }
+
+          timeoutRegistrarAula = setTimeout(() => {
+            mostrarNotificacaoRegistrar(aluno.nome, emailProfessorLogado);
+          }, 60000); // 60 segundos
+        }));
       }
 
-      // Botão Informações
       card.appendChild(criarBotao('Informações', () => exibirInformacoesAluno(aluno)));
 
-      // Botão Chat (funcional)
       const chatBtn = document.createElement('button');
       chatBtn.innerHTML = '<i class="fa-solid fa-comment"></i> Chat';
       chatBtn.className = 'botao-padrao';
@@ -875,13 +885,10 @@ async function listarMeusAlunos() {
       };
       card.appendChild(chatBtn);
 
-      // Botão Desvincular
       card.appendChild(criarBotao('Desvincular', () => desvincularAluno(aluno.nome, emailProfessorLogado)));
 
-      // Botão Horário
       card.appendChild(criarBotao('Horário', () => { alunoSelecionado = aluno.nome; abrirCalendario(); }));
 
-      // Botão Aulas Dadas
       card.appendChild(criarBotao('Aulas dadas', () => verAulasDadas(aluno.nome)));
 
       container.appendChild(card);
@@ -891,6 +898,72 @@ async function listarMeusAlunos() {
     console.error("Erro ao buscar alunos:", error);
     alert("Erro ao buscar alunos.");
   }
+}
+
+/* =========================================================
+   🔔 NOTIFICAÇÃO REGISTRAR AULA
+========================================================= */
+
+function mostrarNotificacaoRegistrar(nomeAluno, emailProfessor) {
+
+  // Remove notificação anterior se existir
+  const antiga = document.getElementById("notificacao-registrar-aula");
+  if (antiga) antiga.remove();
+
+  const notificacao = document.createElement("div");
+  notificacao.id = "notificacao-registrar-aula";
+
+  notificacao.style.position = "fixed";
+  notificacao.style.bottom = "20px";
+  notificacao.style.right = "20px";
+  notificacao.style.background = "#1e293b";
+  notificacao.style.color = "#fff";
+  notificacao.style.padding = "15px";
+  notificacao.style.borderRadius = "10px";
+  notificacao.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+  notificacao.style.zIndex = "9999";
+
+  notificacao.innerHTML = `
+    <div style="margin-bottom:10px;">
+      <strong>Registrar a aula</strong><br>
+      Aula com ${nomeAluno} pronta para registro.
+    </div>
+    <button id="btnRegistrarAula" style="
+      background:#22c55e;
+      border:none;
+      padding:8px 15px;
+      color:white;
+      border-radius:6px;
+      cursor:pointer;
+    ">Registrar</button>
+  `;
+
+  document.body.appendChild(notificacao);
+
+  document.getElementById("btnRegistrarAula").onclick = async () => {
+    try {
+      const response = await fetch("/registrar-aula", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          professor: emailProfessor.toLowerCase(),
+          aluno: nomeAluno.toLowerCase()
+        })
+      });
+
+      const data = await response.json();
+
+      alert(data.mensagem || "Aula registrada com sucesso!");
+
+      notificacao.remove();
+
+    } catch (error) {
+      console.error("Erro ao registrar aula:", error);
+      alert("Erro ao registrar aula.");
+    }
+  };
 }
 
 // Abrir chat do professor com o aluno (nome do aluno no topo)
