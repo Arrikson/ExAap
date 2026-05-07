@@ -12,6 +12,7 @@ from fastapi import Body
 from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from urllib.parse import unquote
+from jinja2 import Environment, FileSystemLoader
 
 import httpx
 from dotenv import load_dotenv
@@ -34,6 +35,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from fpdf import FPDF
 from pydantic import BaseModel
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # --- Load environment ---
 load_dotenv()
@@ -61,7 +65,26 @@ ALUNOS_JSON = os.path.join(BASE_DIR, "alunos.json")
 # --- FastAPI app ---
 app = FastAPI(title="SabApp + 100ms")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+    
+from jinja2 import Environment, FileSystemLoader
+from fastapi.responses import HTMLResponse
+
+jinja_env = Environment(
+    loader=FileSystemLoader("templates"),
+    auto_reload=True
+)
+
+def render_template(template_name: str, context: dict):
+    try:
+        template = jinja_env.get_template(template_name)
+        return HTMLResponse(template.render(**context))
+    except Exception as e:
+        print("🔥 ERRO NO TEMPLATE:", e)
+        raise e 
+       
 templates = Jinja2Templates(directory="templates")
+print("DEBUG search path:", templates.env.loader.searchpath)
+print("TIPO search path:", type(templates.env.loader.searchpath))
 
 # --- CORS (opcional) ---
 app.add_middleware(
@@ -206,19 +229,30 @@ async def get_account_and_increment():
     ref = db.collection("CONTAS_100MS").document("contador")
     doc = ref.get()
 
-    data = doc.to_dict()
+    data = doc.to_dict() or {}
 
-    conta = data["conta_atual"]
-    usos = data["usos"]
+    conta = data.get("conta_atual", 0)
+    usos = data.get("usos", {})
+
+    # 🔥 garante que é dict
+    if not isinstance(usos, dict):
+        usos = {}
+
     conta_str = str(conta)
 
-    # ✅ SÓ TROCA DE CONTA SE ATINGIR 50
+    # inicializa se não existir
+    if conta_str not in usos:
+        usos[conta_str] = 0
+
+    # troca conta só se atingir limite
     if usos[conta_str] >= MAX_USOS:
         conta = (conta + 1) % len(CONTAS_100MS)
         conta_str = str(conta)
-        usos[conta_str] = 0
 
-    # ✅ INCREMENTA SEM TROCAR
+        if conta_str not in usos:
+            usos[conta_str] = 0
+
+    # incrementa uso
     usos[conta_str] += 1
 
     ref.update({
@@ -246,71 +280,227 @@ templates = Jinja2Templates(directory="templates")
 ADMIN_USER = "admin"
 ADMIN_PASS = "1234"
 
+
+def safe_template_response(template_name, context, request=None):
+    print("\n====== DEBUG TEMPLATE ======")
+
+    # 🔎 Verifica template_name
+    print("template_name:", template_name)
+    print("type(template_name):", type(template_name))
+
+    if not isinstance(template_name, str):
+        raise TypeError(f"❌ template_name NÃO é string: {type(template_name)} -> {template_name}")
+
+    # 🔎 Verifica context
+    print("context type:", type(context))
+
+    if not isinstance(context, dict):
+        raise TypeError(f"❌ context NÃO é dict: {type(context)}")
+
+    # 🔎 Verifica chaves e valores do context
+    for k, v in context.items():
+        print(f"KEY: {k} ({type(k)}) | VALUE TYPE: {type(v)}")
+
+        # ⚠️ chave inválida
+        if not isinstance(k, str):
+            raise TypeError(f"❌ chave do context NÃO é string: {k} ({type(k)})")
+
+        # ⚠️ valor perigoso (dict dentro de dict como chave)
+        try:
+            hash(k)
+        except TypeError:
+            raise TypeError(f"❌ chave não é hashable: {k}")
+
+    # 🔎 Verifica request obrigatório
+    if "request" not in context:
+        print("⚠️ AVISO: 'request' não está no context")
+
+    print("====== FIM DEBUG ======\n")
+
+    return templates.TemplateResponse(template_name, context)
+
+
 # ===============================
 # ROTA LOGIN
 # ===============================
 
+@app.get("/login")
+async def exibir_login(request: Request, sucesso: int = 0):
+    try:
+        return render_template(
+            "login.html",
+            {
+                "request": request,
+                "sucesso": sucesso,
+                "erro": None
+            }
+        )
+
+    except Exception as e:
+        print("ERRO AO CARREGAR LOGIN:", e)
+
+        return HTMLResponse(
+            content=f"<h1>Erro interno</h1><p>{str(e)}</p>",
+            status_code=500
+        )
+
+@app.post("/login")
+async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
+    try:
+        alunos_ref = db.collection("alunos")
+
+        nome_digitado = nome.strip().lower()
+        senha_digitada = senha.strip().lower()
+
+        alunos = alunos_ref.stream()
+
+        for aluno in alunos:
+            dados = aluno.to_dict() or {}
+
+            nome_banco = str(dados.get("nome", "")).strip().lower()
+            senha_banco = str(dados.get("senha", "")).strip().lower()
+
+            if nome_banco == nome_digitado and senha_banco == senha_digitada:
+
+                if hasattr(request, "session"):
+                    request.session["aluno_logado"] = True
+                    request.session["aluno_nome"] = nome_banco
+
+                try:
+                    aluno.reference.update({"online": True})
+                except Exception as e:
+                    print("Firebase erro:", e)
+
+                return RedirectResponse(
+                    url=f"/perfil/{dados.get('nome', '')}",
+                    status_code=303
+                )
+
+        # ❌ Login inválido
+        return render_template(
+            "login.html",
+            {
+                "request": request,
+                "erro": "Nome de usuário ou senha inválidos",
+                "sucesso": 0
+            }
+        )
+
+    except Exception as e:
+        print("ERRO LOGIN:", e)
+
+        return render_template(
+            "login.html",
+            {
+                "request": request,
+                "erro": "Erro interno no servidor",
+                "sucesso": 0
+            }
+        )
+
 @app.get("/logini", response_class=HTMLResponse)
-def logini_get(request: Request):
+async def logini_get(request: Request, sucesso: int = 0):
+    try:
+        # 🔁 Se já estiver logado, redireciona
+        if request.session.get("logged_in"):
+            return RedirectResponse("/admin", status_code=302)
 
-    # 🔁 Se já estiver logado, não mostra login
-    if request.session.get("logged_in"):
-        return RedirectResponse("/admin", status_code=302)
+        return render_template(
+            "logini.html",
+            {
+                "request": request,
+                "erro": None,
+                "sucesso": sucesso
+            }
+        )
 
-    return templates.TemplateResponse(
-        "logini.html",
-        {"request": request}
-    )
+    except Exception as e:
+        print("ERRO AO CARREGAR LOGIN ADMIN:", e)
+
+        return HTMLResponse(
+            content=f"<h1>Erro interno</h1><p>{str(e)}</p>",
+            status_code=500
+        )
+
 
 @app.post("/logini")
-def logini(
+async def logini(
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
 ):
-    # 🧹 Garante sessão limpa
-    request.session.clear()
+    try:
+        # 🧹 Limpa sessão
+        request.session.clear()
 
-    # 🔐 Validação simples (editável)
-    if username == ADMIN_USER and password == ADMIN_PASS:
-        request.session["logged_in"] = True
-        return RedirectResponse(url="/admin", status_code=302)
+        user_digitado = username.strip()
+        pass_digitada = password.strip()
 
-    # ❌ Login inválido
-    return templates.TemplateResponse(
-        "logini.html",
-        {
-            "request": request,
-            "error": "Usuário ou senha inválidos"
-        }
-    )
+        # 🔐 Validação
+        if user_digitado == ADMIN_USER and pass_digitada == ADMIN_PASS:
+            request.session["logged_in"] = True
+
+            return RedirectResponse(
+                url="/admin",
+                status_code=303
+            )
+
+        # ❌ Login inválido
+        return render_template(
+            "logini.html",
+            {
+                "request": request,
+                "erro": "Usuário ou senha inválidos",
+                "sucesso": 0
+            }
+        )
+
+    except Exception as e:
+        print("ERRO LOGIN ADMIN:", e)
+
+        return render_template(
+            "logini.html",
+            {
+                "request": request,
+                "erro": "Erro interno no servidor",
+                "sucesso": 0
+            }
+        )
+        
 
 @app.get("/admin", response_class=HTMLResponse)
-def painel_admin(request: Request):
+async def painel_admin(request: Request):
+    try:
+        # 🔐 Proteção de sessão
+        if not request.session.get("logged_in"):
+            return RedirectResponse("/logini", status_code=302)
 
-    # 🔐 Proteção de sessão
-    if not request.session.get("logged_in"):
-        return RedirectResponse("/logini", status_code=302)
+        # 🔥 Buscar equipa administrativa no Firebase
+        docs = db.collection("equipa_administrativa").stream()
+        equipa = []
 
-    # 🔥 Buscar equipa administrativa no Firebase
-    docs = db.collection("equipa_administrativa").stream()
-    equipa = []
+        for doc in docs:
+            data = doc.to_dict()
+            if data:
+                data["id"] = doc.id
+                equipa.append(data)
 
-    for doc in docs:
-        data = doc.to_dict()
-        if data:
-            data["id"] = doc.id
-            equipa.append(data)
+        # 📄 Renderiza o dashboard
+        return render_template(
+            "admin_dashboard.html",
+            {
+                "request": request,
+                "equipa": equipa
+            }
+        )
 
-    # 📄 Renderiza o dashboard com os dados
-    return templates.TemplateResponse(
-        "admin_dashboard.html",
-        {
-            "request": request,
-            "equipa": equipa
-        }
-    )
+    except Exception as e:
+        print("ERRO NO PAINEL ADMIN:", e)
 
+        return HTMLResponse(
+            content=f"<h1>Erro interno</h1><p>{str(e)}</p>",
+            status_code=500
+        )
 
 @app.get("/logout")
 def logout(request: Request):
@@ -318,9 +508,9 @@ def logout(request: Request):
     return RedirectResponse("/", status_code=302)
 
         
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return render_template("index.html", {"request": request})
     
 
 class VinculoIn(BaseModel): 
@@ -412,33 +602,41 @@ async def vincular_aluno(item: VinculoIn):
 async def get_perfil_prof(request: Request, email: str):
     """
     Exibe o perfil do professor com base no email fornecido.
-    Esse email normalmente virá da sessão de login ou como query param após login.
     """
+
     professores_ref = db.collection("professores_online")
     query = professores_ref.where("email", "==", email).limit(1).stream()
     prof_doc = next(query, None)
 
     if not prof_doc:
-        return templates.TemplateResponse("erro.html", {"request": request, "mensagem": "Professor não encontrado"})
+        return render_template(
+            "erro.html",
+            {
+                "request": request,
+                "mensagem": "Professor não encontrado"
+            }
+        )
 
     prof_data = prof_doc.to_dict()
-    prof_data["id"] = prof_doc.id  # armazenar ID do documento para atualização posterior
+    prof_data["id"] = prof_doc.id
 
-    # Pega o saldo atual ou assume 0.0
     saldo = prof_data.get("saldo", 0.0)
+
     try:
         saldo_float = float(saldo)
     except (ValueError, TypeError):
         saldo_float = 0.0
 
-    # Formata o saldo como Kz 1.000,00
     saldo_formatado = f"{saldo_float:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-    return templates.TemplateResponse("perfil_prof.html", {
-        "request": request,
-        "professor": prof_data,
-        "saldo_atual": saldo_formatado
-    })
+    return render_template(
+        "perfil_prof.html",
+        {
+            "request": request,
+            "professor": prof_data,
+            "saldo_atual": saldo_formatado
+        }
+    )
 
 
 @app.post("/perfil_prof", response_class=HTMLResponse)
@@ -446,31 +644,47 @@ async def post_perfil_prof(
     request: Request,
     email: str = Form(...),
     descricao: str = Form(...),
-    foto_perfil: str = Form("perfil.png")  # 🔹 Novo campo opcional com valor padrão
+    foto_perfil: str = Form("perfil.png")
 ):
     """
-    Atualiza o campo 'descricao' e o campo 'foto_perfil' do professor.
+    Atualiza descrição e foto do professor.
     """
+
     professores_ref = db.collection("professores_online")
     query = professores_ref.where("email", "==", email).limit(1).stream()
     prof_doc = next(query, None)
 
     if not prof_doc:
-        return templates.TemplateResponse(
+        return render_template(
             "erro.html",
-            {"request": request, "mensagem": "Professor não encontrado para atualização."}
+            {
+                "request": request,
+                "mensagem": "Professor não encontrado para atualização."
+            }
         )
 
-    # Atualizar os campos no Firebase
     db.collection("professores_online").document(prof_doc.id).update({
         "descricao": descricao,
         "foto_perfil": foto_perfil
     })
 
-    # Redireciona para o perfil com dados atualizados
-    return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
+    return RedirectResponse(
+        url=f"/perfil_prof?email={email}",
+        status_code=303
+    )
 
-    
+
+@app.get("/professores_online", response_class=HTMLResponse)
+async def professores_online_get(request: Request, success: int = 0):
+    return render_template(
+        "professores_online.html",
+        {
+            "request": request,
+            "success": success
+        }
+    )
+
+
 @app.get('/alunos-disponiveis/{prof_email}')
 async def alunos_disponiveis(prof_email: str):
     prof_docs = db.collection('professores_online') \
@@ -1035,8 +1249,14 @@ async def gerar_pdf():
 
 @app.get("/cadastro-aluno", response_class=HTMLResponse)
 async def exibir_formulario(request: Request):
-    return templates.TemplateResponse("cadastro-aluno.html", {"request": request, "erro": None})
-    
+    return render_template(
+        "cadastro-aluno.html",
+        {
+            "request": request,
+            "erro": None
+        }
+    )
+
 @app.post("/cadastro-aluno")
 async def cadastrar_aluno(
     request: Request,
@@ -1044,11 +1264,11 @@ async def cadastrar_aluno(
     nome_mae: str = Form(...),
     nome_pai: str = Form(...),
     senha: str = Form(...),
+    email: str = Form(...),  
     provincia: str = Form(...),
     municipio: str = Form(...),
     bairro: str = Form(...),
 
-    # 🔥 NÃO OBRIGATÓRIOS
     latitude: Optional[str] = Form(None),
     longitude: Optional[str] = Form(None),
 
@@ -1059,22 +1279,30 @@ async def cadastrar_aluno(
     nivel_ingles: str = Form(...)
 ):
     alunos_ref = db.collection("alunos")
+
     nome_normalizado = nome.strip().lower()
+    email_normalizado = email.strip().lower()
 
-    # 🔎 Verifica se já existe aluno
+    # 🔐 verificar duplicado por nome OU email
     existente = alunos_ref.where("nome_normalizado", "==", nome_normalizado).get()
-    if existente:
-        return templates.TemplateResponse("cadastro-aluno.html", {
-            "request": request,
-            "erro": "Este nome já está cadastrado. Tente outro."
-        })
+    existente_email = alunos_ref.where("email", "==", email_normalizado).get()
 
-    # 🔄 Busca histórico de pagamentos
+    if existente or existente_email:
+        return render_template(
+            "cadastro-aluno.html",
+            {
+                "request": request,
+                "erro": "Nome ou email já está cadastrado."
+            }
+        )
+
     paga_passado = []
     vinculo_query = db.collection("alunos_professor") \
-        .where("aluno", "==", nome.strip().lower()) \
+        .where("aluno", "==", nome_normalizado) \
         .limit(1).stream()
+
     vinculo_doc = next(vinculo_query, None)
+
     if vinculo_doc:
         paga_passado = vinculo_doc.to_dict().get("paga_passado", [])
 
@@ -1083,6 +1311,7 @@ async def cadastrar_aluno(
     dados = {
         "nome": nome,
         "nome_normalizado": nome_normalizado,
+        "email": email_normalizado,  
         "nome_mae": nome_mae,
         "nome_pai": nome_pai,
         "senha": senha,
@@ -1102,93 +1331,46 @@ async def cadastrar_aluno(
         "paga_passado": paga_passado
     }
 
-    # ✅ Só adiciona localização se existir
     if latitude or longitude:
         dados["localizacao"] = {
             "latitude": latitude,
             "longitude": longitude
         }
 
-    # 💾 Salva aluno
     alunos_ref.document(aluno_id).set(dados)
 
-    # 🔄 Atualiza alunos antigos sem paga_passado
+    # 🔁 garantir consistência de dados antigos
     for aluno in alunos_ref.stream():
-        dados_aluno = aluno.to_dict()
+        dados_aluno = aluno.to_dict() or {}
+
         if "paga_passado" not in dados_aluno:
             paga_passado_antigo = []
+
             vinculo_query = db.collection("alunos_professor") \
                 .where("aluno", "==", dados_aluno.get("nome", "").strip().lower()) \
                 .limit(1).stream()
+
             vinculo_doc = next(vinculo_query, None)
+
             if vinculo_doc:
                 paga_passado_antigo = vinculo_doc.to_dict().get("paga_passado", [])
+
             alunos_ref.document(aluno.id).update({
                 "paga_passado": paga_passado_antigo
             })
 
     return RedirectResponse(
         url="/login?sucesso=1",
-        status_code=HTTP_303_SEE_OTHER
+        status_code=303
     )
-
-
-@app.get("/login", response_class=HTMLResponse)
-async def exibir_login(request: Request, sucesso: int = 0):
-    return templates.TemplateResponse("login.html", {
-        "request": request,
-        "sucesso": sucesso,
-        "erro": None
-    })
-
-@app.post("/login")
-async def login(request: Request, nome: str = Form(...), senha: str = Form(...)):
-    alunos_ref = db.collection("alunos")
-
-    # 🔎 Normaliza os valores digitados
-    nome_digitado = nome.strip().lower()
-    senha_digitada = senha.strip().lower()
-
-    # 🔍 Busca todos os alunos
-    alunos = alunos_ref.stream()
-
-    for aluno in alunos:
-        dados = aluno.to_dict()
-        nome_banco = dados.get("nome", "").strip().lower()
-        senha_banco = dados.get("senha", "").strip().lower()
-
-        if nome_banco == nome_digitado and senha_banco == senha_digitada:
-            # 🔐 SALVA DADOS NA SESSÃO
-            request.session["aluno_logado"] = True
-            request.session["aluno_nome"] = nome_banco
-
-            # 🟢 Marca aluno como online
-            aluno.reference.update({
-                "online": True
-            })
-
-            return RedirectResponse(
-                url=f"/perfil/{dados.get('nome')}",
-                status_code=HTTP_303_SEE_OTHER
-            )
-
-    # ❌ Login inválido
-    return templates.TemplateResponse(
-        "login.html",
-        {
-            "request": request,
-            "erro": "Nome de usuário ou senha inválidos",
-            "sucesso": 0
-        }
-    )
-
+    
+        
 @app.get("/perfil/{nome}", response_class=HTMLResponse)
 async def profil(request: Request, nome: str):
     try:
         nome_normalizado = nome.strip().lower()
         print(f"🔍 Buscando dados do aluno: {nome_normalizado}")
 
-        # Buscar aluno na coleção "alunos" pelo nome_normalizado
         query = db.collection("alunos") \
             .where("nome_normalizado", "==", nome_normalizado) \
             .limit(1) \
@@ -1200,7 +1382,7 @@ async def profil(request: Request, nome: str):
         for doc in query:
             dados = doc.to_dict()
             aluno = {
-                "nome": dados.get("nome", nome),  # nome real do aluno
+                "nome": dados.get("nome", nome),
                 "bilhete": dados.get("bilhete", "Não informado"),
                 "nivel_ingles": dados.get("nivel_ingles", "N/A"),
                 "telefone": dados.get("telefone", "N/A"),
@@ -1210,20 +1392,17 @@ async def profil(request: Request, nome: str):
             break
 
         if not aluno or not doc_id:
-            return RedirectResponse(url="/login", status_code=HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/login", status_code=303)
 
-        # Atualizar status online
         db.collection("alunos").document(doc_id).update({
             "online": True,
             "ultimo_ping": datetime.utcnow().isoformat()
         })
 
-
         total_gasto = 0
         aulas_dadas = 0
         vinculo_id = None
 
-        # 1) Buscar o vínculo em alunos_professor pelo nome_normalizado
         alunos_prof_ref = db.collection("alunos_professor") \
             .where("aluno", "==", nome_normalizado) \
             .limit(1) \
@@ -1238,10 +1417,11 @@ async def profil(request: Request, nome: str):
             vinculo_id = vinculo_doc.id
             break
 
-        # 2) Buscar valor_total em comprovativos_pagamento/{nome_com_underscore}
         valor_total = 0
         doc_id_comprovativo = nome_normalizado.replace(" ", "_")
+
         comp_doc = db.collection("comprovativos_pagamento").document(doc_id_comprovativo).get()
+
         if comp_doc.exists:
             comp_data = comp_doc.to_dict() or {}
             mensalidade = comp_data.get("mensalidade") or {}
@@ -1255,29 +1435,34 @@ async def profil(request: Request, nome: str):
                 except Exception:
                     valor_total = 0
 
-        # 3) Calcular saldo
         total_gasto = valor_total - (aulas_dadas * 1250)
+
         if total_gasto < 0:
             total_gasto = 0
 
-        # 4) Atualizar campo auxiliar no vínculo (se existir)
         if vinculo_id:
             db.collection("alunos_professor").document(vinculo_id).update({
                 "valor_mensal_aluno": total_gasto
             })
 
-
-        return templates.TemplateResponse("perfil.html", {
-            "request": request,
-            "aluno": aluno,
-            "total_gasto": total_gasto
-        })
+        # ✅ AQUI ESTÁ A CORREÇÃO
+        return render_template(
+            "perfil.html",
+            {
+                "request": request,
+                "aluno": aluno,
+                "total_gasto": total_gasto
+            }
+        )
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return HTMLResponse(content=f"Erro ao carregar perfil: {str(e)}", status_code=500)
-
+        return HTMLResponse(
+            content=f"Erro ao carregar perfil: {str(e)}",
+            status_code=500
+        )
+        
         
 from slugify import slugify
 
@@ -1328,7 +1513,6 @@ async def get_sala_virtual_professor(
         email = email.strip().lower()
         aluno_normalizado = aluno.strip().lower() if aluno else None
 
-        # 🔍 Busca o documento do professor
         doc_ref = db.collection("professores_online2").document(email)
         doc = doc_ref.get()
 
@@ -1337,17 +1521,17 @@ async def get_sala_virtual_professor(
 
         professor = doc.to_dict()
 
-        # 🧪 Valida vínculo com o aluno, se fornecido
         if aluno:
-            # Buscar todos os documentos do professor na coleção alunos_professor
             docs = db.collection('alunos_professor') \
                 .where('professor', '==', email).stream()
 
             vinculo_encontrado = False
+
             for d in docs:
                 data = d.to_dict()
                 dados_aluno = data.get("dados_aluno", {})
                 nome_no_banco = dados_aluno.get("nome", "").strip().lower()
+
                 if nome_no_banco == aluno_normalizado:
                     vinculo_encontrado = True
                     break
@@ -1358,22 +1542,28 @@ async def get_sala_virtual_professor(
                     status_code=403
                 )
 
-        # 🔑 Gera ID da sala
         def slug(texto):
             return slugify(texto)
 
         sala_id = f"{slug(email)}-{slug(aluno_normalizado)}" if aluno else slug(email)
 
-        return templates.TemplateResponse("sala_virtual_professor.html", {
-            "request": request,
-            "email": email,
-            "aluno": aluno,
-            "professor": professor,
-            "sala_id": sala_id
-        })
+        return render_template(
+            "sala_virtual_professor.html",
+            {
+                "request": request,
+                "email": email,
+                "aluno": aluno,
+                "professor": professor,
+                "sala_id": sala_id
+            }
+        )
 
     except Exception as e:
-        return HTMLResponse(f"<h2 style='color:red'>Erro ao abrir sala do professor: {str(e)}</h2>", status_code=500)
+        return HTMLResponse(
+            f"<h2 style='color:red'>Erro ao abrir sala do professor: {str(e)}</h2>",
+            status_code=500
+        )
+        
 
 @app.get("/sala_virtual_aluno", response_class=HTMLResponse)
 async def get_sala_virtual_aluno(
@@ -1387,22 +1577,22 @@ async def get_sala_virtual_aluno(
     email_normalizado = email.strip().lower()
     aluno_normalizado = aluno.strip().lower()
 
-    # Verifica se o aluno está vinculado ao professor
     aluno_data = vinculo_existe(email_normalizado, aluno_normalizado)
     if not aluno_data:
         return HTMLResponse("<h2 style='color:red'>Aluno não encontrado ou não vinculado ao professor.</h2>", status_code=403)
 
-    # Verifica se o professor existe
     professor = buscar_professor_por_email(email_normalizado)
     if not professor:
         return HTMLResponse("<h2 style='color:red'>Professor não encontrado.</h2>", status_code=404)
 
-    return templates.TemplateResponse("sala_virtual_aluno.html", {
-        "request": request,
-        "aluno": aluno.strip(),  
-        "professor": email_normalizado
-    })
-
+    return render_template(
+        "sala_virtual_aluno.html",
+        {
+            "request": request,
+            "aluno": aluno.strip(),
+            "professor": email_normalizado
+        }
+    )
 
 import logging
 
@@ -1634,9 +1824,14 @@ async def upload_comprovativo(
 @app.get("/enviar_comprovativo", response_class=HTMLResponse)
 async def enviar_comprovativo(request: Request, aluno_nome: str):
     aluno_normalizado = aluno_nome.strip().lower()
-    return templates.TemplateResponse(
+
+    return render_template(
         "enviar_comprovativo.html",
-        {"request": request, "aluno_nome": aluno_nome, "aluno_normalizado": aluno_normalizado}
+        {
+            "request": request,
+            "aluno_nome": aluno_nome,
+            "aluno_normalizado": aluno_normalizado
+        }
     )
 
 
@@ -1896,25 +2091,20 @@ async def post_cadastro(
     bairro: str = Form(...),
     residencia: str = Form(...),
     ponto_referencia: str = Form(...),
-    localizacao: str = Form(...),
     telefone: str = Form(...),
     telefone_alternativo: str = Form(None),
     email: str = Form(...),
     nivel_ensino: str = Form(...),
     ano_faculdade: str = Form(None),
     area_formacao: str = Form(...),
-    senha: str = Form(...)
+    senha: str = Form(...),
 ):
     try:
-        # ============================
-        # VALIDAR EMAIL
-        # ============================
-        if not email or email.strip() == "":
-            raise Exception("Email inválido")
+        email = email.strip().lower()
 
-        # ============================
-        # DADOS DO PROFESSOR
-        # ============================
+        if not email:
+            raise ValueError("Email inválido")
+
         dados = {
             "nome_completo": nome_completo,
             "nome_mae": nome_mae,
@@ -1925,7 +2115,6 @@ async def post_cadastro(
             "bairro": bairro,
             "residencia": residencia,
             "ponto_referencia": ponto_referencia,
-            "localizacao": localizacao,
             "telefone": telefone,
             "telefone_alternativo": telefone_alternativo,
             "email": email,
@@ -1934,47 +2123,44 @@ async def post_cadastro(
             "area_formacao": area_formacao,
             "senha": senha,
             "online": True,
-            "foto_perfil": "perfil.png"
+            "foto_perfil": "perfil.png",
         }
 
-        # ============================
-        # SALVAR NAS DUAS COLEÇÕES
-        # ============================
+        # grava
         db.collection("professores_online").add(dados)
         db.collection("professores_online2").document(email).set(dados)
 
-        # ============================
-        # FORÇAR FOTO EM PROFESSORES ANTIGOS
-        # ============================
-        try:
-            for doc in db.collection("professores_online").stream():
-                if "foto_perfil" not in doc.to_dict():
-                    db.collection("professores_online").document(doc.id).update({
-                        "foto_perfil": "perfil.png"
-                    })
-        except:
-            pass
-
-        # ============================
-        # RETORNO COM REDIRECIONAMENTO
-        # ============================
-        return templates.TemplateResponse("sucesso.html", {
-            "request": request,
-            "mensagem": "Professor cadastrado com sucesso!",
-            "redirect_url": "/login_prof"   # envia a rota para o HTML
-        })
+        return templates.TemplateResponse(
+            "sucesso.html",
+            {
+                "request": request,
+                "success": True,
+                "mensagem": "Professor cadastrado com sucesso!",
+                "redirect_url": "/login_prof",
+            },
+        )
 
     except Exception as e:
-        print("❌ ERRO:", e)
-        return templates.TemplateResponse("erro.html", {
-            "request": request,
-            "mensagem": f"Erro ao cadastrar professor: {str(e)}"
-        })
+        print("❌ ERRO AO CADASTRAR PROFESSOR:", e)
 
-
+        return templates.TemplateResponse(
+            "erro.html",
+            {
+                "request": request,
+                "success": False,
+                "mensagem": f"Erro ao cadastrar professor: {str(e)}",
+            },
+        )
+        
 @app.get("/login_prof", response_class=HTMLResponse)
 async def login_prof_get(request: Request):
-    return templates.TemplateResponse("login_prof.html", {"request": request, "erro": None})
+    return render_template(
+        "login_prof.html",
+        {
+            "request": request,
+            "erro": None
+        }
+    )
 
 
 @app.post("/login_prof", response_class=HTMLResponse)
@@ -1983,52 +2169,73 @@ async def login_prof_post(
     nome_completo: str = Form(...),
     senha: str = Form(...)
 ):
-    professores_ref = db.collection("professores_online").where("nome_completo", "==", nome_completo).stream()
+    professores_ref = db.collection("professores_online") \
+        .where("nome_completo", "==", nome_completo) \
+        .stream()
 
     for prof in professores_ref:
         dados = prof.to_dict()
+
         if dados.get("senha") == senha:
             email = dados.get("email")
 
-            # Atualiza o campo 'online' para True
+            # 🟢 Atualiza status online
             db.collection("professores_online").document(prof.id).update({
                 "online": True
             })
 
-            return RedirectResponse(url=f"/perfil_prof?email={email}", status_code=303)
+            return RedirectResponse(
+                url=f"/perfil_prof?email={email}",
+                status_code=303
+            )
 
-    # ❌ Se não encontrou ou senha incorreta
-    return templates.TemplateResponse("login_prof.html", {
-        "request": request,
-        "erro": "Nome completo ou senha incorretos."
-    })
+    # ❌ Login inválido
+    return render_template(
+        "login_prof.html",
+        {
+            "request": request,
+            "erro": "Nome completo ou senha incorretos."
+        }
+    )
+    
 
 @app.post("/dados_professor", response_class=HTMLResponse)
 async def dados_professor(request: Request, email: str = Form(...)):
     try:
         email = email.strip().lower()
-        prof_query = db.collection("professores_online").where("email", "==", email).limit(1).stream()
+
+        prof_query = db.collection("professores_online") \
+            .where("email", "==", email) \
+            .limit(1) \
+            .stream()
+
         for prof_doc in prof_query:
             dados = prof_doc.to_dict()
 
-            # Pegar salários se já estiverem salvos
             salario_info = dados.get("salario", {})
             saldo_atual = salario_info.get("saldo_atual", 0)
             salario_mensal = salario_info.get("mensal_estimado", 0)
 
-            return templates.TemplateResponse("perfil_prof.html", {
-                "request": request,
-                "professor": dados,
-                "saldo_atual": saldo_atual,
-                "salario_mensal": salario_mensal,
-                "total_aulas": 0,  # ou pegue do Firestore se necessário
-                "valor_por_aula": 1250,
-                "total_a_receber": saldo_atual
-            })
+            return render_template(
+                "perfil_prof.html",
+                {
+                    "request": request,
+                    "professor": dados,
+                    "saldo_atual": saldo_atual,
+                    "salario_mensal": salario_mensal,
+                    "total_aulas": 0,
+                    "valor_por_aula": 1250,
+                    "total_a_receber": saldo_atual
+                }
+            )
 
         return HTMLResponse(content="Professor não encontrado.", status_code=404)
+
     except Exception as e:
-        return HTMLResponse(content=f"Erro interno: {str(e)}", status_code=500)
+        return HTMLResponse(
+            content=f"Erro interno: {str(e)}",
+            status_code=500
+        )
 
 
 @app.post("/logout_prof", response_class=HTMLResponse)
@@ -2039,9 +2246,9 @@ async def logout_prof(request: Request, email: str = Form(...)):
         db.collection("professores_online").document(prof.id).update({
             "online": False
         })
-        break  # só precisa atualizar um documento
+        break
 
-    return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/meus-dados")
 async def meus_dados(email: str = Query(...)):
@@ -2055,7 +2262,6 @@ async def meus_dados(email: str = Query(...)):
 
 @app.get("/aulas-dia")
 async def aulas_dadas_no_dia(email: str = Query(...)):
-    # Em produção, puxar do Firebase a agenda desse professor
     return {
         "professor": email,
         "data": "2025-06-08",
@@ -2667,25 +2873,31 @@ async def listar_alunos():
 
 @app.get("/listar-professores-online")
 async def listar_professores_online():
+    try:
+        professores = db.collection("professores_online").stream()
+        lista = []
 
-    professores = db.collection("professores_online").stream()
-    lista = []
+        for prof in professores:
+            dados = prof.to_dict() or {}
 
-    for prof in professores:
-        dados = prof.to_dict()
+            telefone = dados.get("telefone") or dados.get("telefone_alternativo")
 
-        telefone = dados.get("telefone") or dados.get("telefone_alternativo")
+            lista.append({
+                "email": dados.get("email", ""),
+                "nome": dados.get("nome_completo", ""),
+                "telefone": telefone,
+                "online": bool(dados.get("online", False)),
+                "foto_perfil": dados.get("foto_perfil", "perfil.png")
+            })
 
-        lista.append({
-            "email": dados.get("email", ""),
-            "nome": dados.get("nome_completo", ""),
-            "telefone": telefone,
-            "online": dados.get("online", False),
-            "foto_perfil": dados.get("foto_perfil", "perfil.png")
-        })
+        return lista
 
-    return lista
-
+    except Exception as e:
+        print("ERRO listar professores online:", e)
+        return {
+            "erro": "Erro ao buscar professores online",
+            "detalhes": str(e)
+        }
 
 
 @app.get("/listar-chamadas")
@@ -3783,7 +3995,6 @@ async def salarios(request: Request):
 
         email = email.strip().lower()
 
-        # Função para tratar valores "Undefined" e None
         def safe_value(val, default=""):
             if str(type(val)).endswith("Undefined'>"):
                 return default
@@ -3791,7 +4002,6 @@ async def salarios(request: Request):
                 return default
             return val
 
-        # Buscar no Firestore apenas o professor com o email informado
         prof_ref = db.collection("professores_online").where(
             filter=FieldFilter("email", "==", email)
         ).limit(1).stream()
@@ -3802,39 +4012,42 @@ async def salarios(request: Request):
 
         for doc in prof_ref:
             professor = doc.to_dict() or {}
-            nome_professor = safe_value(professor.get("nome_completo") or professor.get("nome"), "")
+            nome_professor = safe_value(
+                professor.get("nome_completo") or professor.get("nome"), ""
+            )
 
-            # Saldo atual
             salario_info = safe_value(professor.get("salario"), {}) or {}
             saldo_atual = int(safe_value(salario_info.get("saldo_atual"), 0))
 
-            # Pagamentos
             pagamentos_info = professor.get("pagamentos", {}) or {}
+
             if isinstance(pagamentos_info, dict):
                 for mes, pagamento in pagamentos_info.items():
                     if not isinstance(pagamento, dict):
                         pagamento = {}
+
                     pagamentos_list.append({
                         "mes": str(mes or ""),
                         "data_pagamento": str(pagamento.get("data_pagamento") or ""),
                         "valor_pago": float(pagamento.get("valor_pago") or 0),
                         "email_professor": str(pagamento.get("email_professor") or "")
                     })
-            break  # só deve haver 1 professor
+            break
 
-        # Renderiza o template passando saldo e histórico de pagamentos
-        return templates.TemplateResponse("salarios.html", {
-            "request": request,
-            "nome": nome_professor,
-            "saldo_atual": saldo_atual,
-            "pagamentos": pagamentos_list
-        })
+        return render_template(
+            "salarios.html",
+            {
+                "request": request,
+                "nome": nome_professor,
+                "saldo_atual": saldo_atual,
+                "pagamentos": pagamentos_list
+            }
+        )
 
     except Exception as e:
         print(f"❌ Erro ao carregar página de salário: {e}")
         return HTMLResponse(content=f"Erro: {str(e)}", status_code=500)
-
-
+        
 @app.get("/pagamentos", response_class=HTMLResponse)
 async def pagamentos(request: Request):
     campos_obrigatorios = {
@@ -3844,15 +4057,12 @@ async def pagamentos(request: Request):
         "valor_mensal": 0,
     }
 
-    # Campos de mensalidades de alunos (12 meses)
     for i in range(1, 13):
         campos_obrigatorios[f"mensalidade{i}"] = False
 
-    # Campos de mensalidades de professores (12 meses)
     for i in range(1, 13):
         campos_obrigatorios[f"mensapro{i}"] = False
 
-    # Atualizar todos os documentos na coleção
     alunos_ref = db.collection("alunos_professor").stream()
 
     for doc in alunos_ref:
@@ -3868,7 +4078,12 @@ async def pagamentos(request: Request):
         if atualizado:
             db.collection("alunos_professor").document(doc.id).update(novos_dados)
 
-    return templates.TemplateResponse("pagamentos.html", {"request": request})
+    return render_template(
+        "pagamentos.html",
+        {
+            "request": request
+        }
+    )
     
 
 ANGOLA_TZ = pytz.timezone("Africa/Luanda")
@@ -4704,12 +4919,7 @@ async def registrar_aula(data: dict = Body(...)):
         if not professor or not aluno:
             raise HTTPException(status_code=400, detail="Dados incompletos")
 
-        # 🔹 Quando for chamada via /buscar-id-professor,
-        # inicia o cronômetro de 60 minutos antes de registrar.
-        print(f"⏳ Cronômetro iniciado para {aluno} - Professor: {professor} (60 minutos)")
-        await asyncio.sleep(60 * 60)  # Espera 60 minutos (3600 segundos)
-
-        print(f"🕒 Tempo concluído. Registrando aula de {aluno} com {professor}...")
+        print(f"📘 Registrando aula de {aluno} com {professor}...")
 
         # 🔹 Busca vínculo aluno-professor
         query = db.collection("alunos_professor") \
@@ -4723,10 +4933,11 @@ async def registrar_aula(data: dict = Body(...)):
 
         doc_ref = db.collection("alunos_professor").document(doc.id)
         doc_data = doc.to_dict()
+
         aulas_anteriores = doc_data.get("aulas_dadas", 0)
         lista_aulas = doc_data.get("aulas", [])
-        aulas_passadas = doc_data.get("aulas_passadas", [])  
-        valor_passado = doc_data.get("valor_passado", [])    
+        aulas_passadas = doc_data.get("aulas_passadas", [])
+        valor_passado = doc_data.get("valor_passado", [])
 
         agora = datetime.now()
         nova_aula = {
@@ -4734,9 +4945,8 @@ async def registrar_aula(data: dict = Body(...)):
             "horario": agora.strftime("%H:%M")
         }
 
-        # Incrementa a aula
         novo_total = aulas_anteriores + 1
-        valor_mensal = novo_total * 1250  # 💰 cálculo do valor acumulado
+        valor_mensal = novo_total * 1250
 
         update_data = {
             "aulas_dadas": novo_total,
@@ -4744,10 +4954,6 @@ async def registrar_aula(data: dict = Body(...)):
             "valor_mensal": valor_mensal
         }
 
-        registro_passado = None
-        registro_valor = None
-
-        # 🔹 Quando completar 12 aulas -> transferir e zerar ciclo
         if novo_total >= 12:
             registro_passado = {
                 "data_transferencia": agora.strftime("%Y-%m-%d %H:%M"),
@@ -4765,19 +4971,17 @@ async def registrar_aula(data: dict = Body(...)):
             aulas_passadas.append(registro_passado)
             valor_passado.append(registro_valor)
 
-            # Resetar contadores
             update_data["aulas_dadas"] = 0
             update_data["valor_mensal"] = 0
             update_data["aulas_passadas"] = aulas_passadas
             update_data["valor_passado"] = valor_passado
 
-        # 🔹 Atualiza documento aluno-professor
         doc_ref.update(update_data)
 
-        # 🔹 Atualiza saldo_atual do professor na coleção "professores_online"
-        prof_ref = db.collection("professores_online").where(
-            filter=FieldFilter("email", "==", professor)
-        ).limit(1).stream()
+        # 🔹 Atualiza saldo do professor
+        prof_ref = db.collection("professores_online") \
+                     .where(filter=FieldFilter("email", "==", professor)) \
+                     .limit(1).stream()
 
         prof_doc = next(prof_ref, None)
         if prof_doc:
@@ -4785,23 +4989,22 @@ async def registrar_aula(data: dict = Body(...)):
             prof_data = prof_doc.to_dict() or {}
             salario_info = prof_data.get("salario", {})
 
-            saldo_atual = int(salario_info.get("saldo_atual", 0)) + (valor_mensal if novo_total < 12 else 0)
-            if novo_total >= 12:
-                saldo_atual = int(salario_info.get("saldo_atual", 0)) + registro_valor["valor_pago"]
+            saldo_atual = int(salario_info.get("saldo_atual", 0)) + valor_mensal
 
             prof_doc_ref.update({
                 "salario.saldo_atual": saldo_atual
             })
 
-        print(f"✅ Aula de {aluno} registrada automaticamente após 60 minutos.")
+        print(f"✅ Aula registrada com sucesso.")
         return {
-            "mensagem": f"Aula registrada automaticamente após 60 minutos. Total atual: {update_data['aulas_dadas']}",
+            "mensagem": "Aula registrada com sucesso.",
             "nova_aula": nova_aula,
         }
 
     except Exception as e:
         print("Erro ao registrar aula:", e)
         raise HTTPException(status_code=500, detail="Erro ao registrar aula")
+
 
 @app.get("/ajustar-professores-foto")
 async def ajustar_professores_foto():
@@ -4817,14 +5020,6 @@ async def ajustar_professores_foto():
             count += 1
 
     return {"status": "ok", "atualizados": count}
-
-
-
-
-@app.get("/paginavendas", response_class=HTMLResponse)
-async def paginavendas(request: Request):
-    return templates.TemplateResponse("paginavendas.html", {"request": request})
-
 
 @app.get("/sucesso", response_class=HTMLResponse)
 async def pagina_sucesso(request: Request, mensagem: str = "Operação concluída com sucesso!"):
@@ -5135,3 +5330,183 @@ async def remover_aluno(payload: dict = Body(...)):
         "success": True,
         "message": "Aluno removido com sucesso"
     }
+    
+@app.get("/paginavendas", response_class=HTMLResponse)
+async def pagina_vendas(request: Request):
+    return render_template(
+        "paginavendas.html",
+        {
+            "request": request
+        }
+    )
+
+@app.get("/recuperar-senha", response_class=HTMLResponse)
+async def recuperar_senha_get(request: Request, success: int = 0):
+    try:
+        return render_template(
+            "recuperar-senha.html",
+            {
+                "request": request,
+                "erro": None,
+                "success": success
+            }
+        )
+
+    except Exception as e:
+        print("ERRO AO CARREGAR RECUPERAÇÃO DE SENHA:", e)
+
+        return HTMLResponse(
+            content=f"<h1>Erro interno</h1><p>{str(e)}</p>",
+            status_code=500
+        )
+
+@app.post("/recuperar-senha")
+async def recuperar_senha_post(
+    request: Request,
+    email: str = Form(...)
+):
+    try:
+        alunos_ref = db.collection("alunos")
+
+        email_digitado = email.strip().lower()
+
+        alunos = alunos_ref.stream()
+
+        for aluno in alunos:
+            dados = aluno.to_dict() or {}
+
+            email_banco = str(dados.get("email", "")).strip().lower()
+
+            if email_banco == email_digitado:
+
+                # 🔐 token simples (mesmo padrão do teu login)
+                token = aluno.id
+
+                try:
+                    aluno.reference.update({
+                        "reset_token": token
+                    })
+                except Exception as e:
+                    print("Firebase erro:", e)
+
+                print(f"LINK DE RESET: /resetar-senha?token={token}")
+
+                return render_template(
+                    "recuperar-senha.html",
+                    {
+                        "request": request,
+                        "success": 1,
+                        "erro": None
+                    }
+                )
+
+        # ❌ Email não encontrado
+        return render_template(
+            "recuperar-senha.html",
+            {
+                "request": request,
+                "erro": "Email não encontrado",
+                "success": 0
+            }
+        )
+
+    except Exception as e:
+        print("ERRO RECUPERAR SENHA:", e)
+
+        return render_template(
+            "recuperar-senha.html",
+            {
+                "request": request,
+                "erro": "Erro interno no servidor",
+                "success": 0
+            }
+        )
+
+@app.get("/resetar-senha", response_class=HTMLResponse)
+async def resetar_senha_get(request: Request, token: str = None):
+    try:
+        if not token:
+            return render_template(
+                "login.html",
+                {
+                    "request": request,
+                    "erro": "Link inválido ou expirado",
+                    "sucesso": 0
+                }
+            )
+
+        return render_template(
+            "resetar-senha.html",
+            {
+                "request": request,
+                "token": token,
+                "erro": None,
+                "sucesso": 0
+            }
+        )
+
+    except Exception as e:
+        print("ERRO RESET SENHA:", e)
+
+        return HTMLResponse(
+            content=f"<h1>Erro interno</h1><p>{str(e)}</p>",
+            status_code=500
+        )
+
+@app.post("/resetar-senha")
+async def resetar_senha_post(
+    request: Request,
+    token: str = Form(...),
+    nova_senha: str = Form(...)
+):
+    try:
+        alunos_ref = db.collection("alunos")
+
+        nova_senha = nova_senha.strip()
+
+        alunos = alunos_ref.stream()
+
+        for aluno in alunos:
+            dados = aluno.to_dict() or {}
+
+            if dados.get("reset_token") == token:
+
+                try:
+                    aluno.reference.update({
+                        "senha": nova_senha,
+                        "reset_token": None
+                    })
+                except Exception as e:
+                    print("Firebase erro:", e)
+
+                return render_template(
+                    "login.html",
+                    {
+                        "request": request,
+                        "sucesso": 1,
+                        "erro": None
+                    }
+                )
+
+        return render_template(
+            "resetar-senha.html",
+            {
+                "request": request,
+                "token": token,
+                "erro": "Token inválido ou expirado",
+                "sucesso": 0
+            }
+        )
+
+    except Exception as e:
+        print("ERRO AO RESETAR SENHA:", e)
+
+        return render_template(
+            "resetar-senha.html",
+            {
+                "request": request,
+                "token": token,
+                "erro": "Erro interno no servidor",
+                "sucesso": 0
+            }
+        )
